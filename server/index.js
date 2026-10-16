@@ -3929,7 +3929,7 @@ app.post("/api/collection/open-pack", async (req, res) => {
 });
 
 async function deckPurchaseCapability() {
-  const authority = { gold: goldEconomy?.enabled ? "finite-gold-ledger" : "account", timetwisters: "account" };
+  const authority = { gold: goldEconomy?.enabled ? "finite-gold-ledger" : "account", timetwisters: "account", gems: goldEconomy?.status().gemsEnabled ? "finite-gold-ledger" : "disabled" };
   if (!useSupabaseStore()) return { ready: true, storage: "atomic-account-file", authority };
   try {
     const version = await supabaseRequest("rpc/gauntlet_account_write_capability", { method: "POST", body: "{}" });
@@ -3972,7 +3972,7 @@ async function purchaseDeckProduct(accountId, input) {
     if (!account) throw Object.assign(new Error("Account unavailable."), { status: 401 });
     const adapters = { normalizeCollection, normalizeProgression, saveDeck: saveConstructedDeckToLibrary };
     const prior = account.stats?.economy?.purchaseReceipts?.[`deck:${input?.requestId}`];
-    if (goldEconomy?.enabled && input?.currency === "gold" && (!prior || prior.ledgerPurchaseId)) {
+    if (goldEconomy?.enabled && ["gold", "gems"].includes(input?.currency) && (!prior || prior.ledgerPurchaseId)) {
       const result = goldEconomy.purchaseDeck(account, input, contentPublication.active(), adapters);
       return { account: publicAccount(account), receipt: result.receipt, alreadyPurchased: !!prior };
     }
@@ -4905,9 +4905,9 @@ require("./adminWorkshopData").registerAdminWorkshopRoutes(app, { publication: c
 const { createParaRuntime, registerParaRoutes } = require("./paraRuntime");
 paraRuntime = createParaRuntime({ filename: runtimeStorage.paths.para, publication: contentPublication });
 registerParaRoutes(app, paraRuntime, requireAccountRecord);
-goldEconomy = require("./goldEconomy").createGoldEconomy({ legacyGoldImport: process.env.GAUNTLET_GOLD_MIGRATION === "legacy-opening-v1", filename: runtimeStorage.paths.economy, publication: contentPublication });
+goldEconomy = require("./goldEconomy").createGoldEconomy({ legacyGoldImport: process.env.GAUNTLET_GOLD_MIGRATION === "legacy-opening-v1", gemsEnabled: process.env.GAUNTLET_GEMS_ENABLED === "true", filename: runtimeStorage.paths.economy, publication: contentPublication });
 require("./economyRoutes").registerEconomyRoutes(app, goldEconomy, { requireAccount: requireAccountRecord, records: listMatchRecordsByAccount, findRecord: findMatchRecordById,
-  listAccounts: loadStudioAccounts, refundDeck: refundDeckProduct, equip: equipCosmetic,
+  listAccounts: loadStudioAccounts, refundDeck: refundDeckProduct, equip: equipCosmetic, accountView: publicAccount,
   findAccount: async (id) => useSupabaseStore() ? findSupabaseAccountById(id) : loadAccountStore().accounts.find((a) => a.id === id) });
 const paraQueue = new Map();
 function removeFromParaQueue(socketId) { for (const [id, entry] of paraQueue) if (entry.socketId === socketId) paraQueue.delete(id); }

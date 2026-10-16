@@ -9,7 +9,7 @@ const fields = {
   templateId: { label: "Deck recipe", type: "deck-reference", mechanical: true },
   deckBoxId: { label: "Deck box", type: "choice", options: BOXES },
   cardBackId: { label: "Card back", type: "choice", options: BACKS },
-  prices: { label: "Prices", type: "offer-prices" },
+  prices: { label: "Prices", type: "offer-prices", currencies: [["gold", "Gold"], ["timetwisters", "Timetwisters"], ["gems", "Gems"]] },
   sale: { label: "Sale terms", type: "offer-sale", defaultValue: { startsAt: null, endsAt: null, purchaseLimit: null } },
   status: { label: "Store availability", type: "choice", options: ["unavailable", "available", "archived"] }
 };
@@ -18,7 +18,7 @@ function create(snapshot, input) {
   if (input.sourceId && !source) throw Object.assign(new Error("The offer to duplicate is unavailable."), { status: 422 });
   const templateId = input.templateId || source?.templateId;
   const row = { id: `auth-offer-${crypto.randomUUID()}`, origin: ORIGIN, name: input.name.trim(), description: source?.description || "", templateId,
-    deckBoxId: source?.deckBoxId || "classic", cardBackId: source?.cardBackId || "classic", prices: { gold: null, timetwisters: null }, sale: structuredClone(source?.sale || fields.sale.defaultValue), status: "unavailable" };
+    deckBoxId: source?.deckBoxId || "classic", cardBackId: source?.cardBackId || "classic", prices: { gold: null, timetwisters: null, gems: null }, sale: structuredClone(source?.sale || fields.sale.defaultValue), status: "unavailable" };
   snapshot.domains.offers.push(row); return row;
 }
 function errors(row, snapshot) {
@@ -34,8 +34,8 @@ function errors(row, snapshot) {
   if (row.status === "available" && deck?.status !== "active") add("templateId", "An available product requires a discoverable deck. Disable the offer before archiving the template.");
   if (!BOXES.includes(row.deckBoxId) || !BACKS.includes(row.cardBackId)) add("deckBoxId", "Choose an existing deck box and card back; unsupported cosmetics cannot be fulfilled.");
   if (!fields.status.options.includes(row.status)) add("status", "Choose an explicit store availability.");
-  if (!exact(row.prices, ["gold", "timetwisters"]) || Object.entries(row.prices).some(([currency, value]) => value !== null && (!Number.isSafeInteger(value) || value < 0 || value > (currency === "gold" ? 1000000 : 100000000)))) add("prices", "Use an explicit whole price or disable the currency. Gold supports up to 1,000,000 per transaction; Timetwisters up to 100,000,000. No price is supplied automatically.");
-  else if (row.status === "available" && Object.values(row.prices).every(value => value === null)) add("prices", "Set at least one Gold or Timetwister price before making this product available.");
+  if (!exact(row.prices, ["gold", "timetwisters", ...(row.prices && Object.hasOwn(row.prices, "gems") ? ["gems"] : [])]) || Object.entries(row.prices).some(([currency, value]) => value !== null && (!Number.isSafeInteger(value) || value < 0 || value > (currency === "timetwisters" ? 100000000 : 1000000)))) add("prices", "Use an explicit whole price or disable the currency. Gold/Gems support up to 1,000,000; Timetwisters up to 100,000,000. Gems require a separately enabled ledger. No price is supplied automatically.");
+  else if (row.status === "available" && Object.values(row.prices).every(value => value === null)) add("prices", "Set an explicit supported currency price before making this product available.");
   return result;
 }
 function project(row, templates, releaseId) {

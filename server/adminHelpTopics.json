@@ -18,7 +18,7 @@
   "CompetitionWorkshop2": "Pause prevents new matchmaking. Cancel permanently stops new play; completed matches and promised earned rewards remain. Archive retires entry while existing runs can finish within their original window. These changes take effect after publication.",
   "CompetitionWorkshop3": "Exact player presentation from the saved draft. Times are local; entry remains subject to runtime availability.",
   "DeckCompositionField1": "Blank dates leave the window open. A blank limit is unlimited. Refunded purchases count toward the lifetime limit.",
-  "DeckCompositionField2": "Leave a currency blank to disable it. Zero is a free claim. No default price is assumed.",
+  "DeckCompositionField2": "Leave a currency blank to disable it. Zero is a free claim. Gems require a separately enabled ledger; Timetwisters remain account currency. Prices are alternatives, never a cross-store split.",
   "DeckCompositionField3": "References use the same published release. Opponent assignments require qualified AI effects and no legacy boss additions.",
   "DeckWorkshop1": "Author a reusable composition for players, practice or a compatible encounter. Publishing a recipe grants no cards or cosmetics.",
   "DeckWorkshop2": "This legacy template describes the engine's standard deck or an encounter's existing additions. Duplicate it to create an independent authored composition; the original setup remains in its encounter.",

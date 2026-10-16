@@ -1,6 +1,7 @@
 const test = require("node:test"), assert = require("node:assert/strict"), fs = require("node:fs"), os = require("node:os"), path = require("node:path"), crypto = require("node:crypto");
 const root = fs.mkdtempSync(path.join(os.tmpdir(), "gauntlet-unified-store-"));
 const accounts = ["simply", "Burnt Ramen", "Buyer"].map((name, i) => ({ id: `${String(i + 1).repeat(8)}-${String(i + 1).repeat(4)}-4aaa-8aaa-${String(i + 1).repeat(12)}`, name, createdAt: "2026-01-01T00:00:00.000Z", stats: { economy: { gold: 100, timetwisters: 10 } } }));
+process.env.GAUNTLET_GEMS_ENABLED = "true";
 Object.assign(process.env, { NODE_ENV: "test", GAUNTLET_CONTENT_PROVIDER: "file", GAUNTLET_GOLD_MIGRATION: "legacy-opening-v1", ACCOUNT_DATA_FILE: path.join(root, "accounts.json"), MATCH_DATA_FILE: path.join(root, "matches.json"), GAUNTLET_CONTENT_DATA_DIR: path.join(root, "content"), GAUNTLET_ECONOMY_DATA_DIR: path.join(root, "economy"), ACCOUNT_AUTH_SECRET: "unified-store-isolated-secret", ROOM_STATE_RECOVERY_ENABLED: "false", GAUNTLET_ADMIN_SIMPLY_ACCOUNT_ID: accounts[0].id, GAUNTLET_ADMIN_BURNT_RAMEN_ACCOUNT_ID: accounts[1].id });
 for (const key of ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_SECRET_KEY", "GAUNTLET_PARA_DATA_DIR"]) delete process.env[key];
 fs.writeFileSync(process.env.ACCOUNT_DATA_FILE, JSON.stringify({ accounts }));
@@ -132,4 +133,27 @@ test("sale windows reject unstarted and ended products before preparation can de
     assert.throws(() => require("../deckCommerce").preparePurchase(account, { offerId: "window", revision: "exact", currency: "gold", requestId: crypto.randomUUID() }, { manifest: { deckOffers: [{ id: "window", revision: "exact", status: "available", sale }] } }, {}), /outside its sale window/);
     assert.deepEqual(account, accounts[2]);
   }
+});
+
+test("Gem-priced deck recipes use the same ledger authority and exact revocable printing projection", async () => {
+  const db = new (require("node:sqlite").DatabaseSync)(path.join(process.env.GAUNTLET_ECONOMY_DATA_DIR, "economy.sqlite"));
+  const funding = { id: crypto.randomUUID(), accountId: accounts[2].id, kind: "funding", delta: 20, currency: "gems", paymentId: "isolated-existing-funding", at: new Date().toISOString() };
+  db.prepare("INSERT INTO gold_gem_transactions(id,account_id,kind,delta,body) VALUES(?,?,?,?,?)").run(funding.id, funding.accountId, funding.kind, funding.delta, JSON.stringify(funding)); db.close();
+  const templateId = pub.status().live.domains.decks.find(d => d.name === "Durable recipe").id;
+  const state = await admin("create", { domain: "offers", name: "Gem recipe", templateId }), offerId = state.draft.snapshot.domains.offers.at(-1).id;
+  await patch("offers", offerId, "prices", { gold: null, timetwisters: null, gems: 7 }); await patch("offers", offerId, "status", "available");
+  await admin("preview"); const playtest = (await admin("playtest", { subject: { kind: "deck", id: templateId } })).playtest;
+  await admin("playtest/command", { id: playtest.id, gameRevision: playtest.game.revision, command: { type: "passPriority", player: playtest.game.priority } }); await publish("Gem recipe terms");
+  const offer = pub.active().manifest.deckOffers.find(o => o.id === offerId), input = { offerId, revision: offer.revision, currency: "gems", requestId: crypto.randomUUID() };
+  const before = await me(), file = fs.readFileSync(process.env.ACCOUNT_DATA_FILE);
+  const results = await Promise.all([api("/api/economy/buy-deck-product", input, 2), api("/api/economy/buy-deck-product", input, 2)]);
+  results.forEach(r => assert.equal(r.status, 200, JSON.stringify(r.data)));
+  assert.deepEqual(fs.readFileSync(process.env.ACCOUNT_DATA_FILE), file);
+  const after = await me(); assert.equal(after.economy.gems, 13); assert.equal(after.economy.gold, before.economy.gold); assert.equal(after.economy.timetwisters, before.economy.timetwisters);
+  assert.equal(results[0].data.receipt.currency, "gems"); assert.equal(results[0].data.receipt.price, 7);
+  const pid = offer.template.composition.cards[0].printingId;
+  assert.equal(after.collection.collectorVariants[pid], Number(before.collection.collectorVariants[pid] || 0) + 1);
+  const refunded = await api("/api/admin/economy/operate", { operation: "refund", purchaseId: results[0].data.receipt.ledgerPurchaseId, key: crypto.randomUUID(), reason: "Return exact Gem deck grant" }, 0);
+  assert.equal(refunded.status, 200, JSON.stringify(refunded.data)); assert.equal((await me()).economy.gems, 20);
+  assert.equal((await me()).collection.collectorVariants[pid] || 0, before.collection.collectorVariants[pid] || 0);
 });

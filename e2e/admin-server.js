@@ -20,11 +20,12 @@ Object.assign(process.env, {
 delete process.env.SUPABASE_URL;
 delete process.env.SUPABASE_SERVICE_ROLE_KEY;
 delete process.env.SUPABASE_SECRET_KEY;
+if (process.env.GAUNTLET_GEM_FIXTURE === "true") process.env.GAUNTLET_GEMS_ENABLED = "true";
 const accounts = ["simply", "Burnt Ramen", "Visitor"].map((name, index) => ({
   id: [`aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa`, `bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb`, `cccccccc-cccc-4ccc-8ccc-cccccccccccc`][index],
   name, nameKey: name.toLowerCase(), passwordSalt: "admin-browser-fixture",
   passwordHash: crypto.pbkdf2Sync("test-password", "admin-browser-fixture", 150000, 32, "sha256").toString("hex"),
-  createdAt: "2026-10-02T12:00:00Z", stats: { ...(process.env.GAUNTLET_PURPOSE_FIXTURE ? { economy: { gold: 100, timetwisters: 10 } } : process.env.GAUNTLET_ASSET_FIXTURE_ROOT ? { collection: { gameplayEntitlements: { "rumin-vault-shield-bearer": 1 } } } : {}), progression: { campaign: { rumin: ["brothers-of-destiny"] } } }
+  createdAt: "2026-10-02T12:00:00Z", stats: { ...(process.env.GAUNTLET_PURPOSE_FIXTURE || process.env.GAUNTLET_GEM_FIXTURE === "true" ? { economy: { gold: 100, timetwisters: 10 } } : process.env.GAUNTLET_ASSET_FIXTURE_ROOT ? { collection: { gameplayEntitlements: { "rumin-vault-shield-bearer": 1 } } } : {}), progression: { campaign: { rumin: ["brothers-of-destiny"] } } }
 }));
 // Local Phase 2 fixtures have cleared the source campaign, so a newly authored
 // additional encounter can exercise the ordinary player unlock and start path.
@@ -39,6 +40,16 @@ const record = buildMatchRecord({ roomCode: "ADMIN", matchMetadata: { matchId: "
 record.completion = { status: "finalized", envelopeVersion: "gauntlet.match-completion.v1", finalizedAt: record.completedAt, consequences: [] };
 fs.writeFileSync(process.env.MATCH_DATA_FILE, JSON.stringify({ matches: [record] }));
 const { server, app, __test } = require("../server/index");
+if (process.env.GAUNTLET_GEM_FIXTURE === "true") {
+  // Opening test evidence only, not a payment endpoint or a claim of provider
+  // verification. The adapter suite separately exercises signed funding.
+  const db = new (require("node:sqlite").DatabaseSync)(path.join(process.env.GAUNTLET_ECONOMY_DATA_DIR, "economy.sqlite"));
+  for (const account of accounts) {
+    const row = { id: crypto.randomUUID(), accountId: account.id, kind: "funding", delta: 40, currency: "gems", at: new Date().toISOString(), paymentId: "isolated-browser-opening" };
+    db.prepare("INSERT INTO gold_gem_transactions(id,account_id,kind,delta,body) VALUES(?,?,?,?,?)").run(row.id, row.accountId, row.kind, row.delta, JSON.stringify(row));
+  }
+  db.close();
+}
 fs.writeFileSync(path.join(root, "sessions.json"), JSON.stringify(Object.fromEntries(accounts.map(account => [account.name, __test.issueAccountSession(account).token]))));
 if (process.env.GAUNTLET_ASSET_FIXTURE_ROOT) {
   // Test-only, allowlisted endpoints. The game factory, command, room storage,

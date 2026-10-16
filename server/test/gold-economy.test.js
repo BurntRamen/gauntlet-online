@@ -38,9 +38,9 @@ test("Gold is opt-in; inactive 4,000 seed and missing published config cannot mi
   const f = fixture(t); f.publish((c) => c.awards.forEach((a) => { a.status = "draft"; }));
   assert.equal(f.economy.player(account).balance, 0); assert.throws(() => f.claim(), /draft/);
 });
-test("active definitions validate implemented delivery, rights, windows and Gold-only pricing", () => {
+test("active definitions validate implemented delivery, rights, windows and currency pricing", () => {
   const c = definitions(); assert.equal(para.validateConfig(c).valid, true);
-  for (const mutate of [(c) => { c.entitlements[0].asset = "service:missing"; }, (c) => { c.entitlements[0].rightsReference = ""; }, (c) => { c.entitlements[0].category = "variant-lab"; }, (c) => { c.products[0].startsAt = null; }, (c) => { c.products[0].pricing = "gems"; c.products[0].goldPrice = 0; c.products[0].gemPrice = 100; }, (c) => { c.awards[0].claimLimit = 2; }, (c) => { c.awards[0].amount = 0; }]) { const copy = structuredClone(c); mutate(copy); assert.equal(para.validateConfig(copy).valid, false); }
+  for (const mutate of [(c) => { c.entitlements[0].asset = "service:missing"; }, (c) => { c.entitlements[0].rightsReference = ""; }, (c) => { c.entitlements[0].category = "variant-lab"; }, (c) => { c.products[0].startsAt = null; }, (c) => { c.products[0].pricing = "split"; c.products[0].goldPrice = 0; c.products[0].gemPrice = 100; }, (c) => { c.awards[0].claimLimit = 2; }, (c) => { c.awards[0].amount = 0; }]) { const copy = structuredClone(c); mutate(copy); assert.equal(para.validateConfig(copy).valid, false); }
 });
 test("initial issuance is finite, exactly once, globally unique and pinned to a release", (t) => {
   const f = fixture(t), k = key(), receipt = f.claim("welcome", k);
@@ -209,7 +209,7 @@ test("version 1 ledger upgrades without rewriting its receipts or grants", (t) =
   const f = fixture(t); f.claim(); const purchase = f.buy();
   // A version 1 database predates the separate opening-balance table.
   const legacyFile = path.join(f.dir, "v1.sqlite"); f.economy.backup(legacyFile);
-  const db = new DatabaseSync(legacyFile); db.exec("DROP TABLE gold_openings; PRAGMA user_version=1"); db.close();
+  const db = new DatabaseSync(legacyFile); db.exec("DROP TABLE gold_openings; DROP TABLE gold_gem_transactions; PRAGMA user_version=1"); db.close();
   const upgraded = createGoldEconomy({ ...f.options, filename: legacyFile });
   try {
     assert.equal(upgraded.player(account).balance, 200);

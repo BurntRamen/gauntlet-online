@@ -4,20 +4,22 @@
 const table = (title, columns, rows) => ({ title, columns, rows });
 const field = (name, label, type = "text", extra = {}) => ({ name, label, type, required: true, ...extra });
 const form = (label, action, values = {}, fields = []) => ({ label, action, values, fields });
-const receiptColumns = ["Receipt", "Account", "Product", "Gold", "Release", "Acquired", "Fulfillment"];
-const purchaseRow = (p) => [p.id, p.accountId, p.product.name, p.gold, p.releaseId, p.at, p.fulfillment];
+const pricing = require("./currencyPricing");
+const receiptColumns = ["Receipt", "Account", "Product", "Payment", "Release", "Acquired", "Fulfillment"];
+const purchaseRow = (p) => [p.id, p.accountId, p.product.name, pricing.label(p), p.releaseId, p.at, p.fulfillment];
 const grantColumns = ["Grant", "Account", "Content", "Source purchase", "Acquired", "Expires", "State", "Release"];
 const grantRow = (g) => [g.id, g.accountId, g.term.name, g.purchaseId, g.acquiredAt, g.expiresAt || "Permanent", g.state, g.releaseId];
 const transactions = (rows) => table("Gold transactions", ["Transaction", "Account", "Kind", "Gold", "Season", "Receipt / claim", "At", "Reason"], rows.map((t) => [t.id, t.accountId, t.kind, t.delta, t.seasonId, t.purchaseId || t.claimId, t.at, t.reason]));
+const gemTransactions = rows => table("Gem transactions", ["Transaction", "Account", "Kind", "Gems", "Purchase / payment", "At", "Reason"], (rows || []).map(t => [t.id, t.accountId, t.kind, t.delta, t.purchaseId || t.paymentId, t.at, t.reason]));
 function playerView(data) {
   if (!data.enabled) return { title: "Gold & Library", summary: "Gold & Library is not available yet. Your existing balance and collection are unchanged." };
-  return { title: "Gold & Library", summary: `${data.balance} Gold · Published release ${data.activeReleaseId}. Gold buys optional digital content only. Basic history, replay, Para entry and the legal card pool remain free.`,
+  return { title: "Gold & Library", summary: `${data.balance} Gold · Published release ${data.activeReleaseId}. ${Math.max(0, data.gemBalance || 0)} Gems (${data.gemsEnabled ? "enabled" : "disabled"})${data.gemBalance < 0 ? ` · ${-data.gemBalance} Gems pending reconciliation` : ""}. Currencies buy optional digital content only. Basic history, replay, Para entry and the legal card pool remain free.`,
     tables: [table("Seasonal Gold eligibility", ["Season", "Issued", "Cap", "Remaining", "Pinned release"], data.seasons.map((s) => [s.id, s.issued, s.budget, Math.max(0, s.budget - s.issued), s.releaseId])),
       table("Gold awards", ["Award", "Gold", "Progress", "Claims", "Eligibility", "Release", "Terms"], data.awards.map((a) => [a.name, a.amount, `${a.progress}/${a.minimumOccurrences}`, `${a.claimed}/${a.claimLimit}`, a.reason, a.releaseId, a.currentDefinitionChanged ? "Original terms pinned" : "Current"])),
-      table("Published storefront", ["Product", "Gold", "Status", "Includes"], data.catalog.map((o) => [o.product.name, o.product.goldPrice, o.available ? "Available" : o.reason, o.terms?.map((t) => `${t.name} (${t.duration === "days" ? t.durationDays + " days" : t.duration})`).join("; ") || "Unavailable"])),
-      table("Your library", grantColumns, data.grants.map(grantRow)), table("Purchase receipts", receiptColumns, data.purchases.map(purchaseRow)), transactions(data.transactions)],
+      table("Published storefront", ["Product", "Payment options", "Status", "Includes"], data.catalog.map((o) => [o.product.name, o.paymentOptions?.map(pricing.label).join(" or ") || "Unavailable", o.available ? "Available" : o.reason, o.terms?.map((t) => `${t.name} (${t.duration === "days" ? t.durationDays + " days" : t.duration})`).join("; ") || "Unavailable"])),
+      table("Your library", grantColumns, data.grants.map(grantRow)), table("Purchase receipts", receiptColumns, data.purchases.map(purchaseRow)), transactions(data.transactions), gemTransactions(data.gemTransactions)],
     forms: [...data.awards.filter((a) => a.eligible).map((a) => form(`Claim ${a.name} · ${a.amount} Gold`, "claim", { awardId: a.id })),
-      ...data.catalog.filter((o) => o.available).map((o) => form(`Review ${o.product.name} · ${o.product.goldPrice} Gold`, "quote", { productId: o.product.id })),
+      ...data.catalog.filter((o) => o.available).flatMap((o) => o.paymentOptions.map(payment => form(`Review ${o.product.name} · ${pricing.label(payment)}`, "quote", { productId: o.product.id, currency: payment.currency }))),
       ...data.grants.filter((g) => g.state === "active").map((g) => form(`Open ${g.term.name}`, "access", { entitlementId: g.id })),
       form("Recover older match evidence", "reconcile", {}, [field("matchId", "Canonical match ID")])],
     note: "Evidence recovery scans your latest 100 records. Supply an older canonical match ID to recover a missed award; client results never qualify. Timed renewals extend existing access. Refunds revoke only their own grants; retired products retain ownership." };
@@ -27,9 +29,9 @@ function adminView(data) {
   const names = new Map((data.accountOptions || []).map(a => [a.id, a.name]));
   const accounts = (data.accountOptions || data.accounts).map(a => [a.id, a.name || a.id]);
   const seasons = data.seasonOptions || [...new Map(data.budgets.map(b => [b.seasonId, b.seasonId])).entries()];
-  const purchases = data.purchases.filter(p => !data.refunds.some(r => r.purchaseId === p.id)).map(p => [p.id, `${p.product.name} · ${names.get(p.accountId) || p.accountId} · ${p.gold} Gold · ${p.at}`]);
+  const purchases = data.purchases.filter(p => !data.refunds.some(r => r.purchaseId === p.id)).map(p => [p.id, `${p.product.name} · ${names.get(p.accountId) || p.accountId} · ${pricing.label(p)} · ${p.at}`]);
   return { title: "Economy operations", summary: `Imported ${data.totals.imported || 0} · Issued ${data.totals.issued} · Retired ${data.totals.retired} · Refunds restored ${data.totals.restored} · Outstanding ${data.totals.balance} Gold · Pending ${data.totals.pending}. Delivery is committed with the debit. Active deployed release ${data.activeReleaseId}.`,
-    tables: [table("Player balances", ["Account", "Gold", "Created", "Ledger binding"], data.accounts.map((a) => [a.id, a.balance, a.createdAt, a.boundAt])),
+    tables: [table("Player balances", ["Account", "Gold", "Gems", "Created", "Ledger binding"], data.accounts.map((a) => [a.id, a.balance, a.gems || 0, a.createdAt, a.boundAt])), gemTransactions(data.gemTransactions),
       table("Seasonal issuance budgets", ["Account", "Season", "Issued", "Cap", "Remaining", "Pinned release"], data.budgets.map((b) => [b.accountId, b.seasonId, b.issued, b.budget, b.budget - b.issued, b.releaseId])),
       table("Award claims", ["Receipt", "Account", "Award", "Occurrence", "Gold", "Season", "Release", "Evidence", "At"], data.claims.map((c) => [c.id, c.accountId, c.awardId, c.ordinal, c.amount, c.seasonId, c.releaseId, c.evidence.join(", "), c.at])),
       table("Verified evidence", ["Evidence", "Account", "Condition", "Match / source", "At", "SHA-256"], data.evidence.map((e) => [e.id, e.accountId, e.condition, e.matchId || e.source, e.at, e.sourceHash || e.identityHash])),
@@ -42,8 +44,9 @@ function adminView(data) {
     note: `Claims: ${data.claims.length}. Failures: ${data.audit.filter((a) => a.action.includes("failed")).length}. Search applies across loaded records. Author catalog and price changes in the definition editor, then preview and publish; these operator forms affect accounts immediately and append an audit trail. Credits consume the original season cap; refunds do not reset issuance or purchase limits. Local volume only; this does not verify remote activation.` };
 }
 function quoteView(q) {
-  return { title: `Review ${q.product.name}`, summary: `${q.product.goldPrice} Gold · Quote expires ${q.expiresAt} · Release ${q.releaseId}`,
+  const payment = q.payment || { gold: q.product.goldPrice, gems: 0 };
+  return { title: `Review ${q.product.name}`, summary: `${pricing.label(payment)} · Quote expires ${q.expiresAt} · Release ${q.releaseId}`,
     tables: [table("Purchase terms", ["Content", "Access", "Rights reference"], q.terms.map((t) => [t.name, t.duration === "days" ? `${t.durationDays} days (extends current access)` : t.duration === "season" ? `Until ${t.endsAt}` : "Permanent", t.rightsReference]))],
-    forms: [form(`Confirm purchase · ${q.product.goldPrice} Gold`, "purchase", { quoteId: q.id })], note: "Only this quoted price and these terms can be accepted. A new release requires a new quote." };
+    forms: [form(`Confirm purchase · ${pricing.label(payment)}`, "purchase", { quoteId: q.id })], note: "Only this quoted price and these terms can be accepted. A new release requires a new quote. Split Gold/Gem payments commit both debits and grants together; Timetwisters never participate in a cross-store split." };
 }
 module.exports = { playerView, adminView, quoteView };

@@ -5,9 +5,10 @@ const fail = (status, message) => { throw Object.assign(new Error(message), { st
 
 // Pure preparation on a private copy. The caller commits this entire result or
 // nothing, using the same account store as every other purchase and deck save.
-function preparePurchase(account, input, resolved, { normalizeCollection, normalizeProgression, saveDeck, now = new Date().toISOString() }) {
-  if (!exact(input, ["offerId", "revision", "currency", "requestId"]) || !/^[a-zA-Z0-9-]{16,80}$/.test(input.requestId) || !["gold", "timetwisters"].includes(input.currency)) fail(422, "Choose an offer, exact terms, currency and a valid purchase request ID.");
+function preparePurchase(account, input, resolved, { normalizeCollection, normalizeProgression, saveDeck, ledgerCurrency, now = new Date().toISOString() }) {
+  if (!exact(input, ["offerId", "revision", "currency", "requestId"]) || !/^[a-zA-Z0-9-]{16,80}$/.test(input.requestId) || !["gold", "timetwisters", ...(ledgerCurrency === "gems" ? ["gems"] : [])].includes(input.currency)) fail(422, "Choose an offer, exact terms, currency and a valid purchase request ID.");
   const stats = structuredClone(account.stats || {}), economy = normalizeEconomy(stats, { now });
+  if (input.currency === "gems") economy.gems = stats.economy?.gems ?? 0;
   const receiptKey = `deck:${input.requestId}`, previous = economy.purchaseReceipts[receiptKey];
   if (previous) {
     if (previous.offerId !== input.offerId || previous.revision !== input.revision || previous.currency !== input.currency) fail(409, "This request ID was used with different terms. Inspect the earlier receipt.");
@@ -23,7 +24,7 @@ function preparePurchase(account, input, resolved, { normalizeCollection, normal
   if (!Number.isSafeInteger(price) || price < 0) fail(422, "That currency is not enabled for this product.");
   const recordedBalance = stats.economy?.[input.currency] ?? 0;
   if (!Number.isSafeInteger(recordedBalance) || recordedBalance < 0) fail(503, "The account currency needs operator reconciliation before it can be spent.");
-  if (economy[input.currency] < price) fail(422, `You need ${price} ${input.currency === "gold" ? "Gold" : "Timetwisters"}.`);
+  if (economy[input.currency] < price) fail(422, `You need ${price} ${input.currency[0].toUpperCase() + input.currency.slice(1)}.`);
   const loadout = resolveComposition(offer.template.composition, resolved.manifest, { channel: "constructed" });
   const collection = normalizeCollection(stats);
   for (const card of loadout.cards) collection.collectorVariants[card.variantId] = Number(collection.collectorVariants[card.variantId] || 0) + 1;
@@ -35,7 +36,7 @@ function preparePurchase(account, input, resolved, { normalizeCollection, normal
   stats.progression = progression;
   const { record } = saveDeck(stats, { ...compositionPayload(offer.template), accessMode: "competitive", deckBoxId: offer.deckBoxId, cardBackId: offer.cardBackId }, account.id);
   economy[input.currency] -= price;
-  economy.totals[input.currency === "gold" ? "goldSpent" : "timetwistersSpent"] += price;
+  if (input.currency !== "gems") economy.totals[input.currency === "gold" ? "goldSpent" : "timetwistersSpent"] += price;
   const receipt = { requestId: input.requestId, offerId: offer.id, revision: offer.revision, currency: input.currency, price, purchasedAt: now, releaseId: resolved.releaseId,
     template: structuredClone(offer.template), terms: structuredClone(offer.terms), grant, deckId: record.id, versionId: record.currentVersionId };
   economy.purchaseReceipts[receiptKey] = receipt; stats.economy = economy;

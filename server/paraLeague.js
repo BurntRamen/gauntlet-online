@@ -51,14 +51,14 @@ const FIELDS = {
     ...common, category: choice("Category", CATEGORIES), status: choice("Availability", ["unavailable", "active", "archived"]),
     artwork: { type: "asset", label: "Existing artwork", media: "image" },
     entitlements: reference("Included entitlements", "entitlements", true),
-    pricing: choice("Pricing", ["gold", "gems", "dual", "free", "unavailable"]),
+    pricing: { ...choice("Pricing", ["gold", "gems", "dual", "split", "free", "unavailable"]), optionLabels: { gold: "Gold", gems: "Gems", dual: "Gold or Gems", split: "Gold and Gems", free: "Free", unavailable: "Unavailable" } },
     goldPrice: integer("Gold price", 0, 1000000), gemPrice: integer("Gem price", 0, 1000000),
     purchaseLimit: integer("Purchases per account", 1, 100), startsAt: date("Start (UTC)"), endsAt: date("End (UTC)")
   }
 };
 const CAPABILITIES = Object.freeze({
   officialEntry: false, currencyOperations: false, purchases: false, fulfillment: false, realPayments: false,
-  message: "Only published definitions run on configured private storage. Drafts never activate operations. Gems and real payments are unavailable."
+  message: "Published definitions run only on configured private storage. Dual offers a choice of Gold or Gems; split requires both in one ledger transaction. Gems need separate runtime activation. Payments remain unavailable."
 });
 const INVARIANTS = Object.freeze([
   "Free membership and official entry; equal legal gameplay pool in official Para competition.",
@@ -187,10 +187,10 @@ function validateConfig(config) {
       if (row.condition === "welcome" && (row.minimumOccurrences !== 1 || row.claimLimit !== 1)) issue(domain, row.id, "claimLimit", "An initial account award has exactly one occurrence and one claim.");
     }
     if (domain === "products") {
-      const gold = ["gold", "dual"].includes(row.pricing), gems = ["gems", "dual"].includes(row.pricing);
+      const gold = ["gold", "dual", "split"].includes(row.pricing), gems = ["gems", "dual", "split"].includes(row.pricing);
       if ((gold ? row.goldPrice <= 0 : row.goldPrice !== 0) || (gems ? row.gemPrice <= 0 : row.gemPrice !== 0)) issue(domain, row.id, "pricing", "Set a positive price for each offered currency and zero for every other currency.");
       for (const id of row.entitlements) if (maps.entitlements.get(id)?.provenance !== "commercial") issue(domain, row.id, "entitlements", "Products cannot include earned-only tournament entitlements.");
-      if (row.status === "active" && (!row.startsAt || !["gold", "free"].includes(row.pricing) || row.entitlements.some((id) => maps.entitlements.get(id)?.fulfillment !== "available"))) issue(domain, row.id, "status", "Active offers require dates, Gold or free pricing, and implemented delivery for every inclusion.");
+      if (row.status === "active" && (!row.startsAt || !["gold", "gems", "dual", "split", "free"].includes(row.pricing) || row.entitlements.some((id) => maps.entitlements.get(id)?.fulfillment !== "available"))) issue(domain, row.id, "status", "Active offers require dates, supported currency pricing, and implemented delivery for every inclusion. Publishing never enables a disabled currency backend.");
     }
   }
   for (const season of config.seasons) {
@@ -210,7 +210,7 @@ function summary(config) {
 
 function catalog(config) {
   return config.products.map((p) => ({ id: p.id, name: p.name, description: p.description, status: p.status,
-    price: p.pricing === "free" ? "Free" : p.pricing === "unavailable" ? "No price offered" : [p.goldPrice > 0 && `${p.goldPrice} Gold`, p.gemPrice > 0 && `${p.gemPrice} Gems`].filter(Boolean).join(" or "),
+    price: p.pricing === "free" ? "Free" : p.pricing === "unavailable" ? "No price offered" : [p.goldPrice > 0 && `${p.goldPrice} Gold`, p.gemPrice > 0 && `${p.gemPrice} Gems`].filter(Boolean).join(p.pricing === "split" ? " + " : " or "),
     inclusions: p.entitlements.map((id) => { const e = config.entitlements.find((entry) => entry.id === id), equipment = require("./cosmeticEquipment"), destination = equipment.LABELS[equipment.SLOTS[e?.category]]; return `${e?.name} · ${e?.duration === "days" ? `${e.durationDays} days` : e?.duration === "season" ? `Season: ${e.seasonId}` : "Permanent"} · ${e?.provenance} · fulfillment ${e?.fulfillment} · ${destination || (e?.category === "collector-treatment" ? "Artwork download only; equippable exact printings use deck products" : "Owned library access")}`; }) }));
 }
 

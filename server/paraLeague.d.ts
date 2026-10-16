@@ -30,7 +30,7 @@ export interface Entitlement extends Definition {
 }
 export interface Product extends Definition, Window {
   category: ProductCategory; status: "unavailable" | "active" | "archived"; artwork: string;
-  entitlements: string[]; pricing: "gold" | "gems" | "dual" | "free" | "unavailable";
+  entitlements: string[]; pricing: "gold" | "gems" | "dual" | "split" | "free" | "unavailable";
   goldPrice: number; gemPrice: number; purchaseLimit: number;
 }
 export interface ParaConfiguration {

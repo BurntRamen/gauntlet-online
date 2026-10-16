@@ -10,10 +10,12 @@ test("module contracts distinguish deployed interfaces from disabled consumers",
     assert.equal(row.implementation, "deployed");
   }
   assert.equal(result.modules.find(m => m.id === "gold").status, "disabled");
+  assert.equal(result.modules.find(m => m.id === "gems").status, "disabled");
   assert.equal(result.modules.find(m => m.id === "payments").status, "missing");
   assert.equal(result.modules.find(m => m.id === "publishing").status, "available");
   assert.deepEqual(result.modules.find(m => m.id === "deck-products").blockers, ["Missing revision guard"]);
   const local = projectModules({ gold: { enabled: true }, para: { enabled: true } });
   assert.equal(local.modules.find(m => m.id === "gold").implementation, "local");
   assert.equal(local.modules.find(m => m.id === "gold").status, "available");
+  assert.equal(local.modules.find(m => m.id === "gems").status, "disabled", "enabling Gold never silently enables Gems");
 });

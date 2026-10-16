@@ -2,7 +2,7 @@
 const { playerView, adminView, quoteView } = require("./economyViews");
 const { matchAnalysis } = require("./digitalDelivery");
 const { assetEntry } = require("./contentAssets");
-function registerEconomyRoutes(app, economy, { requireAccount, records, findRecord, findAccount, listAccounts, refundDeck, equip }) {
+function registerEconomyRoutes(app, economy, { requireAccount, records, findRecord, findAccount, listAccounts, refundDeck, equip, accountView }) {
   function library(account) {
     const data = economy.player(account), view = playerView(data), equipment = require("./cosmeticEquipment").view(account, data.grants);
     return { ...view, forms: [...(view.forms || []), ...(equip ? equipment.forms : [])], tables: [...(view.tables || []), ...equipment.tables] };
@@ -42,7 +42,7 @@ function registerEconomyRoutes(app, economy, { requireAccount, records, findReco
   for (const action of ["claim", "quote", "purchase"]) app.post(`/api/economy/${action}`, send(false, async (account, req) => {
     if (action === "claim") await reconcile(account);
     const receipt = economy[action](account, req.body);
-    return action === "quote" ? { view: quoteView(receipt) } : { view: library(account), notice: `Recorded ${action} receipt ${receipt.id}.` };
+    return action === "quote" ? { view: quoteView(receipt) } : { view: library(account), ...(accountView ? { account: accountView(account) } : {}), notice: `Recorded ${action} receipt ${receipt.id}.` };
   }));
   app.post("/api/economy/reconcile", send(false, async (account, req) => {
     const record = typeof req.body?.matchId === "string" && req.body.matchId.length <= 100 ? await findRecord(req.body.matchId) : null;
