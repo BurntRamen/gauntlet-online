@@ -35,8 +35,8 @@ test("validates the authoritative versioned game content registry", () => {
   assert.equal(content.contentVersion, CONTENT_VERSION);
   assert.equal(content.rulesVersion, RULES_VERSION);
   assert.equal(content.factions.length, 10);
-  assert.equal(Object.values(content.campaigns).flatMap((campaign) => campaign.chapters).length, 128);
-  for (const factionId of ["mekan", "jali", "gracus", "indela", "zynarth"]) {
+  assert.equal(Object.values(content.campaigns).flatMap((campaign) => campaign.chapters).length, 140);
+  for (const factionId of ["mekan", "jali", "gracus", "indela", "voltari", "zynarth"]) {
     assert.equal(content.campaigns[factionId].chapters.length, 12, `${factionId}: campaign length`);
     assert.equal(content.campaigns[factionId].chapters.every((chapter) => chapter.dialogue.length >= 5 && chapter.endDialogue.length >= 5), true, `${factionId}: dialogue depth`);
   }
@@ -96,6 +96,17 @@ test("validates the authoritative versioned game content registry", () => {
   assert.match(gracusCampaign.chapters[0].story, /homeworld Thalassa/);
   assert.match(gracusCampaign.chapters.at(-1).story, /other homeworlds/);
   assert.match(gracusCampaign.chapters.at(-1).endDialogue.join(" "), /Reath is the convergence point/);
+  const voltariCampaign = content.campaigns.voltari;
+  assert.equal(voltariCampaign.homeworld, "Voltara");
+  assert.match(voltariCampaign.pitch, /human descendants/);
+  assert.match(voltariCampaign.arrivalOnReath, /Voltara retained protected continuity records/);
+  assert.equal(voltariCampaign.commanderName, "The Golden Conduit");
+  assert.equal(voltariCampaign.chapters[0].title, "Children of the Tempest");
+  assert.equal(voltariCampaign.chapters.at(-1).title, "The Storm Beyond Voltara");
+  assert.match(voltariCampaign.chapters[1].story, /healing rather than war/);
+  assert.match(voltariCampaign.chapters[5].story, /AION/);
+  assert.match(voltariCampaign.chapters[7].endDialogue.join(" "), /Survival without freedom is not civilization/);
+  assert.match(voltariCampaign.chapters.at(-1).endDialogue.join(" "), /Voltara is our origin. Reath is the convergence point/);
   for (const chapter of content.campaigns["astral-vanguard"].chapters) {
     assert.ok(chapter.dialogue.length >= 5, `${chapter.id}: opening dialogue depth`);
     assert.ok(chapter.endDialogue.length >= 5, `${chapter.id}: closing dialogue depth`);
@@ -103,7 +114,7 @@ test("validates the authoritative versioned game content registry", () => {
     assert.equal(typeof chapter.afterBattle, "string", `${chapter.id}: debriefing`);
   }
   const cinematicChapters = Object.values(content.campaigns).flatMap((campaign) => campaign.chapters).filter((chapter) => chapter.cinematic);
-  assert.equal(cinematicChapters.length, 11);
+  assert.equal(cinematicChapters.length, 12);
   for (const chapter of cinematicChapters) {
     assert.equal(typeof chapter.cinematic.title, "string", `${chapter.id}: cinematic title`);
     assert.match(chapter.cinematic.image, /^\/assets\/gauntlet\/.+\.(?:webp|png|svg)$/);
