@@ -35,8 +35,8 @@ test("validates the authoritative versioned game content registry", () => {
   assert.equal(content.contentVersion, CONTENT_VERSION);
   assert.equal(content.rulesVersion, RULES_VERSION);
   assert.equal(content.factions.length, 10);
-  assert.equal(Object.values(content.campaigns).flatMap((campaign) => campaign.chapters).length, 128);
-  for (const factionId of ["mekan", "jali", "gracus", "indela", "zynarth"]) {
+  assert.equal(Object.values(content.campaigns).flatMap((campaign) => campaign.chapters).length, 140);
+  for (const factionId of ["mekan", "jali", "gracus", "indela", "voltari", "zynarth"]) {
     assert.equal(content.campaigns[factionId].chapters.length, 12, `${factionId}: campaign length`);
     assert.equal(content.campaigns[factionId].chapters.every((chapter) => chapter.dialogue.length >= 5 && chapter.endDialogue.length >= 5), true, `${factionId}: dialogue depth`);
   }
@@ -52,6 +52,61 @@ test("validates the authoritative versioned game content registry", () => {
   assert.match(content.worldLore.reath.transitModel.principles[0], /Entanglement verifies and corrects/);
   assert.equal(content.factions.find((faction) => faction.id === "astral-vanguard").homeworld, "The Meridian Reach");
   assert.equal(content.factions.find((faction) => faction.id === "zynarth").homeworld, "Ilyr-Vesh");
+  const indelaFaction = content.factions.find((faction) => faction.id === "indela");
+  const indelaCampaign = content.campaigns.indela;
+  assert.equal(indelaFaction.homeworld, "Varuna");
+  assert.match(indelaFaction.origin, /beetle-wizard city of Kashi/);
+  assert.match(indelaFaction.reathArrival, /only later sent a scholarly delegation from Varuna/);
+  assert.equal(indelaCampaign.chapters[0].title, "The Founding Flame");
+  assert.equal(indelaCampaign.chapters.at(-1).title, "The Knowledge That Endures");
+  assert.match(indelaCampaign.chapters[0].story, /homeworld Varuna/);
+  assert.match(indelaCampaign.chapters.at(-1).story, /Centuries later on Varuna/);
+  assert.match(indelaCampaign.chapters.at(-1).endDialogue.join(" "), /campaign ends at home beneath Varuna/);
+  const jaliFaction = content.factions.find((faction) => faction.id === "jali");
+  const jaliCampaign = content.campaigns.jali;
+  assert.equal(jaliFaction.homeworld, "Aozora");
+  assert.match(jaliFaction.origin, /Celestial Archipelago/);
+  assert.match(jaliFaction.reathArrival, /quantum-correlated with a Reath receiver/);
+  assert.equal(jaliCampaign.commanderName, "The Shattered Heavens");
+  assert.equal(jaliCampaign.chapters[0].title, "The Age of a Thousand Clouds");
+  assert.equal(jaliCampaign.chapters.at(-1).title, "The Last Reflection");
+  assert.match(jaliCampaign.chapters[0].story, /homeworld Aozora/);
+  assert.match(jaliCampaign.chapters.at(-1).story, /Timetwister receiver on Reath/);
+  assert.match(jaliCampaign.chapters.at(-1).endDialogue.join(" "), /Aozora remains our home. Reath is the convergence point/);
+  assert.match(jaliCampaign.chapters[4].story, /young scholar Seimei-no-Mikoto/);
+  assert.match(jaliCampaign.chapters[9].dialogue.join(" "), /We offer the freedom I forbid/);
+  assert.match(jaliCampaign.chapters[10].endDialogue.join(" "), /Yamabuki relinquishes the empire/);
+  const mekanFaction = content.factions.find((faction) => faction.id === "mekan");
+  const mekanCampaign = content.campaigns.mekan;
+  assert.equal(mekanFaction.homeworld, "Teyotl");
+  assert.match(mekanFaction.origin, /San Mikal/);
+  assert.match(mekanFaction.reathArrival, /consenting travelers/);
+  assert.equal(mekanCampaign.chapters[0].title, "The Flower-Ringed Lake");
+  assert.equal(mekanCampaign.chapters.at(-1).title, "The Procession to Reath");
+  assert.match(mekanCampaign.chapters[0].story, /homeworld Teyotl/);
+  assert.match(mekanCampaign.chapters.at(-1).story, /other homeworlds/);
+  assert.match(mekanCampaign.chapters.at(-1).endDialogue.join(" "), /Teyotl is our origin. Reath is the convergence point/);
+  const gracusFaction = content.factions.find((faction) => faction.id === "gracus");
+  const gracusCampaign = content.campaigns.gracus;
+  assert.equal(gracusFaction.homeworld, "Thalassa");
+  assert.match(gracusFaction.origin, /marble island world Thalassa/);
+  assert.match(gracusFaction.reathArrival, /voluntary Gracus delegation to Reath/);
+  assert.equal(gracusCampaign.chapters[0].title, "The City of Questions");
+  assert.equal(gracusCampaign.chapters.at(-1).title, "The World of Meeting");
+  assert.match(gracusCampaign.chapters[0].story, /homeworld Thalassa/);
+  assert.match(gracusCampaign.chapters.at(-1).story, /other homeworlds/);
+  assert.match(gracusCampaign.chapters.at(-1).endDialogue.join(" "), /Reath is the convergence point/);
+  const voltariCampaign = content.campaigns.voltari;
+  assert.equal(voltariCampaign.homeworld, "Voltara");
+  assert.match(voltariCampaign.pitch, /human descendants/);
+  assert.match(voltariCampaign.arrivalOnReath, /Voltara retained protected continuity records/);
+  assert.equal(voltariCampaign.commanderName, "The Golden Conduit");
+  assert.equal(voltariCampaign.chapters[0].title, "Children of the Tempest");
+  assert.equal(voltariCampaign.chapters.at(-1).title, "The Storm Beyond Voltara");
+  assert.match(voltariCampaign.chapters[1].story, /healing rather than war/);
+  assert.match(voltariCampaign.chapters[5].story, /AION/);
+  assert.match(voltariCampaign.chapters[7].endDialogue.join(" "), /Survival without freedom is not civilization/);
+  assert.match(voltariCampaign.chapters.at(-1).endDialogue.join(" "), /Voltara is our origin. Reath is the convergence point/);
   for (const chapter of content.campaigns["astral-vanguard"].chapters) {
     assert.ok(chapter.dialogue.length >= 5, `${chapter.id}: opening dialogue depth`);
     assert.ok(chapter.endDialogue.length >= 5, `${chapter.id}: closing dialogue depth`);
@@ -59,7 +114,7 @@ test("validates the authoritative versioned game content registry", () => {
     assert.equal(typeof chapter.afterBattle, "string", `${chapter.id}: debriefing`);
   }
   const cinematicChapters = Object.values(content.campaigns).flatMap((campaign) => campaign.chapters).filter((chapter) => chapter.cinematic);
-  assert.equal(cinematicChapters.length, 11);
+  assert.equal(cinematicChapters.length, 12);
   for (const chapter of cinematicChapters) {
     assert.equal(typeof chapter.cinematic.title, "string", `${chapter.id}: cinematic title`);
     assert.match(chapter.cinematic.image, /^\/assets\/gauntlet\/.+\.(?:webp|png|svg)$/);

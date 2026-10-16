@@ -987,6 +987,7 @@ const COMMANDER_ANNOUNCEMENTS = Object.freeze({
   jali: { selected: "The fallen march beside us. Form the line.", clicked: "A warrior bested is a warrior waiting to return.", wounded: "Twenty-one life. Call the names of those we have lost.", critical: "Ten life. Raise the Revenants and stand.", denied: "The formation has not yet answered." },
   gracus: { selected: "The arena has its champions. Let the contest begin!", clicked: "Give the crowd a battle worthy of legend.", wounded: "Twenty-one life! Now the true contest begins.", critical: "Ten life! Roar louder than death itself!", denied: "The arena rejects that challenge." },
   indela: { selected: "The omen is cast. Fire and frost await my word.", clicked: "The next card is already written in the stars.", wounded: "Twenty-one life. Read the omen, then rewrite it.", critical: "Ten life remains. Unseal the final theorem.", denied: "The omen does not permit it." },
+  voltari: { selected: "The conduit is live. Keep every mind sovereign.", clicked: "Power serves civilization. Civilization does not serve the grid.", wounded: "Twenty-one life. Isolate the damaged relays.", critical: "Ten life. Decentralize command and hold the Skyhold.", denied: "The network will not accept an unverified connection." },
   zynarth: { selected: "The brood awakens. One will become many.", clicked: "Hatch. Adapt. Consume. Begin again.", wounded: "Twenty-one life. The wounded brood evolves.", critical: "Ten life. Break every shell. Release the swarm.", denied: "The brood is not ready to strike." },
   "astral-vanguard": { selected: "Vanguard deployed. Every soldier to their mark.", clicked: "Plan the descent. Control the ground. Finish the mission.", wounded: "Twenty-one life. Tighten formation and hold the outpost.", critical: "Ten life. All units, execute final deployment.", denied: "Deployment parameters are incomplete." }
 });
@@ -1032,6 +1033,7 @@ const GENERAL_CLICK_ANNOUNCEMENTS = Object.freeze({
   jali: "The fallen still know the road to battle.",
   gracus: "A champion enters when the crowd needs courage.",
   indela: "The omen is clear enough to act.",
+  voltari: "Power flows through consent, or it becomes another prison.",
   zynarth: "The brood adapts through every keeper.",
   "astral-vanguard": "Formation set. Await the descent."
 });
@@ -1048,7 +1050,7 @@ const CITY_CLICK_SOUND = "/assets/gauntlet/match/kits/gauntlet-core-v1/audio/abi
 const COMMANDER_VOICE_PROFILES = Object.freeze({
   rumin: [0.82, 0.55], sheen: [0.72, 0.72], frumo: [1.08, 0.95], bizi: [0.9, 1.18],
   mekan: [1.06, 1.08], jali: [0.78, 0.72], gracus: [1.04, 0.84], indela: [0.88, 1.08],
-  zynarth: [0.72, 0.48], "astral-vanguard": [0.94, 0.82]
+  voltari: [0.9, 0.92], zynarth: [0.72, 0.48], "astral-vanguard": [0.94, 0.82]
 });
 
 const COMMANDER_VOICE_HINTS = Object.freeze({
@@ -1060,6 +1062,7 @@ const COMMANDER_VOICE_HINTS = Object.freeze({
   jali: ["roger", "davis", "guy", "mark"],
   gracus: ["tony", "guy", "davis", "mark"],
   indela: ["prabhat", "neerja", "ravi", "heera"],
+  voltari: ["aria", "jenny", "andrew", "christopher"],
   zynarth: ["william", "guy", "davis", "mark"],
   "astral-vanguard": ["christopher", "andrew", "brian", "david"]
 });
@@ -1135,6 +1138,15 @@ const factionsData = {
     commander: { name: "Focus, Conductor of Progress", image: "/assets/gauntlet/factions/bizi/focus-conductor-of-progress.webp", text: "Whenever you overpay for a card by 2 or more, put an acceleration counter on this. Once per turn, you may remove an acceleration counter: target card gets +1 value until end of turn." },
     general: { name: "Hera", image: "/assets/gauntlet/factions/bizi/hera-general.webp", text: "Once per turn: If you've played a card of a suit this turn, you may use a card of the same suit to pay 2 more than its value." },
     city: { name: "Constanti, Technology Hub", image: "/assets/gauntlet/factions/bizi/constanti-technology-hub.webp", text: "Each turn, your first two attacks after the first that have a different suit from your previous attack get +1 value." }
+  },
+  voltari: {
+    id: "voltari",
+    name: "Voltari",
+    campaignOnly: true,
+    cardImage: "/assets/gauntlet/constructed/bizi/bizi-voltaric-ultimatum.webp",
+    commander: { name: "Stormlord Veyra", image: "/assets/gauntlet/constructed/bizi/bizi-voltaric-ultimatum.webp", text: "Campaign faction: build localized conduit networks while preserving independent command and civilian power." },
+    general: { name: "Warden Kryos", image: "/assets/gauntlet/constructed/bizi/bizi-voltaric-ultimatum.webp", text: "Campaign faction: overload isolated systems to break stronger centralized machines." },
+    city: { name: "Voltara Skyhold", image: "/assets/gauntlet/constructed/bizi/bizi-voltaric-ultimatum.webp", text: "Campaign faction: storm power, defensive anchors, and local shutdown keys keep the network accountable." }
   },
   zynarth: {
     id: "zynarth",
