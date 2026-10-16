@@ -51,7 +51,10 @@ export function cardDetails(preview, viewModel, snapshot) {
   const isOwnCard = !viewModel?.perspective?.spectator && (handCard || ownLaneCard);
   let abilityStatus = "";
   const support = !card.hidden && supportDefinition(card);
-  if (support && snapshot?.rulesVersion === "gauntlet-duel-v12") abilityStatus = `Support Zone · cost ${card.value} (printed value, before payment modifiers) · open priority. ${support.onPlay ? `On play: ${support.onPlay}. ` : ""}Exit: ${support.discardCondition}. ${support.charges == null ? "Persistent; triggering does not consume it." : "One charge; consumed only by its printed effect."}`;
+  if (support && snapshot?.rulesVersion === "gauntlet-duel-v12") {
+    const exit = { "after-resolution": "Discard after resolving.", "after-chosen-peek": "Discard only if you choose to inspect.", "printed-consumption": "Discard only when its printed effect says to.", "explicit-removal-only": "Stays until an effect removes it." }[support.discardCondition];
+    abilityStatus = `Support Zone · cost ${card.value} (printed value, before payment modifiers) · open priority. ${support.onPlay ? "Resolve its printed on-play instruction. " : ""}${exit}`;
+  }
 
   if ((hasCardEffect(card, "heat-sink-matrix") || hasCardEffect(card, "gearplate-shield")) && isOwnCard) {
     const counters = snapshot?.players?.[player]?.accelerationCounters;

@@ -2,6 +2,8 @@
 
 Implementation branch: `codex/paid-support-zones-v12`, based on public main `aa00d80` (PR #76). The original dirty checkout on `codex/para-league-economy` was left in place. Its nonignored files were also captured in snapshot commit `916a146082f46cc2aabf426c3cffdcf9a49f1a98`, retained by `codex/paid-support-zones`. Do not merge that preservation snapshot into this feature.
 
+The user subsequently authorized merge and live deployment. [Release PR #79](https://github.com/BurntRamen/gauntlet-online/pull/79) tracks current CI and deployment status. The initial local qualification below is not itself deployment evidence. Release review also preserves legacy log wording, adds the paid-support Field Rulebook explanation, and uses readable card-inspection instructions.
+
 ## Rule specification
 
 - Exactly three lanes per player. Existing `lane.facedown[player]` is the Commitment Zone; existing `lane.support[player]` is the Support Zone. No parallel board state was introduced.
@@ -69,6 +71,7 @@ Final commands and results are recorded in `paid-support-test-results.md`. The r
 | Client tests | `client/src/babylon/paidSupport.test.jsx`, `basicGauntletRules.test.js`, `matchAdapters.test.js` |
 | Historical equivalence | `scripts/content-equivalence-scenarios.js` (explicit v11 pin; golden fixture unchanged) |
 | Browser tests and runner | `e2e/paid-support-server.js`, `e2e/paid-support.spec.js`, `playwright.support.config.js`, `package.json` |
+| Release checks | `.github/workflows/pull-request.yml` (runs paid-support browser coverage) |
 | Bundle budget | `scripts/check-build-budgets.js`, `scripts/check-build-budgets.test.js` (explicit +5 KiB player / +1 KiB Admin allocation for this feature; every chunk remains counted) |
 | Review evidence | `docs/paid-support-zones.md`, `docs/paid-support-test-results.md` |
 
@@ -78,4 +81,4 @@ Final commands and results are recorded in `paid-support-test-results.md`. The r
 2. Run `npm ci`, `npm --prefix server ci`, `npm --prefix client ci`, then `npm run test:server` and the client command in the results file. Run `npx playwright install chromium` once, then `npm run test:e2e:support`.
 3. Review the generated `playwright-report/support/index.html` and `test-results/support-*.png`. Check that payment is required, entry precedes discard, persistent supports occupy their zones, and the phone/fallback controls remain usable.
 4. Inspect `supportContract.js` beside printed card text; pay particular attention to Deep Dive, Coordinated Strike, Interference Matrix, ongoing shelters, Arm equipment and Polea's auditable exception.
-5. Review v11 golden-equivalence results and the authority/recovery test before approving a merge. Deployment and production migration are separate decisions; neither was performed here.
+5. Review v11 golden-equivalence results and the authority/recovery test. Follow PR #79 for release checks and verify the deployed Vercel client plus Render commit/rules headers before treating a merge as live.

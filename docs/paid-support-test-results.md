@@ -2,6 +2,8 @@
 
 Run locally on Windows, Node 24.16.0, Chromium with software WebGL, 15–16 October 2026. No production services or deployment were used. Full local logs and screenshots are retained under `artifacts/paid-support/` (ignored generated files).
 
+Release follow-up after the user's live-publication authorization: fixed historical support-log wording, added the Field Rulebook's paid-support guidance and readable card-inspection instructions, and enabled the three paid-support browser cases in CI. The focused server suite now passes **39 tests**, including the new legacy-log regression; the complete client suite still passes **735 tests**. The updated production build passes at **175.8 KiB main**, **757.7 KiB player**, and **48.7 KiB aggregate Admin**. [PR #79](https://github.com/BurntRamen/gauntlet-online/pull/79) records the release branch's CI and deployment results. The table below preserves the original full local qualification.
+
 | Check | Result |
 | --- | --- |
 | Full server suite, `node --test --test-concurrency=1 test/*.test.js` from `server` | **423 passed**, 0 failed |

@@ -6,6 +6,7 @@ const { COLLECTION_CARDS } = require("../gameContent");
 const { prepareRecoveredRoom, cloneRoomForStorage } = require("../roomStateStore");
 const { buildPublicReplaySnapshot } = require("../../shared/match-history/replay");
 const { sanitizeLeagueEvent } = require("../../shared/match-history/evidence");
+const { formatMatchLogEntry } = require("../../shared/match-history/formatLog");
 const card = (id, instance = id) => ({ ...COLLECTION_CARDS.find(c => c.id === id), definitionId: id, id: instance, suit: "spades" });
 const pitch = (id = "pitch", value = 14) => ({ id, value, suit: "hearts" });
 function game(id = "sheen-harmony-ward", faction = "sheen") {
@@ -170,6 +171,15 @@ test("Ambush is concealed in opponent, spectator, logs and replay until consumpt
   assert.equal(Object.hasOwn(payment, "calculation"), false);
   const entry = result.animationEvents.find(e => e.type === "card.supportPlaced");
   assert.equal(sanitizeLeagueEvent(entry).card, undefined);
+});
+
+test("legacy support history never acquires a paid-play label", () => {
+  const legacy = { type: "card.supportPlaced", player: 1, laneIndex: 0 };
+  assert.deepEqual(formatMatchLogEntry(legacy), { icon: "ability", title: "Player 1 placed a support card", detail: "Lane 1" });
+  const paid = formatMatchLogEntry({ ...legacy, permission: "paid-support", concealed: true });
+  assert.match(paid.detail, /paid play/);
+  assert.match(paid.title, /concealed Ambush/);
+  assert.match(formatMatchLogEntry({ ...legacy, permission: "polea-put-empty-lane" }).detail, /free placement/);
 });
 
 test("Polea's printed put exception is auditable, consumes once and cannot replace or respond with support", () => {
