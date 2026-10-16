@@ -79,6 +79,22 @@ function createGitHubContentPublication({ baseline, draftStore = null, runtimeCa
     const branch = privateDraft ? null : await client.request(`git/ref/heads/${DRAFT_BRANCH}`, { missing: true });
     const file = branch ? await client.readFile(branch.object.sha, DRAFT_PATH) : null;
     const state = privateDraft ? clone(privateDraft.state) : file ? file.value : clone(initial);
+    const previous = state.releases?.[state.activeReleaseId];
+    // A source deployment can replace its baseline while an unused authoring
+    // record still names the old one. Preserve every historical byte and only
+    // advance this pointer when there is no operator work or packaged release.
+    // Reads stay read-only; the next revision-checked save records the evidence.
+    if (!packaged && !state.draft && !state.pending && previous?.createdBy === null
+      && /^Deployed source baseline(?:$| — recorded after release )/.test(previous.label)
+      && state.activeReleaseId !== deployed.id) {
+      const from = state.activeReleaseId;
+      state.releases[deployed.id] ||= clone(deployed);
+      state.activeReleaseId = deployed.id;
+      if (!Array.isArray(state.activations) || !Number.isSafeInteger(state.revision) || state.revision < 0) fail(503, "Unsupported content store.");
+      state.activations.push({ action: "reconcile-deployment", from, to: deployed.id, at: deployed.createdAt, by: null,
+        sourceCommit: deployedCommit, reason: "Align unused authoring metadata with the deployed source baseline; no draft or pending publication existed." });
+      state.revision += 1;
+    }
     core(state); // Validate release hashes, compatibility and the active pointer.
     if (state.pending?.releaseId === deployed.id) delete state.pending;
     if (!state.pending && state.activeReleaseId !== deployed.id) fail(409, "The saved draft belongs to another deployed release. Wait for deployment or reconcile its GitHub history.");

@@ -99,6 +99,83 @@ async function draft(store, { mechanical = false } = {}) {
   return store.preview({ expectedRevision: state.revision });
 }
 
+async function staleSourceRepository() {
+  const repo = repository(), previous = clone(baseline);
+  previous.engine.compatibilityHash = "previous-source-contract";
+  const store = repo.store({ baseline: previous });
+  await store.saveNotes({ expectedRevision: 0, id: "standard", value: "Retained operator notes" }, "admin");
+  return repo;
+}
+
+test("source deployment reconciles an unused authoring baseline without writes or lost history", async () => {
+  const repo = await staleSourceRepository();
+  const before = clone((await repo.client.readFile(DRAFT_BRANCH, DRAFT_PATH)).value);
+  const writes = repo.client.writes.length, store = repo.store();
+  const status = await store.status();
+  assert.equal(status.activeReleaseId, store.active().releaseId);
+  assert.equal(status.revision, before.revision + 1);
+  assert.equal(status.privateNotes.standard.value, "Retained operator notes");
+  assert.equal(repo.client.writes.length, writes, "Reading never migrates remote state");
+  await store.patch({ expectedRevision: status.revision, domain: "game", id: "practice", field: "name", value: "New source draft" }, "admin");
+  const saved = (await repo.client.readFile(DRAFT_BRANCH, DRAFT_PATH)).value;
+  assert.deepEqual(saved.releases[before.activeReleaseId], before.releases[before.activeReleaseId]);
+  assert.deepEqual(saved.activations.slice(0, -1), before.activations);
+  assert.equal(saved.activations.at(-1).action, "reconcile-deployment");
+  assert.equal(saved.activations.at(-1).sourceCommit, "a".repeat(40));
+  assert.equal(saved.draft.baseReleaseId, store.active().releaseId);
+  assert.equal((await repo.store().status()).revision, saved.revision);
+  await assert.rejects(repo.store().patch({ expectedRevision: status.revision, domain: "game", id: "practice", field: "name", value: "Stale operator" }), { status: 409 });
+});
+
+test("private authoring baseline reconciliation persists only through its atomic private save", async () => {
+  const repo = await staleSourceRepository();
+  let state = (await repo.client.readFile(DRAFT_BRANCH, DRAFT_PATH)).value, version = 1;
+  const original = clone(state), writes = repo.client.writes.length;
+  const draftStore = { load: async () => ({ state: clone(state), version }), save: async (expected, next) => {
+    assert.equal(expected, version); state = clone(next); version += 1;
+  } };
+  const store = repo.store({ draftStore }), status = await store.status();
+  assert.deepEqual(state, original);
+  await store.saveNotes({ expectedRevision: status.revision, id: "standard", value: "Updated private notes" }, "admin");
+  assert.equal(state.activeReleaseId, store.active().releaseId);
+  assert.deepEqual(state.releases[original.activeReleaseId], original.releases[original.activeReleaseId]);
+  assert.equal(state.activations.at(-1).action, "reconcile-deployment");
+  assert.equal(repo.client.writes.length, writes);
+});
+
+test("source reconciliation never replaces saved drafts, pending publication or operator releases", async () => {
+  for (const kind of ["draft", "pending", "operator"]) {
+    const repo = await staleSourceRepository();
+    const state = repo.trees.get(repo.refs.get(DRAFT_BRANCH)).get(DRAFT_PATH).value;
+    if (kind === "operator") state.releases[state.activeReleaseId].createdBy = "approved-account";
+    else state[kind] = { preserved: true };
+    const before = clone(state), writes = repo.client.writes.length;
+    await assert.rejects(repo.store().status(), { status: 503 });
+    assert.deepEqual(state, before); assert.equal(repo.client.writes.length, writes);
+  }
+});
+
+test("baseline reconciliation still rejects corrupt history and invalid revisions", async () => {
+  for (const kind of ["hash", "revision", "activations"]) {
+    const repo = await staleSourceRepository();
+    const state = repo.trees.get(repo.refs.get(DRAFT_BRANCH)).get(DRAFT_PATH).value;
+    if (kind === "hash") state.releases[state.activeReleaseId].snapshot.domains.game[0].name = "Tampered history";
+    if (kind === "revision") state.revision = -1;
+    if (kind === "activations") state.activations = null;
+    const writes = repo.client.writes.length;
+    await assert.rejects(repo.store().status(), { status: 503 });
+    assert.equal(repo.client.writes.length, writes);
+  }
+});
+
+test("a packaged content release never silently reconciles divergent saved history", async () => {
+  const repo = await staleSourceRepository(), sha256 = hash(baseline);
+  const deployedRelease = { schemaVersion: "gauntlet.repository-release.v1", id: `gauntlet-content-${sha256}`, sha256, snapshot: baseline };
+  const writes = repo.client.writes.length;
+  await assert.rejects(repo.store({ deployedRelease }).status(), { status: 503 });
+  assert.equal(repo.client.writes.length, writes);
+});
+
 test("Supabase-private drafts import GitHub history, keep unused uploads and notes private, and publish through the existing gates", async () => {
   const repo = repository(); repo.client.private = false;
   const originalStore = repo.store();

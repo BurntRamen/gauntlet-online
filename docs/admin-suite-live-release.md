@@ -10,6 +10,8 @@ The release continues the tested `codex/modular-admin-suite` worktree at `6b5647
 
 The complete implementation evidence and bounded engine contracts are in [Admin Phase 2](admin-phase2.md). Release CI now runs the seven new Phase 2/Gem browser journeys in addition to existing Admin, gameplay, security, dependency, build and performance checks. No budget or test gate is relaxed.
 
+Read-only inspection of the shared GitHub authoring record found an older source baseline, retained notes/history, and no draft or pending publication. Source-only deployments now reconcile that unused baseline in memory, retain every historical release and note, and append reconciliation evidence on the next normal revision-checked operator save. Drafts, pending publications, packaged releases and operator-created releases never qualify for automatic reconciliation. Integrity checks and concurrency guards remain mandatory. This code release does not write the production authoring record.
+
 Current code deployment status: preparing release; no successful production deployment is claimed by this commit. Record exact PR, deployment commits, checks and smoke-test results after hosting readback.
 
 ## Activation prerequisites verified before release
