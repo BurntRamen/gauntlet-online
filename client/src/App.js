@@ -2746,7 +2746,7 @@ function RulebookPanel() {
     {
       title: "Blocking",
       rules: [
-        "Hand attacks may be blocked by one or more cards from hand, paid for by cards from hand.",
+        "Hand attacks may be blocked by one card from hand, paid for by other cards from hand.",
         "Lane attacks may only be blocked by the defender's face-down card in that same lane.",
         "Damage equals attack effective value minus total block effective value."
       ]
@@ -2774,6 +2774,11 @@ function RulebookPanel() {
   return (
     <section className="field-rulebook-panel">
       <a className="card-keyword-link" href="/card-keywords.html" target="_blank" rel="noreferrer">Card keyword guide ↗</a>
+      <section aria-label="Paid support rules">
+        <h3>Support Zones in faction duels</h3>
+        <p>Each of your three lanes has a Commitment Zone and a Support Zone. With open priority and no pending combat, select a non-Servitor from your hand, choose an empty Support Zone, and discard other hand cards to pay its printed value after payment modifiers. Non-Servitors can also pay.</p>
+        <p>Resolve its printed instructions and choices. One-shot cards leave after resolution; ongoing cards remain until their text removes them and cannot be replaced. Support cards cannot attack or block. Ordinary end-turn placement uses only Commitment Zones. Polea's printed free placement is a separate exception. Older matches keep their original rules.</p>
+      </section>
       <img
         className="field-rulebook-art"
         src={resolveAssetPath("/assets/gauntlet/field-rulebook.png")}
@@ -3272,7 +3277,7 @@ export default function App() {
   const babylonGameplayActive = Boolean(
     game
     && ["basic", "factions"].includes(game.gameMode)
-    && shouldUseProductionMatchRenderer()
+    && (shouldUseProductionMatchRenderer() || game.rulesVersion === "gauntlet-duel-v12")
   );
 
   useEffect(() => {
@@ -5565,6 +5570,7 @@ export default function App() {
             onOpenReplay={gameIsOver && game.matchId ? () => openReplay(game.matchId) : null}
             onOpenMatches={returnToMatches}
             options={{
+              forceAccessible: !shouldUseProductionMatchRenderer(),
               audioEnabled: !accountSoundMuted,
               cardBackAsset: resolveCardBackAsset(account?.progression?.cosmetics?.selectedCardBack),
               serverUrl: SOCKET_URL,

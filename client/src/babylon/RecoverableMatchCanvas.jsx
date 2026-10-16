@@ -7,7 +7,7 @@ import "./RecoverableMatchCanvas.css";
 // Only the visual table is replaced; commands still use the same live session.
 export default function RecoverableMatchCanvas(props) {
   const [failed, setFailed] = useState(false);
-  if (!failed) {
+  if (!failed && !props.forceAccessible) {
     return <GauntletMatchCanvas {...props} onRendererError={(error) => {
       console.error("Gauntlet table rendering failed", error);
       setFailed(true);
@@ -17,8 +17,8 @@ export default function RecoverableMatchCanvas(props) {
   return (
     <section className="production-table-recovery" aria-label="Gauntlet game table">
       <div className="production-table-recovery-notice" role="status">
-        <span>The animated table is unavailable. You can keep playing here.</span>
-        <button type="button" onClick={() => setFailed(false)}>Retry animated table</button>
+        <span>{props.forceAccessible ? "Accessible match table" : "The animated table is unavailable. You can keep playing here."}</span>
+        {!props.forceAccessible && <button type="button" onClick={() => setFailed(false)}>Retry animated table</button>}
       </div>
       <div className="production-table-recovery-lanes">
         {viewModel.lanes.map((lane) => (
@@ -26,12 +26,14 @@ export default function RecoverableMatchCanvas(props) {
             <strong>Lane {lane.index + 1}</strong>
             <p>Opponent: {lane.hasOpponentCard ? "Face-down card" : "Empty"}</p>
             <p>Your card: {lane.hasLocalCard ? lane.localCard.label : "Empty"}</p>
+            <p>Your Support Zone: {lane.hasLocalSupport ? lane.localSupport.label : "Empty"}</p>
+            <p>Opponent Support Zone: {lane.hasOpponentSupport ? lane.opponentSupport.visible ? lane.opponentSupport.label : "Concealed Ambush" : "Empty"}</p>
             {lane.attack && <p>Attack: {lane.attack.card.label} · {lane.attack.value}</p>}
             {lane.blocks.map((block) => <p key={block.id}>Block: {block.card.label} · {block.value}</p>)}
           </section>
         ))}
       </div>
-      <div aria-label="Active attacks">
+      <div role="group" aria-label="Active attacks">
         {(viewModel.attacks || []).filter((attack) => attack.laneIndex == null).map((attack) => (
           <p key={attack.id}>
             Player {attack.owner} attacks: {attack.card.label} · {attack.value}

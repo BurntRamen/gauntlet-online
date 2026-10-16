@@ -4589,6 +4589,8 @@ function getLobbyGameMode(roomState) {
 
 function normalizeDuelPlayerIds(game) {
   if (!game || !["basic", "factions"].includes(game.gameMode)) return game;
+  // Unversioned saved duels predate paid support; never opt them into v12.
+  if (!game.rulesVersion) game.rulesVersion = "gauntlet-duel-v11";
   for (const playerNum of [1, 2]) {
     if (game.players?.[playerNum]) game.players[playerNum].id = playerNum;
   }
@@ -5631,7 +5633,7 @@ function sanitizeGameForViewer(game, viewerPlayerNum, spectatorCount) {
   visibleGame.snapshotSchemaVersion = Number(game.snapshotSchemaVersion || game.schemaVersion || DUEL_SCHEMA_VERSION);
   visibleGame.commandSchemaVersion = Number(game.commandSchemaVersion || DUEL_COMMAND_SCHEMA_VERSION);
   visibleGame.eventSchemaVersion = Number(game.eventSchemaVersion || DUEL_EVENT_SCHEMA_VERSION);
-  visibleGame.rulesVersion = game.rulesVersion || DUEL_RULES_VERSION;
+  visibleGame.rulesVersion = game.rulesVersion || visibleGame.rulesVersion;
   visibleGame.cardContentVersion = game.cardContentVersion || DUEL_CARD_CONTENT_VERSION;
   visibleGame.spectatorCount = spectatorCount;
   return visibleGame;
@@ -7592,6 +7594,9 @@ async function executeSemanticDuelCommand(roomState, playerNum, envelope = {}, i
   if (!envelope.command || typeof envelope.command.type !== "string") {
     return rejectDuelCommand(roomState, envelope, "INVALID_COMMAND", "A semantic duel command is required.");
   }
+  if (envelope.command.type === "playSupport" && (typeof envelope.commandId !== "string" || !envelope.commandId.trim() || !Number.isSafeInteger(envelope.baseRevision))) {
+    return rejectDuelCommand(roomState, envelope, "INVALID_COMMAND", "Support play requires a stable command ID and expected revision.");
+  }
   if (
     envelope.commandSchemaVersion != null
     && Number(envelope.commandSchemaVersion) !== DUEL_COMMAND_SCHEMA_VERSION
@@ -7640,6 +7645,13 @@ async function executeSemanticDuelCommand(roomState, playerNum, envelope = {}, i
     return rejected;
   }
 
+  // A support receipt can outlive the transport cache after many other
+  // commands. A retry must not append duplicate evidence or another undo.
+  if (applied.duplicate) {
+    const accepted = { commandId, accepted: true, revision: Number(roomState.game.revision || 0), snapshotSequence: Number(roomState.game.snapshotSequence || 0) };
+    cacheDuelCommand(roomState, cacheKey, fingerprint, accepted);
+    return accepted;
+  }
   if (internal.saveUndo !== false) {
     saveUndoSnapshot(roomState, playerNum, applied.actionLogEntry?.label || envelope.command.type);
   }
