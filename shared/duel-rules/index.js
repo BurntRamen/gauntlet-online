@@ -1781,6 +1781,32 @@ function currentPlacementPlayer(game) {
     : otherPlayer(game.endPlacementFirstPlayer);
 }
 
+function endPlacementCards(game, playerNumber, laneIndex) {
+  const player = game.players[playerNumber];
+  if (!player) return [];
+  return player.hand.filter((card) => (
+    isSupportCard(card)
+      ? supportContract.enabled(game) ? false : !game.lanes[laneIndex].support?.[playerNumber]
+      : !game.lanes[laneIndex].facedown[playerNumber]
+  ));
+}
+
+function autoPassUnavailableEndPlacements(game, events) {
+  while (game.phase === "end") {
+    const laneIndex = game.endPlacementLaneIndex;
+    const actor = currentPlacementPlayer(game);
+    if (endPlacementCards(game, actor, laneIndex).length) return;
+    game.endPlaced[actor][laneIndex] = true;
+    events.push(event(game, "lanePlacement.skipped", {
+      player: actor,
+      laneIndex,
+      automatic: true,
+      reason: "no_legal_placement"
+    }));
+    advancePlacement(game, events, { autoPass: false });
+  }
+}
+
 function startEndPlacement(game, events) {
   game.phase = "end";
   game.endPlacementFirstPlayer = game.startingPriorityThisTurn;
@@ -1790,6 +1816,7 @@ function startEndPlacement(game, events) {
   const actor = currentPlacementPlayer(game);
   game.message = `End placement: Player ${actor} may place in or skip Lane 1.`;
   events.push(event(game, "endPlacement.started", { player: actor, laneIndex: 0 }));
+  autoPassUnavailableEndPlacements(game, events);
 }
 
 function startNextTurn(game, events) {
@@ -1885,7 +1912,7 @@ function spendCampaignBossAction(game, player, kind = "action") {
   }
 }
 
-function advancePlacement(game, events) {
+function advancePlacement(game, events, { autoPass = true } = {}) {
   if (game.endPlacementStep === 0) game.endPlacementStep = 1;
   else {
     game.endPlacementStep = 0;
@@ -1898,6 +1925,7 @@ function advancePlacement(game, events) {
   const actor = currentPlacementPlayer(game);
   game.message = `End placement: Player ${actor} may place in or skip Lane ${game.endPlacementLaneIndex + 1}.`;
   events.push(event(game, "lanePlacement.requested", { player: actor, laneIndex: game.endPlacementLaneIndex }));
+  if (autoPass) autoPassUnavailableEndPlacements(game, events);
 }
 
 function normalizeCommand(command) {
@@ -3460,11 +3488,7 @@ function getLegalActions(game, player) {
   if (game.phase === "end" && currentPlacementPlayer(game) === playerNumber) {
     const laneIndex = game.endPlacementLaneIndex;
     const actions = [{ type: "skipPlacement", laneIndex }];
-    const placementCards = actor.hand.filter((card) => (
-      isSupportCard(card)
-        ? supportContract.enabled(game) ? false : !game.lanes[laneIndex].support?.[playerNumber]
-        : !game.lanes[laneIndex].facedown[playerNumber]
-    ));
+    const placementCards = endPlacementCards(game, playerNumber, laneIndex);
     if (placementCards.length) {
       actions.unshift(...placementCards.map((card) => ({
         type: "placeFacedown",
