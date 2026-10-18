@@ -96,6 +96,13 @@ test("validates the authoritative versioned game content registry", () => {
   assert.match(gracusCampaign.chapters[0].story, /homeworld Thalassa/);
   assert.match(gracusCampaign.chapters.at(-1).story, /other homeworlds/);
   assert.match(gracusCampaign.chapters.at(-1).endDialogue.join(" "), /Reath is the convergence point/);
+  const sheenCampaign = content.campaigns.sheen;
+  assert.equal(content.factions.find((faction) => faction.id === "sheen").homeworld, "Gao");
+  assert.match(sheenCampaign.pitch, /forest moon Gao/);
+  assert.match(sheenCampaign.chapters[0].story, /living homeworld Gao/);
+  assert.equal(sheenCampaign.chapters.every((chapter) => chapter.sceneStarter?.where && chapter.sceneStarter?.when && chapter.sceneStarter?.perspective), true);
+  assert.match(sheenCampaign.chapters.at(-1).story, /botanical science|living shelters|healing greenhouses/);
+  assert.match(sheenCampaign.chapters.at(-1).endDialogue.join(" "), /Gao is our origin.*Reath is where our roots meet/);
   const voltariCampaign = content.campaigns.voltari;
   assert.equal(voltariCampaign.homeworld, "Voltara");
   assert.match(voltariCampaign.pitch, /human descendants/);
