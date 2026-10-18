@@ -1,0 +1,60 @@
+{
+  "generatedAt": "2026-10-18",
+  "provider": "ElevenLabs Music",
+  "model": "Music v2.5",
+  "generationSurface": "ElevenLabs web app",
+  "instrumental": true,
+  "durationSeconds": 30,
+  "variantsPerPrompt": 1,
+  "promptManifest": "scripts/elevenlabs-faction-music.json",
+  "tracks": [
+    {
+      "faction": "mekan",
+      "title": "The Eternal Festival",
+      "output": "client/public/assets/gauntlet/music/factions/mekan-eternal-festival-v1.mp3",
+      "sha256": "d88953a215d7f7d06be3fad0aee34700ff3eaaf99a2cfe9201c14392e0b0ee60"
+    },
+    {
+      "faction": "jali",
+      "title": "The Revenant Formation",
+      "output": "client/public/assets/gauntlet/music/factions/jali-revenant-formation-v1.mp3",
+      "sha256": "08802c4ffbda3961c17f5a6e4594ca2c49a002ab8881d15010d41b0e751f9e52"
+    },
+    {
+      "faction": "gracus",
+      "title": "The Stone Question",
+      "output": "client/public/assets/gauntlet/music/factions/gracus-stone-question-v1.mp3",
+      "sha256": "dbc35e30393175da3d00b14ab67a86703cd7bdab6bac16c5c0493e753876b75b"
+    },
+    {
+      "faction": "indela",
+      "title": "The Turning Omen",
+      "output": "client/public/assets/gauntlet/music/factions/indela-turning-omen-v1.mp3",
+      "sha256": "709b1ef49e2df0dbc83dd3717066c7e8985724f3577f7b58dd29b40cdcf49ab0"
+    },
+    {
+      "faction": "zynarth",
+      "title": "The Infinite Hive",
+      "output": "client/public/assets/gauntlet/music/factions/zynarth-infinite-hive-v1.mp3",
+      "sha256": "a448b6d741572f44787e573d039a884214443ce0d6d4ad2b1c1724e97f77c1ea"
+    },
+    {
+      "faction": "astral-vanguard",
+      "title": "The Hybrid Horizon",
+      "output": "client/public/assets/gauntlet/music/factions/astral-vanguard-hybrid-horizon-v1.mp3",
+      "sha256": "4ff5e836825275762cc0818393bf40e60677155f80e07378c43cb49487db6286"
+    },
+    {
+      "faction": "voltari",
+      "title": "The Golden Conduit",
+      "output": "client/public/assets/gauntlet/music/factions/voltari-golden-conduit-v1.mp3",
+      "sha256": "c702170ba100dad0725db2fdcee5330978762b5b8147af1651cbe66a74cdd0bb"
+    },
+    {
+      "faction": "xendra",
+      "title": "Aspect Without Form",
+      "output": "client/public/assets/gauntlet/music/factions/xendra-aspect-without-form-v1.mp3",
+      "sha256": "8f95b06a645d9c22e35c3f961457fefddcdac3a8a2fa5bb9afd9616c669d1e7d"
+    }
+  ]
+}

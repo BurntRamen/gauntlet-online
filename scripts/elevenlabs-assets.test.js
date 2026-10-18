@@ -1,4 +1,5 @@
 const assert = require("node:assert/strict");
+const crypto = require("node:crypto");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
@@ -46,6 +47,24 @@ function manifest() {
     ]
   };
 }
+
+test("published faction themes match the approved ElevenLabs music manifest", () => {
+  const root = path.resolve(__dirname, "..");
+  const musicManifest = JSON.parse(fs.readFileSync(path.join(root, "scripts", "elevenlabs-faction-music.json"), "utf8"));
+  const provenance = JSON.parse(fs.readFileSync(path.join(root, "docs", "generated-assets", "elevenlabs", "faction-music-2026-10-18.json"), "utf8"));
+  const validated = validateManifest(musicManifest, root);
+  const approvedByOutput = new Map(provenance.tracks.map((track) => [track.output, track.sha256]));
+
+  assert.equal(validated.jobs.length, 8);
+  assert.equal(provenance.model, "Music v2.5");
+  for (const job of validated.jobs) {
+    const outputPath = path.join(root, job.clientOutput);
+    assert.equal(fs.existsSync(outputPath), true, `${job.id}: published file`);
+    assert.ok(fs.statSync(outputPath).size > 700000, `${job.id}: complete 30-second audio`);
+    const digest = crypto.createHash("sha256").update(fs.readFileSync(outputPath)).digest("hex");
+    assert.equal(digest, approvedByOutput.get(job.clientOutput), `${job.id}: approved artifact digest`);
+  }
+});
 
 test("validation and selection include dependencies in order", () => {
   const root = workspace();

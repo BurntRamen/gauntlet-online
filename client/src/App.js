@@ -286,6 +286,7 @@ const MUSIC_TRACKS = {
   },
   mekan: {
     label: "The Eternal Festival",
+    sources: ["/assets/gauntlet/music/factions/mekan-eternal-festival-v1.mp3"],
     pad: [55, 82.41, 110],
     notes: [329.63, 392, 440, 523.25, 493.88, 392],
     tempo: 520,
@@ -293,14 +294,18 @@ const MUSIC_TRACKS = {
   },
   jali: {
     label: "The Revenant Formation",
+    sources: ["/assets/gauntlet/music/factions/jali-revenant-formation-v1.mp3"],
     pad: [46.25, 69.3, 92.5],
     notes: [220, 261.63, 293.66, 349.23, 293.66, 246.94],
     tempo: 680,
     wave: "sawtooth"
   },
-  gracus: { label: "The Giant Coast", pad: [55, 82.41, 110], notes: [164.81, 220, 246.94, 329.63, 293.66], tempo: 610, wave: "square" },
-  indela: { label: "The Turning Omen", pad: [69.3, 103.83, 138.59], notes: [277.18, 311.13, 369.99, 415.3, 369.99], tempo: 740, wave: "sine" },
-  xendra: { label: "The Deep Currents", pad: [46.25, 69.3, 92.5], notes: [185, 174.61, 207.65, 138.59, 155.56, 123.47], tempo: 780, wave: "sine" }
+  gracus: { label: "The Stone Question", sources: ["/assets/gauntlet/music/factions/gracus-stone-question-v1.mp3"], pad: [55, 82.41, 110], notes: [164.81, 220, 246.94, 329.63, 293.66], tempo: 610, wave: "square" },
+  indela: { label: "The Turning Omen", sources: ["/assets/gauntlet/music/factions/indela-turning-omen-v1.mp3"], pad: [69.3, 103.83, 138.59], notes: [277.18, 311.13, 369.99, 415.3, 369.99], tempo: 740, wave: "sine" },
+  zynarth: { label: "The Infinite Hive", sources: ["/assets/gauntlet/music/factions/zynarth-infinite-hive-v1.mp3"], pad: [41.2, 61.74, 82.41], notes: [164.81, 155.56, 185, 220, 207.65], tempo: 720, wave: "sawtooth" },
+  "astral-vanguard": { label: "The Hybrid Horizon", sources: ["/assets/gauntlet/music/factions/astral-vanguard-hybrid-horizon-v1.mp3"], pad: [55, 82.41, 110], notes: [220, 277.18, 329.63, 293.66, 369.99], tempo: 600, wave: "triangle" },
+  voltari: { label: "The Golden Conduit", sources: ["/assets/gauntlet/music/factions/voltari-golden-conduit-v1.mp3"], pad: [46.25, 69.3, 92.5], notes: [277.18, 311.13, 415.3, 369.99], tempo: 540, wave: "sine" },
+  xendra: { label: "Aspect Without Form", sources: ["/assets/gauntlet/music/factions/xendra-aspect-without-form-v1.mp3"], pad: [46.25, 69.3, 92.5], notes: [185, 174.61, 207.65, 138.59, 155.56, 123.47], tempo: 780, wave: "sine" }
 };
 
 const MENU_THEME = {

@@ -18,6 +18,11 @@ const chapter = {
   dialogue: ["Narrator: The Senate gathers.", "Marcell: Order has a price."],
   dialogueAudio: ["/voices/narrator.mp3", null],
   endDialogue: ["Reformer: The work begins."],
+  sceneStarter: {
+    where: "The Senate Forum, Rumie",
+    when: "Three generations after the founding",
+    perspective: "The Senate Reformers"
+  },
   image: "/chapter-2.webp"
 };
 
@@ -56,6 +61,10 @@ test("shows the complete source-grounded briefing while keeping a locked battle 
 
   expect(screen.getByRole("heading", { name: "The Republic", level: 2 })).toBeVisible();
   expect(screen.getByText("Gold has begun to vote louder than citizens.")).toBeVisible();
+  const scene = screen.getByRole("complementary", { name: "Scene setting" });
+  expect(within(scene).getByText("The Senate Forum, Rumie")).toBeVisible();
+  expect(within(scene).getByText("Three generations after the founding")).toBeVisible();
+  expect(within(scene).getByText("The Senate Reformers")).toBeVisible();
   expect(screen.getByText("The Senate gathers.")).toBeVisible();
   expect(screen.getByText("Marcell adds a Senate pressure modifier.")).toBeVisible();
   expect(screen.getByText("Clear Chapter 1 to unlock this battle.")).toBeVisible();

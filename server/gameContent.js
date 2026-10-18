@@ -1,7 +1,7 @@
 "use strict";
 
 const RULES_VERSION = "gauntlet-rules-v6";
-const CONTENT_VERSION = "gauntlet-content-v23";
+const CONTENT_VERSION = "gauntlet-content-v24";
 const NEUTRAL_FACTION_ID = "neutral";
 const { getCardWording } = require("./cardWording");
 const { LEGACIES } = require("./legaciesContent");
@@ -2161,6 +2161,11 @@ function validateGameContent() {
       chapterIds.add(chapter.id);
       requireText(CAMPAIGN_NARRATION[chapter.id]?.beforeBattle, `narration.${chapter.id}.beforeBattle`);
       requireText(CAMPAIGN_NARRATION[chapter.id]?.afterBattle, `narration.${chapter.id}.afterBattle`);
+      if (chapter.sceneStarter) {
+        requireText(chapter.sceneStarter.where, `campaigns.${factionId}.${chapter.id}.sceneStarter.where`);
+        requireText(chapter.sceneStarter.when, `campaigns.${factionId}.${chapter.id}.sceneStarter.when`);
+        requireText(chapter.sceneStarter.perspective, `campaigns.${factionId}.${chapter.id}.sceneStarter.perspective`);
+      }
     }
   }
 

@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "stagingDirectory": "artifacts/elevenlabs/faction-music",
+  "provenanceDirectory": "docs/generated-assets/elevenlabs/faction-music",
+  "jobs": [
+    {
+      "id": "mekan-eternal-festival",
+      "kind": "music",
+      "reviewStatus": "approved",
+      "modelId": "music_v2_5",
+      "prompt": "Original seamless instrumental faction theme for the Mekan of Gauntlet. A joyful ceremonial procession where remembrance and celebration coexist: warm hand percussion, marimba-like wood, brass breaths, acoustic strings, and a faint spectral choir used only as texture. Begin intimate, gather into a communal dance, then resolve gently so the ending loops into the opening. Festive and humane with a thread of mortality, never comic or macabre. No lyrics, no recognizable melody, no trailer climax.",
+      "parameters": { "generation_mode": "loop", "music_length_ms": 30000, "force_instrumental": true },
+      "outputFormat": "mp3_48000_192",
+      "clientOutput": "client/public/assets/gauntlet/music/factions/mekan-eternal-festival-v1.mp3"
+    },
+    {
+      "id": "jali-revenant-formation",
+      "kind": "music",
+      "reviewStatus": "approved",
+      "modelId": "music_v2_5",
+      "prompt": "Original seamless instrumental faction theme for the Jali of Gauntlet. Disciplined martial formation across a celestial archipelago: restrained taiko-like low drums, plucked strings, breathy bamboo-like timbres, high wind, and distant bronze. Precise pauses should feel as important as attacks. Memory returns in altered phrases, suggesting revenants who retain choice. Noble, lucid, and slightly haunted. No lyrics, no recognizable melody, no oversized cinematic climax.",
+      "parameters": { "generation_mode": "loop", "music_length_ms": 30000, "force_instrumental": true },
+      "outputFormat": "mp3_48000_192",
+      "clientOutput": "client/public/assets/gauntlet/music/factions/jali-revenant-formation-v1.mp3"
+    },
+    {
+      "id": "gracus-stone-question",
+      "kind": "music",
+      "reviewStatus": "approved",
+      "modelId": "music_v2_5",
+      "prompt": "Original seamless instrumental faction theme for the Gracus of Gauntlet. Monumental coastal stone, civic argument, and disciplined courage: frame drums, low lyre-like plucks, resonant stone impacts, measured horns, and a questioning modal melody that never settles too quickly. Strength must share space with doubt and open debate. Ancient but alive, philosophical rather than imperial. No lyrics, no recognizable melody, no bombastic trailer ending.",
+      "parameters": { "generation_mode": "loop", "music_length_ms": 30000, "force_instrumental": true },
+      "outputFormat": "mp3_48000_192",
+      "clientOutput": "client/public/assets/gauntlet/music/factions/gracus-stone-question-v1.mp3"
+    },
+    {
+      "id": "indela-turning-omen",
+      "kind": "music",
+      "reviewStatus": "approved",
+      "modelId": "music_v2_5",
+      "prompt": "Original seamless instrumental faction theme for the Indela of Gauntlet. A scholarly golden age balancing fire and frost: luminous plucked strings, glass harmonics, low bowed drones, hand bells, and slow interlocking rhythmic cycles. Warm and cool colors should alternate before combining into a clear contemplative cadence. Mystical through pattern and observation, not vague fantasy magic. No lyrics, no recognizable melody, no trailer climax.",
+      "parameters": { "generation_mode": "loop", "music_length_ms": 30000, "force_instrumental": true },
+      "outputFormat": "mp3_48000_192",
+      "clientOutput": "client/public/assets/gauntlet/music/factions/indela-turning-omen-v1.mp3"
+    },
+    {
+      "id": "zynarth-infinite-hive",
+      "kind": "music",
+      "reviewStatus": "approved",
+      "modelId": "music_v2_5",
+      "prompt": "Original seamless instrumental faction theme for the Zynarth of Gauntlet. A living planet thinks through insectoid bodies: low organic pulses, scraped chitin textures, breath-like bass, clustered strings, and amber bioluminescent tones. Rhythmic material must be consumed and return in altered forms, expressing recycling, adaptation, grief, and stubborn hope. Begin as one pulse, become a layered ecology, then return changed. Alien and biological without generic horror. No lyrics, no recognizable melody, no jump scares or trailer climax.",
+      "parameters": { "generation_mode": "loop", "music_length_ms": 30000, "force_instrumental": true },
+      "outputFormat": "mp3_48000_192",
+      "clientOutput": "client/public/assets/gauntlet/music/factions/zynarth-infinite-hive-v1.mp3"
+    },
+    {
+      "id": "astral-vanguard-hybrid-horizon",
+      "kind": "music",
+      "reviewStatus": "approved",
+      "modelId": "music_v2_5",
+      "prompt": "Original seamless instrumental faction theme for the Astral Vanguard of Gauntlet. Explorers survive by hybridizing contradictory ideas without flattening them: grounded field percussion, warm human strings, restrained synthesizer pulses, radio-like textures, and a broad brass horizon. Distinct motifs should overlap, trade roles, and remain identifiable while forming one adaptable ensemble. Heroic through cooperation and improvisation, not conquest. No lyrics, no recognizable melody, no bombastic trailer climax.",
+      "parameters": { "generation_mode": "loop", "music_length_ms": 30000, "force_instrumental": true },
+      "outputFormat": "mp3_48000_192",
+      "clientOutput": "client/public/assets/gauntlet/music/factions/astral-vanguard-hybrid-horizon-v1.mp3"
+    },
+    {
+      "id": "voltari-golden-conduit",
+      "kind": "music",
+      "reviewStatus": "approved",
+      "modelId": "music_v2_5",
+      "prompt": "Original seamless instrumental faction theme for the Voltari of Gauntlet. Human descendants organize energy and effort through golden conduits: precise interlocking metallic pulses, warm cello, electrical resonance, glass percussion, and procedural patterns that transfer between instruments. The system should sound helpful and elegant, then briefly feel too compulsory before human phrasing restores agency. Advanced, luminous, and emotionally restrained. No lyrics, no recognizable melody, no trailer climax.",
+      "parameters": { "generation_mode": "loop", "music_length_ms": 30000, "force_instrumental": true },
+      "outputFormat": "mp3_48000_192",
+      "clientOutput": "client/public/assets/gauntlet/music/factions/voltari-golden-conduit-v1.mp3"
+    },
+    {
+      "id": "xendra-aspect-without-form",
+      "kind": "music",
+      "reviewStatus": "approved",
+      "modelId": "music_v2_5",
+      "prompt": "Original seamless instrumental faction theme for the Xen'Dra of Gauntlet. Expansion through changing which aspects of reality can be perceived: deep resonant tones, impossible spatial echoes, bowed metal, reversed breath textures, distant harmonic voices without words, and intervals that seem to change meaning when repeated. Abstract, vast, patient, and unsettling; beauty and dread should remain simultaneous. No lyrics, no recognizable melody, no jump scares, no conventional villain march, no trailer climax.",
+      "parameters": { "generation_mode": "loop", "music_length_ms": 30000, "force_instrumental": true },
+      "outputFormat": "mp3_48000_192",
+      "clientOutput": "client/public/assets/gauntlet/music/factions/xendra-aspect-without-form-v1.mp3"
+    }
+  ]
+}

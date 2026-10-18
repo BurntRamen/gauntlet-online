@@ -51,7 +51,7 @@ test("validates the authoritative versioned game content registry", () => {
   assert.equal(content.worldLore.reath.transitModel.name, "The Timetwister Transit Model");
   assert.match(content.worldLore.reath.transitModel.principles[0], /Entanglement verifies and corrects/);
   assert.equal(content.factions.find((faction) => faction.id === "astral-vanguard").homeworld, "The Meridian Reach");
-  assert.equal(content.factions.find((faction) => faction.id === "zynarth").homeworld, "Ilyr-Vesh");
+  assert.equal(content.factions.find((faction) => faction.id === "zynarth").homeworld, "K'lar");
   const indelaFaction = content.factions.find((faction) => faction.id === "indela");
   const indelaCampaign = content.campaigns.indela;
   assert.equal(indelaFaction.homeworld, "Varuna");
@@ -106,12 +106,28 @@ test("validates the authoritative versioned game content registry", () => {
   assert.match(voltariCampaign.chapters[1].story, /healing rather than war/);
   assert.match(voltariCampaign.chapters[5].story, /AION/);
   assert.match(voltariCampaign.chapters[7].endDialogue.join(" "), /Survival without freedom is not civilization/);
+  assert.equal(voltariCampaign.chapters.every((chapter) => chapter.sceneStarter?.where && chapter.sceneStarter?.when && chapter.sceneStarter?.perspective), true);
+  assert.match(voltariCampaign.chapters[9].story, /transferring surplus energy, repair capacity, and verified knowledge/);
+  assert.match(voltariCampaign.chapters[9].dialogue.join(" "), /when does help become incorporation/);
+  assert.match(voltariCampaign.chapters.at(-1).story, /compulsory optimization/);
   assert.match(voltariCampaign.chapters.at(-1).endDialogue.join(" "), /Voltara is our origin. Reath is the convergence point/);
+  const zynarthCampaign = content.campaigns.zynarth;
+  assert.equal(content.factions.find((faction) => faction.id === "zynarth").homeworld, "K'lar");
+  assert.equal(zynarthCampaign.commanderName, "The Infinite Hive");
+  assert.match(zynarthCampaign.chapters[0].story, /living homeworld K'lar/);
+  assert.equal(zynarthCampaign.chapters.every((chapter) => chapter.sceneStarter?.where && chapter.sceneStarter?.when && chapter.sceneStarter?.perspective), true);
+  assert.match(zynarthCampaign.chapters[8].story, /Timetwister stone.*Reath/);
+  assert.match(zynarthCampaign.chapters[10].story, /distributed people/);
+  assert.match(zynarthCampaign.chapters[10].endDialogue.join(" "), /tragic.*hopeful/);
+  assert.match(zynarthCampaign.chapters.at(-1).endDialogue.join(" "), /K'lar is our origin. Reath is our convergence/);
   for (const chapter of content.campaigns["astral-vanguard"].chapters) {
     assert.ok(chapter.dialogue.length >= 5, `${chapter.id}: opening dialogue depth`);
     assert.ok(chapter.endDialogue.length >= 5, `${chapter.id}: closing dialogue depth`);
     assert.equal(typeof chapter.beforeBattle, "string", `${chapter.id}: briefing`);
     assert.equal(typeof chapter.afterBattle, "string", `${chapter.id}: debriefing`);
+    assert.equal(typeof chapter.sceneStarter?.where, "string", `${chapter.id}: scene location`);
+    assert.equal(typeof chapter.sceneStarter?.when, "string", `${chapter.id}: scene time`);
+    assert.equal(typeof chapter.sceneStarter?.perspective, "string", `${chapter.id}: scene perspective`);
   }
   const cinematicChapters = Object.values(content.campaigns).flatMap((campaign) => campaign.chapters).filter((chapter) => chapter.cinematic);
   assert.equal(cinematicChapters.length, 12);

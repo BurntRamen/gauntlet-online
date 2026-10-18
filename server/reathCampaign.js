@@ -38,7 +38,7 @@ const HOMEWORLDS = Object.freeze({
   gracus: { homeworld: "Thalassa", origin: "The marble island world Thalassa, where sentient-stone city-states surround Athun's brilliant seas", reathArrival: "The First Stone beneath Athun unfolded into a Timetwister after the Keepers' defeat, carrying a voluntary Gracus delegation to Reath while Thalassa remained their living home." },
   indela: { homeworld: "Varuna", origin: "The observatory world Varuna, where the beetle-wizard city of Kashi surrounds the Grand Academy and Eternal Archive", reathArrival: "Centuries after Kashi's golden age, Indela archivists recognized a Reath signal in Aryabhata's celestial equations, answered through a dormant Timetwister receiver, and only later sent a scholarly delegation from Varuna." },
   voltari: { homeworld: "Voltara", origin: "A human colony transformed by centuries of life beneath electrically charged oceans, permanent storms, and voluntary cybernetic augmentation", reathArrival: "Voltari scientists isolated a receiver quantum-correlated with Reath, then sent consenting travelers through one-way verified relays while Voltara retained protected continuity records and remained their home." },
-  zynarth: { homeworld: "Ilyr-Vesh", origin: "The brood cradle Ilyr-Vesh", reathArrival: "A queen sent eggs and memory-patterns through a failing lattice as XenDra pressure consumed their outer hives." },
+  zynarth: { homeworld: "K'lar", origin: "The living world K'lar, a planetary Overmind whose Zynarth broods function as its cells and organs", reathArrival: "After an offworld coalition wounded K'lar, Zalara carried eggs, ecological memory, and consenting biological patterns through a Timetwister to establish a bounded new brood on Reath." },
   "astral-vanguard": { homeworld: "The Meridian Reach", origin: "A human interstellar commonwealth centered on Meridian", reathArrival: "The Vanguard arrived by starship, then discovered that Reath's stones connect worlds their drives could never reach." },
   xendra: { homeworld: "The Nacre Rift", origin: "A nonlocal habitat the Voltari call the Nacre Rift", reathArrival: "XenDra manifestations propagate through corrupted receiver states rather than ordinary travel." }
 });
@@ -71,10 +71,10 @@ const SPECS = [
   {
     id: "other-intelligence", title: "The Other Intelligence", foe: "The Feral Brood", hero: "High Marshal Alden",
     story: "Protect a diplomatic meeting with Zalara from a rival brood and decide whether intelligence can exist without a single unified mind.",
-    before: "Zalara offers a ceasefire and warns that the Zynarth were driven from Ilyr-Vesh by a presence she calls the Voice Behind Sleep.",
+    before: "Zalara offers a ceasefire and explains that this Reath brood crossed from the wounded living world K'lar, whose distant planetary chorus can no longer direct every choice.",
     lines: ["Zalara: A brood is a conversation written in bodies.", "Alden: Then we will speak to the mind choosing peace.", "K'Lar: Not every queen chooses it.", "Myra Cross: Feral signatures incoming from three tunnels.", "Zalara: Defend the meeting, and I will teach you what followed us."],
     after: "The meeting survives. Zalara reveals that Zynarth queens remain individuals, capable of diplomacy, rivalry, and fear.",
-    end: ["Zalara: Ilyr-Vesh still lives in our memory-patterns.", "Dr. Sera Venn: You transmitted minds inside the eggs.", "K'Lar: Bodies are local. Continuity is the pattern.", "Alden: The stones rebuilt you here.", "Zalara: And something listened during the rebuilding. Your thoughts are becoming loud."]
+    end: ["Zalara: K'lar still lives in our memory-patterns.", "Dr. Sera Venn: You transmitted minds inside the eggs.", "K'Lar: Bodies are local. Continuity is the pattern.", "Alden: The stones rebuilt you here.", "Zalara: And something listened during the rebuilding. Your thoughts are becoming loud."]
   },
   {
     id: "golden-machine", title: "The Golden Machine", foe: "Voltari Custodian Oru", hero: "Sergeant Myra Cross",
@@ -97,7 +97,7 @@ const SPECS = [
     story: "Explore a ruined city absent from yesterday's scans and recover the Timetwister at its center without losing the expedition to contradictory corridors.",
     before: "The city changes when unobserved. Its dead wear Vanguard identification and dates of death seventeen years in the future.",
     lines: ["Myra Cross: That body has my unit patch.", "Dr. Sera Venn: And a service record that has not been issued.", "Future Myra: Do not touch the stone with an unshielded mind.", "Alden: Sergeant, that voice is yours.", "Myra Cross: Then future me can wait until present me secures the room."],
-    after: "Touching the stone produces glimpses of Orthea, Gao, Pelagos, Volaris, Ilyr-Vesh, and civilizations the Vanguard has never met.",
+    after: "Touching the stone produces glimpses of Orthea, Gao, Pelagos, Volaris, K'lar, and civilizations the Vanguard has never met.",
     end: ["Dr. Sera Venn: It is not a time machine. It is a receiver index.", "Myra Cross: For planets?", "Oru: For compatible histories.", "Unknown Voice: You finally arrived.", "Alden: Seal the chamber. No one touches it alone again."]
   },
   {
@@ -143,6 +143,21 @@ const SPECS = [
   }
 ];
 
+const SCENE_STARTERS = Object.freeze({
+  "new-horizon": { where: "Low orbit and the Horizon landing basin, Reath", when: "The first day of the Astral Vanguard landing", perspective: "Sergeant Myra Cross" },
+  "something-beneath-us": { where: "The living tunnels beneath Outpost Horizon", when: "Twelve days after landing", perspective: "Myra leading the missing-colonist search" },
+  "the-brood": { where: "The Horizon defensive perimeter", when: "The third week of the colony", perspective: "High Marshal Alden during first contact" },
+  "other-intelligence": { where: "A neutral nursery chamber below Horizon", when: "Hours after the first ceasefire", perspective: "Alden across the table from Broodmother Zalara" },
+  "golden-machine": { where: "The western sky above Horizon", when: "The first Voltari arrival on Reath", perspective: "Myra watching a fortress call itself an instrument" },
+  conduit: { where: "The unfinished reality-anchor line in Mirror Valley", when: "The morning after Voltari first contact", perspective: "Alden coordinating three incompatible command systems" },
+  "city-that-wasnt-there": { where: "A city absent from every previous orbital scan", when: "Expedition day forty-two—and seventeen years too early", perspective: "Myra confronting evidence of her future" },
+  fracture: { where: "The anchor-dark districts outside the impossible city", when: "Immediately after the Timetwister activation", perspective: "Myra inside an unreliable interface" },
+  "enemy-of-my-enemy": { where: "The widening convergence scar", when: "The coalition's first joint offensive", perspective: "Alden translating between Vanguard, Voltari, and Zynarth methods" },
+  "first-empire": { where: "The ancient-road breach at the convergence site", when: "After the coalition's apparent victory", perspective: "Myra meeting an army from Orthea" },
+  "world-between": { where: "Reath's central convergence complex", when: "As distant homeworlds begin sharing one sky", perspective: "Alden holding open roads he cannot control" },
+  "when-stars-remember": { where: "Every active convergence point on Reath", when: "The final night of the uncontrolled opening", perspective: "Alden and Myra across simultaneous fronts" }
+});
+
 function setupFor(index, spec) {
   const number = index + 1;
   return {
@@ -175,6 +190,7 @@ const CAMPAIGN = SPECS.map((spec, index) => ({
   story: spec.story,
   beforeBattle: spec.before,
   afterBattle: spec.after,
+  sceneStarter: SCENE_STARTERS[spec.id],
   dialogue: [`Narrator: ${spec.before}`, ...spec.lines],
   endDialogue: [`Narrator: ${spec.after}`, ...spec.end],
   image: ASTRAL_ART,
@@ -195,7 +211,7 @@ const CHARACTERS = Object.freeze({
   "High Marshal Alden": "The expedition commander, committed to protecting settlements without turning first contact into occupation.",
   "Sergeant Myra Cross": "A field leader whose practical adaptability becomes the coalition's strongest shared language.",
   "Dr. Sera Venn": "A physicist who recognizes that Timetwisters preserve biological information across an error-corrected spacetime network.",
-  "Broodmother Zalara": "An individual Zynarth queen carrying the living memory of Ilyr-Vesh and seeking survival without assimilation.",
+  "Broodmother Zalara": "An individual Zynarth queen carrying the living memory of K'lar and seeking survival on Reath without turning coexistence into assimilation.",
   "Voltari Custodian Oru": "A heavily augmented human-descended engineer from Voltara whose reality anchors protect observers as much as battlefields."
 });
 
