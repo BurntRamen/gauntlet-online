@@ -261,9 +261,18 @@ test("publishes the integrated Bizi identity, constructed-card, and campaign art
   }
 
   assert.match(content.campaigns.bizi.coverImage, /^\/assets\/gauntlet\/campaigns\/bizi\/.+\.webp$/);
+  assert.match(bizi.origin, /human Mekanists built self-repairing automatons.*awakened.*personhood/);
+  assert.match(bizi.reathArrival, /Constanti fell.*protected minds, blueprints, tools, and Titan records.*Reath/);
+  assert.match(content.campaigns.bizi.pitch, /human empire's self-aware creations.*fall of Constanti.*Reath/);
+  assert.match(content.campaigns.bizi.chapters[0].story, /human inventor Kharon.*Mekanist tradition/);
+  assert.match(content.campaigns.bizi.chapters[1].story, /first Bizi awaken.*made them people/);
+  assert.match(content.campaigns.bizi.characters.focus.description, /optimizing a civilization/);
+  assert.match(content.campaigns.bizi.characters.theo.description, /survival does not excuse/);
+  assert.match(content.campaigns.bizi.chapters.at(-1).afterBattle, /Timetwister receiver.*Reath.*convergence world.*origin/);
   assert.equal(content.campaigns.bizi.chapters.length, 12);
   for (const chapter of content.campaigns.bizi.chapters) {
     assert.match(chapter.image, /^\/assets\/gauntlet\/campaigns\/bizi\/.+\.webp$/);
+    assert.ok(chapter.sceneStarter?.where && chapter.sceneStarter?.when && chapter.sceneStarter?.perspective, `${chapter.id}: scene starter`);
     assert.equal(fs.existsSync(path.join(__dirname, "..", "..", "client", "public", chapter.image)), true);
     assert.ok(chapter.dialogue.length >= 7, `${chapter.id}: opening dialogue depth`);
     assert.ok(chapter.endDialogue.length >= 7, `${chapter.id}: closing dialogue depth`);
