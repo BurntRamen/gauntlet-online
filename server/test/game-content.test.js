@@ -48,6 +48,16 @@ test("validates the authoritative versioned game content registry", () => {
   assert.equal(content.campaigns["astral-vanguard"].commanderName, "The World Between");
   assert.equal(content.campaigns["astral-vanguard"].chapters[0].title, "New Horizon");
   assert.equal(content.campaigns["astral-vanguard"].chapters.at(-1).title, "When the Stars Remember");
+  assert.match(content.factions.find((faction) => faction.id === "astral-vanguard").origin, /post-biological commonwealth.*retained personal choice/);
+  assert.match(content.factions.find((faction) => faction.id === "astral-vanguard").reathArrival, /Resolute reached Reath by conventional starflight/);
+  assert.match(content.campaigns["astral-vanguard"].pitch, /coordinate without surrendering choice/);
+  assert.equal(content.campaigns["astral-vanguard"].chapters[7].title, "Blackreach: Veilfract");
+  assert.match(content.campaigns["astral-vanguard"].chapters[7].dialogue.join(" "), /They are not shifting. We are/);
+  assert.match(content.campaigns["astral-vanguard"].chapters[10].story, /Unified Command Protocol Nine/);
+  assert.match(content.campaigns["astral-vanguard"].chapters.at(-1).story, /Astral Nexus.*compulsory command/);
+  assert.match(content.campaigns["astral-vanguard"].chapters.at(-1).endDialogue.join(" "), /certainty without responsibility/);
+  assert.match(content.campaigns["astral-vanguard"].characters["Commander Jonah Hale"], /accountable field judgment/);
+  assert.match(content.campaigns["astral-vanguard"].characters["Marek Solis"], /Protocol Nine and the Astral Nexus/);
   assert.equal(content.worldLore.reath.transitModel.name, "The Timetwister Transit Model");
   assert.match(content.worldLore.reath.transitModel.principles[0], /Entanglement verifies and corrects/);
   assert.equal(content.factions.find((faction) => faction.id === "astral-vanguard").homeworld, "The Meridian Reach");
