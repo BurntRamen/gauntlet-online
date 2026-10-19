@@ -4,6 +4,46 @@
   "provenanceDirectory": "docs/generated-assets/elevenlabs/faction-music",
   "jobs": [
     {
+      "id": "rumin-civic-imperium",
+      "kind": "music",
+      "reviewStatus": "approved",
+      "modelId": "music_v2_5",
+      "prompt": "Original complete three-minute instrumental faction theme for the Rumin of Gauntlet. Compose a full song with a civic marble-and-river opening, measured republican debate, an accelerating imperial middle where motifs and resources are centralized, a fractured passage after assassination, and a resilient synthesis in the outro; do not repeat a short loop. The music personifies the transfer of labor, capital, information, and military effort: frame drums, low lyre-like strings, disciplined brass, coin and stone percussion, and a warm public-square melody that becomes an efficient march before returning with distributed counterpoint. Powerful, humane, and politically uneasy rather than triumphalist. No lyrics, no recognizable melody, no trailer climax.",
+      "parameters": { "music_length_ms": 180000, "force_instrumental": true },
+      "outputFormat": "mp3_48000_192",
+      "clientOutput": "client/public/assets/gauntlet/music/factions/rumin-civic-imperium-v1.mp3"
+    },
+    {
+      "id": "sheen-living-renewal",
+      "kind": "music",
+      "reviewStatus": "approved",
+      "modelId": "music_v2_5",
+      "prompt": "Original complete three-minute instrumental faction theme for the Sheen of Gauntlet. Compose a full song with a quiet seed-and-canopy opening, communal growth, a flowering civic middle, a thorned civil-war rupture, and a scarred but hopeful renewal; do not repeat a short loop. The living homeworld Gao should feel sentient without sounding human: woodwind breath, bowed wood, seed-pod percussion, low root-like drones, delicate plucked strings, and layered motifs that spread between instruments like a resilient network. Express care, reform, grief, and patient regrowth. Organic and alien, never generic pastoral fantasy. No lyrics, no recognizable melody, no trailer climax.",
+      "parameters": { "music_length_ms": 180000, "force_instrumental": true },
+      "outputFormat": "mp3_48000_192",
+      "clientOutput": "client/public/assets/gauntlet/music/factions/sheen-living-renewal-v1.mp3"
+    },
+    {
+      "id": "frumo-council-of-captains",
+      "kind": "music",
+      "reviewStatus": "approved",
+      "modelId": "music_v2_5",
+      "prompt": "Original complete three-minute instrumental faction theme for the Frumo of Gauntlet. Compose a full song with a submerged civic opening, restless privateer momentum, a bright revolutionary crest, a cold sparse passage of imperial overreach, and a hard-won communal return; do not repeat a short loop. The ocean homeworld Pelagos should shape every phrase: low water percussion, shell horn, bowed bass, nimble folk strings, distant pressure resonance, and rolling rhythms that feel like crews coordinating across separate vessels. Express freedom, wager, charismatic command, disaster, and the restored Council of Captains. Maritime and amphibious without becoming a comic sea shanty. No lyrics, no recognizable melody, no trailer climax.",
+      "parameters": { "music_length_ms": 180000, "force_instrumental": true },
+      "outputFormat": "mp3_48000_192",
+      "clientOutput": "client/public/assets/gauntlet/music/factions/frumo-council-of-captains-v1.mp3"
+    },
+    {
+      "id": "bizi-plural-machine",
+      "kind": "music",
+      "reviewStatus": "approved",
+      "modelId": "music_v2_5",
+      "prompt": "Original complete three-minute instrumental faction theme for the Bizi of Gauntlet. Compose a full song with a fragile workshop awakening, a confident industrial golden age, a precise but emotionally narrowing optimized middle, a catastrophic mechanical fracture, and a rebuilt plural ending; do not repeat a short loop. Self-aware machines on Volaris inherit human infrastructure and argue about personhood, faith, efficiency, repair, and civic continuity: clockwork pulse, hammered brass, rail rhythm, prepared piano, warm low strings, and small irregular motifs that prove the system contains distinct minds. Mechanical without losing tenderness; analytical without becoming faceless. No lyrics, no recognizable melody, no generic steampunk march, no trailer climax.",
+      "parameters": { "music_length_ms": 180000, "force_instrumental": true },
+      "outputFormat": "mp3_48000_192",
+      "clientOutput": "client/public/assets/gauntlet/music/factions/bizi-plural-machine-v1.mp3"
+    },
+    {
       "id": "mekan-eternal-festival",
       "kind": "music",
       "reviewStatus": "approved",

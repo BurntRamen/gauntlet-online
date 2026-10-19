@@ -150,6 +150,21 @@ test("validates the authoritative versioned game content registry", () => {
   assert.match(zynarthCampaign.chapters[10].story, /distributed people/);
   assert.match(zynarthCampaign.chapters[10].endDialogue.join(" "), /tragic.*hopeful/);
   assert.match(zynarthCampaign.chapters.at(-1).endDialogue.join(" "), /K'lar is our origin. Reath is our convergence/);
+  const ruminFaction = content.factions.find((faction) => faction.id === "rumin");
+  const ruminCampaign = content.campaigns.rumin;
+  assert.equal(ruminFaction.homeworld, "Orthea");
+  assert.match(ruminFaction.reathArrival, /Timetwister beneath Rumie/);
+  assert.match(ruminCampaign.pitch, /homeworld Orthea.*optimized empire.*Reath.*convergence point/);
+  assert.equal(ruminCampaign.chapters.every((chapter) => chapter.sceneStarter?.where && chapter.sceneStarter?.when && chapter.sceneStarter?.perspective), true);
+  assert.match(ruminCampaign.chapters[3].story, /land becomes production.*prisoners become coerced labor.*revenue/);
+  assert.match(ruminCampaign.chapters[5].story, /transferring surplus grain, labor, and military wealth/);
+  assert.match(ruminCampaign.chapters[8].story, /absolute compliance, continuous expansion.*unable to function without Kaiser/);
+  assert.match(ruminCampaign.chapters.at(-1).story, /distributes succession.*Reath, the convergence point rather than the Rumin origin/);
+  assert.match(ruminCampaign.characters.brutis.description, /single point of failure/);
+  assert.match(ruminCampaign.characters.augustus.description, /resilience over ideological purity/);
+  const ruminVisibleText = JSON.stringify(ruminCampaign).replaceAll("/brutus.mp3", "");
+  assert.doesNotMatch(ruminVisibleText, /\bBrutus\b/);
+  assert.match(ruminVisibleText, /\bBrutis\b/);
   for (const chapter of content.campaigns["astral-vanguard"].chapters) {
     assert.ok(chapter.dialogue.length >= 5, `${chapter.id}: opening dialogue depth`);
     assert.ok(chapter.endDialogue.length >= 5, `${chapter.id}: closing dialogue depth`);

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-18",
+  "generatedAt": "2026-10-19",
   "provider": "ElevenLabs Music",
   "model": "Music v2.5",
   "generationSurface": "ElevenLabs web app",
@@ -8,6 +8,42 @@
   "variantsPerPrompt": 1,
   "promptManifest": "scripts/elevenlabs-faction-music.json",
   "tracks": [
+    {
+      "faction": "rumin",
+      "title": "The Civic Imperium",
+      "output": "client/public/assets/gauntlet/music/factions/rumin-civic-imperium-v1.mp3",
+      "sha256": "36dca7ef182a98cd80fc6c263f68aab9753e6ad4b7dc9bc1fbe3883608de0a2c",
+      "durationSeconds": 180,
+      "projectId": "Y5w8mHq6G0NqfcUuWGRl",
+      "songId": "QqWJ10eNKHJN7RTQbb2X"
+    },
+    {
+      "faction": "sheen",
+      "title": "The Living Renewal",
+      "output": "client/public/assets/gauntlet/music/factions/sheen-living-renewal-v1.mp3",
+      "sha256": "73f7b5d02891ba89ccbf99eb7f943f43b093e857ccd8da1e94e7cc923eee52ec",
+      "durationSeconds": 180,
+      "projectId": "Fp9U3fncmTLNTza5HkEj",
+      "songId": "HvRmPRk6f1w0E3l94ttD"
+    },
+    {
+      "faction": "frumo",
+      "title": "The Council of Captains",
+      "output": "client/public/assets/gauntlet/music/factions/frumo-council-of-captains-v1.mp3",
+      "sha256": "f62d8e2ae366e4d23bc25322dfecceb9dec8f7a0e5993506914426f3bccc5a87",
+      "durationSeconds": 180,
+      "projectId": "YtPRiNONIABaNxFOZRhz",
+      "songId": "SNPs2uMPFeo5XAV5936N"
+    },
+    {
+      "faction": "bizi",
+      "title": "The Plural Machine",
+      "output": "client/public/assets/gauntlet/music/factions/bizi-plural-machine-v1.mp3",
+      "sha256": "5c96e9580551071bb1b34ddf223c4c06640d6ffacb61bb2881764c618501a746",
+      "durationSeconds": 180,
+      "projectId": "nNMWsmZTmYZKkcLHglc3",
+      "songId": "59RUo93OYuWTwD0xrxod"
+    },
     {
       "faction": "mekan",
       "title": "The Eternal Festival",

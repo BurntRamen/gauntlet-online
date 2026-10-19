@@ -1,7 +1,7 @@
 "use strict";
 
 const RULES_VERSION = "gauntlet-rules-v6";
-const CONTENT_VERSION = "gauntlet-content-v24";
+const CONTENT_VERSION = "gauntlet-content-v25";
 const NEUTRAL_FACTION_ID = "neutral";
 const { getCardWording } = require("./cardWording");
 const { LEGACIES } = require("./legaciesContent");
@@ -1618,6 +1618,45 @@ for (const chapter of campaignChapters.bizi) {
   chapter.sceneStarter = BIZI_SCENE_STARTERS[chapter.id];
 }
 
+const RUMIN_STORY_ENRICHMENTS = Object.freeze({
+  "brothers-of-destiny": "On the homeworld Orthea, Rolmus and Remex found Rumie among marble river kingdoms. Rolmus builds regulated markets, codified law, and roads of mutual obligation; Remex argues that trade survives only when expansion makes rivals afraid to interrupt it.",
+  "the-republic": "Generations later, forum markets, debt tablets, public games, veteran households, banks, runes, and legions bind everyday life to the Rumin Republic. Its distributed institutions preserve stability, but delay and corruption let wealth purchase a louder voice than citizenship.",
+  "the-jewel": "Kaiser rises as a beloved officer who walks among dockworkers and veteran families, pays debts, and exposes Governor Severan. His popularity comes from making institutions visible in ordinary life: grain arrives, wages clear, and stolen taxes return to the streets.",
+  "gaulic-wars": "Against Vercan's Gaulic coalition, Kaiser treats resistance as unused capital: conquered land becomes production, prisoners become coerced labor, open roads become revenue, and distributed spoils align Rumie's poor and veterans with continued expansion.",
+  "three-runes": "Kaiser binds the runes of Strength, Protection, and Experience to the legions. Their power accelerates every campaign, but Livia and Cassius recognize the deeper change: battlefield knowledge now flows toward one command structure faster than the Senate can question it.",
+  "first-empire-bank": "Kaiser centralizes credit in the First Empire Bank, transferring surplus grain, labor, and military wealth wherever effort produces the greatest return. The system feeds Rumie and builds roads with astonishing speed while Brutis asks whether dependence on one allocator has replaced republican choice.",
+  "the-crossing": "The Senate orders Kaiser to surrender command. Cassius defends distributed authority, Livia warns that the bank and legions now share a single point of failure, and Brutis pleads for restraint; Kaiser chooses rapid execution over slow consent and marches on Rumie.",
+  "last-republic": "Rumie's markets close behind shields while neighbors trade rumors beside empty bread stalls. Kaiser defeats Cassius and the Senate coalition, but Brutis survives with the conviction that a functioning city can still be politically captive.",
+  "emperor-of-gold": "At Kaiser's peak, roads, banks, and legions flourish because effort and information move through one optimized system. Prisoners, taxes, and compulsory credit expose its price: absolute compliance, continuous expansion, and a civilization increasingly unable to function without Kaiser.",
+  "ides-of-rumie": "Brutis, Livia, Cassius, and divided senators conclude that removing Kaiser's single point of control may restore distributed power. Their assassination succeeds tactically and fails systemically: the bank, army, and provinces still depend on the architecture he built.",
+  "war-of-successors": "After Kaiser's death, credit freezes, granaries choose patrons, and legions divide among loyalists, reformists, and opportunists. Bobei pursues vengeance while Brutis attempts to restore a Senate that no longer possesses the information, trust, or force needed to stabilize Orthea.",
+  "first-emperor": "Meerus Augustus defeats Bobei by offering synthesis rather than restoration: he preserves Kaiser's bank, professional legions, and rapid administration, restores limited Senate oversight, and distributes succession across offices so Rumie can optimize without depending on one irreplaceable ruler. Generations later, imperial scouts find a Timetwister beneath Rumie leading toward Reath, the convergence point rather than the Rumin origin."
+});
+
+const RUMIN_SCENE_STARTERS = Object.freeze({
+  "brothers-of-destiny": { where: "The first marble forum beside Orthea's River Rum", when: "Before Rumie has walls, a Senate, or an empire", perspective: "Rolmus and Remex deciding what kind of city can survive them" },
+  "the-republic": { where: "The crowded Forum of Scales, Rumie", when: "Generations into the Republic's commercial ascent", perspective: "A young Kaiser watching citizens, bankers, veterans, and senators value the same crisis differently" },
+  "the-jewel": { where: "Severan's granary district and the workers' courts", when: "Kaiser's first public challenge to aristocratic protection", perspective: "Kaiser learning that material relief can become political authority" },
+  "gaulic-wars": { where: "The northern roads beyond Rumie's last tax station", when: "The opening campaign against Vercan's coalition", perspective: "Kaiser converting resistance into the resources of further expansion" },
+  "three-runes": { where: "A buried rune vault beneath the conquered frontier", when: "At the height of Kaiser's military command", perspective: "Livia observing knowledge and power converge on one commander" },
+  "first-empire-bank": { where: "The exchange floor of the newly chartered First Empire Bank", when: "The first market panic after the Gaulic victories", perspective: "Brutis testing whether efficient relief still leaves citizens agency" },
+  "the-crossing": { where: "The river boundary between Kaiser's legions and Rumie", when: "The night the Senate orders Kaiser to disband", perspective: "Cassius, Livia, and Brutis watching institutional delay become civil war" },
+  "last-republic": { where: "Rumie's shuttered forum and barricaded grain streets", when: "The Republic's final defense", perspective: "Brutis confronting the friend whose system has outgrown consent" },
+  "emperor-of-gold": { where: "The imperial procession route through prosperous Rumie", when: "Kaiser's rule at maximum reach and minimum restraint", perspective: "Ordinary citizens weighing full markets against narrowing choices" },
+  "ides-of-rumie": { where: "The Senate floor beneath Kaiser's gilded standard", when: "The morning of the conspiracy", perspective: "Brutis and Livia deciding whether removing one man can free a system built around him" },
+  "war-of-successors": { where: "A fractured Orthean river network of frozen banks and divided legions", when: "The first year after Kaiser's assassination", perspective: "Bobei and Brutis competing to give grief a political future" },
+  "first-emperor": { where: "The last loyalist field outside Rumie", when: "The settlement that ends the wars of succession", perspective: "Meerus Augustus choosing resilience over either pure restoration or permanent emergency" }
+});
+
+for (const chapter of campaignChapters.rumin) {
+  chapter.story = RUMIN_STORY_ENRICHMENTS[chapter.id] || chapter.story;
+  chapter.playableName = chapter.playableName.replace(/\bBrutus\b/g, "Brutis");
+  chapter.opponentName = chapter.opponentName.replace(/\bBrutus\b/g, "Brutis");
+  chapter.dialogue = chapter.dialogue.map((line) => line.replace(/\bBrutus\b/g, "Brutis"));
+  chapter.endDialogue = chapter.endDialogue.map((line) => line.replace(/\bBrutus\b/g, "Brutis"));
+  chapter.sceneStarter = RUMIN_SCENE_STARTERS[chapter.id];
+}
+
 
 const RUMIN_CAMPAIGN_ART = Object.freeze({
   "brothers-of-destiny": "/assets/gauntlet/campaigns/rumin/01-brothers-of-destiny.webp",
@@ -1781,7 +1820,7 @@ const CAMPAIGN_NARRATION = {
     afterBattle: "Kaiser crosses the line, and the Republic becomes a battlefield."
   },
   "last-republic": {
-    beforeBattle: "The old order makes its final stand, and Brutus faces the man he once hoped would save it.",
+    beforeBattle: "The old order makes its final stand, and Brutis faces the man he once hoped would save it.",
     afterBattle: "The Republic still speaks, but it no longer rules."
   },
   "emperor-of-gold": {
@@ -1794,7 +1833,7 @@ const CAMPAIGN_NARRATION = {
   },
   "war-of-successors": {
     beforeBattle: "Kaiser's death leaves Rumie with grief, ambition, and armies looking for a name to follow.",
-    afterBattle: "Brutus loses the future, and the Republic becomes a memory carried by the empire that replaces it."
+    afterBattle: "Brutis loses the future, and the Republic becomes a memory carried by the empire that replaces it."
   },
   "first-emperor": {
     beforeBattle: "Augustus and Bobei clash over Kaiser's legacy: vengeance or settlement, sword or law.",
@@ -1987,7 +2026,7 @@ for (const chapter of REATH_CAMPAIGN) {
 
 const CAMPAIGN_METADATA = {
   ...ADDITIONAL_CAMPAIGN_METADATA,
-  rumin: { commanderName: "The Jewel of Rumie", pitch: "Follow Rumie from founding myth to republic, Kaiser, civil war, assassination, and imperial legacy.", coverImage: RUMIN_CAMPAIGN_ART["first-empire-bank"] },
+  rumin: { commanderName: "The Jewel of Rumie", pitch: "On the homeworld Orthea, follow Rumie from a dispute over trade and conquest into a republic, Kaiser's optimized empire, assassination, systemic collapse, and Augustus's uneasy synthesis—then glimpse Reath as a future convergence point.", coverImage: RUMIN_CAMPAIGN_ART["first-empire-bank"] },
   sheen: { commanderName: "The Rise and Trials of the Sheen", pitch: "On the forest moon Gao, guide a civilization of sentient treants from Obsidian rule through living-city prosperity, botanical science, sincere reform, civil war, and renewal—then witness its first passage to Reath." },
   frumo: { commanderName: "The Last Tide", pitch: "On the ocean homeworld Pelagos, follow Ristus from King Ludvik's treasure taxes through merfolk revolution, Robespier's Red Tide, Polea's naval genius and empire, frozen disaster, a restored Council, and the first voluntary passage to Reath." },
   bizi: { commanderName: "The Gears of Eternity", pitch: "On Volaris, follow a human empire's self-aware creations from Kharon's founding signal through personhood, golden-age industry, Titan faith, Focus's ruthless efficiency, schism, restoration, and the fall of Constanti—then carry the Bizi legacy toward Reath.", coverImage: BIZI_CAMPAIGN_ART["golden-empire"] },
@@ -1997,6 +2036,16 @@ const CAMPAIGN_METADATA = {
 
 const CAMPAIGN_CHARACTER_DESCRIPTIONS = {
   ...ADDITIONAL_CAMPAIGN_CHARACTERS,
+  rumin: {
+    rolmus: { name: "Rolmus", role: "Founder of civic Rumie", description: "Rolmus believes durable power comes from regulated exchange, codified law, and institutions that outlive their founders. His failure is assuming slow systems will always correct themselves before ambitious people learn to capture them." },
+    remex: { name: "Remex", role: "Founder and advocate of expansion", description: "Remex treats dominance as insurance: roads need walls, markets need legions, and rivals must be incorporated before they can interrupt Rumin growth. His argument survives long after he does." },
+    kaiser: { name: "Kaiser, the Jewel", role: "General, reformer, and centralizing ruler", description: "Kaiser converts land, labor, information, and victory into usable public power. He feeds citizens and breaks corrupt bottlenecks, then makes Rumie's success depend so completely on his judgment that reform becomes rule." },
+    brutis: { name: "Brutis", role: "Republican confidant and conspirator", description: "Brutis admires Kaiser's material achievements and fears their architecture. His tragedy is correctly identifying a single point of failure while believing the man can be removed without first rebuilding the institutions that system displaced." },
+    livia: { name: "Livia", role: "Bank auditor and political strategist", description: "Livia follows information through ledgers, grain depots, and military accounts. She sees before most senators that the First Empire Bank transfers more than wealth: it transfers agency toward whoever sets the optimization criteria." },
+    cassius: { name: "Cassius", role: "Senate general of distributed authority", description: "Cassius defends the Republic's divided powers because delay creates room for dissent and correction. His rigidity also shows how distributed systems can become too slow to answer hunger, invasion, or captured institutions." },
+    bobei: { name: "Bobei the Great", role: "Avenger and military heir", description: "Bobei inherits Kaiser's loyalists, grief, and talent for decisive force. He can punish assassins and reunite armies, but he cannot imagine legitimacy except as loyalty to the fallen Jewel." },
+    augustus: { name: "Meerus Augustus", role: "Architect of the imperial settlement", description: "Augustus preserves the bank, legions, and rapid administration while restoring limited Senate oversight and distributed succession. His settlement values resilience over ideological purity, creating an empire that can survive its ruler at the cost of calling managed obedience republican tradition." }
+  },
   "astral-vanguard": {
     narrator: {
       name: "Astral Vanguard Narrator",

@@ -249,40 +249,20 @@ const MUSIC_TRACKS = {
   },
   basic: { label: "Basic Gauntlet Theme", pad: [65.41, 87.31, 130.81], notes: [261.63, 293.66, 329.63, 392, 349.23, 293.66, 246.94, 261.63], tempo: 600, wave: "triangle" },
   rumin: {
-    label: "March of the Rumin",
-    sources: [
-      "/assets/gauntlet/music/rumin-1.mp3",
-      "/assets/gauntlet/music/rumin-2.mp3",
-      "/assets/gauntlet/music/rumin-3.mp3",
-      "/assets/gauntlet/music/rumin-4.mp3"
-    ]
+    label: "The Civic Imperium",
+    sources: ["/assets/gauntlet/music/factions/rumin-civic-imperium-v1.mp3"]
   },
   sheen: {
-    label: "Song of the Sheen",
-    sources: [
-      "/assets/gauntlet/music/sheen-1.mp3",
-      "/assets/gauntlet/music/sheen-2.mp3",
-      "/assets/gauntlet/music/sheen-3.mp3",
-      "/assets/gauntlet/music/sheen-4.mp3"
-    ]
+    label: "The Living Renewal",
+    sources: ["/assets/gauntlet/music/factions/sheen-living-renewal-v1.mp3"]
   },
   frumo: {
-    label: "The Frumos Anthem",
-    sources: [
-      "/assets/gauntlet/music/frumo-1.mp3",
-      "/assets/gauntlet/music/frumo-2.mp3",
-      "/assets/gauntlet/music/frumo-3.mp3",
-      "/assets/gauntlet/music/frumo-4.mp3"
-    ]
+    label: "The Council of Captains",
+    sources: ["/assets/gauntlet/music/factions/frumo-council-of-captains-v1.mp3"]
   },
   bizi: {
-    label: "Hymn of the Gilded Dust",
-    sources: [
-      "/assets/gauntlet/music/bizi-1.mp3",
-      "/assets/gauntlet/music/bizi-2.mp3",
-      "/assets/gauntlet/music/bizi-3.mp3",
-      "/assets/gauntlet/music/bizi-4.mp3"
-    ]
+    label: "The Plural Machine",
+    sources: ["/assets/gauntlet/music/factions/bizi-plural-machine-v1.mp3"]
   },
   mekan: {
     label: "The Eternal Festival",
