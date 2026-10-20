@@ -75,7 +75,11 @@ const FACTION_PROFILES = {
     city: "Constanti, Technology Hub"
   },
   zynarth: { id: "zynarth", name: "Zynarth", commander: "Broodmother Zalara", city: "Brood Nest", general: { id: "klar", name: "K'Lar, Biomass Keeper" } },
-  "astral-vanguard": { id: "astral-vanguard", name: "Astral Vanguard", commander: "High Marshal Alden", city: "Vanguard Outpost", general: { id: "myra-cross", name: "Sergeant Myra Cross" } }
+  "astral-vanguard": { id: "astral-vanguard", name: "Astral Vanguard", commander: "High Marshal Alden", city: "Vanguard Outpost", general: { id: "myra-cross", name: "Sergeant Myra Cross" } },
+  ingles: { id: "ingles", name: "Ingles", commander: "First Speaker Elian Wren", city: "Crownless Haven", general: { id: "rowan-vale", name: "Marshal Rowan Vale" } },
+  mercaw: { id: "mercaw", name: "Mercaw", commander: "Convener Mara Kest", city: "Accord Spire", general: { id: "rook-talon", name: "Rook Talon" } },
+  mtano: { id: "mtano", name: "M'Tano", commander: "Rainkeeper Amari", city: "Mawingu Terraces", general: { id: "kito", name: "Pathfinder Kito" } },
+  russo: { id: "russo", name: "Russo", commander: "Warden Irina Volkov", city: "Novaya Hearth", general: { id: "mikhail-saran", name: "Mikhail Saran" } }
 };
 const FACTION_ABILITY_INTENTS = Object.freeze({
   "polea-place": "Put a card from your hand into an empty lane you control.",

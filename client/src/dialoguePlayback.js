@@ -32,9 +32,21 @@ function assetUrl(source) {
 }
 
 export function dossierMusicSource(factionId) {
-  return ["rumin", "sheen", "frumo", "bizi"].includes(factionId)
-    ? `/assets/gauntlet/music/dossiers/${factionId}-reverie.wav`
-    : null;
+  const sources = {
+    rumin: "/assets/gauntlet/music/dossiers/rumin-reverie.wav",
+    sheen: "/assets/gauntlet/music/dossiers/sheen-reverie.wav",
+    frumo: "/assets/gauntlet/music/dossiers/frumo-reverie.wav",
+    bizi: "/assets/gauntlet/music/dossiers/bizi-reverie.wav",
+    mekan: "/assets/gauntlet/music/factions/mekan-eternal-festival-v1.mp3",
+    jali: "/assets/gauntlet/music/factions/jali-revenant-formation-v1.mp3",
+    gracus: "/assets/gauntlet/music/factions/gracus-stone-question-v1.mp3",
+    indela: "/assets/gauntlet/music/factions/indela-turning-omen-v1.mp3",
+    zynarth: "/assets/gauntlet/music/factions/zynarth-infinite-hive-v1.mp3",
+    "astral-vanguard": "/assets/gauntlet/music/factions/astral-vanguard-hybrid-horizon-v1.mp3",
+    voltari: "/assets/gauntlet/music/factions/voltari-golden-conduit-v1.mp3",
+    xendra: "/assets/gauntlet/music/factions/xendra-aspect-without-form-v1.mp3"
+  };
+  return sources[factionId] || null;
 }
 
 const idleState = () => ({ playingIndex: null, mode: null, paused: false, status: "" });

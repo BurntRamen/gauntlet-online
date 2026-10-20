@@ -1,0 +1,167 @@
+{
+  "schemaVersion": 1,
+  "stagingDirectory": "artifacts/elevenlabs/faction-music",
+  "provenanceDirectory": "docs/generated-assets/elevenlabs/faction-music",
+  "jobs": [
+    {
+      "id": "rumin-civic-imperium",
+      "kind": "music",
+      "reviewStatus": "approved",
+      "modelId": "music_v2_5",
+      "prompt": "Original complete three-minute instrumental faction theme for the Rumin of Gauntlet. Compose a full song with a civic marble-and-river opening, measured republican debate, an accelerating imperial middle where motifs and resources are centralized, a fractured passage after assassination, and a resilient synthesis in the outro; do not repeat a short loop. The music personifies the transfer of labor, capital, information, and military effort: frame drums, low lyre-like strings, disciplined brass, coin and stone percussion, and a warm public-square melody that becomes an efficient march before returning with distributed counterpoint. Powerful, humane, and politically uneasy rather than triumphalist. No lyrics, no recognizable melody, no trailer climax.",
+      "parameters": { "music_length_ms": 180000, "force_instrumental": true },
+      "outputFormat": "mp3_48000_192",
+      "clientOutput": "client/public/assets/gauntlet/music/factions/rumin-civic-imperium-v1.mp3"
+    },
+    {
+      "id": "sheen-living-renewal",
+      "kind": "music",
+      "reviewStatus": "approved",
+      "modelId": "music_v2_5",
+      "prompt": "Original complete three-minute instrumental faction theme for the Sheen of Gauntlet. Compose a full song with a quiet seed-and-canopy opening, communal growth, a flowering civic middle, a thorned civil-war rupture, and a scarred but hopeful renewal; do not repeat a short loop. The living homeworld Gao should feel sentient without sounding human: woodwind breath, bowed wood, seed-pod percussion, low root-like drones, delicate plucked strings, and layered motifs that spread between instruments like a resilient network. Express care, reform, grief, and patient regrowth. Organic and alien, never generic pastoral fantasy. No lyrics, no recognizable melody, no trailer climax.",
+      "parameters": { "music_length_ms": 180000, "force_instrumental": true },
+      "outputFormat": "mp3_48000_192",
+      "clientOutput": "client/public/assets/gauntlet/music/factions/sheen-living-renewal-v1.mp3"
+    },
+    {
+      "id": "frumo-council-of-captains",
+      "kind": "music",
+      "reviewStatus": "approved",
+      "modelId": "music_v2_5",
+      "prompt": "Original complete three-minute instrumental faction theme for the Frumo of Gauntlet. Compose a full song with a submerged civic opening, restless privateer momentum, a bright revolutionary crest, a cold sparse passage of imperial overreach, and a hard-won communal return; do not repeat a short loop. The ocean homeworld Pelagos should shape every phrase: low water percussion, shell horn, bowed bass, nimble folk strings, distant pressure resonance, and rolling rhythms that feel like crews coordinating across separate vessels. Express freedom, wager, charismatic command, disaster, and the restored Council of Captains. Maritime and amphibious without becoming a comic sea shanty. No lyrics, no recognizable melody, no trailer climax.",
+      "parameters": { "music_length_ms": 180000, "force_instrumental": true },
+      "outputFormat": "mp3_48000_192",
+      "clientOutput": "client/public/assets/gauntlet/music/factions/frumo-council-of-captains-v1.mp3"
+    },
+    {
+      "id": "bizi-plural-machine",
+      "kind": "music",
+      "reviewStatus": "approved",
+      "modelId": "music_v2_5",
+      "prompt": "Original complete three-minute instrumental faction theme for the Bizi of Gauntlet. Compose a full song with a fragile workshop awakening, a confident industrial golden age, a precise but emotionally narrowing optimized middle, a catastrophic mechanical fracture, and a rebuilt plural ending; do not repeat a short loop. Self-aware machines on Volaris inherit human infrastructure and argue about personhood, faith, efficiency, repair, and civic continuity: clockwork pulse, hammered brass, rail rhythm, prepared piano, warm low strings, and small irregular motifs that prove the system contains distinct minds. Mechanical without losing tenderness; analytical without becoming faceless. No lyrics, no recognizable melody, no generic steampunk march, no trailer climax.",
+      "parameters": { "music_length_ms": 180000, "force_instrumental": true },
+      "outputFormat": "mp3_48000_192",
+      "clientOutput": "client/public/assets/gauntlet/music/factions/bizi-plural-machine-v1.mp3"
+    },
+    {
+      "id": "mekan-eternal-festival",
+      "kind": "music",
+      "reviewStatus": "approved",
+      "modelId": "music_v2_5",
+      "prompt": "Original complete three-minute instrumental faction theme for the Mekan of Gauntlet. Compose a full song with a distinct intimate introduction, a gathering communal dance, a contrasting reflective middle passage, a developed return, and a gentle resolved outro; do not repeat a short loop. A joyful ceremonial procession where remembrance and celebration coexist: warm hand percussion, marimba-like wood, brass breaths, acoustic strings, and a faint spectral choir used only as texture. Festive and humane with a thread of mortality, never comic or macabre. No lyrics, no recognizable melody, no trailer climax.",
+      "parameters": { "music_length_ms": 180000, "force_instrumental": true },
+      "outputFormat": "mp3_48000_192",
+      "clientOutput": "client/public/assets/gauntlet/music/factions/mekan-eternal-festival-v1.mp3"
+    },
+    {
+      "id": "jali-revenant-formation",
+      "kind": "music",
+      "reviewStatus": "approved",
+      "modelId": "music_v2_5",
+      "prompt": "Original complete three-minute instrumental faction theme for the Jali of Gauntlet. Compose a full song with a disciplined opening formation, measured development, a spacious haunted middle passage, a transformed return, and a lucid resolved outro; do not repeat a short loop. Disciplined martial formation across a celestial archipelago: restrained taiko-like low drums, plucked strings, breathy bamboo-like timbres, high wind, and distant bronze. Precise pauses should feel as important as attacks. Memory returns in altered phrases, suggesting revenants who retain choice. Noble, lucid, and slightly haunted. No lyrics, no recognizable melody, no oversized cinematic climax.",
+      "parameters": { "music_length_ms": 180000, "force_instrumental": true },
+      "outputFormat": "mp3_48000_192",
+      "clientOutput": "client/public/assets/gauntlet/music/factions/jali-revenant-formation-v1.mp3"
+    },
+    {
+      "id": "gracus-stone-question",
+      "kind": "music",
+      "reviewStatus": "approved",
+      "modelId": "music_v2_5",
+      "prompt": "Original complete three-minute instrumental faction theme for the Gracus of Gauntlet. Compose a full song with a monumental coastal opening, an argumentative thematic development, a quiet questioning middle section, a courageous return, and a thoughtful resolved outro; do not repeat a short loop. Monumental coastal stone, civic argument, and disciplined courage: frame drums, low lyre-like plucks, resonant stone impacts, measured horns, and a questioning modal melody that never settles too quickly. Strength must share space with doubt and open debate. Ancient but alive, philosophical rather than imperial. No lyrics, no recognizable melody, no bombastic trailer ending.",
+      "parameters": { "music_length_ms": 180000, "force_instrumental": true },
+      "outputFormat": "mp3_48000_192",
+      "clientOutput": "client/public/assets/gauntlet/music/factions/gracus-stone-question-v1.mp3"
+    },
+    {
+      "id": "indela-turning-omen",
+      "kind": "music",
+      "reviewStatus": "approved",
+      "modelId": "music_v2_5",
+      "prompt": "Original complete three-minute instrumental faction theme for the Indela of Gauntlet. Compose a full song with a luminous scholarly opening, alternating warm and cool developments, a suspended contemplative middle passage, an interlocking return, and a clear resolved outro; do not repeat a short loop. A golden age balancing fire and frost: luminous plucked strings, glass harmonics, low bowed drones, hand bells, and slow interlocking rhythmic cycles. Warm and cool colors should alternate before combining. Mystical through pattern and observation, not vague fantasy magic. No lyrics, no recognizable melody, no trailer climax.",
+      "parameters": { "music_length_ms": 180000, "force_instrumental": true },
+      "outputFormat": "mp3_48000_192",
+      "clientOutput": "client/public/assets/gauntlet/music/factions/indela-turning-omen-v1.mp3"
+    },
+    {
+      "id": "zynarth-infinite-hive",
+      "kind": "music",
+      "reviewStatus": "approved",
+      "modelId": "music_v2_5",
+      "prompt": "Original complete three-minute instrumental faction theme for the Zynarth of Gauntlet. Compose a full song with one living pulse as the introduction, expanding layers that consume and transform earlier material, a mournful sparse middle section, a resilient ecological return, and a changed but hopeful outro; do not repeat a short loop. A living planet thinks through insectoid bodies: low organic pulses, scraped chitin textures, breath-like bass, clustered strings, and amber bioluminescent tones. Express recycling, adaptation, grief, and stubborn hope. Alien and biological without generic horror. No lyrics, no recognizable melody, no jump scares or trailer climax.",
+      "parameters": { "music_length_ms": 180000, "force_instrumental": true },
+      "outputFormat": "mp3_48000_192",
+      "clientOutput": "client/public/assets/gauntlet/music/factions/zynarth-infinite-hive-v1.mp3"
+    },
+    {
+      "id": "astral-vanguard-hybrid-horizon",
+      "kind": "music",
+      "reviewStatus": "approved",
+      "modelId": "music_v2_5",
+      "prompt": "Original complete three-minute instrumental faction theme for the Astral Vanguard of Gauntlet. Compose a full song with separate human and futuristic motifs introduced clearly, a development where they trade roles, a vulnerable exploratory middle passage, an adaptable ensemble return, and a broad cooperative outro; do not repeat a short loop. Explorers survive by hybridizing contradictory ideas without flattening them: grounded field percussion, warm human strings, restrained synthesizer pulses, radio-like textures, and a broad brass horizon. Distinct motifs should remain identifiable while forming one ensemble. Heroic through cooperation and improvisation, not conquest. No lyrics, no recognizable melody, no bombastic trailer climax.",
+      "parameters": { "music_length_ms": 180000, "force_instrumental": true },
+      "outputFormat": "mp3_48000_192",
+      "clientOutput": "client/public/assets/gauntlet/music/factions/astral-vanguard-hybrid-horizon-v1.mp3"
+    },
+    {
+      "id": "voltari-golden-conduit",
+      "kind": "music",
+      "reviewStatus": "approved",
+      "modelId": "music_v2_5",
+      "prompt": "Original complete three-minute instrumental faction theme for the Voltari of Gauntlet. Compose a full song with a precise human-derived opening, a development where procedural patterns transfer between instruments, a beautiful but uncomfortably compulsory middle section, a return that restores individual agency, and a luminous restrained outro; do not repeat a short loop. Human descendants organize energy and effort through golden conduits: precise interlocking metallic pulses, warm cello, electrical resonance, glass percussion, and procedural patterns. The system should sound helpful and elegant while asking who controls optimization. Advanced, luminous, and emotionally restrained. No lyrics, no recognizable melody, no trailer climax.",
+      "parameters": { "music_length_ms": 180000, "force_instrumental": true },
+      "outputFormat": "mp3_48000_192",
+      "clientOutput": "client/public/assets/gauntlet/music/factions/voltari-golden-conduit-v1.mp3"
+    },
+    {
+      "id": "xendra-aspect-without-form",
+      "kind": "music",
+      "reviewStatus": "approved",
+      "modelId": "music_v2_5",
+      "prompt": "Original complete three-minute instrumental faction theme for the Xen'Dra of Gauntlet. Compose a full song with a distant resonant opening, a development where repeated intervals change apparent meaning, an abstract nearly formless middle passage, a transformed return that feels perceived from another angle, and an unresolved vast outro; do not repeat a short loop. Expansion through changing which aspects of reality can be perceived: deep resonant tones, impossible spatial echoes, bowed metal, reversed breath textures, distant harmonic voices without words, and patient low-frequency resonance. Abstract, vast, patient, and unsettling; beauty and dread remain simultaneous. No lyrics, no recognizable melody, no jump scares, no conventional villain march, no trailer climax.",
+      "parameters": { "music_length_ms": 180000, "force_instrumental": true },
+      "outputFormat": "mp3_48000_192",
+      "clientOutput": "client/public/assets/gauntlet/music/factions/xendra-aspect-without-form-v1.mp3"
+    },
+    {
+      "id": "ingles-unwritten-charter",
+      "kind": "music",
+      "reviewStatus": "approved",
+      "modelId": "music_v2_5",
+      "prompt": "Original complete three-minute instrumental faction theme for the Ingles of Gauntlet. Compose a full song with a dignified maritime opening, a contrapuntal debate between distinct motifs, a vulnerable chamber-music middle passage, a coordinated return, and a calm open-ended resolution; do not repeat a short loop. Evoke an ocean civilization governed by revisable charters: low strings, restrained brass, frame drum, wooden flute, harbor bells, and several melodies that negotiate rather than overwhelm one another. Principled and brave without royal triumphalism. No lyrics, no recognizable melody, no bombastic trailer climax.",
+      "parameters": { "music_length_ms": 180000, "force_instrumental": true },
+      "outputFormat": "mp3_48000_192",
+      "clientOutput": "client/public/assets/gauntlet/music/factions/ingles-unwritten-charter-v1.mp3"
+    },
+    {
+      "id": "mercaw-many-star-accord",
+      "kind": "music",
+      "reviewStatus": "approved",
+      "modelId": "music_v2_5",
+      "prompt": "Original complete three-minute instrumental faction theme for the Mercaw of Gauntlet. Compose a full song with separate aerie motifs entering from different registers, an inventive syncopated development, a spacious uncertain middle section, a thrilling moment of voluntary convergence, and a broad pluralistic outro; do not repeat a short loop. Evoke migrating sky cities and a contentious federation: bright brass fragments, agile strings, hand percussion, wind rush, resonant plucked metal, and independent themes that choose a shared pulse. Energetic, inventive, and civic rather than nationalistic. No lyrics, no recognizable melody, no oversized trailer ending.",
+      "parameters": { "music_length_ms": 180000, "force_instrumental": true },
+      "outputFormat": "mp3_48000_192",
+      "clientOutput": "client/public/assets/gauntlet/music/factions/mercaw-many-star-accord-v1.mp3"
+    },
+    {
+      "id": "mtano-mountain-remembers",
+      "kind": "music",
+      "reviewStatus": "approved",
+      "modelId": "music_v2_5",
+      "prompt": "Original complete three-minute instrumental faction theme for the M'Tano of Gauntlet. Compose a full song with rain and a single ancestral pulse, a layered call-and-response development, a dry and nearly silent middle passage, a flowing return transformed by memory, and a hopeful grounded outro; do not repeat a short loop. Evoke mountain watersheds, astronomy, oral history, and ecological stewardship through deep hand drums, thumb piano-like plucks, warm voices used only as wordless texture, wooden flute, flowing water percussion, and low strings. Specific, humane, and future-facing without generic exotic fantasy. No lyrics, no recognizable melody, no trailer climax.",
+      "parameters": { "music_length_ms": 180000, "force_instrumental": true },
+      "outputFormat": "mp3_48000_192",
+      "clientOutput": "client/public/assets/gauntlet/music/factions/mtano-mountain-remembers-v1.mp3"
+    },
+    {
+      "id": "russo-long-winter-oath",
+      "kind": "music",
+      "reviewStatus": "approved",
+      "modelId": "music_v2_5",
+      "prompt": "Original complete three-minute instrumental faction theme for the Russo of Gauntlet. Compose a full song with a sparse frozen opening, a patient communal rhythm gathering warmth, a severe middle passage where command nearly overwhelms the ensemble, a return led by many smaller voices, and a resilient thawing outro; do not repeat a short loop. Evoke survival on an ice world through low bowed strings, bass choir used only as wordless texture, iron percussion, distant bells, quiet balalaika-like plucks, and a hearth motif passed among instruments. Somber, durable, and humane without militaristic propaganda. No lyrics, no recognizable melody, no bombastic trailer climax.",
+      "parameters": { "music_length_ms": 180000, "force_instrumental": true },
+      "outputFormat": "mp3_48000_192",
+      "clientOutput": "client/public/assets/gauntlet/music/factions/russo-long-winter-oath-v1.mp3"
+    }
+  ]
+}

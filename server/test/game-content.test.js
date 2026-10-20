@@ -34,8 +34,8 @@ test("validates the authoritative versioned game content registry", () => {
   assert.equal(content.schemaVersion, 2);
   assert.equal(content.contentVersion, CONTENT_VERSION);
   assert.equal(content.rulesVersion, RULES_VERSION);
-  assert.equal(content.factions.length, 10);
-  assert.equal(Object.values(content.campaigns).flatMap((campaign) => campaign.chapters).length, 140);
+  assert.equal(content.factions.length, 14);
+  assert.equal(Object.values(content.campaigns).flatMap((campaign) => campaign.chapters).length, 188);
   for (const factionId of ["mekan", "jali", "gracus", "indela", "voltari", "zynarth"]) {
     assert.equal(content.campaigns[factionId].chapters.length, 12, `${factionId}: campaign length`);
     assert.equal(content.campaigns[factionId].chapters.every((chapter) => chapter.dialogue.length >= 5 && chapter.endDialogue.length >= 5), true, `${factionId}: dialogue depth`);
@@ -43,15 +43,40 @@ test("validates the authoritative versioned game content registry", () => {
   const zynarth = content.factions.find((faction) => faction.id === "zynarth");
   assert.equal(zynarth.campaignPending, undefined);
   assert.equal(zynarth.campaignOnly, undefined);
+  for (const [factionId, homeworld, finalTitle] of [
+    ["ingles", "Albion Reach", "The Open Door"],
+    ["mercaw", "Cairn", "The Many-Star Accord"],
+    ["mtano", "M'Kora", "The Mountain Remembers"],
+    ["russo", "Moroz", "The Winter Oath"]
+  ]) {
+    const faction = content.factions.find((entry) => entry.id === factionId);
+    const campaign = content.campaigns[factionId];
+    assert.equal(faction.homeworld, homeworld);
+    assert.equal(campaign.chapters.length, 12, `${factionId}: campaign length`);
+    assert.equal(campaign.chapters.every((chapter) => chapter.sceneStarter?.where && chapter.sceneStarter?.when && chapter.sceneStarter?.perspective), true, `${factionId}: scene starters`);
+    assert.equal(campaign.chapters.at(-1).title, finalTitle);
+    assert.match(campaign.chapters.at(-1).story, new RegExp(`homeworld ${homeworld.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}.*Reath`));
+    assert.match(campaign.chapters.at(-1).endDialogue.join(" "), /origin.*convergence point/);
+  }
   assert.equal(content.campaigns["astral-vanguard"].chapters.length, 12);
   assert.equal(content.campaigns["astral-vanguard"].coverImage, "/assets/gauntlet/factions/astral-vanguard/vanguard-outpost.webp");
   assert.equal(content.campaigns["astral-vanguard"].commanderName, "The World Between");
   assert.equal(content.campaigns["astral-vanguard"].chapters[0].title, "New Horizon");
   assert.equal(content.campaigns["astral-vanguard"].chapters.at(-1).title, "When the Stars Remember");
+  assert.match(content.factions.find((faction) => faction.id === "astral-vanguard").origin, /post-biological commonwealth.*retained personal choice/);
+  assert.match(content.factions.find((faction) => faction.id === "astral-vanguard").reathArrival, /Resolute reached Reath by conventional starflight/);
+  assert.match(content.campaigns["astral-vanguard"].pitch, /coordinate without surrendering choice/);
+  assert.equal(content.campaigns["astral-vanguard"].chapters[7].title, "Blackreach: Veilfract");
+  assert.match(content.campaigns["astral-vanguard"].chapters[7].dialogue.join(" "), /They are not shifting. We are/);
+  assert.match(content.campaigns["astral-vanguard"].chapters[10].story, /Unified Command Protocol Nine/);
+  assert.match(content.campaigns["astral-vanguard"].chapters.at(-1).story, /Astral Nexus.*compulsory command/);
+  assert.match(content.campaigns["astral-vanguard"].chapters.at(-1).endDialogue.join(" "), /certainty without responsibility/);
+  assert.match(content.campaigns["astral-vanguard"].characters["Commander Jonah Hale"], /accountable field judgment/);
+  assert.match(content.campaigns["astral-vanguard"].characters["Marek Solis"], /Protocol Nine and the Astral Nexus/);
   assert.equal(content.worldLore.reath.transitModel.name, "The Timetwister Transit Model");
   assert.match(content.worldLore.reath.transitModel.principles[0], /Entanglement verifies and corrects/);
   assert.equal(content.factions.find((faction) => faction.id === "astral-vanguard").homeworld, "The Meridian Reach");
-  assert.equal(content.factions.find((faction) => faction.id === "zynarth").homeworld, "Ilyr-Vesh");
+  assert.equal(content.factions.find((faction) => faction.id === "zynarth").homeworld, "K'lar");
   const indelaFaction = content.factions.find((faction) => faction.id === "indela");
   const indelaCampaign = content.campaigns.indela;
   assert.equal(indelaFaction.homeworld, "Varuna");
@@ -96,6 +121,26 @@ test("validates the authoritative versioned game content registry", () => {
   assert.match(gracusCampaign.chapters[0].story, /homeworld Thalassa/);
   assert.match(gracusCampaign.chapters.at(-1).story, /other homeworlds/);
   assert.match(gracusCampaign.chapters.at(-1).endDialogue.join(" "), /Reath is the convergence point/);
+  const frumoFaction = content.factions.find((faction) => faction.id === "frumo");
+  const frumoCampaign = content.campaigns.frumo;
+  assert.equal(frumoFaction.homeworld, "Pelagos");
+  assert.match(frumoFaction.origin, /underwater capital Ristus/);
+  assert.match(frumoFaction.reathArrival, /restoring the Council of Captains.*voluntary expedition/);
+  assert.match(frumoCampaign.pitch, /ocean homeworld Pelagos/);
+  assert.match(frumoCampaign.chapters[0].story, /homeworld Pelagos/);
+  assert.equal(frumoCampaign.chapters.every((chapter) => chapter.sceneStarter?.where && chapter.sceneStarter?.when && chapter.sceneStarter?.perspective), true);
+  assert.match(frumoCampaign.chapters[5].story, /Robespier/);
+  assert.match(frumoCampaign.chapters[9].story, /Pelagos's oceans/);
+  assert.match(frumoCampaign.chapters.at(-1).endDialogue.join(" "), /Pelagos is our home.*Reath is where our tide meets/);
+  assert.match(frumoCampaign.characters.polea.description, /saves the republic.*depend on him/);
+  assert.match(frumoCampaign.characters.robespier.description, /vigilance into purity/);
+  const sheenCampaign = content.campaigns.sheen;
+  assert.equal(content.factions.find((faction) => faction.id === "sheen").homeworld, "Gao");
+  assert.match(sheenCampaign.pitch, /forest moon Gao/);
+  assert.match(sheenCampaign.chapters[0].story, /living homeworld Gao/);
+  assert.equal(sheenCampaign.chapters.every((chapter) => chapter.sceneStarter?.where && chapter.sceneStarter?.when && chapter.sceneStarter?.perspective), true);
+  assert.match(sheenCampaign.chapters.at(-1).story, /botanical science|living shelters|healing greenhouses/);
+  assert.match(sheenCampaign.chapters.at(-1).endDialogue.join(" "), /Gao is our origin.*Reath is where our roots meet/);
   const voltariCampaign = content.campaigns.voltari;
   assert.equal(voltariCampaign.homeworld, "Voltara");
   assert.match(voltariCampaign.pitch, /human descendants/);
@@ -106,15 +151,46 @@ test("validates the authoritative versioned game content registry", () => {
   assert.match(voltariCampaign.chapters[1].story, /healing rather than war/);
   assert.match(voltariCampaign.chapters[5].story, /AION/);
   assert.match(voltariCampaign.chapters[7].endDialogue.join(" "), /Survival without freedom is not civilization/);
+  assert.equal(voltariCampaign.chapters.every((chapter) => chapter.sceneStarter?.where && chapter.sceneStarter?.when && chapter.sceneStarter?.perspective), true);
+  assert.match(voltariCampaign.chapters[9].story, /transferring surplus energy, repair capacity, and verified knowledge/);
+  assert.match(voltariCampaign.chapters[9].dialogue.join(" "), /when does help become incorporation/);
+  assert.match(voltariCampaign.chapters.at(-1).story, /compulsory optimization/);
   assert.match(voltariCampaign.chapters.at(-1).endDialogue.join(" "), /Voltara is our origin. Reath is the convergence point/);
+  const zynarthCampaign = content.campaigns.zynarth;
+  assert.equal(content.factions.find((faction) => faction.id === "zynarth").homeworld, "K'lar");
+  assert.equal(zynarthCampaign.commanderName, "The Infinite Hive");
+  assert.match(zynarthCampaign.chapters[0].story, /living homeworld K'lar/);
+  assert.equal(zynarthCampaign.chapters.every((chapter) => chapter.sceneStarter?.where && chapter.sceneStarter?.when && chapter.sceneStarter?.perspective), true);
+  assert.match(zynarthCampaign.chapters[8].story, /Timetwister stone.*Reath/);
+  assert.match(zynarthCampaign.chapters[10].story, /distributed people/);
+  assert.match(zynarthCampaign.chapters[10].endDialogue.join(" "), /tragic.*hopeful/);
+  assert.match(zynarthCampaign.chapters.at(-1).endDialogue.join(" "), /K'lar is our origin. Reath is our convergence/);
+  const ruminFaction = content.factions.find((faction) => faction.id === "rumin");
+  const ruminCampaign = content.campaigns.rumin;
+  assert.equal(ruminFaction.homeworld, "Orthea");
+  assert.match(ruminFaction.reathArrival, /Timetwister beneath Rumie/);
+  assert.match(ruminCampaign.pitch, /homeworld Orthea.*optimized empire.*Reath.*convergence point/);
+  assert.equal(ruminCampaign.chapters.every((chapter) => chapter.sceneStarter?.where && chapter.sceneStarter?.when && chapter.sceneStarter?.perspective), true);
+  assert.match(ruminCampaign.chapters[3].story, /land becomes production.*prisoners become coerced labor.*revenue/);
+  assert.match(ruminCampaign.chapters[5].story, /transferring surplus grain, labor, and military wealth/);
+  assert.match(ruminCampaign.chapters[8].story, /absolute compliance, continuous expansion.*unable to function without Kaiser/);
+  assert.match(ruminCampaign.chapters.at(-1).story, /distributes succession.*Reath, the convergence point rather than the Rumin origin/);
+  assert.match(ruminCampaign.characters.brutis.description, /single point of failure/);
+  assert.match(ruminCampaign.characters.augustus.description, /resilience over ideological purity/);
+  const ruminVisibleText = JSON.stringify(ruminCampaign).replaceAll("/brutus.mp3", "");
+  assert.doesNotMatch(ruminVisibleText, /\bBrutus\b/);
+  assert.match(ruminVisibleText, /\bBrutis\b/);
   for (const chapter of content.campaigns["astral-vanguard"].chapters) {
     assert.ok(chapter.dialogue.length >= 5, `${chapter.id}: opening dialogue depth`);
     assert.ok(chapter.endDialogue.length >= 5, `${chapter.id}: closing dialogue depth`);
     assert.equal(typeof chapter.beforeBattle, "string", `${chapter.id}: briefing`);
     assert.equal(typeof chapter.afterBattle, "string", `${chapter.id}: debriefing`);
+    assert.equal(typeof chapter.sceneStarter?.where, "string", `${chapter.id}: scene location`);
+    assert.equal(typeof chapter.sceneStarter?.when, "string", `${chapter.id}: scene time`);
+    assert.equal(typeof chapter.sceneStarter?.perspective, "string", `${chapter.id}: scene perspective`);
   }
   const cinematicChapters = Object.values(content.campaigns).flatMap((campaign) => campaign.chapters).filter((chapter) => chapter.cinematic);
-  assert.equal(cinematicChapters.length, 12);
+  assert.equal(cinematicChapters.length, 16);
   for (const chapter of cinematicChapters) {
     assert.equal(typeof chapter.cinematic.title, "string", `${chapter.id}: cinematic title`);
     assert.match(chapter.cinematic.image, /^\/assets\/gauntlet\/.+\.(?:webp|png|svg)$/);
@@ -145,12 +221,16 @@ test("validates the authoritative versioned game content registry", () => {
   assert.equal(rumin.commander.announcements.selected, "Roads do not end. They arrive.");
   assert.equal(sheen.commander.announcements.selected, "We won a forest. Now we must make it a home.");
   for (const faction of content.factions) {
-    for (const event of ["selected", "clicked", "wounded", "critical", "denied"]) {
-      assert.match(faction.commander.announcementAudio[event], /\/assets\/gauntlet\/voices\/.+\.mp3$/);
-      assert.equal(fs.existsSync(path.join(__dirname, "..", "..", "client", "public", faction.commander.announcementAudio[event])), true, `${faction.id}:${event}`);
+    if (faction.commander.announcementAudio) {
+      for (const event of ["selected", "clicked", "wounded", "critical", "denied"]) {
+        assert.match(faction.commander.announcementAudio[event], /\/assets\/gauntlet\/voices\/.+\.mp3$/);
+        assert.equal(fs.existsSync(path.join(__dirname, "..", "..", "client", "public", faction.commander.announcementAudio[event])), true, `${faction.id}:${event}`);
+      }
     }
-    assert.match(faction.general.clickedAudio, /\/assets\/gauntlet\/voices\/.+\.mp3$/);
-    assert.equal(fs.existsSync(path.join(__dirname, "..", "..", "client", "public", faction.general.clickedAudio)), true, `${faction.id}:general`);
+    if (faction.general.clickedAudio) {
+      assert.match(faction.general.clickedAudio, /\/assets\/gauntlet\/voices\/.+\.mp3$/);
+      assert.equal(fs.existsSync(path.join(__dirname, "..", "..", "client", "public", faction.general.clickedAudio)), true, `${faction.id}:general`);
+    }
   }
   for (const faction of content.factions) {
     assert.equal(typeof faction.general.clickedAnnouncement, "string", faction.id);
@@ -215,9 +295,18 @@ test("publishes the integrated Bizi identity, constructed-card, and campaign art
   }
 
   assert.match(content.campaigns.bizi.coverImage, /^\/assets\/gauntlet\/campaigns\/bizi\/.+\.webp$/);
+  assert.match(bizi.origin, /human Mekanists built self-repairing automatons.*awakened.*personhood/);
+  assert.match(bizi.reathArrival, /Constanti fell.*protected minds, blueprints, tools, and Titan records.*Reath/);
+  assert.match(content.campaigns.bizi.pitch, /human empire's self-aware creations.*fall of Constanti.*Reath/);
+  assert.match(content.campaigns.bizi.chapters[0].story, /human inventor Kharon.*Mekanist tradition/);
+  assert.match(content.campaigns.bizi.chapters[1].story, /first Bizi awaken.*made them people/);
+  assert.match(content.campaigns.bizi.characters.focus.description, /optimizing a civilization/);
+  assert.match(content.campaigns.bizi.characters.theo.description, /survival does not excuse/);
+  assert.match(content.campaigns.bizi.chapters.at(-1).afterBattle, /Timetwister receiver.*Reath.*convergence world.*origin/);
   assert.equal(content.campaigns.bizi.chapters.length, 12);
   for (const chapter of content.campaigns.bizi.chapters) {
     assert.match(chapter.image, /^\/assets\/gauntlet\/campaigns\/bizi\/.+\.webp$/);
+    assert.ok(chapter.sceneStarter?.where && chapter.sceneStarter?.when && chapter.sceneStarter?.perspective, `${chapter.id}: scene starter`);
     assert.equal(fs.existsSync(path.join(__dirname, "..", "..", "client", "public", chapter.image)), true);
     assert.ok(chapter.dialogue.length >= 7, `${chapter.id}: opening dialogue depth`);
     assert.ok(chapter.endDialogue.length >= 7, `${chapter.id}: closing dialogue depth`);

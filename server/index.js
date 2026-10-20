@@ -645,13 +645,13 @@ const SET_COLLECTOR_PACK_PRODUCTS = {
     setNumber: 3,
     setName: "Fractured Realms",
     factionIds: [],
-    plannedFactionIds: ["mtano", "mercaw", "engles", "russo"],
+      plannedFactionIds: ["mtano", "mercaw", "ingles", "russo"],
     variantCount: 8,
     priceUsd: 1,
     artPath: "/assets/gauntlet/packs/fractured-realms-set-3.png",
     available: false,
     unavailableReason: "Fractured Realms cards are not in the playable catalog yet, so purchases are paused until every paid pack can be fulfilled.",
-    description: "Set 3 will contain animated collector variants for M'Tano, Mercaw, Engles, and Russo."
+    description: "Set 3 will contain animated collector variants for M'Tano, Mercaw, Ingles, and Russo."
   }
 };
 

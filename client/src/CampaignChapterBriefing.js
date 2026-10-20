@@ -86,6 +86,16 @@ export default function CampaignChapterBriefing({
               <span>Situation report</span>
               <h3>Mission briefing</h3>
             </div>
+            {chapter.sceneStarter && (
+              <aside className="campaign-scene-card" aria-label="Scene setting">
+                <span>Perspective shift</span>
+                <dl>
+                  <div><dt>Where</dt><dd>{chapter.sceneStarter.where}</dd></div>
+                  <div><dt>When</dt><dd>{chapter.sceneStarter.when}</dd></div>
+                  <div><dt>Perspective</dt><dd>{chapter.sceneStarter.perspective}</dd></div>
+                </dl>
+              </aside>
+            )}
             <p className="campaign-briefing-lede">{chapter.beforeBattle || chapter.story}</p>
             <p>{chapter.story}</p>
           </section>
