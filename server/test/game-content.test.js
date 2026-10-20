@@ -46,8 +46,8 @@ test("validates the authoritative versioned game content registry", () => {
   for (const [factionId, homeworld, finalTitle] of [
     ["ingles", "Albion Reach", "The Open Door"],
     ["mercaw", "Cairn", "The Many-Star Accord"],
-    ["mtano", "M'Kora", "The Mountain Remembers"],
-    ["russo", "Moroz", "The Winter Oath"]
+    ["mtano", "M'Kora", "I Remember You"],
+    ["russo", "Ruskovia", "The Winter Oath"]
   ]) {
     const faction = content.factions.find((entry) => entry.id === factionId);
     const campaign = content.campaigns[factionId];
@@ -58,6 +58,30 @@ test("validates the authoritative versioned game content registry", () => {
     assert.match(campaign.chapters.at(-1).story, new RegExp(`homeworld ${homeworld.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}.*Reath`));
     assert.match(campaign.chapters.at(-1).endDialogue.join(" "), /origin.*convergence point/);
   }
+  const mtanoCampaign = content.campaigns.mtano;
+  assert.equal(mtanoCampaign.commanderName, "The Kingdom of a Thousand Ancestors");
+  assert.equal(mtanoCampaign.chapters[0].title, "The First Fire");
+  assert.equal(mtanoCampaign.chapters[3].title, "The Night of Broken Tablets");
+  assert.equal(mtanoCampaign.chapters[4].title, "The Kingdom of Stone");
+  assert.equal(mtanoCampaign.chapters[5].title, "The Black Spear");
+  assert.match(mtanoCampaign.chapters[0].story, /leadership is a debt.*sacrifice is honorable only when freely given/);
+  assert.match(mtanoCampaign.chapters[4].story, /speaking each fallen warrior's name.*first Living Ancestor/);
+  assert.match(mtanoCampaign.chapters[7].story, /Nameless One.*restore ordinary lives/);
+  assert.match(mtanoCampaign.chapters[8].story, /no spirit may be compelled.*voluntarily given/);
+  assert.match(mtanoCampaign.chapters.at(-1).story, /M'Kora remains their home.*Reath becomes the place/);
+  assert.match(mtanoCampaign.characters.nameless.description, /forgotten lives.*seeks recognition/);
+  const russoCampaign = content.campaigns.russo;
+  assert.equal(russoCampaign.commanderName, "The Winter Crown");
+  assert.equal(russoCampaign.chapters[0].title, "The First Crown");
+  assert.equal(russoCampaign.chapters[2].title, "The City of Iron");
+  assert.equal(russoCampaign.chapters[5].title, "The Broken Crown");
+  assert.equal(russoCampaign.chapters[7].title, "The Steel State");
+  assert.match(russoCampaign.chapters[2].story, /miners uncover a sealed circular structure/);
+  assert.match(russoCampaign.chapters[3].story, /Frumo army crosses worlds.*burns supplies/);
+  assert.match(russoCampaign.chapters[9].story, /Timetwister connects Ruskovia to Reath/);
+  assert.match(russoCampaign.chapters[10].story, /Russo and Mercaw missions compete for influence/);
+  assert.match(russoCampaign.chapters.at(-1).story, /dissolves her emergency command/);
+  assert.match(russoCampaign.characters.irina.description, /relinquishes emergency authority/);
   assert.equal(content.campaigns["astral-vanguard"].chapters.length, 12);
   assert.equal(content.campaigns["astral-vanguard"].coverImage, "/assets/gauntlet/factions/astral-vanguard/vanguard-outpost.webp");
   assert.equal(content.campaigns["astral-vanguard"].commanderName, "The World Between");
