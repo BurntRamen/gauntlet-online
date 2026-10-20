@@ -99,6 +99,42 @@
       "output": "client/public/assets/gauntlet/music/factions/xendra-aspect-without-form-v1.mp3",
       "sha256": "ae1cb3e62c7526f64ab9e632f8d52e1398ddaf5839b4ab0c2d948efde467b2c3",
       "durationSeconds": 180
+    },
+    {
+      "faction": "ingles",
+      "title": "The Unwritten Charter",
+      "output": "client/public/assets/gauntlet/music/factions/ingles-unwritten-charter-v1.mp3",
+      "sha256": "81728fbfd8768ee52d3e8b418097e601a99e33d92a7539a10e59a0e06d56a69a",
+      "durationSeconds": 180,
+      "projectId": "RuPRz6ghb0FsnqQbRHOW",
+      "songId": "OKfL4ccNfGBF7V3c1nAx"
+    },
+    {
+      "faction": "mercaw",
+      "title": "The Many-Star Accord",
+      "output": "client/public/assets/gauntlet/music/factions/mercaw-many-star-accord-v1.mp3",
+      "sha256": "eea6f74948b9cc3ee642be31351788128bae5ba9c251a1741394580ba8d9e7d2",
+      "durationSeconds": 180,
+      "projectId": "kJ2ql3qxlW4EnknQbLO3",
+      "songId": "QLgCWSJ7dPY6A5u0IhgB"
+    },
+    {
+      "faction": "mtano",
+      "title": "The Mountain Remembers",
+      "output": "client/public/assets/gauntlet/music/factions/mtano-mountain-remembers-v1.mp3",
+      "sha256": "0d017c014ea3257eaf622ac29354f5fae2f2c132083af9a9d8d85755c508a4ec",
+      "durationSeconds": 180,
+      "projectId": "gtZlqZ1B7drSClSIXjDk",
+      "songId": "Se38Vc40eLjcpywKll3j"
+    },
+    {
+      "faction": "russo",
+      "title": "The Long Winter Oath",
+      "output": "client/public/assets/gauntlet/music/factions/russo-long-winter-oath-v1.mp3",
+      "sha256": "92ea3e371b738e4fe078858983bdf9f649e4c61e99034fa79c2bf2acf5c2a7f8",
+      "durationSeconds": 180,
+      "projectId": "5Wkg9f6n7Lv44KYsIoFT",
+      "songId": "LBFETkpHc2wOJ2qg5OVZ"
     }
   ],
   "durationRangeSeconds": [

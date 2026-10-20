@@ -122,6 +122,46 @@
       "parameters": { "music_length_ms": 180000, "force_instrumental": true },
       "outputFormat": "mp3_48000_192",
       "clientOutput": "client/public/assets/gauntlet/music/factions/xendra-aspect-without-form-v1.mp3"
+    },
+    {
+      "id": "ingles-unwritten-charter",
+      "kind": "music",
+      "reviewStatus": "approved",
+      "modelId": "music_v2_5",
+      "prompt": "Original complete three-minute instrumental faction theme for the Ingles of Gauntlet. Compose a full song with a dignified maritime opening, a contrapuntal debate between distinct motifs, a vulnerable chamber-music middle passage, a coordinated return, and a calm open-ended resolution; do not repeat a short loop. Evoke an ocean civilization governed by revisable charters: low strings, restrained brass, frame drum, wooden flute, harbor bells, and several melodies that negotiate rather than overwhelm one another. Principled and brave without royal triumphalism. No lyrics, no recognizable melody, no bombastic trailer climax.",
+      "parameters": { "music_length_ms": 180000, "force_instrumental": true },
+      "outputFormat": "mp3_48000_192",
+      "clientOutput": "client/public/assets/gauntlet/music/factions/ingles-unwritten-charter-v1.mp3"
+    },
+    {
+      "id": "mercaw-many-star-accord",
+      "kind": "music",
+      "reviewStatus": "approved",
+      "modelId": "music_v2_5",
+      "prompt": "Original complete three-minute instrumental faction theme for the Mercaw of Gauntlet. Compose a full song with separate aerie motifs entering from different registers, an inventive syncopated development, a spacious uncertain middle section, a thrilling moment of voluntary convergence, and a broad pluralistic outro; do not repeat a short loop. Evoke migrating sky cities and a contentious federation: bright brass fragments, agile strings, hand percussion, wind rush, resonant plucked metal, and independent themes that choose a shared pulse. Energetic, inventive, and civic rather than nationalistic. No lyrics, no recognizable melody, no oversized trailer ending.",
+      "parameters": { "music_length_ms": 180000, "force_instrumental": true },
+      "outputFormat": "mp3_48000_192",
+      "clientOutput": "client/public/assets/gauntlet/music/factions/mercaw-many-star-accord-v1.mp3"
+    },
+    {
+      "id": "mtano-mountain-remembers",
+      "kind": "music",
+      "reviewStatus": "approved",
+      "modelId": "music_v2_5",
+      "prompt": "Original complete three-minute instrumental faction theme for the M'Tano of Gauntlet. Compose a full song with rain and a single ancestral pulse, a layered call-and-response development, a dry and nearly silent middle passage, a flowing return transformed by memory, and a hopeful grounded outro; do not repeat a short loop. Evoke mountain watersheds, astronomy, oral history, and ecological stewardship through deep hand drums, thumb piano-like plucks, warm voices used only as wordless texture, wooden flute, flowing water percussion, and low strings. Specific, humane, and future-facing without generic exotic fantasy. No lyrics, no recognizable melody, no trailer climax.",
+      "parameters": { "music_length_ms": 180000, "force_instrumental": true },
+      "outputFormat": "mp3_48000_192",
+      "clientOutput": "client/public/assets/gauntlet/music/factions/mtano-mountain-remembers-v1.mp3"
+    },
+    {
+      "id": "russo-long-winter-oath",
+      "kind": "music",
+      "reviewStatus": "approved",
+      "modelId": "music_v2_5",
+      "prompt": "Original complete three-minute instrumental faction theme for the Russo of Gauntlet. Compose a full song with a sparse frozen opening, a patient communal rhythm gathering warmth, a severe middle passage where command nearly overwhelms the ensemble, a return led by many smaller voices, and a resilient thawing outro; do not repeat a short loop. Evoke survival on an ice world through low bowed strings, bass choir used only as wordless texture, iron percussion, distant bells, quiet balalaika-like plucks, and a hearth motif passed among instruments. Somber, durable, and humane without militaristic propaganda. No lyrics, no recognizable melody, no bombastic trailer climax.",
+      "parameters": { "music_length_ms": 180000, "force_instrumental": true },
+      "outputFormat": "mp3_48000_192",
+      "clientOutput": "client/public/assets/gauntlet/music/factions/russo-long-winter-oath-v1.mp3"
     }
   ]
 }

@@ -1,7 +1,7 @@
 "use strict";
 
 const RULES_VERSION = "gauntlet-rules-v6";
-const CONTENT_VERSION = "gauntlet-content-v25";
+const CONTENT_VERSION = "gauntlet-content-v26";
 const NEUTRAL_FACTION_ID = "neutral";
 const { getCardWording } = require("./cardWording");
 const { LEGACIES } = require("./legaciesContent");
@@ -11,6 +11,13 @@ const {
   ADDITIONAL_CAMPAIGN_METADATA,
   ADDITIONAL_CAMPAIGN_CHARACTERS
 } = require("./additionalCampaigns");
+const {
+  FRONTIER_FACTIONS,
+  FRONTIER_CAMPAIGNS,
+  FRONTIER_CAMPAIGN_NARRATION,
+  FRONTIER_CAMPAIGN_METADATA,
+  FRONTIER_CAMPAIGN_CHARACTERS
+} = require("./frontierCampaigns");
 const {
   REATH_CAMPAIGN,
   REATH_CAMPAIGN_METADATA,
@@ -29,6 +36,7 @@ const COLLECTOR_VARIANT_SCHEMA_VERSION = 1;
 const DRAFT_SETS = Object.freeze([
   Object.freeze({ id: "initiative", number: 1, name: "Initiative", factionIds: Object.freeze(["rumin", "sheen", "frumo", "bizi"]), draftAvailable: true, sealedAvailable: true }),
   Object.freeze({ id: "legacies", number: 2, name: "Legacies", factionIds: Object.freeze(["mekan", "jali", "gracus", "indela"]), draftAvailable: false, sealedAvailable: false, unavailableReason: "Faction-card catalogs are still in development." }),
+  Object.freeze({ id: "frontiers", number: 3, name: "Frontiers", factionIds: Object.freeze(["ingles", "mercaw", "mtano", "russo"]), draftAvailable: false, sealedAvailable: false, unavailableReason: "Faction-card catalogs are still in development." }),
   Object.freeze({ id: "reath-beyond", number: 4, name: "Reath Beyond", factionIds: Object.freeze(["zynarth", "astral-vanguard"]), draftAvailable: true, sealedAvailable: true })
 ]);
 
@@ -989,7 +997,11 @@ const COMMANDER_ANNOUNCEMENTS = Object.freeze({
   indela: { selected: "The omen is cast. Fire and frost await my word.", clicked: "The next card is already written in the stars.", wounded: "Twenty-one life. Read the omen, then rewrite it.", critical: "Ten life remains. Unseal the final theorem.", denied: "The omen does not permit it." },
   voltari: { selected: "The conduit is live. Keep every mind sovereign.", clicked: "Power serves civilization. Civilization does not serve the grid.", wounded: "Twenty-one life. Isolate the damaged relays.", critical: "Ten life. Decentralize command and hold the Skyhold.", denied: "The network will not accept an unverified connection." },
   zynarth: { selected: "The brood awakens. One will become many.", clicked: "Hatch. Adapt. Consume. Begin again.", wounded: "Twenty-one life. The wounded brood evolves.", critical: "Ten life. Break every shell. Release the swarm.", denied: "The brood is not ready to strike." },
-  "astral-vanguard": { selected: "Vanguard deployed. Every soldier to their mark.", clicked: "Plan the descent. Control the ground. Finish the mission.", wounded: "Twenty-one life. Tighten formation and hold the outpost.", critical: "Ten life. All units, execute final deployment.", denied: "Deployment parameters are incomplete." }
+  "astral-vanguard": { selected: "Vanguard deployed. Every soldier to their mark.", clicked: "Plan the descent. Control the ground. Finish the mission.", wounded: "Twenty-one life. Tighten formation and hold the outpost.", critical: "Ten life. All units, execute final deployment.", denied: "Deployment parameters are incomplete." },
+  ingles: { selected: "The charter is open. Take your place.", clicked: "No voice stands above the common promise.", wounded: "Twenty-one life. Amend the formation and hold.", critical: "Ten life. The council remains in session.", denied: "The charter grants no authority for that assault." },
+  mercaw: { selected: "Many wings, one chosen course.", clicked: "Argue freely. Act together.", wounded: "Twenty-one life. Every aerie stays in the accord.", critical: "Ten life. Concentrate the federation's strength.", denied: "No member has authorized that commitment." },
+  mtano: { selected: "The mountain remembers our path.", clicked: "Listen before the water changes course.", wounded: "Twenty-one life. Carry the lesson to every terrace.", critical: "Ten life. The watershed survives through us.", denied: "The living record does not support that choice." },
+  russo: { selected: "The hearth is lit. The line will hold.", clicked: "Endurance belongs to everyone beside us.", wounded: "Twenty-one life. Share the heat and close the breach.", critical: "Ten life. No one freezes alone.", denied: "The reserve cannot sustain that order." }
 });
 
 const COMMANDER_ANNOUNCEMENT_AUDIO = Object.freeze({
@@ -1035,7 +1047,11 @@ const GENERAL_CLICK_ANNOUNCEMENTS = Object.freeze({
   indela: "The omen is clear enough to act.",
   voltari: "Power flows through consent, or it becomes another prison.",
   zynarth: "The brood adapts through every keeper.",
-  "astral-vanguard": "Formation set. Await the descent."
+  "astral-vanguard": "Formation set. Await the descent.",
+  ingles: "A formation is a promise every soldier can inspect.",
+  mercaw: "The accord moves because each aerie chose it.",
+  mtano: "Carry strength where the watershed needs it.",
+  russo: "Keep the shared hearth alive through the longest night."
 });
 
 const GENERAL_CLICK_AUDIO = Object.freeze({
@@ -1050,7 +1066,8 @@ const CITY_CLICK_SOUND = "/assets/gauntlet/match/kits/gauntlet-core-v1/audio/abi
 const COMMANDER_VOICE_PROFILES = Object.freeze({
   rumin: [0.82, 0.55], sheen: [0.72, 0.72], frumo: [1.08, 0.95], bizi: [0.9, 1.18],
   mekan: [1.06, 1.08], jali: [0.78, 0.72], gracus: [1.04, 0.84], indela: [0.88, 1.08],
-  voltari: [0.9, 0.92], zynarth: [0.72, 0.48], "astral-vanguard": [0.94, 0.82]
+  voltari: [0.9, 0.92], zynarth: [0.72, 0.48], "astral-vanguard": [0.94, 0.82],
+  ingles: [0.96, 0.86], mercaw: [1.04, 0.94], mtano: [0.86, 0.78], russo: [0.8, 0.68]
 });
 
 const COMMANDER_VOICE_HINTS = Object.freeze({
@@ -1064,7 +1081,11 @@ const COMMANDER_VOICE_HINTS = Object.freeze({
   indela: ["prabhat", "neerja", "ravi", "heera"],
   voltari: ["aria", "jenny", "andrew", "christopher"],
   zynarth: ["william", "guy", "davis", "mark"],
-  "astral-vanguard": ["christopher", "andrew", "brian", "david"]
+  "astral-vanguard": ["christopher", "andrew", "brian", "david"],
+  ingles: ["george", "david", "ryan", "liam"],
+  mercaw: ["aria", "andrew", "christopher", "samantha"],
+  mtano: ["guy", "davis", "aria", "william"],
+  russo: ["mark", "davis", "george", "andrew"]
 });
 
 // ============ FACTION DATA ============
@@ -1177,6 +1198,8 @@ const factionsData = {
   }
 };
 
+Object.assign(factionsData, FRONTIER_FACTIONS);
+
 factionsData.mekan.general = factionsData.mekan.generals.find((entry) => entry.id === "monti");
 factionsData.jali.general = factionsData.jali.generals[0];
 factionsData.gracus.general = factionsData.gracus.generals[0];
@@ -1198,7 +1221,7 @@ for (const [factionId, announcements] of Object.entries(COMMANDER_ANNOUNCEMENTS)
 }
 
 function listFactions() {
-  return ["rumin", "sheen", "frumo", "bizi", "mekan", "jali", "gracus", "indela", "zynarth", "astral-vanguard"].map((id) => factionsData[id]);
+  return ["rumin", "sheen", "frumo", "bizi", "mekan", "jali", "gracus", "indela", "ingles", "mercaw", "mtano", "russo", "zynarth", "astral-vanguard"].map((id) => factionsData[id]);
 }
 
 function getFactionById(id, generalId) {
@@ -1534,6 +1557,7 @@ const campaignChapters = {
 };
 
 Object.assign(campaignChapters, ADDITIONAL_CAMPAIGNS);
+Object.assign(campaignChapters, FRONTIER_CAMPAIGNS);
 campaignChapters["astral-vanguard"] = REATH_CAMPAIGN;
 
 const frumoCampaignVoiceAssets = require("./frumoCampaignVoiceAssets.json");
@@ -1743,6 +1767,7 @@ for (const chapters of Object.values(campaignChapters)) {
 
 const CAMPAIGN_NARRATION = {
   ...ADDITIONAL_CAMPAIGN_NARRATION,
+  ...FRONTIER_CAMPAIGN_NARRATION,
   "falling-star": {
     beforeBattle: "The Astral expedition breaks apart over Reath. Alden and Myra race scavengers to the crash sites, determined that the Vanguard's first act on this world will be rescue.",
     afterBattle: "The survivors are safe, but the fleet is gone. Alden chooses to ask Reath for a place rather than take one."
@@ -2026,6 +2051,7 @@ for (const chapter of REATH_CAMPAIGN) {
 
 const CAMPAIGN_METADATA = {
   ...ADDITIONAL_CAMPAIGN_METADATA,
+  ...FRONTIER_CAMPAIGN_METADATA,
   rumin: { commanderName: "The Jewel of Rumie", pitch: "On the homeworld Orthea, follow Rumie from a dispute over trade and conquest into a republic, Kaiser's optimized empire, assassination, systemic collapse, and Augustus's uneasy synthesis—then glimpse Reath as a future convergence point.", coverImage: RUMIN_CAMPAIGN_ART["first-empire-bank"] },
   sheen: { commanderName: "The Rise and Trials of the Sheen", pitch: "On the forest moon Gao, guide a civilization of sentient treants from Obsidian rule through living-city prosperity, botanical science, sincere reform, civil war, and renewal—then witness its first passage to Reath." },
   frumo: { commanderName: "The Last Tide", pitch: "On the ocean homeworld Pelagos, follow Ristus from King Ludvik's treasure taxes through merfolk revolution, Robespier's Red Tide, Polea's naval genius and empire, frozen disaster, a restored Council, and the first voluntary passage to Reath." },
@@ -2036,6 +2062,7 @@ const CAMPAIGN_METADATA = {
 
 const CAMPAIGN_CHARACTER_DESCRIPTIONS = {
   ...ADDITIONAL_CAMPAIGN_CHARACTERS,
+  ...FRONTIER_CAMPAIGN_CHARACTERS,
   rumin: {
     rolmus: { name: "Rolmus", role: "Founder of civic Rumie", description: "Rolmus believes durable power comes from regulated exchange, codified law, and institutions that outlive their founders. His failure is assuming slow systems will always correct themselves before ambitious people learn to capture them." },
     remex: { name: "Remex", role: "Founder and advocate of expansion", description: "Remex treats dominance as insurance: roads need walls, markets need legions, and rivals must be incorporated before they can interrupt Rumin growth. His argument survives long after he does." },
@@ -2264,7 +2291,7 @@ function validateGameContent() {
   requireText(CONTENT_VERSION, "contentVersion");
   const factionIds = Object.keys(factionsData);
   const playableFactionIds = factionIds.filter((factionId) => !factionsData[factionId].campaignOnly);
-  if (playableFactionIds.length !== 10) throw new Error("Invalid game content: expected ten playable factions.");
+  if (playableFactionIds.length !== 14) throw new Error("Invalid game content: expected fourteen playable factions.");
   for (const factionId of factionIds) {
     const faction = factionsData[factionId];
     if (faction.id !== factionId) throw new Error(`Invalid game content: faction key ${factionId} does not match its ID.`);

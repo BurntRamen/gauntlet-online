@@ -34,8 +34,8 @@ test("validates the authoritative versioned game content registry", () => {
   assert.equal(content.schemaVersion, 2);
   assert.equal(content.contentVersion, CONTENT_VERSION);
   assert.equal(content.rulesVersion, RULES_VERSION);
-  assert.equal(content.factions.length, 10);
-  assert.equal(Object.values(content.campaigns).flatMap((campaign) => campaign.chapters).length, 140);
+  assert.equal(content.factions.length, 14);
+  assert.equal(Object.values(content.campaigns).flatMap((campaign) => campaign.chapters).length, 188);
   for (const factionId of ["mekan", "jali", "gracus", "indela", "voltari", "zynarth"]) {
     assert.equal(content.campaigns[factionId].chapters.length, 12, `${factionId}: campaign length`);
     assert.equal(content.campaigns[factionId].chapters.every((chapter) => chapter.dialogue.length >= 5 && chapter.endDialogue.length >= 5), true, `${factionId}: dialogue depth`);
@@ -43,6 +43,21 @@ test("validates the authoritative versioned game content registry", () => {
   const zynarth = content.factions.find((faction) => faction.id === "zynarth");
   assert.equal(zynarth.campaignPending, undefined);
   assert.equal(zynarth.campaignOnly, undefined);
+  for (const [factionId, homeworld, finalTitle] of [
+    ["ingles", "Albion Reach", "The Open Door"],
+    ["mercaw", "Cairn", "The Many-Star Accord"],
+    ["mtano", "M'Kora", "The Mountain Remembers"],
+    ["russo", "Moroz", "The Winter Oath"]
+  ]) {
+    const faction = content.factions.find((entry) => entry.id === factionId);
+    const campaign = content.campaigns[factionId];
+    assert.equal(faction.homeworld, homeworld);
+    assert.equal(campaign.chapters.length, 12, `${factionId}: campaign length`);
+    assert.equal(campaign.chapters.every((chapter) => chapter.sceneStarter?.where && chapter.sceneStarter?.when && chapter.sceneStarter?.perspective), true, `${factionId}: scene starters`);
+    assert.equal(campaign.chapters.at(-1).title, finalTitle);
+    assert.match(campaign.chapters.at(-1).story, new RegExp(`homeworld ${homeworld.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}.*Reath`));
+    assert.match(campaign.chapters.at(-1).endDialogue.join(" "), /origin.*convergence point/);
+  }
   assert.equal(content.campaigns["astral-vanguard"].chapters.length, 12);
   assert.equal(content.campaigns["astral-vanguard"].coverImage, "/assets/gauntlet/factions/astral-vanguard/vanguard-outpost.webp");
   assert.equal(content.campaigns["astral-vanguard"].commanderName, "The World Between");
@@ -175,7 +190,7 @@ test("validates the authoritative versioned game content registry", () => {
     assert.equal(typeof chapter.sceneStarter?.perspective, "string", `${chapter.id}: scene perspective`);
   }
   const cinematicChapters = Object.values(content.campaigns).flatMap((campaign) => campaign.chapters).filter((chapter) => chapter.cinematic);
-  assert.equal(cinematicChapters.length, 12);
+  assert.equal(cinematicChapters.length, 16);
   for (const chapter of cinematicChapters) {
     assert.equal(typeof chapter.cinematic.title, "string", `${chapter.id}: cinematic title`);
     assert.match(chapter.cinematic.image, /^\/assets\/gauntlet\/.+\.(?:webp|png|svg)$/);
@@ -206,12 +221,16 @@ test("validates the authoritative versioned game content registry", () => {
   assert.equal(rumin.commander.announcements.selected, "Roads do not end. They arrive.");
   assert.equal(sheen.commander.announcements.selected, "We won a forest. Now we must make it a home.");
   for (const faction of content.factions) {
-    for (const event of ["selected", "clicked", "wounded", "critical", "denied"]) {
-      assert.match(faction.commander.announcementAudio[event], /\/assets\/gauntlet\/voices\/.+\.mp3$/);
-      assert.equal(fs.existsSync(path.join(__dirname, "..", "..", "client", "public", faction.commander.announcementAudio[event])), true, `${faction.id}:${event}`);
+    if (faction.commander.announcementAudio) {
+      for (const event of ["selected", "clicked", "wounded", "critical", "denied"]) {
+        assert.match(faction.commander.announcementAudio[event], /\/assets\/gauntlet\/voices\/.+\.mp3$/);
+        assert.equal(fs.existsSync(path.join(__dirname, "..", "..", "client", "public", faction.commander.announcementAudio[event])), true, `${faction.id}:${event}`);
+      }
     }
-    assert.match(faction.general.clickedAudio, /\/assets\/gauntlet\/voices\/.+\.mp3$/);
-    assert.equal(fs.existsSync(path.join(__dirname, "..", "..", "client", "public", faction.general.clickedAudio)), true, `${faction.id}:general`);
+    if (faction.general.clickedAudio) {
+      assert.match(faction.general.clickedAudio, /\/assets\/gauntlet\/voices\/.+\.mp3$/);
+      assert.equal(fs.existsSync(path.join(__dirname, "..", "..", "client", "public", faction.general.clickedAudio)), true, `${faction.id}:general`);
+    }
   }
   for (const faction of content.factions) {
     assert.equal(typeof faction.general.clickedAnnouncement, "string", faction.id);

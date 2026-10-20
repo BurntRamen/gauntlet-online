@@ -55,7 +55,7 @@ test("published faction themes are full-length songs matching the approved Eleve
   const validated = validateManifest(musicManifest, root);
   const approvedByOutput = new Map(provenance.tracks.map((track) => [track.output, track]));
 
-  assert.equal(validated.jobs.length, 12);
+  assert.equal(validated.jobs.length, 16);
   assert.equal(provenance.model, "Music v2.5");
   for (const job of validated.jobs) {
     const outputPath = path.join(root, job.clientOutput);
