@@ -16,15 +16,17 @@ const ALLOWED_ORIGINS = [
   "https://gauntlet-online.vercel.app",
   ...CLIENT_URLS
 ];
-const ACCOUNT_DATA_FILE = process.env.ACCOUNT_DATA_FILE || `${__dirname}/accounts.json`;
-const FACTION_STATS_DATA_FILE = process.env.FACTION_STATS_DATA_FILE || `${__dirname}/faction-stats.json`;
-const MATCH_DATA_FILE = process.env.MATCH_DATA_FILE || `${__dirname}/matches.json`;
-const MATCH_ARCHIVE_DATA_DIR = process.env.MATCH_ARCHIVE_DATA_DIR || `${MATCH_DATA_FILE}.archive`;
+const runtimeStorage = require("./runtimeStorage").runtimeStorageConfig();
+const runtimeStorageStatus = require("./runtimeStorage").inspectRuntimeStorage(runtimeStorage);
+const ACCOUNT_DATA_FILE = runtimeStorage.paths.accounts;
+const FACTION_STATS_DATA_FILE = runtimeStorage.paths.factions;
+const MATCH_DATA_FILE = runtimeStorage.paths.matches;
+const MATCH_ARCHIVE_DATA_DIR = runtimeStorage.paths.archive;
 const MATCH_ARCHIVE_BUCKET = process.env.MATCH_ARCHIVE_BUCKET || "gauntlet-match-archives";
-const ACCOUNT_AVATAR_DATA_DIR = process.env.ACCOUNT_AVATAR_DATA_DIR || `${ACCOUNT_DATA_FILE}.avatars`;
+const ACCOUNT_AVATAR_DATA_DIR = runtimeStorage.paths.avatars;
 const ACCOUNT_AVATAR_BUCKET = process.env.ACCOUNT_AVATAR_BUCKET || "gauntlet-profile-images";
 const ACCOUNT_AVATAR_MAX_BYTES = 1024 * 1024;
-const ROOM_STATE_DATA_FILE = process.env.ROOM_STATE_DATA_FILE || `${__dirname}/rooms.json`;
+const ROOM_STATE_DATA_FILE = runtimeStorage.paths.rooms;
 const DEFAULT_ACCOUNT_AUTH_SECRET = "dev-gauntlet-auth-secret-change-me";
 const DEVELOPMENT_AUTH_SECRETS = new Set([
   DEFAULT_ACCOUNT_AUTH_SECRET,
@@ -213,6 +215,7 @@ const matchArchive = createMatchArchive({
 });
 const roomLifecycleConfig = getRoomLifecycleConfig();
 const roomStateStore = createRoomStateStore(ROOM_STATE_DATA_FILE, {
+  strict: runtimeStorage.required,
   enabled: isRoomRecoveryEnabled(process.env.ROOM_STATE_RECOVERY_ENABLED)
 });
 let roomLifecycleTimer = null;
@@ -322,15 +325,20 @@ app.get("/", (_req, res) => {
 
 app.get("/api/storage-status", async (_req, res) => {
   try {
-    const [matchStorage, archiveStorage, profileImages] = await Promise.all([
+    const [matchStorage, archiveStorage, profileImages, privateAuthoring] = await Promise.all([
       matchPersistence.getMode(),
       matchArchive.probe(),
-      getAccountAvatarStorageStatus()
+      getAccountAvatarStorageStatus(),
+      privateAuthoringStore ? privateAuthoringStore.probe().catch(() => ({ provider: "supabase-private", available: false })) : { provider: "github-or-local", available: null }
     ]);
     const matchStorageStatus = publicMatchStorageStatus();
     res.json({
       accountStorage: SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY ? "supabase-configured" : "local-json",
       profileImages,
+      runtimeStorage: runtimeStorageStatus,
+      activeRooms: { ...roomStateStore.status(), durableVolume: runtimeStorageStatus.persistentMountVerified },
+      privateAuthoring,
+      runtimeBackups: { enabled: runtimeBackupService.status().enabled, lastSuccessfulAt: runtimeBackupService.status().lastSuccessfulAt, failed: !!runtimeBackupService.status().lastError, running: runtimeBackupService.status().running },
       matchStorage,
       matchStorageCapabilities: matchStorageStatus.capabilities,
       matchArchive: archiveStorage,
@@ -4817,22 +4825,26 @@ const adminRuntime = {
       })
     };
 const publicationBaseline = createAuthoredBaseline(buildCatalog(adminRuntime));
+if (process.env.GAUNTLET_PRIVATE_AUTHORING_PROVIDER && !["supabase", "github"].includes(process.env.GAUNTLET_PRIVATE_AUTHORING_PROVIDER)) throw new Error("Unsupported private authoring provider.");
+const privateAuthoringStore = process.env.GAUNTLET_PRIVATE_AUTHORING_PROVIDER === "supabase"
+  ? require("./privateAuthoringStore").createPrivateAuthoringStore({ request: supabaseRequest }) : null;
+if (privateAuthoringStore && (!useSupabaseStore() || process.env.GAUNTLET_CONTENT_PROVIDER === "file")) throw new Error("Private Supabase authoring requires backend Supabase credentials and the GitHub publication provider.");
 contentPublication = (process.env.GAUNTLET_CONTENT_PROVIDER === "github" || ((process.env.NODE_ENV === "production" || process.env.RENDER === "true") && process.env.GAUNTLET_CONTENT_PROVIDER !== "file"))
-  ? require("./githubContentPublication").createGitHubContentPublication({ baseline: publicationBaseline, runtimeCapabilities: () => paraRuntime?.status() || { enabled: false }, economyCapabilities: () => goldEconomy?.status() || { enabled: false } })
+  ? require("./githubContentPublication").createGitHubContentPublication({ baseline: publicationBaseline, draftStore: privateAuthoringStore, runtimeCapabilities: () => paraRuntime?.status() || { enabled: false }, economyCapabilities: () => goldEconomy?.status() || { enabled: false } })
   : createContentPublication({
   baseline: publicationBaseline,
-  directory: process.env.GAUNTLET_CONTENT_DATA_DIR || `${ACCOUNT_DATA_FILE}.content`,
+  directory: runtimeStorage.paths.content,
   provider: process.env.GAUNTLET_CONTENT_PUBLICATION_PROVIDER || "local",
   runtimeCapabilities: () => paraRuntime?.status() || { enabled: false },
   economyCapabilities: () => goldEconomy?.status() || { enabled: false },
-  writable: process.env.NODE_ENV !== "production" || !!process.env.GAUNTLET_CONTENT_DATA_DIR
+  writable: process.env.NODE_ENV !== "production" || !!process.env.GAUNTLET_CONTENT_DATA_DIR || runtimeStorageStatus.persistentMountVerified
 });
 registerContentPublicationRoutes(app, contentPublication);
 require("./adminWorkshopData").registerAdminWorkshopRoutes(app, { publication: contentPublication });
 const { createParaRuntime, registerParaRoutes } = require("./paraRuntime");
-paraRuntime = createParaRuntime({ filename: process.env.GAUNTLET_PARA_DATA_DIR ? path.join(process.env.GAUNTLET_PARA_DATA_DIR, "para.sqlite") : null, publication: contentPublication });
+paraRuntime = createParaRuntime({ filename: runtimeStorage.paths.para, publication: contentPublication });
 registerParaRoutes(app, paraRuntime, requireAccountRecord);
-goldEconomy = require("./goldEconomy").createGoldEconomy({ legacyGoldImport: process.env.GAUNTLET_GOLD_MIGRATION === "legacy-opening-v1", filename: process.env.GAUNTLET_ECONOMY_DATA_DIR ? path.join(process.env.GAUNTLET_ECONOMY_DATA_DIR, "economy.sqlite") : null, publication: contentPublication });
+goldEconomy = require("./goldEconomy").createGoldEconomy({ legacyGoldImport: process.env.GAUNTLET_GOLD_MIGRATION === "legacy-opening-v1", filename: runtimeStorage.paths.economy, publication: contentPublication });
 require("./economyRoutes").registerEconomyRoutes(app, goldEconomy, { requireAccount: requireAccountRecord, records: listMatchRecordsByAccount, findRecord: findMatchRecordById,
   findAccount: async (id) => useSupabaseStore() ? findSupabaseAccountById(id) : loadAccountStore().accounts.find((a) => a.id === id) });
 const paraQueue = new Map();
@@ -4886,6 +4898,7 @@ registerAdminRoutes(app, {
     environment: process.env.NODE_ENV,
     backendCommit: process.env.RENDER_GIT_COMMIT || process.env.GIT_COMMIT || null,
     roomRecovery: isRoomRecoveryEnabled(process.env.ROOM_STATE_RECOVERY_ENABLED),
+    runtimeStorage: () => ({ ...runtimeStorageStatus, checkpoint: roomStateStore.status(), backups: runtimeBackupService.status() }),
     deckSchemaVersion: DECK_LIBRARY_SCHEMA_VERSION,
     adminAccountCount: gauntletAdminAuthorization.configuredAccounts,
     runtime: adminRuntime,
@@ -5407,6 +5420,7 @@ function getRoom(roomCode) {
 function deleteRoom(roomCode) {
   const roomState = rooms.get(roomCode);
   if (!roomState) return false;
+  if (roomState.pendingFinalization) return false;
   if (roomState.aiMoveTimer) clearTimeout(roomState.aiMoveTimer);
   const socketIds = [
     ...getLobbyPlayerNumbers(roomState).map((playerNum) => roomState.lobby.players[playerNum].socket),
@@ -5430,6 +5444,7 @@ function deleteRoom(roomCode) {
 function canOfferRematch(roomState) {
   const players = roomState?.lobby?.players || {};
   return !roomState?.para && !!roomState?.game
+    && !roomState.pendingFinalization
     && (roomState.game.phase === "gameOver" || roomState.game.winner != null)
     && !roomState.draft
     && !roomState.event
@@ -5494,6 +5509,11 @@ async function sweepRoomLifecycle(options = {}) {
   try {
     await recoverParaMatches();
     for (const roomState of [...rooms.values()]) {
+      if (roomState.pendingFinalization) {
+        try { await recordFinalGameStats(roomState, roomState.pendingFinalization); }
+        catch { console.error("[Rooms] Pending match finalization will retry; its private checkpoint was retained."); }
+        continue;
+      }
       if (roomState.para && roomState.game?.phase !== "gameOver") {
         const official = paraRuntime.event(roomState.para.eventId);
         if (official.status === "cancelled" || now >= Date.parse(official.definition.endsAt)) {
@@ -7115,11 +7135,23 @@ function buildAccountResultContext(roomState, matchRecord, playerNum) {
 }
 
 async function recordFinalGameStats(roomState, options = {}) {
+  if (roomState.finalizationPromise) return roomState.finalizationPromise;
+  roomState.finalizationPromise = finalizeRoomGameStats(roomState, options);
+  try { return await roomState.finalizationPromise; }
+  finally { delete roomState.finalizationPromise; }
+}
+
+async function finalizeRoomGameStats(roomState, options = {}) {
   const game = roomState.game;
   if (!game || game.statsRecorded) return;
   if (game.phase !== "gameOver") return;
+  options = roomState.pendingFinalization || options;
   const completedAt = options.completedAt || new Date().toISOString();
   const completionReason = options.completionReason || "life_total";
+  roomState.pendingFinalization = { completedAt, completionReason, abandonmentReason: options.abandonmentReason || null };
+  // Preserve final evidence before any remote consequence writes. A restart
+  // retries through the existing idempotent match/account receipt machinery.
+  if (roomRecoveryInitialized) persistRoomsNow();
   if (!(game.serverLeagueEvidence || []).some((entry) => ["match.ended", "match.abandoned"].includes(entry.eventType))) {
     captureLeagueEvidence(game, {
       command: { type: "finalizeMatch" },
@@ -7167,6 +7199,8 @@ async function recordFinalGameStats(roomState, options = {}) {
     await recordFactionGameStats(game);
   }
   game.statsRecorded = true;
+  delete roomState.pendingFinalization;
+  if (roomRecoveryInitialized) persistRoomsNow();
   return finalized.envelope;
 }
 
@@ -10446,9 +10480,16 @@ io.on("connection", (socket) => {
 
 let shutdownStarted = false;
 
+if (process.env.GAUNTLET_RUNTIME_BACKUPS && process.env.GAUNTLET_RUNTIME_BACKUPS !== "supabase") throw new Error("Unsupported runtime backup provider.");
+if (process.env.GAUNTLET_RUNTIME_BACKUPS && !runtimeStorageStatus.persistentMountVerified) throw new Error("Runtime backups require a verified persistent volume.");
+const { createRuntimeBackupService, createBackupStorage } = require("./runtimeBackups");
+const runtimeBackupService = createRuntimeBackupService({ config: runtimeStorage, beforeSnapshot: () => persistRoomsNow(),
+  storage: process.env.GAUNTLET_RUNTIME_BACKUPS === "supabase" ? createBackupStorage({ url: SUPABASE_URL, key: SUPABASE_SERVICE_ROLE_KEY }) : null });
+
 async function shutdownServer(signal = "shutdown") {
   if (shutdownStarted) return;
   shutdownStarted = true;
+  runtimeBackupService.stop();
   console.log(`[Server] ${signal} received; preserving active rooms.`);
   stopRoomLifecycleSweep();
   server.close();
@@ -10465,6 +10506,7 @@ async function shutdownServer(signal = "shutdown") {
 if (require.main === module) {
   const recovery = initializeRoomRecovery();
   server.listen(PORT, () => {
+    runtimeBackupService.start();
     startRoomLifecycleSweep();
     if (recovery.enabled) console.log(`[Rooms] Restored ${recovery.restored} active room${recovery.restored === 1 ? "" : "s"}.`);
     console.log(`Server running on port ${PORT}`);

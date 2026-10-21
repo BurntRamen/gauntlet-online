@@ -15,6 +15,8 @@ The separately released finite Gold ledger is a different purchase system. If `G
 
 ## What this protects
 
+Broader storage work is a separate rollout: see [durable runtime, match and private authoring setup](durable-storage-setup.md). The account revision migration above can proceed independently.
+
 Each account stats write carries the revision it read. PostgreSQL compares that revision against the current row and increments it on success. A stale writer fails atomically, including any match consequence receipt in the same transaction. Deck fulfillment commits its Gold/Timetwister debit, printing entitlements, card back, independent saved deck and retry receipt together. Retrying the same purchase identity returns the original receipt.
 
 The migration has passed executable PostgreSQL tests through PGlite, including stale writes, transaction rollback and denial of anonymous capability access. It has **not** been applied to or verified on the production database from this session.

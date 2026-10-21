@@ -1,5 +1,7 @@
 # Gauntlet Admin deployment and GitHub publishing
 
+The optional private Supabase draft provider and broader runtime recovery are documented in [the durable-storage rollout](durable-storage-setup.md). With that provider enabled, shared drafts, uploads and notes live in Supabase; GitHub still handles checked release packages and deployment. The GitHub-only setup below remains supported.
+
 The release integrates Admin v2 with production commit `28651afe464f1915ff4cfaca031a28de36ee0da2`, preserving the current ten playable factions, 126 cards, commander announcers, and set-specific Sealed play. Earlier Admin reports describe the original 72-card implementation; they are historical qualification, not the deployment status of this release.
 
 ## Private access
