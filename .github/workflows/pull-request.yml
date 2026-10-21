@@ -56,9 +56,6 @@ jobs:
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 
-      - name: Test live Babylon browser flows
-        run: npm run test:e2e
-
       - name: Test paid support zones on desktop, phone and React fallback
         run: npm run test:e2e:support
 
@@ -76,6 +73,9 @@ jobs:
 
       - name: Check compiled Babylon performance safeguards
         run: npm run test:e2e:performance
+
+      - name: Test live Babylon browser flows
+        run: npm run test:e2e
 
       - name: Upload Babylon performance report
         if: always()
