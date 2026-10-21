@@ -275,7 +275,7 @@
       "title": "Senate Pressure",
       "text": "The boss's final scripted attack each turn gets +1 value.",
       "tier": 2,
-      "name": "Brutus: Senate Pressure"
+      "name": "Brutis: Senate Pressure"
     },
     "deckPlan": {
       "player": {
@@ -361,7 +361,7 @@
       "title": "Imperial Doctrine",
       "text": "The boss's last two scripted attacks each turn get +1 value.",
       "tier": 3,
-      "name": "Brutus and the Conspirators: Imperial Doctrine"
+      "name": "Brutis and the Conspirators: Imperial Doctrine"
     },
     "deckPlan": {
       "player": {
@@ -406,7 +406,7 @@
       "title": "Imperial Doctrine",
       "text": "The boss's last two scripted attacks each turn get +1 value.",
       "tier": 3,
-      "name": "Brutus: Imperial Doctrine"
+      "name": "Brutis: Imperial Doctrine"
     },
     "deckPlan": {
       "player": {

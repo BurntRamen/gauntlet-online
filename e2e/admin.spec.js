@@ -17,8 +17,12 @@ async function encounterSection(page, id) {
 }
 async function cardSection(page, name) {
   const select = page.getByRole("combobox", { name: "Card Workshop section", exact: true });
+  const navigation = page.getByRole("navigation", { name: "Card Workshop sections", exact: true });
+  // Selection loads the workshop asynchronously. Wait before choosing its
+  // responsive control, otherwise a phone can take the hidden desktop path.
+  await expect(select.or(navigation)).toBeVisible({ timeout: 15000 });
   if (await select.isVisible()) await select.selectOption({ label: name });
-  else await page.getByRole("navigation", { name: "Card Workshop sections", exact: true }).getByRole("button", { name, exact: true }).click();
+  else await navigation.getByRole("button", { name, exact: true }).click();
 }
 async function otherContent(page, name) {
   await workshops(page).getByRole("button", { name: "Other content", exact: true }).click();
@@ -39,6 +43,58 @@ async function signIn(page, request, name) {
   await page.evaluate((value) => localStorage.setItem("gauntlet_auth_token", value), token);
   return token;
 }
+
+test.describe("authored support payments", () => {
+  test.afterEach(async ({ request }) => {
+    const sessions = JSON.parse(require("node:fs").readFileSync(require("node:path").resolve(__dirname, "../.playwright-data/admin/sessions.json"), "utf8"));
+    const headers = { Authorization: `Bearer ${sessions.simply}` }, base = origin + "/api/admin/authoring";
+    const current = await (await request.get(base, { headers })).json();
+    if (current.draft) expect((await request.post(base + "/discard", { headers, data: { expectedRevision: current.revision } })).ok()).toBeTruthy();
+  });
+  for (const [name, width] of [["simply", 1440], ["Burnt Ramen", 390]]) {
+    test(`${name} can preview and pay for authored support at ${width}px`, async ({ page, request }) => {
+      await page.setViewportSize({ width, height: 1000 });
+      await page.goto("/admin/gauntlet");
+      const token = await signIn(page, request, name), headers = { Authorization: `Bearer ${token}` }, base = origin + "/api/admin/authoring";
+      const before = await (await request.get(base, { headers })).json();
+      const card = before.live.domains.cards.find(row => row.id === "rumin-coin-scale-spear");
+      const patch = await request.patch(base + "/draft", { headers, data: { expectedRevision: before.revision, domain: "cards", id: card.id, field: "effect", value: require("../shared/duel-rules/compositionContract").create() } });
+      expect(patch.ok()).toBeTruthy();
+      await page.reload();
+      await page.getByRole("button", { name: /^\d+ Cards$/ }).click();
+      await page.getByLabel("Search cards").fill(card.name);
+      await page.getByRole("button", { name: `Inspect ${card.name}`, exact: true }).click();
+      await cardSection(page, "Mechanics");
+      await expect(page.getByRole("region", { name: "Support rules contract" }).first()).toContainText("Once per arming");
+      await cardSection(page, "Test");
+      const playtest = page.getByRole("region", { name: "Real engine playtest" });
+      await playtest.getByRole("combobox", { name: "Test content", exact: true }).selectOption("draft");
+      await playtest.getByRole("button", { name: "Configure custom starting state", exact: true }).click();
+      const scenario = playtest.getByRole("region", { name: "Custom starting state", exact: true });
+      await scenario.getByRole("button", { name: "Add to player 1 hand", exact: true }).click();
+      await scenario.getByLabel("Player 1 hand 2 value", { exact: true }).fill("14");
+      await scenario.getByLabel("Player 1 hand 2 suit", { exact: true }).selectOption("hearts");
+      let pending = page.waitForResponse(response => response.url().endsWith("/authoring/playtest") && response.request().method() === "POST");
+      await playtest.getByRole("button", { name: "Start draft duel playtest", exact: true }).click();
+      const session = (await (await pending).json()).playtest;
+      const action = session.legalActions.find(row => row.type === "playSupport" && row.laneIndex === 0);
+      expect(action).toBeTruthy();
+      await playtest.getByRole("combobox", { name: "Action", exact: true }).selectOption(action.id);
+      await playtest.getByRole("group", { name: /^Payment cards/ }).getByRole("checkbox").check();
+      pending = page.waitForResponse(response => response.url().endsWith("/playtest/preview-command"));
+      await playtest.getByRole("button", { name: "Calculate command preview", exact: true }).click();
+      const preview = await (await pending).json();
+      expect(preview.preview.accepted).toBeTruthy(); expect(preview.gameRevision).toBe(session.game.revision);
+      pending = page.waitForResponse(response => response.url().endsWith("/playtest/command"));
+      await playtest.getByRole("button", { name: "Execute selected action", exact: true }).click();
+      const result = (await (await pending).json()).playtest;
+      expect(result.acceptedCommands).toBe(1); expect(result.game.lanes[0].support[1].definitionId).toBe(card.id);
+      await expect(playtest.getByRole("region", { name: "Executed command result" })).toContainText("Accepted by the engine");
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
+      await page.screenshot({ path: `artifacts/admin-paid-support-${width}.png`, fullPage: true });
+    });
+  }
+});
 
 test("both authorized accounts can inspect every section; other accounts and guests cannot", async ({ page, request }) => {
   await page.goto("/admin/gauntlet");
@@ -304,6 +360,9 @@ test("manifest-picked faction and portrait artwork previews load immutable draft
   const role = original.live.domains.characters.find((entry) => entry.factionId === "rumin" && entry.role === "commander");
   for (const [tab, name, field] of [["Factions", "Rumin", "faction artwork"], ["Characters / opponents", role.name, "portrait"]]) {
     await otherContent(page, tab);
+    // Campaign cast and commander records can share a display name. Exercise
+    // the existing ID search so this edits the intended portrait owner.
+    if (tab === "Characters / opponents") await page.getByLabel("Search characters / opponents").fill(role.id);
     await page.getByRole("button", { name: "Inspect " + name, exact: true }).click();
     await page.getByLabel("Draft " + field, { exact: true }).locator("..").getByText("Advanced · manual reference", { exact: true }).click();
     await page.getByLabel("Draft " + field, { exact: true }).fill(artwork.id);

@@ -7,7 +7,7 @@ const SET_THEMES = {
 const FACTION_NAMES = {
   rumin: "Rumin", sheen: "Sheen", frumo: "Frumo", bizi: "Bizi",
   mekan: "Mekan", jali: "Jali", gracus: "Gracus", indela: "Indela",
-  mtano: "M'Tano", mercaw: "Mercaw", engles: "Engles", russo: "Russo"
+  mtano: "M'Tano", mercaw: "Mercaw", ingles: "Ingles", engles: "Ingles", russo: "Russo"
 };
 
 export default function CollectorSetPackTile({ product, checkoutConfigured, onBuyPack }) {

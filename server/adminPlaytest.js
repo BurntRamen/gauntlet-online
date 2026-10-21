@@ -5,7 +5,7 @@ const { cardEffectDefinitions } = require("../shared/duel-rules/effectRegistry")
 const { hash } = require("./authoredContent");
 const { createEvidence, recordEvidence, projectEvidence } = require("./adminPlaytestEvidence");
 const { scenarioSpec, applyScenario, focusCard } = require("./adminTestScenarios");
-const { defaultActions, legalActions, previewAction, stateChanges, cardNames } = require("./adminPlaytestActions");
+const { defaultActions, legalActions, previewAction, stateChanges, cardNames, applyAction } = require("./adminPlaytestActions");
 const fail = (status, message) => { throw Object.assign(new Error(message), { status }); };
 const clone = value => JSON.parse(JSON.stringify(value));
 const then = (value, finish) => value?.then ? value.then(finish) : finish(value);
@@ -153,7 +153,7 @@ function createAdminPlaytests({ publication, createGame, chooseAi }) {
     session.busy = true;
     const run = () => {
       const command = selectedCommand(body, session), before = session.game;
-      const result = engine.applyCommand(clone(before), command, { diagnostics: true });
+      const result = applyAction(clone(before), command, { diagnostics: true });
       if (!result.accepted) fail(422, result.rejectionReason || result.error || "The engine rejected this command.");
       const finish = authoring => {
         recordEvidence(session.evidence, result, command, session.cards);

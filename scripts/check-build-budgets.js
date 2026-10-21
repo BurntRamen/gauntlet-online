@@ -9,12 +9,15 @@ const budgets = Object.freeze({
   adminEntryGzip: 20 * KIB,
   // Every named lazy workshop shares this total; splitting grants no extra allowance.
   // Printing/edition search, comparison, authoring and capacity disclosure add
-  // 2.2 KiB measured gzip (58.2 -> 60.4 total). Reserve 61 KiB for these
-  // named Admin modules; initial entry and player ceilings remain unchanged.
-  adminGzip: 61 * KIB,
+  // 2.2 KiB measured gzip (58.2 -> 60.4 total). Combine that 61 KiB
+  // allowance with main's 1 KiB Support Zone allowance (48 -> 49).
+  // The integrated build measures 61.4 KiB; entry limits remain unchanged.
+  adminGzip: 62 * KIB,
   largestAsyncGzip: 350 * KIB,
   // Priority guidance, unified combat-payment controls, and voiced campaign cinematics add 4.5 KiB gzip.
-  totalJavaScriptGzip: 753 * KIB
+  // Paid support authority, projection, adapters and ordered playback add <5 KiB.
+  // Perspective-setting campaign copy adds less than 1 KiB to the compiled player payload.
+  totalJavaScriptGzip: 759 * KIB
 });
 const adminName = name => /^gauntlet-admin(?:-[a-z0-9-]+)?\./i.test(name);
 const adminSource = source => /(?:^|\/)(?:src\/)?(?:admin\/|(?:GauntletAdmin|GauntletAuthoring|GauntletPlaytest|GauntletContractFields|GauntletParaLeague|GauntletEconomy|GauntletCompetition|EncounterWorkshop)\.js(?:$|\?))/.test(source.replace(/\\/g, "/"));

@@ -1,4 +1,5 @@
 import { projectPresentationCues } from "./presentationCues";
+import { createGauntletMatchViewModel } from "./matchViewModel";
 import {
   PRESENTATION_CADENCE_CONTRACT_VERSION,
   PRESENTATION_EVENT_PACING,
@@ -25,6 +26,7 @@ export function battlefieldCommitEventIndex(events = []) {
     "match.ended",
     "attack.declared",
     "card.placedFacedown",
+    "card.supportPlaced",
     "cards.drawn",
     "block.declared",
     "ability.activated",
@@ -67,7 +69,18 @@ export function createBattlefieldPlaybackFrames(update, seenEventIds, options = 
     const timing = resolvePresentationBeatTiming(beat, options);
     const durationMs = timing.durationMs;
     const stateCommitted = !hasBaseUpdate || index >= commitBeatIndex;
-    const visualSource = stateCommitted ? update : options.baseUpdate;
+    let visualSource = stateCommitted ? update : options.baseUpdate;
+    // Reconstruct only the presentation of an atomic enter/resolve/leave command.
+    // Never send this intermediate state to the engine or enable input on it.
+    const entered = freshEvents.filter(entry => entry.type === "card.supportPlaced" && entry.laneIndex != null);
+    const throughBeat = beats.slice(0, index + 1).flatMap(entry => entry.events);
+    const inZone = entered.filter(entry => throughBeat.includes(entry) && !throughBeat.some(exit => exit.type === "support.discarded" && exit.player === entry.player && exit.laneIndex === entry.laneIndex));
+    if (inZone.length && visualSource?.snapshot) {
+      const snapshot = { ...visualSource.snapshot, lanes: visualSource.snapshot.lanes.map(lane => ({ ...lane, support: { ...lane.support } })) };
+      for (const entry of inZone) snapshot.lanes[entry.laneIndex].support[entry.player] = entry.card || { id: `hidden-support-${entry.laneIndex}-p${entry.player}`, hidden: true, type: "ambush" };
+      const transient = createGauntletMatchViewModel({ game: snapshot, player: update.viewModel.perspective.player, role: update.viewModel.perspective.spectator ? "spectator" : "player" });
+      visualSource = { ...visualSource, snapshot, viewModel: { ...visualSource.viewModel, lanes: transient.lanes, visibleCardCatalog: transient.visibleCardCatalog } };
+    }
     const presentationCues = projectPresentationCues(beat, {
       matchId: update.viewModel.matchId || update.snapshot?.id,
       traversalId: options.traversalId || (update.source === "replay" ? "replay-0" : "live"),

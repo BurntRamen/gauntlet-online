@@ -214,8 +214,9 @@ function constructedHandBlockScenario({ faction, definitionId, support = false, 
 }
 
 describe("shared Basic Gauntlet simulator rules", () => {
-  test("support cards use a separate lane slot and never become legal attackers", () => {
+  test("legacy v11 support cards use a separate lane slot and never become legal attackers", () => {
     const state = setupFaction("rumin", "sheen");
+    state.rulesVersion = "gauntlet-duel-v11";
     const support = state.players[1].hand[0];
     const servitor = state.players[1].hand[1];
     makeConstructed(support, "rumin-coin-scale-spear", { type: "armament" });
@@ -1606,8 +1607,9 @@ describe("shared Basic Gauntlet simulator rules", () => {
     expect(result.state.lanes[1].facedown[1].temporaryValueBonus).toBe(3);
   });
 
-  test("bizi-focus-prime-signal gains two counters and readies its bounded next-card choice on entry", () => {
+  test("legacy v11 bizi-focus-prime-signal gains two counters and readies its bounded next-card choice on entry", () => {
     const state = setupFaction("bizi", "rumin");
+    state.rulesVersion = "gauntlet-duel-v11";
     const signal = state.players[1].hand[0];
     makeConstructed(signal, "bizi-focus-prime-signal", { type: "contraption" });
     state.phase = "end";
@@ -2232,7 +2234,7 @@ describe("shared Basic Gauntlet simulator rules", () => {
     });
 
     expect(withoutChoice.accepted).toBe(true);
-    expect(withoutChoice.state.players[1].turnData.biziPrimeSignalAvailable).toBe(3);
+    expect(withoutChoice.state.players[1].turnData.biziPrimeSignalAvailable).toBe(0);
     expect(withChoice.accepted).toBe(true);
     expect(withChoice.state.handAttacks[0].effectiveValue).toBe(
       withoutChoice.state.handAttacks[0].effectiveValue + 2

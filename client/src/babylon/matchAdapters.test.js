@@ -199,7 +199,7 @@ test("local play gives actionable guidance through all six placement opportuniti
 
   expect(update.viewModel.phase).toBe("end");
   expect(update.viewModel.instruction).toMatch(
-    /^Placement 1 of 6 · Player [12]: choose a combatant or support for Lane 1, or skip\.$/
+    /^Placement 1 of 6 · Player [12]: choose a combatant for the Commitment Zone in Lane 1, or skip\.$/
   );
   expect(update.viewModel.interactions.passLabel).toBe("Skip Lane");
 
@@ -209,7 +209,7 @@ test("local play gives actionable guidance through all six placement opportuniti
   update = latestUpdate(adapter);
 
   expect(update.viewModel.instruction).toMatch(
-    /^Placement 2 of 6 · Player [12]: choose a combatant or support for Lane 1, or skip\.$/
+    /^Placement 2 of 6 · Player [12]: choose a combatant for the Commitment Zone in Lane 1, or skip\.$/
   );
   adapter.dispose();
 });

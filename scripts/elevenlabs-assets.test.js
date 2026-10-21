@@ -1,4 +1,5 @@
 const assert = require("node:assert/strict");
+const crypto = require("node:crypto");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
@@ -46,6 +47,29 @@ function manifest() {
     ]
   };
 }
+
+test("published faction themes are full-length songs matching the approved ElevenLabs music manifest", () => {
+  const root = path.resolve(__dirname, "..");
+  const musicManifest = JSON.parse(fs.readFileSync(path.join(root, "scripts", "elevenlabs-faction-music.json"), "utf8"));
+  const provenance = JSON.parse(fs.readFileSync(path.join(root, "docs", "generated-assets", "elevenlabs", "faction-music-2026-10-18.json"), "utf8"));
+  const validated = validateManifest(musicManifest, root);
+  const approvedByOutput = new Map(provenance.tracks.map((track) => [track.output, track]));
+
+  assert.equal(validated.jobs.length, 16);
+  assert.equal(provenance.model, "Music v2.5");
+  for (const job of validated.jobs) {
+    const outputPath = path.join(root, job.clientOutput);
+    const approved = approvedByOutput.get(job.clientOutput);
+    assert.equal(fs.existsSync(outputPath), true, `${job.id}: published file`);
+    assert.equal(job.parameters.music_length_ms, 180000, `${job.id}: three-minute generation target`);
+    assert.equal(job.parameters.force_instrumental, true, `${job.id}: instrumental generation`);
+    assert.equal(Object.hasOwn(job.parameters, "generation_mode"), false, `${job.id}: composed song rather than short loop`);
+    assert.ok(fs.statSync(outputPath).size > 4000000, `${job.id}: complete full-length audio`);
+    assert.ok(approved.durationSeconds >= 170, `${job.id}: at least 2m50s of composed music`);
+    const digest = crypto.createHash("sha256").update(fs.readFileSync(outputPath)).digest("hex");
+    assert.equal(digest, approved.sha256, `${job.id}: approved artifact digest`);
+  }
+});
 
 test("validation and selection include dependencies in order", () => {
   const root = workspace();
