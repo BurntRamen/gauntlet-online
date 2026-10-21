@@ -17,8 +17,12 @@ async function encounterSection(page, id) {
 }
 async function cardSection(page, name) {
   const select = page.getByRole("combobox", { name: "Card Workshop section", exact: true });
+  const navigation = page.getByRole("navigation", { name: "Card Workshop sections", exact: true });
+  // Selection loads the workshop asynchronously. Wait before choosing its
+  // responsive control, otherwise a phone can take the hidden desktop path.
+  await expect(select.or(navigation)).toBeVisible();
   if (await select.isVisible()) await select.selectOption({ label: name });
-  else await page.getByRole("navigation", { name: "Card Workshop sections", exact: true }).getByRole("button", { name, exact: true }).click();
+  else await navigation.getByRole("button", { name, exact: true }).click();
 }
 async function otherContent(page, name) {
   await workshops(page).getByRole("button", { name: "Other content", exact: true }).click();
@@ -40,17 +44,22 @@ async function signIn(page, request, name) {
   return token;
 }
 
-test("both admins can preview and pay for authored support from desktop and phone workshops", async ({ page, request }) => {
-  test.setTimeout(120000);
+test.describe("authored support payments", () => {
+  test.afterEach(async ({ request }) => {
+    const sessions = JSON.parse(require("node:fs").readFileSync(require("node:path").resolve(__dirname, "../.playwright-data/admin/sessions.json"), "utf8"));
+    const headers = { Authorization: `Bearer ${sessions.simply}` }, base = origin + "/api/admin/authoring";
+    const current = await (await request.get(base, { headers })).json();
+    if (current.draft) expect((await request.post(base + "/discard", { headers, data: { expectedRevision: current.revision } })).ok()).toBeTruthy();
+  });
   for (const [name, width] of [["simply", 1440], ["Burnt Ramen", 390]]) {
-    await page.setViewportSize({ width, height: 1000 });
-    await page.goto("/admin/gauntlet");
-    const token = await signIn(page, request, name), headers = { Authorization: `Bearer ${token}` }, base = origin + "/api/admin/authoring";
-    const before = await (await request.get(base, { headers })).json();
-    const card = before.live.domains.cards.find(row => row.id === "rumin-coin-scale-spear");
-    const patch = await request.patch(base + "/draft", { headers, data: { expectedRevision: before.revision, domain: "cards", id: card.id, field: "effect", value: require("../shared/duel-rules/compositionContract").create() } });
-    expect(patch.ok()).toBeTruthy();
-    try {
+    test(`${name} can preview and pay for authored support at ${width}px`, async ({ page, request }) => {
+      await page.setViewportSize({ width, height: 1000 });
+      await page.goto("/admin/gauntlet");
+      const token = await signIn(page, request, name), headers = { Authorization: `Bearer ${token}` }, base = origin + "/api/admin/authoring";
+      const before = await (await request.get(base, { headers })).json();
+      const card = before.live.domains.cards.find(row => row.id === "rumin-coin-scale-spear");
+      const patch = await request.patch(base + "/draft", { headers, data: { expectedRevision: before.revision, domain: "cards", id: card.id, field: "effect", value: require("../shared/duel-rules/compositionContract").create() } });
+      expect(patch.ok()).toBeTruthy();
       await page.reload();
       await page.getByRole("button", { name: /^\d+ Cards$/ }).click();
       await page.getByLabel("Search cards").fill(card.name);
@@ -83,10 +92,7 @@ test("both admins can preview and pay for authored support from desktop and phon
       await expect(playtest.getByRole("region", { name: "Executed command result" })).toContainText("Accepted by the engine");
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
       await page.screenshot({ path: `artifacts/admin-paid-support-${width}.png`, fullPage: true });
-    } finally {
-      const current = await (await request.get(base, { headers })).json();
-      expect((await request.post(base + "/discard", { headers, data: { expectedRevision: current.revision } })).ok()).toBeTruthy();
-    }
+    });
   }
 });
 
