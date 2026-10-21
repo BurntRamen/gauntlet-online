@@ -15,6 +15,25 @@ function createGame(resolved, selection, id) {
 const harness = publication => createAdminPlaytests({ publication, createGame, chooseAi: () => ({ type: "passPriority", player: 2 }) });
 const args = session => ({ id: session.id, gameRevision: session.game.revision, command: { type: "passPriority", player: session.game.priority } });
 
+test("Admin previews and executes paid authored support with server-owned command identity", () => {
+  const publication = createContentPublication({ baseline, memory: true }), playtests = harness(publication);
+  const cardId = "rumin-coin-scale-spear";
+  publication.patch({ expectedRevision: 0, domain: "cards", id: cardId, field: "effect", value: require("../../shared/duel-rules/compositionContract").create() }, "admin");
+  const session = playtests.start({ expectedRevision: publication.status().revision, subject: { kind: "card", id: cardId },
+    scenario: { version: 1, priority: 1, players: { 1: { factionId: "rumin", hand: [{ cardId, value: 4, suit: "diamonds" }, { value: 14, suit: "hearts" }] }, 2: { factionId: "sheen" } } } }, "admin").playtest;
+  const action = session.legalActions.find(row => row.type === "playSupport" && row.laneIndex === 0);
+  assert.ok(action); assert.ok(action.payment); assert.ok(session.actions.some(row => row.command.type === "playSupport"));
+  const command = { ...action.confirmationPayload.fixed, type: action.type, player: 1, paymentCardIds: action.payment.eligibleCardIds };
+  const saved = publication.status(), original = JSON.stringify(session);
+  const preview = playtests.preview({ ...args(session), command }, "admin").preview;
+  assert.equal(preview.accepted, true, preview.error);
+  assert.equal(preview.payment.required, 4); assert.deepEqual(publication.status(), saved); assert.equal(JSON.stringify(session), original);
+  const next = playtests.command({ ...args(session), command }, "admin").playtest;
+  assert.equal(next.acceptedCommands, 1); assert.equal(next.game.lanes[0].support[1].definitionId, cardId);
+  assert.deepEqual(next.lastCommand.events, preview.events);
+  assert.throws(() => playtests.command({ ...args(session), command }, "admin"), { status: 409 });
+});
+
 test("live testing without a GitHub credential needs no draft reads or writes and exposes pinned identities", async () => {
   const publication = createGitHubContentPublication({ baseline, token: "", releaseFile: "absent-test-release.json", client: new Proxy({}, { get() { throw Error("No GitHub operation is permitted"); } }) });
   const playtests = harness(publication), card = publication.active().manifest.cards.find(card => card.factionId === "indela");

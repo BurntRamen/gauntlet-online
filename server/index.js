@@ -643,13 +643,13 @@ const SET_COLLECTOR_PACK_PRODUCTS = {
     setNumber: 3,
     setName: "Fractured Realms",
     factionIds: [],
-    plannedFactionIds: ["mtano", "mercaw", "engles", "russo"],
+      plannedFactionIds: ["mtano", "mercaw", "ingles", "russo"],
     variantCount: 8,
     priceUsd: 1,
     artPath: "/assets/gauntlet/packs/fractured-realms-set-3.png",
     available: false,
     unavailableReason: "Fractured Realms cards are not in the playable catalog yet, so purchases are paused until every paid pack can be fulfilled.",
-    description: "Set 3 will contain animated collector variants for M'Tano, Mercaw, Engles, and Russo."
+    description: "Set 3 will contain animated collector variants for M'Tano, Mercaw, Ingles, and Russo."
   }
 };
 
@@ -4570,6 +4570,11 @@ function getCampaignChapterIndex(factionId, chapterId) {
   return (campaignChapters[factionId] || []).findIndex((chapter) => chapter.id === chapterId);
 }
 
+function getCampaignEncounterSetup(factionId, chapterId) {
+  return (campaignChapters[factionId] || []).find((chapter) => chapter.id === chapterId)?.setup
+    || encounterDefaults[chapterId];
+}
+
 function isCampaignChapterUnlocked(stats = {}, factionId, chapterId) {
   const chapters = campaignChapters[factionId] || [];
   const chapterIndex = getCampaignChapterIndex(factionId, chapterId);
@@ -4579,13 +4584,16 @@ function isCampaignChapterUnlocked(stats = {}, factionId, chapterId) {
   return completed.includes(chapters[chapterIndex - 1]?.id);
 }
 
-function getCampaignDifficulty(factionId, chapterId, setup = encounterDefaults[chapterId]) {
-  if (!setup) throw new Error("Unknown encounter setup.");
-  return campaignDifficulty(setup);
+function getCampaignDifficulty(factionId, chapterId, setup) {
+  const resolvedSetup = setup || getCampaignEncounterSetup(factionId, chapterId);
+  if (!resolvedSetup) throw new Error("Unknown encounter setup.");
+  return campaignDifficulty(resolvedSetup);
 }
 
-function getCampaignDeckAdditions(factionId, chapterIndex, side = "player", setup = encounterDefaults[campaignChapters[factionId]?.[chapterIndex]?.id], manifest = getPublicGameContent()) {
-  return (setup?.[side === "player" ? "playerAdditions" : "bossAdditions"] || [])
+function getCampaignDeckAdditions(factionId, chapterIndex, side = "player", setup, manifest = getPublicGameContent()) {
+  const chapterId = campaignChapters[factionId]?.[chapterIndex]?.id;
+  const resolvedSetup = setup || getCampaignEncounterSetup(factionId, chapterId);
+  return (resolvedSetup?.[side === "player" ? "playerAdditions" : "bossAdditions"] || [])
     .map((cardId) => manifest.cards.find(card => card.id === cardId)).filter(card => contentAvailable(card, "encounters"))
     .map((card) => getPlayableCollectionCard(card, { suit: card.suit, replacementSuit: card.suit }, manifest));
 }
@@ -4635,6 +4643,8 @@ function getLobbyGameMode(roomState) {
 
 function normalizeDuelPlayerIds(game) {
   if (!game || !["basic", "factions"].includes(game.gameMode)) return game;
+  // Unversioned saved duels predate paid support; never opt them into v12.
+  if (!game.rulesVersion) game.rulesVersion = "gauntlet-duel-v11";
   for (const playerNum of [1, 2]) {
     if (game.players?.[playerNum]) game.players[playerNum].id = playerNum;
   }
@@ -5685,7 +5695,7 @@ function sanitizeGameForViewer(game, viewerPlayerNum, spectatorCount) {
   visibleGame.snapshotSchemaVersion = Number(game.snapshotSchemaVersion || game.schemaVersion || DUEL_SCHEMA_VERSION);
   visibleGame.commandSchemaVersion = Number(game.commandSchemaVersion || DUEL_COMMAND_SCHEMA_VERSION);
   visibleGame.eventSchemaVersion = Number(game.eventSchemaVersion || DUEL_EVENT_SCHEMA_VERSION);
-  visibleGame.rulesVersion = game.rulesVersion || DUEL_RULES_VERSION;
+  visibleGame.rulesVersion = game.rulesVersion || visibleGame.rulesVersion;
   visibleGame.cardContentVersion = game.cardContentVersion || DUEL_CARD_CONTENT_VERSION;
   visibleGame.spectatorCount = spectatorCount;
   return visibleGame;
@@ -7647,6 +7657,9 @@ async function executeSemanticDuelCommand(roomState, playerNum, envelope = {}, i
   if (!envelope.command || typeof envelope.command.type !== "string") {
     return rejectDuelCommand(roomState, envelope, "INVALID_COMMAND", "A semantic duel command is required.");
   }
+  if (envelope.command.type === "playSupport" && (typeof envelope.commandId !== "string" || !envelope.commandId.trim() || !Number.isSafeInteger(envelope.baseRevision))) {
+    return rejectDuelCommand(roomState, envelope, "INVALID_COMMAND", "Support play requires a stable command ID and expected revision.");
+  }
   if (
     envelope.commandSchemaVersion != null
     && Number(envelope.commandSchemaVersion) !== DUEL_COMMAND_SCHEMA_VERSION
@@ -7695,6 +7708,13 @@ async function executeSemanticDuelCommand(roomState, playerNum, envelope = {}, i
     return rejected;
   }
 
+  // A support receipt can outlive the transport cache after many other
+  // commands. A retry must not append duplicate evidence or another undo.
+  if (applied.duplicate) {
+    const accepted = { commandId, accepted: true, revision: Number(roomState.game.revision || 0), snapshotSequence: Number(roomState.game.snapshotSequence || 0) };
+    cacheDuelCommand(roomState, cacheKey, fingerprint, accepted);
+    return accepted;
+  }
   if (internal.saveUndo !== false) {
     saveUndoSnapshot(roomState, playerNum, applied.actionLogEntry?.label || envelope.command.type);
   }

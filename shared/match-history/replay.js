@@ -31,7 +31,7 @@ function publicCard(card) {
   if (!card || card.hidden) return null;
   const allowed = [
     "id", "definitionId", "gameplayCardId", "name", "rank", "value", "suit",
-    "factionId", "variantId", "type", "text", "rulesText", "effect", "presentation", "collector"
+    "factionId", "variantId", "type", "text", "rulesText", "effect", "presentation", "collector", "supportState"
   ];
   return Object.fromEntries(allowed.filter((key) => card[key] != null).map((key) => [key, clonePlain(card[key])]));
 }
@@ -112,6 +112,10 @@ function buildPublicReplaySnapshot(game) {
       playerNum,
       publicFacedown(lane?.facedown?.[playerNum], laneIndex, playerNum)
     ])),
+    ...(game.rulesVersion === "gauntlet-duel-v12" ? { support: Object.fromEntries(Object.keys(players).map(playerNum => {
+      const card = lane?.support?.[playerNum];
+      return [playerNum, card?.type === "ambush" && !card.revealed ? { id: `hidden-support-${laneIndex}-p${playerNum}`, hidden: true, type: "ambush" } : publicCard(card)];
+    })) } : {}),
     attack: publicAttack(lane?.attack),
     block: (lane?.block || []).map(publicBlock).filter(Boolean)
   }));

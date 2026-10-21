@@ -159,7 +159,10 @@ test("pausing while media is loading does not skip the line or discard its accom
 });
 
 test("missing accompaniment leaves the exchange playable, and unscored factions do not borrow another faction's theme", () => {
-  expect(dossierMusicSource("xendra")).toBeNull();
+  expect(dossierMusicSource("xendra")).toBe("/assets/gauntlet/music/factions/xendra-aspect-without-form-v1.mp3");
+  expect(dossierMusicSource("zynarth")).toBe("/assets/gauntlet/music/factions/zynarth-infinite-hive-v1.mp3");
+  expect(dossierMusicSource("astral-vanguard")).toBe("/assets/gauntlet/music/factions/astral-vanguard-hybrid-horizon-v1.mp3");
+  expect(dossierMusicSource("unknown")).toBeNull();
   const player = makePlayer();
   player.configure({ musicSource: dossierMusicSource("rumin") });
   player.play();

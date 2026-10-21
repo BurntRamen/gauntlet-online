@@ -28,6 +28,10 @@
       "source": "/assets/gauntlet/bizi-card.webp",
       "associations": [
         {
+          "object": "content.campaigns.xendra.chapters.7.cinematic.image",
+          "usage": "image"
+        },
+        {
           "object": "factions.xendra.cardImage",
           "usage": "cardImage"
         }
@@ -202,6 +206,10 @@
         {
           "object": "content.campaigns.bizi.chapters.11.image",
           "usage": "image"
+        },
+        {
+          "object": "content.campaigns.bizi.chapters.11.cinematic.image",
+          "usage": "image"
         }
       ],
       "path": "/assets/gauntlet/releases/27b38ab882ba4fb45be390ae47afaa6d9f64f54a4089b290dd0018e6b9930c85.webp",
@@ -345,6 +353,10 @@
       "associations": [
         {
           "object": "content.campaigns.rumin.chapters.9.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.campaigns.rumin.chapters.9.cinematic.image",
           "usage": "image"
         }
       ],
@@ -1156,12 +1168,36 @@
       "source": "/assets/gauntlet/constructed/bizi/bizi-voltaric-ultimatum.webp",
       "associations": [
         {
+          "object": "content.campaigns.voltari.coverImage",
+          "usage": "coverImage"
+        },
+        {
+          "object": "content.campaigns.voltari.chapters.11.cinematic.image",
+          "usage": "image"
+        },
+        {
           "object": "content.collectorVariants.138.art",
           "usage": "art"
         },
         {
           "object": "content.collectorVariants.139.art",
           "usage": "art"
+        },
+        {
+          "object": "factions.voltari.cardImage",
+          "usage": "cardImage"
+        },
+        {
+          "object": "factions.voltari.commander.image",
+          "usage": "image"
+        },
+        {
+          "object": "factions.voltari.general.image",
+          "usage": "image"
+        },
+        {
+          "object": "factions.voltari.city.image",
+          "usage": "image"
         },
         {
           "object": "bizi-voltaric-ultimatum",
@@ -11618,11 +11654,11 @@
       "source": "/assets/gauntlet/factions/astral-vanguard/high-marshal-alden.webp",
       "associations": [
         {
-          "object": "content.factions.9.commander.image",
+          "object": "content.factions.13.commander.image",
           "usage": "image"
         },
         {
-          "object": "content.deckRules.factions.9.commander.image",
+          "object": "content.deckRules.factions.13.commander.image",
           "usage": "image"
         },
         {
@@ -11640,11 +11676,11 @@
       "source": "/assets/gauntlet/factions/astral-vanguard/sergeant-myra-cross.webp",
       "associations": [
         {
-          "object": "content.factions.9.general.image",
+          "object": "content.factions.13.general.image",
           "usage": "image"
         },
         {
-          "object": "content.deckRules.factions.9.general.image",
+          "object": "content.deckRules.factions.13.general.image",
           "usage": "image"
         },
         {
@@ -11662,19 +11698,75 @@
       "source": "/assets/gauntlet/factions/astral-vanguard/vanguard-outpost.webp",
       "associations": [
         {
-          "object": "content.factions.9.cardImage",
+          "object": "content.factions.13.cardImage",
           "usage": "cardImage"
         },
         {
-          "object": "content.factions.9.city.image",
+          "object": "content.factions.13.city.image",
           "usage": "image"
         },
         {
-          "object": "content.deckRules.factions.9.cardImage",
+          "object": "content.campaigns.astral-vanguard.coverImage",
+          "usage": "coverImage"
+        },
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.0.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.1.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.2.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.3.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.4.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.5.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.6.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.7.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.8.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.9.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.10.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.11.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.11.cinematic.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.deckRules.factions.13.cardImage",
           "usage": "cardImage"
         },
         {
-          "object": "content.deckRules.factions.9.city.image",
+          "object": "content.deckRules.factions.13.city.image",
           "usage": "image"
         },
         {
@@ -11774,19 +11866,27 @@
       "source": "/assets/gauntlet/factions/zynarth/brood-nest.webp",
       "associations": [
         {
-          "object": "content.factions.8.cardImage",
+          "object": "content.factions.12.cardImage",
           "usage": "cardImage"
         },
         {
-          "object": "content.factions.8.city.image",
+          "object": "content.factions.12.city.image",
           "usage": "image"
         },
         {
-          "object": "content.deckRules.factions.8.cardImage",
+          "object": "content.campaigns.zynarth.coverImage",
+          "usage": "coverImage"
+        },
+        {
+          "object": "content.campaigns.zynarth.chapters.11.cinematic.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.deckRules.factions.12.cardImage",
           "usage": "cardImage"
         },
         {
-          "object": "content.deckRules.factions.8.city.image",
+          "object": "content.deckRules.factions.12.city.image",
           "usage": "image"
         },
         {
@@ -11808,11 +11908,11 @@
       "source": "/assets/gauntlet/factions/zynarth/broodmother-zalara.webp",
       "associations": [
         {
-          "object": "content.factions.8.commander.image",
+          "object": "content.factions.12.commander.image",
           "usage": "image"
         },
         {
-          "object": "content.deckRules.factions.8.commander.image",
+          "object": "content.deckRules.factions.12.commander.image",
           "usage": "image"
         },
         {
@@ -11830,11 +11930,11 @@
       "source": "/assets/gauntlet/factions/zynarth/klar-biomass-keeper.webp",
       "associations": [
         {
-          "object": "content.factions.8.general.image",
+          "object": "content.factions.12.general.image",
           "usage": "image"
         },
         {
-          "object": "content.deckRules.factions.8.general.image",
+          "object": "content.deckRules.factions.12.general.image",
           "usage": "image"
         },
         {
@@ -11907,6 +12007,14 @@
         },
         {
           "object": "content.upcomingSets.0.factions.2.generals.0.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.campaigns.gracus.coverImage",
+          "usage": "coverImage"
+        },
+        {
+          "object": "content.campaigns.gracus.chapters.11.cinematic.image",
           "usage": "image"
         },
         {
@@ -11992,6 +12100,14 @@
           "usage": "image"
         },
         {
+          "object": "content.campaigns.indela.coverImage",
+          "usage": "coverImage"
+        },
+        {
+          "object": "content.campaigns.indela.chapters.11.cinematic.image",
+          "usage": "image"
+        },
+        {
           "object": "content.deckRules.factions.7.cardImage",
           "usage": "cardImage"
         },
@@ -12038,6 +12154,72 @@
       "bytes": 1058
     },
     {
+      "id": "asset:ingles-emblem.svg",
+      "source": "/assets/gauntlet/ingles-emblem.svg",
+      "associations": [
+        {
+          "object": "content.factions.8.cardImage",
+          "usage": "cardImage"
+        },
+        {
+          "object": "content.factions.8.commander.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.factions.8.general.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.factions.8.city.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.campaigns.ingles.coverImage",
+          "usage": "coverImage"
+        },
+        {
+          "object": "content.campaigns.ingles.chapters.11.cinematic.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.deckRules.factions.8.cardImage",
+          "usage": "cardImage"
+        },
+        {
+          "object": "content.deckRules.factions.8.commander.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.deckRules.factions.8.general.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.deckRules.factions.8.city.image",
+          "usage": "image"
+        },
+        {
+          "object": "factions.ingles.cardImage",
+          "usage": "cardImage"
+        },
+        {
+          "object": "factions.ingles.commander.image",
+          "usage": "image"
+        },
+        {
+          "object": "factions.ingles.general.image",
+          "usage": "image"
+        },
+        {
+          "object": "factions.ingles.city.image",
+          "usage": "image"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/f4b880f173bc7797797011aa73f5709a621c81c861adee601b96c60047a5959c.svg",
+      "mediaType": "image/svg+xml",
+      "sha256": "f4b880f173bc7797797011aa73f5709a621c81c861adee601b96c60047a5959c",
+      "bytes": 509
+    },
+    {
       "id": "asset:jali-emblem.svg",
       "source": "/assets/gauntlet/jali-emblem.svg",
       "associations": [
@@ -12071,6 +12253,14 @@
         },
         {
           "object": "content.upcomingSets.0.factions.1.generals.0.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.campaigns.jali.coverImage",
+          "usage": "coverImage"
+        },
+        {
+          "object": "content.campaigns.jali.chapters.11.cinematic.image",
           "usage": "image"
         },
         {
@@ -12230,6 +12420,22 @@
           "usage": "clickedSound"
         },
         {
+          "object": "content.factions.10.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "content.factions.11.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "content.factions.12.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "content.factions.13.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
           "object": "content.upcomingSets.0.factions.0.city.clickedSound",
           "usage": "clickedSound"
         },
@@ -12286,6 +12492,22 @@
           "usage": "clickedSound"
         },
         {
+          "object": "content.deckRules.factions.10.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "content.deckRules.factions.11.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "content.deckRules.factions.12.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "content.deckRules.factions.13.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
           "object": "factions.mekan.city.clickedSound",
           "usage": "clickedSound"
         },
@@ -12318,11 +12540,31 @@
           "usage": "clickedSound"
         },
         {
+          "object": "factions.voltari.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
           "object": "factions.zynarth.city.clickedSound",
           "usage": "clickedSound"
         },
         {
           "object": "factions.astral-vanguard.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "factions.ingles.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "factions.mercaw.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "factions.mtano.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "factions.russo.city.clickedSound",
           "usage": "clickedSound"
         }
       ],
@@ -12422,6 +12664,14 @@
           "usage": "image"
         },
         {
+          "object": "content.campaigns.mekan.coverImage",
+          "usage": "coverImage"
+        },
+        {
+          "object": "content.campaigns.mekan.chapters.11.cinematic.image",
+          "usage": "image"
+        },
+        {
           "object": "content.deckRules.factions.4.cardImage",
           "usage": "cardImage"
         },
@@ -12498,6 +12748,138 @@
       "mediaType": "image/svg+xml",
       "sha256": "24c73b99f7b051383db1e4fbab71d1c5ff6dfb37d671f5073e6f82f6c7ac9410",
       "bytes": 1254
+    },
+    {
+      "id": "asset:mercaw-emblem.svg",
+      "source": "/assets/gauntlet/mercaw-emblem.svg",
+      "associations": [
+        {
+          "object": "content.factions.9.cardImage",
+          "usage": "cardImage"
+        },
+        {
+          "object": "content.factions.9.commander.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.factions.9.general.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.factions.9.city.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.campaigns.mercaw.coverImage",
+          "usage": "coverImage"
+        },
+        {
+          "object": "content.campaigns.mercaw.chapters.11.cinematic.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.deckRules.factions.9.cardImage",
+          "usage": "cardImage"
+        },
+        {
+          "object": "content.deckRules.factions.9.commander.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.deckRules.factions.9.general.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.deckRules.factions.9.city.image",
+          "usage": "image"
+        },
+        {
+          "object": "factions.mercaw.cardImage",
+          "usage": "cardImage"
+        },
+        {
+          "object": "factions.mercaw.commander.image",
+          "usage": "image"
+        },
+        {
+          "object": "factions.mercaw.general.image",
+          "usage": "image"
+        },
+        {
+          "object": "factions.mercaw.city.image",
+          "usage": "image"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/eb5319b89e274f122c0ed0b94075a7e75d0cc31dc5e25d316a6828af8697c917.svg",
+      "mediaType": "image/svg+xml",
+      "sha256": "eb5319b89e274f122c0ed0b94075a7e75d0cc31dc5e25d316a6828af8697c917",
+      "bytes": 471
+    },
+    {
+      "id": "asset:mtano-emblem.svg",
+      "source": "/assets/gauntlet/mtano-emblem.svg",
+      "associations": [
+        {
+          "object": "content.factions.10.cardImage",
+          "usage": "cardImage"
+        },
+        {
+          "object": "content.factions.10.commander.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.factions.10.general.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.factions.10.city.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.campaigns.mtano.coverImage",
+          "usage": "coverImage"
+        },
+        {
+          "object": "content.campaigns.mtano.chapters.11.cinematic.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.deckRules.factions.10.cardImage",
+          "usage": "cardImage"
+        },
+        {
+          "object": "content.deckRules.factions.10.commander.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.deckRules.factions.10.general.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.deckRules.factions.10.city.image",
+          "usage": "image"
+        },
+        {
+          "object": "factions.mtano.cardImage",
+          "usage": "cardImage"
+        },
+        {
+          "object": "factions.mtano.commander.image",
+          "usage": "image"
+        },
+        {
+          "object": "factions.mtano.general.image",
+          "usage": "image"
+        },
+        {
+          "object": "factions.mtano.city.image",
+          "usage": "image"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/0df2f8b3bb1a36fb6268ef876606e271e2e7923bb15c24d74c8ba5b0632eb29b.svg",
+      "mediaType": "image/svg+xml",
+      "sha256": "0df2f8b3bb1a36fb6268ef876606e271e2e7923bb15c24d74c8ba5b0632eb29b",
+      "bytes": 516
     },
     {
       "id": "asset:playing-cards/basic-10-clubs.webp",
@@ -16148,6 +16530,10 @@
           "usage": "image"
         },
         {
+          "object": "content.campaigns.frumo.chapters.11.cinematic.image",
+          "usage": "image"
+        },
+        {
           "object": "content.deckRules.factions.2.commander.image",
           "usage": "image"
         },
@@ -16232,6 +16618,72 @@
       "bytes": 122506
     },
     {
+      "id": "asset:russo-emblem.svg",
+      "source": "/assets/gauntlet/russo-emblem.svg",
+      "associations": [
+        {
+          "object": "content.factions.11.cardImage",
+          "usage": "cardImage"
+        },
+        {
+          "object": "content.factions.11.commander.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.factions.11.general.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.factions.11.city.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.campaigns.russo.coverImage",
+          "usage": "coverImage"
+        },
+        {
+          "object": "content.campaigns.russo.chapters.11.cinematic.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.deckRules.factions.11.cardImage",
+          "usage": "cardImage"
+        },
+        {
+          "object": "content.deckRules.factions.11.commander.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.deckRules.factions.11.general.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.deckRules.factions.11.city.image",
+          "usage": "image"
+        },
+        {
+          "object": "factions.russo.cardImage",
+          "usage": "cardImage"
+        },
+        {
+          "object": "factions.russo.commander.image",
+          "usage": "image"
+        },
+        {
+          "object": "factions.russo.general.image",
+          "usage": "image"
+        },
+        {
+          "object": "factions.russo.city.image",
+          "usage": "image"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/41ec6123a2eb5fb35c6d8315e984b4a7d739c9a4c270b3038a29af979491fdb0.svg",
+      "mediaType": "image/svg+xml",
+      "sha256": "41ec6123a2eb5fb35c6d8315e984b4a7d739c9a4c270b3038a29af979491fdb0",
+      "bytes": 508
+    },
+    {
       "id": "asset:sheen-card.webp",
       "source": "/assets/gauntlet/sheen-card.webp",
       "associations": [
@@ -16263,6 +16715,10 @@
       "associations": [
         {
           "object": "content.factions.1.general.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.campaigns.sheen.chapters.10.cinematic.image",
           "usage": "image"
         },
         {
@@ -18650,11 +19106,11 @@
       "source": "/assets/gauntlet/voices/faction-astral-vanguard-commander-clicked.mp3",
       "associations": [
         {
-          "object": "content.factions.9.commander.announcementAudio.clicked",
+          "object": "content.factions.13.commander.announcementAudio.clicked",
           "usage": "clicked"
         },
         {
-          "object": "content.deckRules.factions.9.commander.announcementAudio.clicked",
+          "object": "content.deckRules.factions.13.commander.announcementAudio.clicked",
           "usage": "clicked"
         },
         {
@@ -18672,11 +19128,11 @@
       "source": "/assets/gauntlet/voices/faction-astral-vanguard-commander-critical.mp3",
       "associations": [
         {
-          "object": "content.factions.9.commander.announcementAudio.critical",
+          "object": "content.factions.13.commander.announcementAudio.critical",
           "usage": "critical"
         },
         {
-          "object": "content.deckRules.factions.9.commander.announcementAudio.critical",
+          "object": "content.deckRules.factions.13.commander.announcementAudio.critical",
           "usage": "critical"
         },
         {
@@ -18694,11 +19150,11 @@
       "source": "/assets/gauntlet/voices/faction-astral-vanguard-commander-denied.mp3",
       "associations": [
         {
-          "object": "content.factions.9.commander.announcementAudio.denied",
+          "object": "content.factions.13.commander.announcementAudio.denied",
           "usage": "denied"
         },
         {
-          "object": "content.deckRules.factions.9.commander.announcementAudio.denied",
+          "object": "content.deckRules.factions.13.commander.announcementAudio.denied",
           "usage": "denied"
         },
         {
@@ -18716,11 +19172,11 @@
       "source": "/assets/gauntlet/voices/faction-astral-vanguard-commander-selected.mp3",
       "associations": [
         {
-          "object": "content.factions.9.commander.announcementAudio.selected",
+          "object": "content.factions.13.commander.announcementAudio.selected",
           "usage": "selected"
         },
         {
-          "object": "content.deckRules.factions.9.commander.announcementAudio.selected",
+          "object": "content.deckRules.factions.13.commander.announcementAudio.selected",
           "usage": "selected"
         },
         {
@@ -18738,11 +19194,11 @@
       "source": "/assets/gauntlet/voices/faction-astral-vanguard-commander-wounded.mp3",
       "associations": [
         {
-          "object": "content.factions.9.commander.announcementAudio.wounded",
+          "object": "content.factions.13.commander.announcementAudio.wounded",
           "usage": "wounded"
         },
         {
-          "object": "content.deckRules.factions.9.commander.announcementAudio.wounded",
+          "object": "content.deckRules.factions.13.commander.announcementAudio.wounded",
           "usage": "wounded"
         },
         {
@@ -18760,11 +19216,11 @@
       "source": "/assets/gauntlet/voices/faction-astral-vanguard-general-clicked.mp3",
       "associations": [
         {
-          "object": "content.factions.9.general.clickedAudio",
+          "object": "content.factions.13.general.clickedAudio",
           "usage": "clickedAudio"
         },
         {
-          "object": "content.deckRules.factions.9.general.clickedAudio",
+          "object": "content.deckRules.factions.13.general.clickedAudio",
           "usage": "clickedAudio"
         },
         {
@@ -19982,11 +20438,11 @@
       "source": "/assets/gauntlet/voices/faction-zynarth-commander-clicked.mp3",
       "associations": [
         {
-          "object": "content.factions.8.commander.announcementAudio.clicked",
+          "object": "content.factions.12.commander.announcementAudio.clicked",
           "usage": "clicked"
         },
         {
-          "object": "content.deckRules.factions.8.commander.announcementAudio.clicked",
+          "object": "content.deckRules.factions.12.commander.announcementAudio.clicked",
           "usage": "clicked"
         },
         {
@@ -20004,11 +20460,11 @@
       "source": "/assets/gauntlet/voices/faction-zynarth-commander-critical.mp3",
       "associations": [
         {
-          "object": "content.factions.8.commander.announcementAudio.critical",
+          "object": "content.factions.12.commander.announcementAudio.critical",
           "usage": "critical"
         },
         {
-          "object": "content.deckRules.factions.8.commander.announcementAudio.critical",
+          "object": "content.deckRules.factions.12.commander.announcementAudio.critical",
           "usage": "critical"
         },
         {
@@ -20026,11 +20482,11 @@
       "source": "/assets/gauntlet/voices/faction-zynarth-commander-denied.mp3",
       "associations": [
         {
-          "object": "content.factions.8.commander.announcementAudio.denied",
+          "object": "content.factions.12.commander.announcementAudio.denied",
           "usage": "denied"
         },
         {
-          "object": "content.deckRules.factions.8.commander.announcementAudio.denied",
+          "object": "content.deckRules.factions.12.commander.announcementAudio.denied",
           "usage": "denied"
         },
         {
@@ -20048,11 +20504,11 @@
       "source": "/assets/gauntlet/voices/faction-zynarth-commander-selected.mp3",
       "associations": [
         {
-          "object": "content.factions.8.commander.announcementAudio.selected",
+          "object": "content.factions.12.commander.announcementAudio.selected",
           "usage": "selected"
         },
         {
-          "object": "content.deckRules.factions.8.commander.announcementAudio.selected",
+          "object": "content.deckRules.factions.12.commander.announcementAudio.selected",
           "usage": "selected"
         },
         {
@@ -20070,11 +20526,11 @@
       "source": "/assets/gauntlet/voices/faction-zynarth-commander-wounded.mp3",
       "associations": [
         {
-          "object": "content.factions.8.commander.announcementAudio.wounded",
+          "object": "content.factions.12.commander.announcementAudio.wounded",
           "usage": "wounded"
         },
         {
-          "object": "content.deckRules.factions.8.commander.announcementAudio.wounded",
+          "object": "content.deckRules.factions.12.commander.announcementAudio.wounded",
           "usage": "wounded"
         },
         {
@@ -20092,11 +20548,11 @@
       "source": "/assets/gauntlet/voices/faction-zynarth-general-clicked.mp3",
       "associations": [
         {
-          "object": "content.factions.8.general.clickedAudio",
+          "object": "content.factions.12.general.clickedAudio",
           "usage": "clickedAudio"
         },
         {
-          "object": "content.deckRules.factions.8.general.clickedAudio",
+          "object": "content.deckRules.factions.12.general.clickedAudio",
           "usage": "clickedAudio"
         },
         {
@@ -26554,5 +27010,5 @@
     "neutral-tower-shield": "/assets/gauntlet/constructed/neutral/neutral-tower-shield.webp",
     "neutral-holy-ground": "/assets/gauntlet/constructed/neutral/neutral-holy-ground.webp"
   },
-  "version": "gauntlet-assets-628767da496e16bd8ceb61d3dce7a4a60bae061c1b6240e449ddf89074089619"
+  "version": "gauntlet-assets-d7eb5886ec99de14e70484fa213de22b2f79cc8ea5f78cc59c1ba14e95bd07c4"
 }

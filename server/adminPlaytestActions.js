@@ -7,6 +7,14 @@ const optionalFields = { "forum-ledger-payment": "forumLedgerPaymentCardId", "je
   "voltaric-ultimatum": "useVoltaricUltimatum", "focus-prime-signal": "primeSignalBonus", "acceleration-blockers": "accelerationBlockerCardIds",
   "deckhand-diver-peek": "useDeckhandDiverPeek", "last-gamble-choice": "lastGambleChoice", "meerus-free-attack": "useMeerusFreeAttack" };
 function actionPlayer(game) { return game.phase === "end" ? engine.currentPlacementPlayer(game) : game.priority; }
+function applyAction(game, command, options) {
+  // The Admin API already checks owner and expected game revision. Give paid
+  // support the same stable, actor-bound envelope required by live gameplay.
+  const input = command.type === "playSupport"
+    ? engine.createCommandEnvelope(game, command.player, command, `admin-support:${game.matchId}:${game.revision}`)
+    : command;
+  return engine.applyCommand(game, input, options);
+}
 function paymentModifiers(game, action, player) {
   const existing = (action.optionalPaymentModifiers || []).map(option => ({ ...option, commandField: optionalFields[option.id] || null }));
   if (!action.payment) return existing;
@@ -64,7 +72,7 @@ function defaultActions(game) {
       const weapon = lane.support?.[player] || lane.facedown?.[player];
       if (["weapon", "armament"].includes(weapon?.type)) candidates.push({ label: `${action.label} · arm ${weapon.name}`, command: { ...command, armWeaponCardIds: [weapon.id] } });
     }
-    return candidates.filter(candidate => engine.applyCommand(clone(game), candidate.command).accepted);
+    return candidates.filter(candidate => applyAction(clone(game), candidate.command).accepted);
   });
   const concede = { type: "concede", player: 1 };
   return engine.applyCommand(clone(game), concede).accepted ? [...actions, { label: "Concede", command: concede }] : actions;
@@ -101,9 +109,9 @@ function cardNames(...games) {
   return names;
 }
 function previewAction(game, command) {
-  const copy = clone(game), result = engine.applyCommand(copy, clone(command), { diagnostics: true });
+  const copy = clone(game), result = applyAction(copy, clone(command), { diagnostics: true });
   const payment = engine.previewPayment(clone(game), command.player, command);
   return { kind: "calculated-preview", command: clone(command), accepted: result.accepted, error: result.rejectionReason || result.error || null,
     cardNames: cardNames(game, result.state), payment, mechanicsTrace: result.mechanicsTrace, events: clone(result.animationEvents || []), changes: result.accepted ? stateChanges(game, result.state) : [] };
 }
-module.exports = { legalActions, defaultActions, previewAction, stateChanges, cardNames };
+module.exports = { legalActions, defaultActions, previewAction, stateChanges, cardNames, applyAction };

@@ -266,7 +266,7 @@ function normalizeLane(game, laneIndex, bottomPlayer, topPlayer, spectator) {
     }),
     opponentCard: normalizeCard(opponentCard, { visible: !!opponentCard?.revealed, id: `opponent-lane-${laneIndex}` }),
     localSupport: normalizeCard(localSupport, {
-      visible: !!localSupport && !spectator && !localSupport.hidden,
+      visible: !!localSupport && !localSupport.hidden,
       factionId: localSupport?.factionId || factionForPlayer(game, bottomPlayer),
       id: `local-support-${laneIndex}`
     }),

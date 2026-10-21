@@ -40,6 +40,56 @@ async function signIn(page, request, name) {
   return token;
 }
 
+test("both admins can preview and pay for authored support from desktop and phone workshops", async ({ page, request }) => {
+  test.setTimeout(120000);
+  for (const [name, width] of [["simply", 1440], ["Burnt Ramen", 390]]) {
+    await page.setViewportSize({ width, height: 1000 });
+    await page.goto("/admin/gauntlet");
+    const token = await signIn(page, request, name), headers = { Authorization: `Bearer ${token}` }, base = origin + "/api/admin/authoring";
+    const before = await (await request.get(base, { headers })).json();
+    const card = before.live.domains.cards.find(row => row.id === "rumin-coin-scale-spear");
+    const patch = await request.patch(base + "/draft", { headers, data: { expectedRevision: before.revision, domain: "cards", id: card.id, field: "effect", value: require("../shared/duel-rules/compositionContract").create() } });
+    expect(patch.ok()).toBeTruthy();
+    try {
+      await page.reload();
+      await page.getByRole("button", { name: /^\d+ Cards$/ }).click();
+      await page.getByLabel("Search cards").fill(card.name);
+      await page.getByRole("button", { name: `Inspect ${card.name}`, exact: true }).click();
+      await cardSection(page, "Mechanics");
+      await expect(page.getByRole("region", { name: "Support rules contract" }).first()).toContainText("Once per arming");
+      await cardSection(page, "Test");
+      const playtest = page.getByRole("region", { name: "Real engine playtest" });
+      await playtest.getByRole("combobox", { name: "Test content", exact: true }).selectOption("draft");
+      await playtest.getByRole("button", { name: "Configure custom starting state", exact: true }).click();
+      const scenario = playtest.getByRole("region", { name: "Custom starting state", exact: true });
+      await scenario.getByRole("button", { name: "Add to player 1 hand", exact: true }).click();
+      await scenario.getByLabel("Player 1 hand 2 value", { exact: true }).fill("14");
+      await scenario.getByLabel("Player 1 hand 2 suit", { exact: true }).selectOption("hearts");
+      let pending = page.waitForResponse(response => response.url().endsWith("/authoring/playtest") && response.request().method() === "POST");
+      await playtest.getByRole("button", { name: "Start draft duel playtest", exact: true }).click();
+      const session = (await (await pending).json()).playtest;
+      const action = session.legalActions.find(row => row.type === "playSupport" && row.laneIndex === 0);
+      expect(action).toBeTruthy();
+      await playtest.getByRole("combobox", { name: "Action", exact: true }).selectOption(action.id);
+      await playtest.getByRole("group", { name: /^Payment cards/ }).getByRole("checkbox").check();
+      pending = page.waitForResponse(response => response.url().endsWith("/playtest/preview-command"));
+      await playtest.getByRole("button", { name: "Calculate command preview", exact: true }).click();
+      const preview = await (await pending).json();
+      expect(preview.preview.accepted).toBeTruthy(); expect(preview.gameRevision).toBe(session.game.revision);
+      pending = page.waitForResponse(response => response.url().endsWith("/playtest/command"));
+      await playtest.getByRole("button", { name: "Execute selected action", exact: true }).click();
+      const result = (await (await pending).json()).playtest;
+      expect(result.acceptedCommands).toBe(1); expect(result.game.lanes[0].support[1].definitionId).toBe(card.id);
+      await expect(playtest.getByRole("region", { name: "Executed command result" })).toContainText("Accepted by the engine");
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
+      await page.screenshot({ path: `artifacts/admin-paid-support-${width}.png`, fullPage: true });
+    } finally {
+      const current = await (await request.get(base, { headers })).json();
+      expect((await request.post(base + "/discard", { headers, data: { expectedRevision: current.revision } })).ok()).toBeTruthy();
+    }
+  }
+});
+
 test("both authorized accounts can inspect every section; other accounts and guests cannot", async ({ page, request }) => {
   await page.goto("/admin/gauntlet");
   await expect(page.getByRole("heading", { name: "Private administration" })).toBeVisible();

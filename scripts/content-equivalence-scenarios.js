@@ -14,7 +14,8 @@ function behavior(value) {
 function fingerprint(value) { return crypto.createHash("sha256").update(canonicalJson(JSON.parse(JSON.stringify(behavior(value))))).digest("hex"); }
 function scenarios(engine) {
   const results = {};
-  const base = (faction) => engine.createMatch({ seed: "v2-equivalence", matchId: "equivalence", gameMode: "factions", startingPriority: 1, factions: { 1: engine.FACTION_PROFILES[faction], 2: engine.FACTION_PROFILES.sheen } }).state;
+  // These hashes certify the historical v11 rules, not the newest ruleset.
+  const base = (faction) => ({ ...engine.createMatch({ seed: "v2-equivalence", matchId: "equivalence", gameMode: "factions", startingPriority: 1, factions: { 1: engine.FACTION_PROFILES[faction], 2: engine.FACTION_PROFILES.sheen } }).state, rulesVersion: "gauntlet-duel-v11" });
   const card = (definition, prefix, suit = "♦") => ({ ...clone(definition), id: `${prefix}-${definition.id}`, definitionId: definition.id, suit, rank: String(definition.value), draftCard: true });
   const payment = (prefix) => ["♦", "♠", "♥", "♣"].map((suit, index) => ({ id: `${prefix}-pay-${index}`, name: "Payment", value: 14, rank: "A", suit }));
   // This fixture captures the 126-card production catalog that existed before

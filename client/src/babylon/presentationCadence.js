@@ -202,6 +202,8 @@ const CADENCE_EVENT_TYPES = new Set([
   "block.declared",
   ...DAMAGE_CONSEQUENCE_TYPES,
   "card.placedFacedown",
+  "card.supportPlaced",
+  "support.discarded",
   "cards.drawn",
   "priority.passed",
   "priority.granted",
@@ -300,7 +302,7 @@ function createBeat(semantic, wrappedEvents, options = {}) {
     preferredTypes = ["payment.discarded"];
   } else if (semantic === "placement") {
     kind = "card.place";
-    preferredTypes = ["card.placedFacedown"];
+    preferredTypes = ["card.placedFacedown", "card.supportPlaced"];
   } else if (semantic === "draw") {
     kind = "card.draw";
     preferredTypes = ["cards.drawn"];
@@ -509,7 +511,12 @@ export function projectPresentationBeats(events = [], options = {}) {
       pendingAbility.push(wrapped);
       return;
     }
-    if (entry.type === "card.placedFacedown") {
+    if (entry.type === "support.discarded") {
+      flushPending();
+      addBeat("ability", [wrapped]);
+      return;
+    }
+    if (entry.type === "card.placedFacedown" || entry.type === "card.supportPlaced") {
       flushPending();
       addBeat("placement", [wrapped]);
     }
@@ -718,7 +725,7 @@ export function projectPresentationCueMetadata(beat, options = {}) {
       "payment.commit": ["payment.discarded"],
       "attack.commit": ["attack.declared", "campaign.attackDeclared"],
       "block.commit": ["block.declared"],
-      "card.place": ["card.placedFacedown"],
+      "card.place": ["card.placedFacedown", "card.supportPlaced"],
       "card.draw": ["cards.drawn"],
       "turn.start": ["turn.started"],
       "ability.activate": ["ability.activated", ...ABILITY_MUTATION_TYPES],
@@ -756,6 +763,8 @@ const COMPATIBILITY_EVENT_FIXTURES = Object.freeze({
   "damage.dealt": { type: "damage.dealt", amount: 4 },
   "attack.fullyBlocked": { type: "attack.fullyBlocked" },
   "card.placedFacedown": { type: "card.placedFacedown" },
+  "card.supportPlaced": { type: "card.supportPlaced" },
+  "support.discarded": { type: "support.discarded" },
   "cards.drawn": { type: "cards.drawn" },
   "priority.granted": { type: "priority.granted" },
   "priority.passed": { type: "priority.passed" },

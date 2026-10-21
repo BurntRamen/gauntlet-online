@@ -1,0 +1,61 @@
+const test = require("node:test");
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const os = require("node:os");
+const path = require("node:path");
+const directory = fs.mkdtempSync(path.join(os.tmpdir(), "paid-support-authority-"));
+for (const key of ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_SECRET_KEY"]) delete process.env[key];
+for (const [key, file] of Object.entries({ ACCOUNT_DATA_FILE: "accounts.json", MATCH_DATA_FILE: "matches.json", FACTION_STATS_DATA_FILE: "factions.json", ROOM_STATE_DATA_FILE: "rooms.json", GAUNTLET_CONTENT_DATA_DIR: "content", MATCH_ARCHIVE_DATA_DIR: "archive", GAUNTLET_PARA_DATA_DIR: "para", GAUNTLET_ECONOMY_DATA_DIR: "economy" })) process.env[key] = path.join(directory, file);
+const { server, __test } = require("../index");
+const { buildMatchRecord } = require("../matchRecords");
+const { buildReplayTimeline } = require("../../shared/match-history");
+const { getGameplayCardById } = require("../gameContent");
+const { RULES_VERSION } = require("../../shared/duel-rules");
+test.after(() => { __test.rooms.clear(); server.close(); });
+
+test("authoritative command cache, durable restart recovery and replay retain paid supports exactly once", async () => {
+  const room = __test.createRoom();
+  for (const p of [1, 2]) Object.assign(room.lobby.players[p], { accountName: `Support ${p}`, factionId: "frumo", reconnectToken: `test-reconnect-${p}` });
+  __test.createGameFromLobby(room, { seed: "support-authority" });
+  room.game.priority = 1;
+  const printed = getGameplayCardById("frumo-deckhand-diver");
+  room.game.players[1].hand = [{ ...printed, definitionId: printed.id, id: "ambush" }, { id: "pay", value: 3 }];
+  const envelope = { commandId: "durable-support", baseRevision: room.game.revision, rulesVersion: RULES_VERSION, command: { type: "playSupport", cardId: "ambush", laneIndex: 2, paymentCardIds: ["pay"] } };
+  const accepted = await __test.executeSemanticDuelCommand(room, 1, envelope);
+  assert.ok(accepted.accepted, JSON.stringify(accepted));
+  assert.deepEqual(await __test.executeSemanticDuelCommand(room, 1, envelope), accepted);
+  const revision = room.game.revision, evidenceCount = room.game.serverLeagueEvidence.length;
+  assert.equal((await __test.executeSemanticDuelCommand(room, 1, { ...envelope, commandId: undefined })).accepted, false);
+  assert.equal((await __test.executeSemanticDuelCommand(room, 2, envelope)).accepted, false);
+  const legacyRoom = __test.createRoom();
+  legacyRoom.lobby.gameMode = "basic";
+  __test.createGameFromLobby(legacyRoom, { seed: "unversioned-legacy" });
+  delete legacyRoom.game.rulesVersion;
+  __test.persistRoomsNow(); __test.rooms.clear();
+  assert.equal(__test.initializeRoomRecovery().restored, 2);
+  assert.equal(__test.rooms.get(legacyRoom.roomCode).game.rulesVersion, "gauntlet-duel-v11");
+  const recovered = __test.rooms.get(room.roomCode);
+  assert.ok(recovered.game.lanes[2].support[1]);
+  assert.equal(recovered.game.revision, revision);
+  assert.equal(recovered.game.players[1].connected, false);
+  assert.deepEqual(await __test.executeSemanticDuelCommand(recovered, 1, envelope), accepted);
+  assert.equal(recovered.game.serverLeagueEvidence.length, evidenceCount);
+  assert.equal(recovered.game.players[1].discard.filter(card => card.id === "pay").length, 1);
+  for (const viewer of [2, null]) {
+    const snapshot = __test.sanitizeGameForViewer(recovered.game, viewer, 1);
+    assert.ok(snapshot.lanes[2].support[1].hidden);
+    assert.equal(Object.hasOwn(snapshot.players[1].turnData, "previousPlayedValue"), false);
+    assert.equal(Object.hasOwn(snapshot.players[1].turnData, "suitsPlayedThisTurn"), false);
+    assert.equal(Object.hasOwn(snapshot.paymentLog.at(-1), "required"), false);
+  }
+  // Build a completed local review artifact without publishing any match.
+  const completed = structuredClone(recovered);
+  completed.game.phase = "gameOver"; completed.game.winner = 1;
+  const record = buildMatchRecord(completed);
+  assert.equal(record.rulesVersion, RULES_VERSION);
+  const first = buildReplayTimeline(record), second = buildReplayTimeline(record);
+  assert.deepEqual(first, second);
+  assert.ok(first.frames.at(-1).publicState.lanes[2].support[1].hidden);
+  assert.equal(JSON.stringify(first).includes("frumo-deckhand-diver"), false);
+  assert.equal(JSON.stringify(first).includes("test-reconnect"), false);
+});
