@@ -86,6 +86,7 @@ const {
   getLegalActions: getSharedLegalActions,
   projectForPerspective: projectSharedDuelForPerspective
 } = require("../shared/duel-rules");
+const paidSupportAi = require("./paidSupportAi");
 const {
   buildAccountMatchIndexEntry,
   buildParaMatchExport,
@@ -7384,34 +7385,30 @@ function chooseSemanticTrainingAiCommand(game) {
     const laneBlock = legalActions.find((action) => action.type === "declareLaneBlock");
     if (laneBlock) {
       const blocker = game.lanes[laneBlock.laneIndex]?.facedown?.[2];
-      const paymentCardIds = blocker
-        && campaignBossCanUseBlockerValue(game, blocker)
-        ? findSemanticAiPaymentCardIds(ai.hand, getSharedBasicCardValue(blocker))
-        : null;
-      if (paymentCardIds) {
-        return {
-          type: "declareLaneBlock",
-          laneIndex: laneBlock.laneIndex,
-          paymentCardIds
-        };
+      if (blocker && campaignBossCanUseBlockerValue(game, blocker)) {
+        const command = paidSupportAi.combatChoices(game, laneBlock, { type: "declareLaneBlock", laneIndex: laneBlock.laneIndex });
+        const paymentCardIds = paidSupportAi.enabled(game)
+          ? paidSupportAi.paymentCardIds(game, command)
+          : findSemanticAiPaymentCardIds(ai.hand, getSharedBasicCardValue(blocker));
+        if (paymentCardIds) return { ...command, paymentCardIds };
       }
     }
     const handBlock = legalActions.find((action) => action.type === "declareHandBlock");
     if (handBlock) {
+      const eligibleIds = new Set(handBlock.validSourceEntities.map(entity => entity.cardId));
       const blockers = [...ai.hand]
-        .filter((card) => campaignBossCanUseBlockerValue(game, card))
+        .filter((card) => eligibleIds.has(card.id) && campaignBossCanUseBlockerValue(game, card))
         .sort((left, right) => getSharedBasicCardValue(left) - getSharedBasicCardValue(right));
       for (const blocker of blockers) {
-        const paymentCardIds = findSemanticAiPaymentCardIds(
-          ai.hand,
-          getSharedBasicCardValue(blocker),
-          [blocker.id]
-        );
+        const command = paidSupportAi.combatChoices(game, handBlock, {
+          type: "declareHandBlock", attackId: pending.id, blockerCardIds: [blocker.id]
+        });
+        const paymentCardIds = paidSupportAi.enabled(game)
+          ? paidSupportAi.paymentCardIds(game, command, [blocker.id])
+          : findSemanticAiPaymentCardIds(ai.hand, getSharedBasicCardValue(blocker), [blocker.id]);
         if (paymentCardIds) {
           return {
-            type: "declareHandBlock",
-            attackId: pending.id,
-            blockerCardIds: [blocker.id],
+            ...command,
             paymentCardIds
           };
         }
@@ -7433,6 +7430,9 @@ function chooseSemanticTrainingAiCommand(game) {
     return { type: "declareCampaignBossAttack", system: true };
   }
 
+  const supportCommand = paidSupportAi.chooseSupport(game, legalActions);
+  if (supportCommand) return supportCommand;
+
   if (aiNeedsLaneSetup(game)) return { type: "passPriority" };
 
   const attacks = legalActions
@@ -7443,20 +7443,14 @@ function chooseSemanticTrainingAiCommand(game) {
     });
   for (const action of attacks) {
     const excludedCardIds = action.type === "declareHandAttack" ? [action.cardId] : [];
-    const paymentCardIds = findSemanticAiPaymentCardIds(
-      ai.hand,
-      action.requiredPayment,
-      excludedCardIds
-    );
+    const command = paidSupportAi.combatChoices(game, action, action.type === "declareLaneAttack"
+      ? { type: "declareLaneAttack", laneIndex: action.laneIndex }
+      : { type: "declareHandAttack", cardId: action.cardId, attackerCardId: action.cardId });
+    const paymentCardIds = paidSupportAi.enabled(game)
+      ? paidSupportAi.paymentCardIds(game, command, excludedCardIds)
+      : findSemanticAiPaymentCardIds(ai.hand, action.requiredPayment, excludedCardIds);
     if (!paymentCardIds) continue;
-    return action.type === "declareLaneAttack"
-      ? { type: "declareLaneAttack", laneIndex: action.laneIndex, paymentCardIds }
-      : {
-          type: "declareHandAttack",
-          cardId: action.cardId,
-          attackerCardId: action.cardId,
-          paymentCardIds
-        };
+    return { ...command, paymentCardIds };
   }
   return { type: "passPriority" };
 }

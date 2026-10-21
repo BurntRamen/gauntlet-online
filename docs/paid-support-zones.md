@@ -40,7 +40,19 @@ The engine discards 2+5, emits `payment.discarded`, then `card.supportPlaced`, r
 
 ## Compatibility and boundaries
 
-New faction, constructed, draft, faction practice/training, and campaign player duels share v12 support rules. Campaign action limits still apply. Basic and free-for-all cannot play support; their combat rules are unchanged. Automated opponents retain their existing strategy and scripted action choices; this change does not teach them a new support strategy.
+New faction, constructed, draft, faction practice/training, and campaign player duels share v12 support rules. Campaign action limits still apply. Basic and free-for-all cannot play support; their combat rules are unchanged. The initial release left automated strategy unchanged; the training follow-up below adds paid support decisions without altering scripted campaign choices.
+
+### Training opponent follow-up
+
+The 20 October follow-up starts from main `046f3be` on `codex/support-zones-followup`. Ordinary v12 faction training and private Admin playtests can now choose paid support through the same authoritative command envelope used by players. Selection is deterministic and does not mutate the current match or consult an opponent's concealed hand/deck.
+
+The policy uses registered support contracts and the shared payment preview. It keeps payment-only cards available for payment, reserves a combat card when setting up lanes, respects occupied slots, and only prepares Coordinated Strike when a paid follow-up attack remains possible. Deep Dive's optional peek is explicitly chosen when the deck is nonempty. Armament, Assembly Station, Vital Grove and Interference Matrix combat choices use the existing legal-action options. Supports still cannot become independent attackers or blockers.
+
+Hand blockers come from the engine's legal source entities, fixing a rejected-command loop when the cheapest hand card was a non-Servitor. Payment selection includes printed payment effects and Indela adjustments. It examines single cards and ascending payment prefixes rather than an exponential search; it is a bounded training policy, not an optimal opponent.
+
+Campaign bosses retain their authored attacks and action budget. Legacy paid-support eligibility and free end placement are unchanged. This changes automated decision-making, not the rules, printed balance, snapshots, or replay contracts; the duel rules version remains v12.
+
+Follow-up files: `server/paidSupportAi.js`, `server/index.js`, `server/test/paid-support-ai.test.js`, `e2e/paid-support-server.js`, `e2e/paid-support.spec.js`, `docs/paid-support-test-results.md`, and this review packet. Case should run the new AI tests alongside `server/test/automated-opponents.test.js`, then `npm run test:e2e:support`; the added phone-browser case passes priority to the training opponent and verifies paid Hospital placement and public slot inspection.
 
 Existing matches retain their stored rules version, including v11 free end-turn support behavior. Unversioned recovered duels explicitly use the pre-change v11 compatibility behavior, never v12. Snapshots without a support map receive empty projection defaults without being repriced or upgraded. Historical replay remains snapshot-driven under its recorded version. Snapshot schema 2 and command/event schema 1 remain compatible additive contracts. New support metadata uses `gauntlet.support.v1`; completed match records now retain the duel's actual rules version.
 
@@ -77,7 +89,7 @@ Final commands and results are recorded in `paid-support-test-results.md`. The r
 
 ## Case's review steps
 
-1. Review this feature branch against `aa00d80`; leave the original dirty checkout and preservation branch alone.
+1. Review the training follow-up against `046f3be`. The initial feature in PR #79 was based on `aa00d80`; leave the original dirty checkout and preservation branch alone.
 2. Run `npm ci`, `npm --prefix server ci`, `npm --prefix client ci`, then `npm run test:server` and the client command in the results file. Run `npx playwright install chromium` once, then `npm run test:e2e:support`.
 3. Review the generated `playwright-report/support/index.html` and `test-results/support-*.png`. Check that payment is required, entry precedes discard, persistent supports occupy their zones, and the phone/fallback controls remain usable.
 4. Inspect `supportContract.js` beside printed card text; pay particular attention to Deep Dive, Coordinated Strike, Interference Matrix, ongoing shelters, Arm equipment and Polea's auditable exception.

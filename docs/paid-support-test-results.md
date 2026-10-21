@@ -1,5 +1,17 @@
 # Paid support validation evidence
 
+## Training opponent follow-up, 20 October 2026
+
+The follow-up on `codex/support-zones-followup`, based on main `046f3be`, adds paid support decisions and fixes illegal non-Servitor blocker selection. The focused AI suite passes **11 tests**, and the existing automated-opponent suite passes **14 tests**, including completion of every configured campaign encounter. Browser and release qualification results will be recorded on the follow-up pull request.
+
+The new tests cover payment bonuses, tax adjustments, ongoing support, repeated one-shots, optional private choices, Ambush concealment, occupied/insufficient-payment exclusions, explicit Arm/Assembly choices, all registered support definitions, and legacy/Basic/FFA/campaign boundaries. Initial failures exposed two incomplete test fixtures and a policy tie that spent another useful instant before an equivalent payment card; the fixtures and payment tie-break were corrected. The final focused rerun passed without relaxing assertions.
+
+Example: with Harmony Ward (4), Think (3 with its printed +1 payment effect), and a reserved combat card, the training opponent submits `playSupport` for Ward using Think. The authoritative command discards Think, enters Ward in Support Zone 1, records a payment total of 4, and leaves Ward active. Its stable command ID, revision checks, persistence and replay follow the same server lifecycle as player commands.
+
+The policy is deterministic and bounded; it is not a strategic search. Campaign bosses keep their authored attack sequence. The initial-release limitations below describe the October 16 release; the training-strategy limitation is superseded for v12 faction training by this follow-up.
+
+## Initial release
+
 Run locally on Windows, Node 24.16.0, Chromium with software WebGL, 15–16 October 2026. No production services or deployment were used. Full local logs and screenshots are retained under `artifacts/paid-support/` (ignored generated files).
 
 Release follow-up after the user's live-publication authorization: fixed historical support-log wording, added the Field Rulebook's paid-support guidance and readable card-inspection instructions, and enabled the three paid-support browser cases in CI. The focused server suite now passes **39 tests**, including the new legacy-log regression; the complete client suite still passes **735 tests**. The updated production build passes at **175.8 KiB main**, **757.7 KiB player**, and **48.7 KiB aggregate Admin**. [PR #79](https://github.com/BurntRamen/gauntlet-online/pull/79) records the release branch's CI and deployment results. The table below preserves the original full local qualification.
