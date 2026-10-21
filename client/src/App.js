@@ -158,8 +158,14 @@ const INITIAL_JOIN_ROOM_CODE =
   typeof window !== "undefined"
     ? new URLSearchParams(window.location.search).get("join")?.trim().toUpperCase() || ""
     : "";
+const INITIAL_PASSWORD_RESET_TOKEN =
+  typeof window !== "undefined"
+    ? new URLSearchParams(window.location.search).get("resetToken")?.trim() || ""
+    : "";
 const INITIAL_HOME_AREA =
-  typeof window !== "undefined" && (/^\/admin\/gauntlet(?:\/|$)/.test(window.location.pathname) || new URLSearchParams(window.location.search).get("studio") === "1" || new URLSearchParams(window.location.search).get("admin") === "1")
+  INITIAL_PASSWORD_RESET_TOKEN
+    ? "identity"
+    : typeof window !== "undefined" && (/^\/admin\/gauntlet(?:\/|$)/.test(window.location.pathname) || new URLSearchParams(window.location.search).get("studio") === "1" || new URLSearchParams(window.location.search).get("admin") === "1")
     ? "studio"
     : INITIAL_JOIN_ROOM_CODE ? "play" : "journey";
 
@@ -1248,22 +1254,44 @@ function HotkeyWindow({ visible, onClose }) {
   );
 }
 
-function AccountPanel({ account, mode, form, error, onModeChange, onFormChange, onSubmit, onSignOut }) {
+function AccountPanel({ account, mode, form, error, notice, onModeChange, onFormChange, onSubmit, onSignOut, onRecoveryEmail }) {
   if (account) {
     return (
       <MenuCard title="Account">
         <p className="app-layout-45">Signed in as <strong>{account.name}</strong></p>
+        <p className="app-layout-46">
+          {account.identity?.recoveryEmailConfigured ? "A recovery email is configured." : "Add a recovery email so you can reset a forgotten password."}
+        </p>
+        <form onSubmit={(event) => { event.preventDefault(); onRecoveryEmail(); }} className="app-layout-47">
+          <input
+            value={form.email}
+            onChange={(event) => onFormChange({ ...form, email: event.target.value })}
+            placeholder={account.identity?.recoveryEmailConfigured ? "Replace recovery email" : "Recovery email"}
+            type="email"
+            autoComplete="email"
+            style={MENU_THEME.input}
+            aria-label="Recovery email"
+          />
+          <MenuButton type="submit" variant="secondary">Save Recovery Email</MenuButton>
+        </form>
+        {notice && <div className="app-layout-48">{notice}</div>}
+        {error && <div className="app-layout-49">{error}</div>}
         <MenuButton variant="secondary" onClick={onSignOut}>Sign Out</MenuButton>
       </MenuCard>
     );
   }
 
+  const titles = { register: "Create Account", login: "Sign In", forgot: "Recover Account", reset: "Choose New Password" };
   return (
-    <MenuCard title={mode === "register" ? "Create Account" : "Sign In"}>
+    <MenuCard title={titles[mode] || titles.login}>
       <p className="app-layout-46">
         {mode === "register"
           ? "Save campaign progress, rewards, match results, and your Season Zero record."
-          : "Return to your campaign, collection, match history, and ranked record."}
+          : mode === "forgot"
+            ? "Enter the recovery email on your account. The message includes your account name and a password-reset link."
+            : mode === "reset"
+              ? "Enter a new password for your Gauntlet account."
+              : "Return to your campaign, collection, match history, and ranked record."}
       </p>
       <form
         onSubmit={(event) => {
@@ -1277,34 +1305,47 @@ function AccountPanel({ account, mode, form, error, onModeChange, onFormChange, 
         }}
         className="app-layout-47"
       >
-        <input
-          value={form.name}
-          onChange={(e) => onFormChange({ ...form, name: e.target.value })}
-          placeholder="Account name"
-          autoComplete="username"
-          style={MENU_THEME.input}
-          aria-label="Account name"
-        />
-        <input
-          value={form.password}
-          onChange={(e) => onFormChange({ ...form, password: e.target.value })}
-          placeholder="Password"
-          type="password"
-          autoComplete={mode === "register" ? "new-password" : "current-password"}
-          style={MENU_THEME.input}
-          aria-label="Password"
-        />
+        {(mode === "login" || mode === "register") && <input
+            value={form.name}
+            onChange={(e) => onFormChange({ ...form, name: e.target.value })}
+            placeholder="Account name"
+            autoComplete="username"
+            style={MENU_THEME.input}
+            aria-label="Account name"
+          />}
+        {(mode === "register" || mode === "forgot") && <input
+            value={form.email}
+            onChange={(e) => onFormChange({ ...form, email: e.target.value })}
+            placeholder={mode === "register" ? "Recovery email (optional)" : "Recovery email"}
+            type="email"
+            autoComplete="email"
+            style={MENU_THEME.input}
+            aria-label="Recovery email"
+          />}
+        {(mode === "login" || mode === "register" || mode === "reset") && <input
+            value={form.password}
+            onChange={(e) => onFormChange({ ...form, password: e.target.value })}
+            placeholder={mode === "reset" ? "New password" : "Password"}
+            type="password"
+            autoComplete={mode === "login" ? "current-password" : "new-password"}
+            style={MENU_THEME.input}
+            aria-label={mode === "reset" ? "New password" : "Password"}
+          />}
         {mode === "register" && (
           <small className="app-layout-48">
             Account names use 3-24 letters, numbers, spaces, hyphens, or underscores. Passwords need at least 8 characters.
           </small>
         )}
         {error && <div className="app-layout-49">{error}</div>}
+        {notice && <div className="app-layout-48">{notice}</div>}
         <div>
-          <MenuButton type="submit" style={{ marginRight: 8 }}>{mode === "register" ? "Create Account" : "Sign In"}</MenuButton>
-          <MenuButton variant="secondary" onClick={() => onModeChange(mode === "register" ? "login" : "register")}>
-            {mode === "register" ? "Use Existing Account" : "Create Account"}
+          <MenuButton type="submit" style={{ marginRight: 8 }}>
+            {mode === "register" ? "Create Account" : mode === "forgot" ? "Email Recovery Link" : mode === "reset" ? "Update Password" : "Sign In"}
           </MenuButton>
+          <MenuButton variant="secondary" onClick={() => onModeChange(mode === "login" ? "register" : "login")}>
+            {mode === "login" ? "Create Account" : "Back to Sign In"}
+          </MenuButton>
+          {mode === "login" && <MenuButton variant="secondary" onClick={() => onModeChange("forgot")}>Forgot Password?</MenuButton>}
         </div>
       </form>
     </MenuCard>
@@ -1594,9 +1635,14 @@ function BoosterPackTile({ booster, collectorPack, opening, canOpen, onOpen, onB
       <span className="booster-pack-count">{booster.cardCount || booster.slots?.length || 8} free-play gameplay unlocks</span>
       <span className="booster-pack-slots">
         {Object.entries(rarityCounts).map(([rarity, count]) => (
-          <span key={rarity}>{count} {RARITY_STYLES[rarity]?.label || rarity}</span>
+          <span key={rarity}>{count} {rarity === "face" ? "Face card (J-A)" : (RARITY_STYLES[rarity]?.label || rarity)}</span>
         ))}
       </span>
+      {booster.faceCardOdds && (
+        <small className="app-layout-51">
+          Face slot odds: J {booster.faceCardOdds.jack}% · Q {booster.faceCardOdds.queen}% · K {booster.faceCardOdds.king}% · A {booster.faceCardOdds.ace}%
+        </small>
+      )}
       <button
         type="button"
         className="booster-pack-open"
@@ -2754,14 +2800,15 @@ function RulebookPanel() {
         "After damage resolves, priority returns to the defender of the most recent attack.",
         "When both players pass with no pending attacks, players place face-down cards lane by lane.",
         "After all lanes are handled, both players draw back to their starting hand size and priority changes players.",
-        "Life totals are checked only at the end of the turn, after lane placement and draw-up are complete."
+        "Life totals are checked when both players pass to end active play, before lane placement begins."
       ]
     },
     {
       title: "Victory",
       rules: [
-        "Players are not eliminated immediately when their life reaches 0 or less during a turn.",
-        "At the end of the turn, if either player has 0 or less life, the player with the higher life total wins.",
+        "Reaching 0 or less life creates Defeat Pending; it does not eliminate a player immediately.",
+        "Until both players pass, play continues normally: players may attack, block, activate abilities, and regain life.",
+        "When both players pass to end active play, if either player has 0 or less life, the player with the higher life total wins.",
         "If both players are tied at the end-of-turn life check, the game is a draw.",
         "If both players still have life but neither has a combat card or faction action remaining, the game also ends in a draw."
       ]
@@ -2824,7 +2871,7 @@ function TutorialScreen({ onBack, onPlayBasicAi, onPlayFactionAi, canPlayAsPlaye
     },
     {
       title: "6. End the Turn",
-      text: "When both players pass with no pending attacks, the game enters end phase. Players place face-down lane cards lane by lane, then draw back to their starting hand size."
+      text: "When both players pass with no pending attacks, life totals are checked. Reaching 0 or less life before then means Defeat Pending, so you may still attack, block, use abilities, or heal. If play continues, players place face-down lane cards lane by lane, then draw back to their starting hand size."
     },
     {
       title: "7. Pick a Learning Mode",
@@ -3086,9 +3133,10 @@ export default function App() {
   const [account, setAccount] = useState(null);
   const [vaultRewardMinimized, setVaultRewardMinimized] = useVaultRewardPreference(account?.id);
   const [authToken, setAuthToken] = useState(() => localStorage.getItem(STORAGE_KEYS.authToken) || "");
-  const [authMode, setAuthMode] = useState("login");
-  const [authForm, setAuthForm] = useState({ name: "", password: "" });
+  const [authMode, setAuthMode] = useState(INITIAL_PASSWORD_RESET_TOKEN ? "reset" : "login");
+  const [authForm, setAuthForm] = useState({ name: "", password: "", email: "", token: INITIAL_PASSWORD_RESET_TOKEN });
   const [authError, setAuthError] = useState("");
+  const [authNotice, setAuthNotice] = useState("");
   const [playAsGuest, setPlayAsGuest] = useState(false);
   const [guestName, setGuestName] = useState(() => localStorage.getItem(STORAGE_KEYS.guestName) || "Guest");
   const [musicEnabled, setMusicEnabled] = useState(true);
@@ -4045,18 +4093,42 @@ export default function App() {
   async function submitAuth() {
     playMenuCue("commit");
     setAuthError("");
+    setAuthNotice("");
     try {
-      const response = await fetch(`${SOCKET_URL}/api/auth/${authMode === "register" ? "register" : "login"}`, {
+      const authPath = authMode === "forgot"
+        ? "password-reset/request"
+        : authMode === "reset"
+          ? "password-reset/confirm"
+          : authMode === "register" ? "register" : "login";
+      const response = await fetch(`${SOCKET_URL}/api/auth/${authPath}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(authForm)
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Authentication failed.");
+      if (authMode === "forgot") {
+        setAuthNotice(data.message);
+        setAuthForm((current) => ({ ...current, email: "" }));
+        playMenuCue("success");
+        return;
+      }
+      if (authMode === "reset") {
+        setAuthMode("login");
+        setAuthNotice(data.message);
+        setAuthForm({ name: "", password: "", email: "", token: "" });
+        if (typeof window !== "undefined") {
+          const url = new URL(window.location.href);
+          url.searchParams.delete("resetToken");
+          window.history.replaceState({}, "", url);
+        }
+        playMenuCue("success");
+        return;
+      }
       localStorage.setItem(STORAGE_KEYS.authToken, data.token);
       setAuthToken(data.token);
       setAccount(data.account);
-      setAuthForm({ name: "", password: "" });
+      setAuthForm({ name: "", password: "", email: "", token: "" });
       if (adminSignInRequested.current) {
         adminSignInRequested.current = false;
         navigateHomeArea("studio");
@@ -4071,6 +4143,29 @@ export default function App() {
       playMenuCue("success");
     } catch (authSubmitError) {
       setAuthError(authSubmitError.message);
+      playMenuCue("denied");
+    }
+  }
+
+  async function updateRecoveryEmail() {
+    if (!authToken) return;
+    playMenuCue("commit");
+    setAuthError("");
+    setAuthNotice("");
+    try {
+      const response = await fetch(`${SOCKET_URL}/api/account/recovery-email`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${authToken}` },
+        body: JSON.stringify({ email: authForm.email })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Recovery email could not be saved.");
+      setAccount(data.account);
+      setAuthForm((current) => ({ ...current, email: "" }));
+      setAuthNotice(data.message);
+      playMenuCue("success");
+    } catch (recoveryError) {
+      setAuthError(recoveryError.message);
       playMenuCue("denied");
     }
   }
@@ -5328,10 +5423,12 @@ export default function App() {
                     mode={authMode}
                     form={authForm}
                     error={authError}
+                    notice={authNotice}
                     onModeChange={setAuthMode}
                     onFormChange={setAuthForm}
                     onSubmit={submitAuth}
                     onSignOut={signOut}
+                    onRecoveryEmail={updateRecoveryEmail}
                   />
                   {!account && <MenuCard title="Guest Identity">
                     <label className="identity-guest-toggle">
@@ -5552,6 +5649,11 @@ export default function App() {
   `;
   const gameIsOver = game.phase === "gameOver" || game.winner != null;
   const matchPlayerNumbers = Object.keys(game.players || {}).map(Number).sort((a, b) => a - b);
+  const defeatPending = !gameIsOver && matchPlayerNumbers.length === 2
+    && matchPlayerNumbers.some((playerNumber) => Number(game.players?.[playerNumber]?.life) <= 0);
+  const defeatPendingMessage = defeatPending
+    ? "Defeat pending — life is checked when both players pass to end active play. You may still attack, block, activate abilities, and regain life; higher life wins, and equal life is a draw."
+    : "";
 
   if (useBabylonMatchRenderer) {
     return (
@@ -6012,6 +6114,7 @@ export default function App() {
           <HotkeyWindow visible={showHotkeys} onClose={() => setShowHotkeys(false)} />
           {copyNotice && <div className="app-layout-142">{copyNotice}</div>}
           {error && <div className="app-layout-143">{error}</div>}
+          {defeatPending && <div className="defeat-pending-banner" role="alert"><strong>Defeat pending</strong><span>{defeatPendingMessage.replace(/^Defeat pending —\s*/, "")}</span></div>}
           <div className="app-layout-144">
             {playerNumbers.map((p) => {
               const pTheme = getFactionTheme(game.players[p].faction.id);
@@ -8810,6 +8913,7 @@ export default function App() {
 
       {copyNotice && <div className="app-layout-172">{copyNotice}</div>}
       {error && <div className="app-layout-173"><strong>Error:</strong> {error}</div>}
+      {defeatPending && <div className="defeat-pending-banner" role="alert"><strong>Defeat pending</strong><span>{defeatPendingMessage.replace(/^Defeat pending —\s*/, "")}</span></div>}
       {!isSpectator && me && (
         <div className="mobile-life-hud" aria-label="Player life summary">
           <span><strong>You</strong> {me.life} life</span>

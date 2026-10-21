@@ -1,7 +1,7 @@
 "use strict";
 
 const RULES_VERSION = "gauntlet-rules-v6";
-const CONTENT_VERSION = "gauntlet-content-v26";
+const CONTENT_VERSION = "gauntlet-content-v27";
 const NEUTRAL_FACTION_ID = "neutral";
 const { getCardWording } = require("./cardWording");
 const { LEGACIES } = require("./legaciesContent");
@@ -789,6 +789,79 @@ const NEUTRAL_COLLECTION_CARDS = [
   { id: "neutral-holy-ground", factionId: NEUTRAL_FACTION_ID, name: "Holy Ground", type: "shelter", rarity: "mythic", value: 10, text: "While this occupies a support slot, prevent 1 damage from each blocked attack." }
 ];
 
+// Every constructed catalog covers the full 2-A playing-card range. Face cards
+// share a predictable rarity ladder across factions: J uncommon, Q/K rare,
+// and A mythic. Their fixed suits make each one a stable replacement slot.
+const FACE_CARD_RARITIES = Object.freeze({ 11: "uncommon", 12: "rare", 13: "rare", 14: "mythic" });
+const FACE_CARD_DEFINITIONS = Object.freeze({
+  rumin: [
+    ["rumin-forum-tribune", "Forum Tribune", "servitor", 11, "A practiced voice carries the Forum's verdict across the field."],
+    ["rumin-queen-of-ledgers", "Queen of Ledgers", "armament", 12, "Every debt and favor finds its place in the imperial record."],
+    ["rumin-kaiser-of-standards", "Kaiser of Standards", "servitor", 13, "The legions measure their advance by the standards behind him."],
+    ["rumin-golden-imperator", "Golden Imperator", "servitor", 14, "Where the Imperator marches, the empire imagines itself eternal."]
+  ],
+  sheen: [
+    ["sheen-canopy-wayfinder", "Canopy Wayfinder", "servitor", 11, "She reads the paths written in shade, rain, and new growth."],
+    ["sheen-rootsong-matriarch", "Rootsong Matriarch", "shelter", 12, "Her oldest songs pass beneath the soil from grove to grove."],
+    ["sheen-elder-first-grove", "Elder of the First Grove", "servitor", 13, "The first forest remembers every season through its elder."],
+    ["sheen-heartwood-avatar", "Heartwood Avatar", "servitor", 14, "An entire living covenant walks within its wooden frame."]
+  ],
+  frumo: [
+    ["frumo-tideglass-corsair", "Tideglass Corsair", "servitor", 11, "No map stays accurate after the Corsair decides to use it."],
+    ["frumo-pearl-republic-admiral", "Pearl Republic Admiral", "servitor", 12, "Her fleet owes allegiance to a republic built on moving water."],
+    ["frumo-storm-crowned-navigator", "Storm-Crowned Navigator", "servitor", 13, "Lightning marks the route that lesser captains refuse to sail."],
+    ["frumo-leviathans-chosen", "Leviathan's Chosen", "servitor", 14, "The deep answered once, and the Chosen has followed ever since."]
+  ],
+  bizi: [
+    ["bizi-clockwork-envoy", "Clockwork Envoy", "servitor", 11, "Its message is delivered in precisely measured movements."],
+    ["bizi-foundry-savant", "Foundry Savant", "servitor", 12, "Every failed design becomes a tool for the next attempt."],
+    ["bizi-prime-artificer", "Prime Artificer", "servitor", 13, "The workshop grows quiet when the Prime Artificer begins."],
+    ["bizi-living-engine", "The Living Engine", "contraption", 14, "No blueprint explains where the mechanism ends and life begins."]
+  ],
+  zynarth: [
+    ["zynarth-broodmind-herald", "Broodmind Herald", "servitor", 11, "The colony hears its arrival through a thousand borrowed senses."],
+    ["zynarth-gene-mother", "Gene-Mother", "servitor", 12, "Her descendants carry answers to hungers not yet encountered."],
+    ["zynarth-apex-reclaimer", "Apex Reclaimer", "servitor", 13, "Nothing consumed is wasted; nothing defeated is truly lost."],
+    ["zynarth-worldseed-queen", "Worldseed Queen", "biomorph", 14, "Within the seed waits an ecology eager to become a world."]
+  ],
+  "astral-vanguard": [
+    ["astral-vanguard-recon-commander", "Recon Commander", "servitor", 11, "First contact begins with a question carried beyond the map."],
+    ["astral-vanguard-fleet-strategist", "Fleet Strategist", "operation", 12, "Contradictory doctrines become one plan without losing their names."],
+    ["astral-vanguard-vanguard-marshal", "Vanguard Marshal", "servitor", 13, "Every formation changes when the unfamiliar proves useful."],
+    ["astral-vanguard-convergence-admiral", "Convergence Admiral", "servitor", 14, "The fleet advances by connecting what others keep apart."]
+  ],
+  indela: [
+    ["indela-dualflame-adept", "Dualflame Adept", "servitor", 11, "Two flames answer her hands, each certain the other is impossible."],
+    ["indela-mistress-of-embers", "Mistress of Embers", "servitor", 12, "She keeps tomorrow's fire hidden inside yesterday's ash."],
+    ["indela-glacier-archon", "Glacier Archon", "servitor", 13, "The oldest ice preserves choices the world believes forgotten."],
+    ["indela-avatar-of-equilibrium", "Avatar of Equilibrium", "arcana", 14, "Balance is not stillness. It is every force arriving together."]
+  ],
+  neutral: [
+    ["neutral-freeblade-envoy", "Freeblade Envoy", "servitor", 11, "The Envoy carries no banner and is welcomed beneath many."],
+    ["neutral-convergence-oracle", "Convergence Oracle", "servitor", 12, "She remembers meetings that have not happened yet."],
+    ["neutral-gauntlet-regent", "Gauntlet Regent", "servitor", 13, "The Regent's authority begins wherever rival banners gather."],
+    ["neutral-timetwister-ascendant", "Timetwister Ascendant", "shelter", 14, "The stone opens a road by teaching two distant places to agree."]
+  ]
+});
+
+const FACE_CARD_COLLECTIONS = Object.fromEntries(Object.entries(FACE_CARD_DEFINITIONS).map(([factionId, definitions]) => [
+  factionId,
+  definitions.map(([id, name, type, value, flavor]) => ({
+    id, factionId, name, type, value,
+    text: `This card has no additional ability beyond the normal rules for its card type and printed value. ${flavor}`,
+    rarity: FACE_CARD_RARITIES[value]
+  }))
+]));
+
+RUMIN_COLLECTION_CARDS.push(...FACE_CARD_COLLECTIONS.rumin);
+SHEEN_COLLECTION_CARDS.push(...FACE_CARD_COLLECTIONS.sheen);
+FRUMO_COLLECTION_CARDS.push(...FACE_CARD_COLLECTIONS.frumo);
+BIZI_COLLECTION_CARDS.push(...FACE_CARD_COLLECTIONS.bizi);
+ZYNARTH_COLLECTION_CARDS.push(...FACE_CARD_COLLECTIONS.zynarth);
+ASTRAL_VANGUARD_COLLECTION_CARDS.push(...FACE_CARD_COLLECTIONS["astral-vanguard"]);
+INDELA_COLLECTION_CARDS.push(...FACE_CARD_COLLECTIONS.indela);
+NEUTRAL_COLLECTION_CARDS.push(...FACE_CARD_COLLECTIONS.neutral);
+
 const COLLECTION_CARDS = [...RUMIN_COLLECTION_CARDS, ...SHEEN_COLLECTION_CARDS, ...FRUMO_COLLECTION_CARDS, ...BIZI_COLLECTION_CARDS, ...ZYNARTH_COLLECTION_CARDS, ...ASTRAL_VANGUARD_COLLECTION_CARDS, ...INDELA_COLLECTION_CARDS, ...NEUTRAL_COLLECTION_CARDS];
 const FIXED_CARD_SUITS = Object.freeze({
   "rumin-gilded-scale-legionary": "spades",
@@ -882,7 +955,15 @@ const FIXED_CARD_SUITS = Object.freeze({
   "neutral-officer": "spades", "neutral-wrestler": "hearts", "neutral-saboteur": "diamonds", "neutral-strategist": "clubs",
   "neutral-security-guard": "hearts", "neutral-field-marshal": "spades", "neutral-think": "clubs", "neutral-hospital": "spades",
   "neutral-library": "hearts", "neutral-assembly-station": "clubs", "neutral-smoke-bomb": "diamonds", "neutral-longsword": "diamonds",
-  "neutral-tower-shield": "spades", "neutral-holy-ground": "hearts"
+  "neutral-tower-shield": "spades", "neutral-holy-ground": "hearts",
+  "rumin-forum-tribune": "hearts", "rumin-queen-of-ledgers": "diamonds", "rumin-kaiser-of-standards": "clubs", "rumin-golden-imperator": "spades",
+  "sheen-canopy-wayfinder": "clubs", "sheen-rootsong-matriarch": "hearts", "sheen-elder-first-grove": "diamonds", "sheen-heartwood-avatar": "spades",
+  "frumo-tideglass-corsair": "clubs", "frumo-pearl-republic-admiral": "diamonds", "frumo-storm-crowned-navigator": "hearts", "frumo-leviathans-chosen": "spades",
+  "bizi-clockwork-envoy": "hearts", "bizi-foundry-savant": "clubs", "bizi-prime-artificer": "diamonds", "bizi-living-engine": "spades",
+  "zynarth-broodmind-herald": "diamonds", "zynarth-gene-mother": "hearts", "zynarth-apex-reclaimer": "clubs", "zynarth-worldseed-queen": "spades",
+  "astral-vanguard-recon-commander": "clubs", "astral-vanguard-fleet-strategist": "diamonds", "astral-vanguard-vanguard-marshal": "hearts", "astral-vanguard-convergence-admiral": "spades",
+  "indela-dualflame-adept": "diamonds", "indela-mistress-of-embers": "hearts", "indela-glacier-archon": "clubs", "indela-avatar-of-equilibrium": "spades",
+  "neutral-freeblade-envoy": "clubs", "neutral-convergence-oracle": "diamonds", "neutral-gauntlet-regent": "hearts", "neutral-timetwister-ascendant": "spades"
 });
 const SUPPORT_RULES_TEXT = {
   "rumin-marble-market-tribune": "While Corporate Banner occupies a support slot, after one of your Servitors attacks, the next Rumin Armament you arm this turn gives that attacker +1 additional value.",

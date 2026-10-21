@@ -3435,6 +3435,23 @@
 .production-context-copy > .ability-commit-preview { margin-top: 6px; }
 .production-context-copy > .ability-commit-preview summary { cursor: pointer; padding: 4px 0; font-weight: 700; }
 .production-action-rejection { padding: 8px; border-left: 3px solid #ffb2a9; font-size: 14px; line-height: 1.4; }
+.production-defeat-pending {
+  display: grid;
+  gap: 2px;
+  padding: 7px 9px;
+  border-left: 3px solid #f6bd53;
+  border-radius: 4px;
+  background: rgba(99, 49, 4, 0.78);
+  color: #fff4cf;
+  font-size: 12px;
+  line-height: 1.35;
+}
+.production-defeat-pending b {
+  color: #ffd778;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
 .production-preview-inspect { pointer-events: auto; }
 .production-inspect-hand { grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); }
 .production-reference-panel[hidden] { display: none; }

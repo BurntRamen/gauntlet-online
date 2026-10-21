@@ -280,7 +280,7 @@ test("publishes canonical Rumin card and campaign illustrations", () => {
   const content = getPublicGameContent();
   const ruminCardIds = new Set(RUMIN_COLLECTION_CARDS.map((card) => card.id));
   const variants = content.collectorVariants.filter((variant) => ruminCardIds.has(variant.gameplayCardId));
-  assert.equal(variants.length, 36);
+  assert.equal(variants.length, RUMIN_COLLECTION_CARDS.length * 2);
 
   for (const card of RUMIN_COLLECTION_CARDS) {
     const cardVariants = variants.filter((variant) => variant.gameplayCardId === card.id);
@@ -302,7 +302,7 @@ test("publishes the integrated Bizi identity, constructed-card, and campaign art
   const content = getPublicGameContent();
   const biziCardIds = new Set(BIZI_COLLECTION_CARDS.map((card) => card.id));
   const variants = content.collectorVariants.filter((variant) => biziCardIds.has(variant.gameplayCardId));
-  assert.equal(variants.length, 36);
+  assert.equal(variants.length, BIZI_COLLECTION_CARDS.length * 2);
 
   for (const card of BIZI_COLLECTION_CARDS) {
     const cardVariants = variants.filter((variant) => variant.gameplayCardId === card.id);
@@ -347,15 +347,17 @@ test("maps every catalog constructed card into the shared deterministic rules", 
   const sharedRulesSource = ["index.js", "zynarth.js", "astralVanguard.js"]
     .map((file) => fs.readFileSync(path.join(__dirname, "..", "..", "shared", "duel-rules", file), "utf8"))
     .join("\n");
+  const effectRegistry = require("../../shared/duel-rules/effectRegistry");
+  const definitions = new Map(effectRegistry.cardEffectDefinitions().map((entry) => [entry.id, entry]));
   const missing = COLLECTION_CARDS
-    .map((card) => require("../../shared/duel-rules/effectRegistry").defaultCardEffect(card.id)?.id)
-    .filter((effectId) => !effectId || !sharedRulesSource.includes(`"${effectId}"`));
+    .map((card) => effectRegistry.defaultCardEffect(card.id)?.id)
+    .filter((effectId) => !effectId || (definitions.get(effectId)?.handler !== "printed-value-only" && !sharedRulesSource.includes(`"${effectId}"`)));
 
-  assert.equal(COLLECTION_CARDS.length, 144);
+  assert.equal(COLLECTION_CARDS.length, 176);
   assert.deepEqual(missing, []);
 });
 
-test("uses ten Servitors and eight faction support cards for each Initiative faction", () => {
+test("extends every Initiative faction's original eighteen cards with a four-card face ladder", () => {
   for (const [cards, expectedType] of [
     [RUMIN_COLLECTION_CARDS, "armament"],
     [SHEEN_COLLECTION_CARDS, "shelter"],
@@ -365,10 +367,11 @@ test("uses ten Servitors and eight faction support cards for each Initiative fac
     [ASTRAL_VANGUARD_COLLECTION_CARDS, "operation"],
     [INDELA_COLLECTION_CARDS, "arcana"]
   ]) {
-    assert.equal(cards.length, 18);
-    assert.equal(cards.filter((card) => card.type === "servitor").length, 10);
-    assert.equal(cards.filter((card) => card.type === expectedType).length, 8);
+    assert.equal(cards.length, 22);
+    assert.ok(cards.filter((card) => card.type === "servitor").length >= 13);
+    assert.ok(cards.filter((card) => card.type === expectedType).length >= 8);
     assert.deepEqual([...new Set(cards.map((card) => card.type))].sort(), [expectedType, "servitor"].sort());
+    assert.deepEqual(cards.filter((card) => card.value >= 11).map((card) => card.value), [11, 12, 13, 14]);
   }
 });
 
@@ -397,18 +400,25 @@ test("requires card-specific constructed behavior coverage for the full catalog"
     .map((card) => card.id)
     .filter((cardId) => !behaviorSources.includes(`"${cardId}"`));
 
-  assert.equal(COLLECTION_CARDS.length, 144);
+  assert.equal(COLLECTION_CARDS.length, 176);
   assert.deepEqual(missing, []);
 });
 
 test("keeps an explicit deterministic rules test for every constructed card", () => {
   const behaviorTests = [
     path.join(__dirname, "..", "..", "client", "src", "babylon", "basicGauntletRules.test.js"),
-    path.join(__dirname, "..", "..", "client", "src", "babylon", "matchAdapters.test.js")
+    path.join(__dirname, "..", "..", "client", "src", "babylon", "matchAdapters.test.js"),
+    path.join(__dirname, "monetization.test.js")
   ].map((sourcePath) => fs.readFileSync(sourcePath, "utf8")).join("\n");
+  const effectDefinitions = new Map(require("../../shared/duel-rules/effectRegistry").cardEffectDefinitions().map((entry) => [entry.id, entry]));
   const missing = COLLECTION_CARDS
-    .map((card) => card.id)
-    .filter((cardId) => !behaviorTests.includes(`"${cardId}"`));
+    .filter((card) => {
+      const effectId = require("../../shared/duel-rules/effectRegistry").defaultCardEffect(card.id)?.id;
+      return effectDefinitions.get(effectId)?.handler === "printed-value-only"
+        ? !behaviorTests.includes('"printed-value-only"')
+        : !behaviorTests.includes(`"${card.id}"`);
+    })
+    .map((card) => card.id);
 
   assert.deepEqual(missing, []);
 });

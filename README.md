@@ -116,6 +116,8 @@ Server variables:
 | `GAUNTLET_GITHUB_TOKEN` | Server-only repository-scoped GitHub credential for shared drafts and publication | Empty; live inspection remains available |
 | `COLLECTOR_ENTITLEMENT_SECRET` | Dedicated HMAC secret for account-bound physical collector entitlements; keep server-only | Domain-separated key derived from `ACCOUNT_AUTH_SECRET` when omitted |
 | `PUBLIC_CLIENT_URL` | Public client origin used to construct personalized collector claim links | HTTPS `CLIENT_URL`, otherwise the production Vercel URL |
+| `RESEND_API_KEY` | Server-only Resend API key used to deliver one-time account recovery links | Empty; required for recovery email delivery |
+| `PASSWORD_RESET_FROM_EMAIL` | Verified sender used for password-reset messages | Empty; required for recovery email delivery |
 | `SUPABASE_URL` | Supabase project URL | Empty; enables Supabase with the service key |
 | `SUPABASE_SERVICE_ROLE_KEY` | Server-only Supabase service key | Empty; never expose to the client |
 | `PACK_PURCHASE_URL` | Checkout base URL for Set 1, Set 2, and faction cosmetic collector packs; the server appends the product and account identifiers. Paid packs never grant gameplay cards or competitive power. Set 3 checkout remains locked until its card catalog exists. | Empty |

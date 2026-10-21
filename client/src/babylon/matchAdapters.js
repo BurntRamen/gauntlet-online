@@ -1094,6 +1094,17 @@ export class LocalDuelAdapter {
         unavailableHandIndexes: []
       }
     });
+    const playerNumbers = Object.keys(this.game.players || {}).map(Number).sort((a, b) => a - b);
+    if (
+      this.game.phase !== "gameOver"
+      && playerNumbers.length === 2
+      && playerNumbers.some((playerNumber) => Number(this.game.players[playerNumber]?.life) <= 0)
+    ) {
+      viewModel.defeatPending = {
+        active: true,
+        message: "Life is checked when both players pass to end active play. You may still attack, block, activate abilities, and regain life; higher life wins, and equal life is a draw."
+      };
+    }
 
     return {
       source: this.source,

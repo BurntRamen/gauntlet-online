@@ -47,6 +47,10 @@ Template: **trigger or condition: effect**. This is presentation wording; full r
 | Rumin Legatus | Pay for fourth attack: pays +3. | When paid for your fourth attack this turn, this pays +3 additional value. |
 | Unstoppable Investment Lance | Arm +5. Fourth attack: +6 instead. | Arm from lane: attach to a hand attacker. It gets +5 value this combat, or +6 if it is your fourth attack this turn. |
 | Rumin Warlord | Attack: may arm any eligible Rumin armaments. Each gives +1 extra value. | When this attacks, each eligible Rumin armament you control in a lane may arm to it. Each armed armament gives an extra +1 value. |
+| Forum Tribune | No additional ability. | This card has no additional ability beyond the normal rules for its card type and printed value. A practiced voice carries the Forum's verdict across the field. |
+| Queen of Ledgers | No additional ability. | This card has no additional ability beyond the normal rules for its card type and printed value. Every debt and favor finds its place in the imperial record. |
+| Kaiser of Standards | No additional ability. | This card has no additional ability beyond the normal rules for its card type and printed value. The legions measure their advance by the standards behind him. |
+| Golden Imperator | No additional ability. | This card has no additional ability beyond the normal rules for its card type and printed value. Where the Imperator marches, the empire imagines itself eternal. |
 | Verdant Guardian | Second+ block: +1 value. | When this blocks, it gets +1 value if you have already blocked this turn. |
 | Harmonic Warden | Clean block: Heal 1. | If this prevents all damage from an attack, gain 1 life. |
 | Starroot Observer | Pay for block: blocker +1 value. | When paid for a block, the first blocking card gets +1 value. |
@@ -65,6 +69,10 @@ Template: **trigger or condition: effect**. This is presentation wording; full r
 | Concordant Elder | After 3+ blocks: attack +3 value. | If you have blocked three or more times this turn, this attacks with +3 value. |
 | Evergreen Arbor | Your blocks: +1 value. Third+ block: Heal 1. | While Evergreen Arbor occupies a support slot, each of your blocking cards gets +1 value; on your third and later blocks each turn, also gain 1 life. |
 | Vital Grove | After your clean block: your next attack may get +3 value this turn. | While Vital Grove occupies a support slot, after you block without taking damage, you may give your next attack that turn +3 value. |
+| Canopy Wayfinder | No additional ability. | This card has no additional ability beyond the normal rules for its card type and printed value. She reads the paths written in shade, rain, and new growth. |
+| Rootsong Matriarch | No additional ability. | This card has no additional ability beyond the normal rules for its card type and printed value. Her oldest songs pass beneath the soil from grove to grove. |
+| Elder of the First Grove | No additional ability. | This card has no additional ability beyond the normal rules for its card type and printed value. The first forest remembers every season through its elder. |
+| Heartwood Avatar | No additional ability. | This card has no additional ability beyond the normal rules for its card type and printed value. An entire living covenant walks within its wooden frame. |
 | Deep Dive | Reveal on enter: may peek at your top deck card. Then discard this. | When Deep Dive enters a support slot, you may reveal it to privately inspect the top card of your deck, then discard Deep Dive. |
 | Deckhand Recruit | Lane attack, if you swapped this turn: +2 value. | Reveal by attacking from a lane. If you have swapped a lane card this turn, this gets +2 value. |
 | Vault Raider | Pay, with an empty lane: pays +1. | When paid for an attack, block, or ability, this pays +1 value if you control an empty lane. |
@@ -83,6 +91,10 @@ Template: **trigger or condition: effect**. This is presentation wording; full r
 | Tide Shaper | Ristus sequence: +1 value. | If this receives the Ristus consecutive-value bonus, it gets +1 additional value. |
 | Rally the Crew | Reveal when you peek at a face-down card. Choose attack or block: next of that kind +4 value. Then discard this. | When you inspect a face-down card, reveal Rally the Crew and choose attack or block; your next card of that kind gets +4 value, then discard this Ambush. |
 | Frumo Tidecrasher | Enter: +1 value this turn. Counts as a swap. | When this enters a lane, it gets +1 value this turn and counts as a lane swap for your Frumo cards. |
+| Tideglass Corsair | No additional ability. | This card has no additional ability beyond the normal rules for its card type and printed value. No map stays accurate after the Corsair decides to use it. |
+| Pearl Republic Admiral | No additional ability. | This card has no additional ability beyond the normal rules for its card type and printed value. Her fleet owes allegiance to a republic built on moving water. |
+| Storm-Crowned Navigator | No additional ability. | This card has no additional ability beyond the normal rules for its card type and printed value. Lightning marks the route that lesser captains refuse to sail. |
+| Leviathan's Chosen | No additional ability. | This card has no additional ability beyond the normal rules for its card type and printed value. The deep answered once, and the Chosen has followed ever since. |
 | Bizi Technician | Overpay 2 for this: Charge 1. | When you overpay for this by 2 or more, gain 1 acceleration counter. |
 | Ammo Depot | Pay for Bizi: pays +1. Once. | When paid for a Bizi card, this pays +1 additional value once each turn. |
 | Aerial Drone | Attack, new suit: +1 value. | If your previous attack had a different suit, this attacks with +1 value. |
@@ -101,6 +113,10 @@ Template: **trigger or condition: effect**. This is presentation wording; full r
 | Shrapnel Blaster | May spend 2: attack +5 value. | Remove 2 acceleration counters: this attacks with +5 value. |
 | Interference Matrix | Enter: Charge 2. Next card: may add +1 per charge, up to +4 value. | When Interference Matrix enters a support slot, gain 2 acceleration counters; your next card that turn may get up to +4 value, one per acceleration counter you have. |
 | Bizi Architect | Attack: may spend up to 3. +2 value per charge spent. | When this attacks, remove up to 3 acceleration counters. It gets +2 value for each counter removed. |
+| Clockwork Envoy | No additional ability. | This card has no additional ability beyond the normal rules for its card type and printed value. Its message is delivered in precisely measured movements. |
+| Foundry Savant | No additional ability. | This card has no additional ability beyond the normal rules for its card type and printed value. Every failed design becomes a tool for the next attempt. |
+| Prime Artificer | No additional ability. | This card has no additional ability beyond the normal rules for its card type and printed value. The workshop grows quiet when the Prime Artificer begins. |
+| The Living Engine | No additional ability. | This card has no additional ability beyond the normal rules for its card type and printed value. No blueprint explains where the mechanism ends and life begins. |
 | Spore Runner | First attack, with an Underling: +1 value. | On your first attack each turn, this gets +1 value if you control an Underling. |
 | Nutrient Tender | Attack, while you control an Underling: +1 value. | This gets +1 value while attacking if you control an Egg, Worker, Soldier, or Guard. |
 | Brood Shepherd | Lane attack: +1 value. | When this attacks from a lane, it gets +1 value. |
@@ -119,6 +135,10 @@ Template: **trigger or condition: effect**. This is presentation wording; full r
 | Carrion Vat | First defeated Underling: Heal 1. | While this occupies a support slot, the first time one of your Underlings is defeated each turn, gain 1 life. |
 | Ravenous Cycle | After a sacrifice: next attack +2 value. | While this occupies a support slot, after you sacrifice an Underling, your next attack this turn gets +2 value. |
 | Broodmind Synapse | Your Underlings attack and block with +1 value. | While this occupies a support slot, your Underlings get +1 value while attacking or blocking. |
+| Broodmind Herald | No additional ability. | This card has no additional ability beyond the normal rules for its card type and printed value. The colony hears its arrival through a thousand borrowed senses. |
+| Gene-Mother | No additional ability. | This card has no additional ability beyond the normal rules for its card type and printed value. Her descendants carry answers to hungers not yet encountered. |
+| Apex Reclaimer | No additional ability. | This card has no additional ability beyond the normal rules for its card type and printed value. Nothing consumed is wasted; nothing defeated is truly lost. |
+| Worldseed Queen | No additional ability. | This card has no additional ability beyond the normal rules for its card type and printed value. Within the seed waits an ecology eager to become a world. |
 | Orbital Pathfinder | First attack, after staging: +1 value. | On your first attack each turn, this gets +1 value if you staged a card this turn. |
 | Breach Team | Lane attack: +1 value. | When this attacks from a lane, it gets +1 value. |
 | Shock Trooper | Deployed from deck this turn: attack +2 value. | If this entered a lane directly from your deck this turn, it gets +2 value while attacking. |
@@ -137,6 +157,10 @@ Template: **trigger or condition: effect**. This is presentation wording; full r
 | Tactical Relay | First staged card played: +1 value. | While this occupies a support slot, the first staged card you play each turn gets +1 value. |
 | Orbital Interdiction | Your new-suit attacks: +1 value. | While this occupies a support slot, your attacks after a different-suit attack get +1 value. |
 | Fleet Command | Deck deployments get +2 instead of +1. | While this occupies a support slot, Servitors deployed from your deck get +2 value until end of turn instead of +1. |
+| Recon Commander | No additional ability. | This card has no additional ability beyond the normal rules for its card type and printed value. First contact begins with a question carried beyond the map. |
+| Fleet Strategist | No additional ability. | This card has no additional ability beyond the normal rules for its card type and printed value. Contradictory doctrines become one plan without losing their names. |
+| Vanguard Marshal | No additional ability. | This card has no additional ability beyond the normal rules for its card type and printed value. Every formation changes when the unfamiliar proves useful. |
+| Convergence Admiral | No additional ability. | This card has no additional ability beyond the normal rules for its card type and printed value. The fleet advances by connecting what others keep apart. |
 | Student of Flame | Odd omen, first attack: +1 value. | While your omen is odd, this gets +1 value on your first attack each turn. |
 | Frost Apprentice | Even omen, first block: +1 value. | While your omen is even, this gets +1 value on your first block each turn. |
 | Blazing Initiate | Odd omen, attack after an odd-value play: +1 value. | While your omen is odd, this gets +1 value when it attacks after an odd-value card. |
@@ -155,6 +179,10 @@ Template: **trigger or condition: effect**. This is presentation wording; full r
 | Ring of Fire | Odd omen: your third+ attacks +1 value. | While this occupies a support slot and your omen is odd, your third and later attacks get +1 value. |
 | Frost Nova | Even omen: your blocks +1 value. | While this occupies a support slot and your omen is even, your blocking cards get +1 value. |
 | Elemental Array | First attack or block matching your omen parity: +1 value. | While this occupies a support slot, your first attack or block each turn matching your omen's parity gets +1 value. |
+| Dualflame Adept | No additional ability. | This card has no additional ability beyond the normal rules for its card type and printed value. Two flames answer her hands, each certain the other is impossible. |
+| Mistress of Embers | No additional ability. | This card has no additional ability beyond the normal rules for its card type and printed value. She keeps tomorrow's fire hidden inside yesterday's ash. |
+| Glacier Archon | No additional ability. | This card has no additional ability beyond the normal rules for its card type and printed value. The oldest ice preserves choices the world believes forgotten. |
+| Avatar of Equilibrium | No additional ability. | This card has no additional ability beyond the normal rules for its card type and printed value. Balance is not stillness. It is every force arriving together. |
 | Soldier | First attack: +1 value. | On your first attack each turn, this gets +1 value. |
 | Sergeant | First block: +1 value. | On your first block each turn, this gets +1 value. |
 | Lieutenant | Attack after a lower-value play: +1 value. | If the last card you played had lower value, this gets +1 value when it attacks. |
@@ -173,3 +201,7 @@ Template: **trigger or condition: effect**. This is presentation wording; full r
 | Longsword | First lane attack: reveal for +2 value. Then discard this. | Reveal on your first lane attack to give it +2 value. Then discard this. |
 | Tower Shield | First block: reveal for Ward 2. Then discard this. | Reveal on your first block to prevent 2 damage from that attack. Then discard this. |
 | Holy Ground | Your blocked attacks: Ward 1. | While this occupies a support slot, prevent 1 damage from each blocked attack. |
+| Freeblade Envoy | No additional ability. | This card has no additional ability beyond the normal rules for its card type and printed value. The Envoy carries no banner and is welcomed beneath many. |
+| Convergence Oracle | No additional ability. | This card has no additional ability beyond the normal rules for its card type and printed value. She remembers meetings that have not happened yet. |
+| Gauntlet Regent | No additional ability. | This card has no additional ability beyond the normal rules for its card type and printed value. The Regent's authority begins wherever rival banners gather. |
+| Timetwister Ascendant | No additional ability. | This card has no additional ability beyond the normal rules for its card type and printed value. The stone opens a road by teaching two distant places to agree. |

@@ -3330,3 +3330,35 @@ textarea:focus-visible {
 @media (max-width: 760px) {
   .home-command-balances { justify-content: flex-start; }
 }
+.defeat-pending-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border: 2px solid #f59e0b;
+  border-radius: 10px;
+  background: #451a03;
+  color: #fffbeb;
+  box-shadow: 0 6px 18px rgba(69, 26, 3, 0.28);
+}
+
+.defeat-pending-banner strong {
+  flex: 0 0 auto;
+  color: #fcd34d;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.defeat-pending-banner span {
+  font-size: 0.88rem;
+  line-height: 1.35;
+}
+
+@media (max-width: 640px) {
+  .defeat-pending-banner {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 3px;
+  }
+}

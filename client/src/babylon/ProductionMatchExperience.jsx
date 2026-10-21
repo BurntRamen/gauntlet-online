@@ -443,6 +443,12 @@ function ContextActions({ viewModel, commands, connected, resolving = false, pen
           {hasSelection ? "Selected · not yet committed" : viewModel?.priority === viewModel?.perspective?.player ? "Your action" : "Opponent's action"}
         </span>
         <strong>{viewModel?.instruction || "Choose an action."}</strong>
+        {viewModel?.defeatPending?.active && (
+          <span className="production-defeat-pending" role="alert">
+            <b>Defeat pending</b>
+            {viewModel.defeatPending.message}
+          </span>
+        )}
         {commandStatus?.state === "rejected" && viewModel?.statusNotice && (
           <span className="production-action-rejection" role="alert">{viewModel.statusNotice}</span>
         )}

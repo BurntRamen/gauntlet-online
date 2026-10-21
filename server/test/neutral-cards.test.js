@@ -11,7 +11,7 @@ const {
 
 test("every account receives the shared Reath gameplay pool", () => {
   const collection = __test.normalizeCollection({});
-  assert.equal(NEUTRAL_COLLECTION_CARDS.length, 18);
+  assert.equal(NEUTRAL_COLLECTION_CARDS.length, 22);
   for (const card of NEUTRAL_COLLECTION_CARDS) {
     assert.equal(collection.gameplayEntitlements[card.id], 1, card.id);
     assert.equal(collection.collectorVariants[card.defaultVariantId], 1, card.defaultVariantId);
@@ -38,7 +38,7 @@ test("constructed decks accept neutral cards beside exactly one chosen faction",
 });
 
 test("neutral cards keep fixed slots and cover Timetwister's shared card roles", () => {
-  assert.equal(new Set(NEUTRAL_COLLECTION_CARDS.map((card) => `${card.value}:${card.suit}`)).size, 18);
+  assert.equal(new Set(NEUTRAL_COLLECTION_CARDS.map((card) => `${card.value}:${card.suit}`)).size, 22);
   assert.deepEqual(
     [...new Set(NEUTRAL_COLLECTION_CARDS.map((card) => card.type))].sort(),
     ["ambush", "contraption", "servitor", "shelter", "spell", "weaponry"]
