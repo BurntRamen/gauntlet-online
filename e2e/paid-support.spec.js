@@ -101,7 +101,7 @@ test("training opponent pays for support through the live session and exposes pu
     .getByRole("button", { name: "Pass Priority", exact: true }).click();
   await expect.poll(async () => {
     const state = await (await request.get(`${API}/__support/state/${fixture.roomCode}`)).json();
-    return state.game.lanes[0].support[2]?.id;
+    return state.game.lanes[0].support?.[2]?.id;
   }).toBe("ai-hospital");
   await settle(page, 3);
   const state = await (await request.get(`${API}/__support/state/${fixture.roomCode}`)).json();

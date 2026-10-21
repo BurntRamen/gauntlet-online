@@ -2,7 +2,11 @@
 
 ## Training opponent follow-up, 20 October 2026
 
-The follow-up on `codex/support-zones-followup`, based on main `046f3be`, adds paid support decisions and fixes illegal non-Servitor blocker selection. The focused AI suite passes **11 tests**, and the existing automated-opponent suite passes **14 tests**, including completion of every configured campaign encounter. Browser and release qualification results will be recorded on the follow-up pull request.
+The follow-up on `codex/support-zones-followup`, based on main `046f3be`, adds paid support decisions and fixes illegal non-Servitor blocker selection. The focused AI suite passes **11 tests**, and the existing automated-opponent suite passes **14 tests**, including completion of every configured campaign encounter. The three original support browser cases pass, and the added training-opponent phone case passes after correcting its polling code to tolerate an absent support map before placement. Final release qualification is recorded in [PR #85](https://github.com/BurntRamen/gauntlet-online/pull/85).
+
+The local client build passes. The first browser launch exceeded the four-minute compilation startup limit under concurrent machine load; building separately and running the unchanged browser assertions against that build resolved startup. The localhost-configured build exceeds the player bundle budget by 16 bytes; GitHub's production-configured build passes the budget. No budget was raised and no client implementation changed in this follow-up.
+
+The additional `test:qualification` run reports **48 passed, 3 failed**. The failures are unchanged main-branch voice-manifest inputs: two Frumo voice tests report `No voice mapping for Epilogue in last-tide`, and the faction-interaction test reports `Missing ElevenLabs voice for ingles`. The relevant scripts, shared content and game-content sources have no diff from `046f3be`. These unrelated voice-generation failures remain visible; no test was disabled and no voice generation or billing was performed.
 
 The new tests cover payment bonuses, tax adjustments, ongoing support, repeated one-shots, optional private choices, Ambush concealment, occupied/insufficient-payment exclusions, explicit Arm/Assembly choices, all registered support definitions, and legacy/Basic/FFA/campaign boundaries. Initial failures exposed two incomplete test fixtures and a policy tie that spent another useful instant before an equivalent payment card; the fixtures and payment tie-break were corrected. The final focused rerun passed without relaxing assertions.
 
