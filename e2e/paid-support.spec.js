@@ -116,5 +116,8 @@ test("training opponent pays for support through the live session and exposes pu
   await inspection.press("Enter");
   await expect(page.getByRole("dialog", { name: /Inspect/ })).toContainText("Hospital");
   await expect(page.getByRole("dialog", { name: /Inspect/ })).not.toContainText("Attack/block");
+  const inspectionAccessibility = await new AxeBuilder({ page }).include(".production-card-inspection")
+    .withTags(["wcag2a", "wcag2aa"]).analyze();
+  expect(inspectionAccessibility.violations).toEqual([]);
   await page.screenshot({ path: "test-results/support-training-ai-phone.png" });
 });
