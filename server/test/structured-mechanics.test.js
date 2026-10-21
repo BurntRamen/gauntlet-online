@@ -42,6 +42,35 @@ test("composed armament pays to enter v12 support before arming and consumes onl
   assert.ok(finished.state.players[1].discard.some(c => c.id === weapon.id));
   assert.ok(finished.animationEvents.some(e => e.type === "support.discarded" && e.cardId === weapon.id));
 });
+
+test("authored armaments pay for Support Zones, survive recovery and consume once with their mechanics trace", () => {
+  const { game, command } = fixture(), source = game.lanes[0].support[1];
+  game.lanes[0].support[1] = null;
+  const pitch = game.players[1].hand[3];
+  game.players[1].hand.push(source);
+  const action = legalActions(game).find(row => row.type === "playSupport" && row.cardId === source.id && row.laneIndex === 0);
+  assert.ok(action, "Authored compositions must have the same paid placement descriptor as shipped armaments");
+  const placement = engine.createCommandEnvelope(game, 1, { type: "playSupport", cardId: source.id, laneIndex: 0, paymentCardIds: [pitch.id] }, "composition-support");
+  const placed = engine.applyCommand(game, placement);
+  assert.equal(placed.accepted, true, placed.rejectionReason);
+  assert.equal(placed.state.paymentLog.at(-1).required, source.value);
+  assert.equal(placed.state.lanes[0].support[1].supportState.charges, 1);
+  assert.equal(engine.applyCommand(placed.state, placement).duplicate, true);
+  const { cloneRoomForStorage, prepareRecoveredRoom } = require("../roomStateStore");
+  const recovered = prepareRecoveredRoom(cloneRoomForStorage({ roomCode: "COMPOSED", lobby: { players: { 1: {}, 2: {} } }, game: placed.state })).game;
+  assert.equal(engine.applyCommand(recovered, placement).duplicate, true);
+  const attack = engine.applyCommand(recovered, command, { diagnostics: true });
+  assert.equal(attack.accepted, true, attack.rejectionReason);
+  assert.equal(attack.state.handAttacks[0].effectiveValue, 4);
+  assert.equal(attack.state.players[1].life, 43);
+  const response = engine.applyCommand(attack.state, { type: "declineBlock", player: 2 });
+  const end = engine.applyCommand(response.state, { type: "passPriority", player: 1 }, { diagnostics: true });
+  assert.equal(end.accepted, true, end.rejectionReason);
+  assert.equal(end.state.players[1].discard.filter(card => card.id === source.id).length, 1);
+  assert.equal(end.state.players[1].discard.find(card => card.id === source.id).supportState.charges, 0);
+  assert.ok(end.animationEvents.some(event => event.type === "support.discarded" && event.cardId === source.id));
+  assert.ok(end.mechanicsTrace.some(entry => entry.step === "expiration" && entry.sourceId === source.id));
+});
 test("real legal descriptors, transactional payment, ordered effects and private trace", () => {
   const effect = composed(); effect.abilities[0].effects.push({ kind: "attackBonus", amount: 3, ...contract.operations.attackBonus });
   const { game, command } = fixture(effect), before = clone(game);

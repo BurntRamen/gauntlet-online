@@ -74,5 +74,6 @@
   "EncounterWorkshopNote1": "Setup, mechanics and card additions save together below.",
   "encounterCreation": "Create an additional playable encounter after the original campaign chapters. Configure its narrative, opponent, existing scripted ability, eligible cards and optional rule modifier. The normal first-clear reward is retained. Test the final saved draft before publication. Archiving closes new starts and retains identities and earned results.",
   "factionCreation": "Create a permanent faction identity using a qualified rules family. The first version supports Rumin static abilities in campaign and isolated tests. Edit names and artwork through the linked commander, general and city records; configure the faction bonus here. Create cards using authored mechanics, then add them to encounters. The new campaign starts with one playable encounter. Competitive queues, packs and limited formats remain unavailable for these factions. Archiving closes new starts while preserving history.",
-  "archiveDefinition": "Archive this definition? Existing references and captured games remain valid."
+  "archiveDefinition": "Archive this definition? Existing references and captured games remain valid.",
+  "unsavedChanges": "Keep editing to save your changes, or discard these local values and continue. The saved shared draft stays unchanged."
 }
