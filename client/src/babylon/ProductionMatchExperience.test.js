@@ -1408,6 +1408,21 @@ test.each([
   expect(preview).toHaveTextContent("Selected for blocker");
 });
 
+test("support preview and inspection retain printed value without implying combat eligibility", async () => {
+  const raw = { id: "hospital", name: "Hospital", type: "shelter", value: 6, suit: "spades" };
+  const card = { id: raw.id, label: raw.name, value: 6, raw, valueBreakdown: { printed: 6, total: 6, equation: "Printed 6 = 6", modifiers: [] } };
+  render(<ProductionMatchExperience adapter={adapterFor({ viewModel: { ...createViewModel(), hand: [card] }, inspection: card })} options={{ audioEnabled: false }} />);
+  fireEvent.mouseEnter(await screen.findByTestId("mock-preview-card"));
+  const preview = await screen.findByRole("complementary", { name: "Hospital preview" });
+  const inspection = screen.getByRole("dialog", { name: "Inspect Hospital" });
+  for (const element of [preview, inspection]) {
+    expect(element).toHaveTextContent("cannot attack or block");
+    expect(element).toHaveTextContent(/Printed (value )?6/);
+    expect(element).not.toHaveTextContent("Attack/block");
+    expect(element).not.toHaveTextContent("Printed 6 = 6");
+  }
+});
+
 test("equipped foil survives the selected-card preview and inspection dialog", async () => {
   const raw = { id: "foil-guard", name: "Foil Guard", value: 3, suit: "spades", collector: { finish: "foil", animationStyle: "gilded-march" } };
   const card = { id: raw.id, label: raw.name, value: 3, raw, artPath: "/cards/guard.webp", selected: { attacker: true } };

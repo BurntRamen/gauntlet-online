@@ -1,6 +1,6 @@
 import { hasCardEffect } from "@gauntlet/duel-rules/effectRegistry";
 import { definition as supportDefinition } from "@gauntlet/duel-rules/supportContract";
-import { cardCombatLabel, cardTypeLabel } from "./cardType";
+import { cardCombatLabel, cardTypeLabel, isCombatCapableCard } from "./cardType";
 const SUIT_SYMBOLS = { spades: "♠", hearts: "♥", diamonds: "♦", clubs: "♣" };
 
 // Only already-projected, readable cards may sustain a pinned inspection.
@@ -77,6 +77,7 @@ export function cardDetails(preview, viewModel, snapshot) {
     rules,
     typeLabel: cardTypeLabel(card),
     combatLabel: cardCombatLabel(card),
+    combatCapable: isCombatCapableCard(card),
     abilityStatus,
     campaignAbility: Boolean(rules && snapshot?.campaign && (card.definitionId || card.gameplayCardId)),
     rankAndSuit: rankAndSuit && rankAndSuit !== name ? rankAndSuit : ""
