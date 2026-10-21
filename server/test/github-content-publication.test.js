@@ -56,6 +56,31 @@ test("private deck notes require a private repository and never enter a release 
   assert.ok(!JSON.stringify(release).includes("PRIVATE-DECK-NOTE"));
 });
 
+test("public or unverified GitHub storage cannot receive drafts or drive publication", async () => {
+  for (const metadata of [{ private: false }, {}]) {
+    const repo = repository(), request = repo.client.request;
+    repo.client.request = (route, options) => route === "" ? Promise.resolve(metadata) : request(route, options);
+    const store = repo.store(), state = await store.status();
+    assert.equal(state.writable, false); assert.equal(state.privateStorageReady, false);
+    assert.match(state.authoringError, /Case must configure private Supabase authoring storage/);
+    assert.equal(state.publication.supported, false); assert.match(state.storage, /Live inspection and live playtests remain available/);
+    assert.ok(store.active().manifest.cards.length);
+    const before = clone(repo.refs.get("main"));
+    for (const method of ["patch", "create", "discard", "preview", "saveNotes", "uploadAsset", "archiveAsset", "studioDraft", "competitionDraft", "paraDraft", "recordPlaytest", "publish", "rollback", "cancelPublication", "reconcile", "playtestContent"]) {
+      await assert.rejects(store[method]({}, "admin"), error => error.status === 503 && /private repository/.test(error.message), method);
+    }
+    assert.equal(repo.refs.size, 1); assert.equal(repo.refs.get("main"), before);
+    assert.equal(repo.client.writes.length, 0); assert.equal(repo.pulls.length, 0);
+  }
+});
+
+test("repository privacy is rechecked before the draft write and branch creation", async () => {
+  const repo = repository(), request = repo.client.request; let checks = 0;
+  repo.client.request = (route, options) => route === "" ? Promise.resolve({ private: ++checks === 1 }) : request(route, options);
+  await assert.rejects(repo.store().patch({ expectedRevision: 0, domain: "cards", id: baseline.domains.cards[0].id, field: "name", value: "Private working title" }, "admin"), /private repository/);
+  assert.equal(checks, 2); assert.equal(repo.refs.size, 1); assert.equal(repo.client.writes.length, 0);
+});
+
 test("private image upload packaging survives deployment, rollback and interrupted reconciliation", async () => {
   const repo = repository(), store = repo.store(), sharp = require("sharp");
   const image = async background => (await sharp({ create: { width: 64, height: 64, channels: 3, background } }).png().toBuffer()).toString("base64");

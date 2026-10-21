@@ -100,15 +100,21 @@ function createGitHubContentPublication({ baseline, draftStore = null, runtimeCa
     if (!state.pending && state.activeReleaseId !== deployed.id) fail(409, "The saved draft belongs to another deployed release. Wait for deployment or reconcile its GitHub history.");
     return { state, sha: file?.sha || null, branchExists: !!branch, privateVersion: privateDraft?.version || 0 };
   }
-  function project(state) {
+  const hasPrivateStorage = async () => !!draftStore || !!token && (await client.request(""))?.private === true;
+  async function requirePrivateStorage() {
+    if (!await hasPrivateStorage()) fail(503, "Private drafts require a verified private repository or configured private Supabase authoring storage. No private changes were saved.");
+  }
+  function project(state, privateStorageReady = true) {
     const view = core(state).status();
-    return { ...view, writable: !!token && !state.pending, provider: "github", draftStorage: draftStore ? "supabase-private" : "github",
-      storage: draftStore ? "Private drafts, uploads and notes in Supabase. Published releases use GitHub checks and deployment." : "Shared drafts and release history in GitHub. Publishing merges a content pull request, then waits for deployment.",
-      publication: { provider: "github", supported: true, activeReleaseId: deployed.id, github: "installed", deployment: state.pending ? state.pending.phase : "active-on-this-server", message: "Shared GitHub drafts publish through reviewed pull requests and deployment. The running release remains active until deployment completes." },
+    return { ...view, writable: !!token && privateStorageReady && !state.pending, provider: "github", draftStorage: draftStore ? "supabase-private" : "github", privateStorageReady,
+      authoringError: !privateStorageReady && token ? "Private editing and publication are unavailable. Case must configure private Supabase authoring storage. Live inspection and live tests remain available." : null,
+      storage: !privateStorageReady ? "Private draft editing is unavailable. Configure private Supabase authoring storage; this repository is public or unverified. Live inspection and live playtests remain available." : draftStore ? "Private drafts, uploads and notes in Supabase. Published releases use GitHub checks and deployment." : "Shared drafts and release history in private GitHub storage. Publishing waits for checks and deployment.",
+      publication: { provider: "github", supported: privateStorageReady, activeReleaseId: deployed.id, github: "installed", deployment: state.pending ? state.pending.phase : "active-on-this-server", message: "Private drafts publish through reviewed pull requests and deployment. The running release remains active until deployment completes." },
       activeReleaseId: deployed.id, live: clone(deployed.snapshot), pending: clone(state.pending || null),
       connectionRequired: !token, repositoryUrl: `https://github.com/${REPOSITORY}` };
   }
   async function save(loaded, state, message) {
+    await requirePrivateStorage();
     if (draftStore) return draftStore.save(loaded.privateVersion, state);
     if (!loaded.branchExists) {
       try { await client.request("git/refs", { method: "POST", body: { ref: `refs/heads/${DRAFT_BRANCH}`, sha: await mainHead() } }); }
@@ -118,8 +124,7 @@ function createGitHubContentPublication({ baseline, draftStore = null, runtimeCa
   }
   async function operate(method, args, actorId) {
     if (!token) fail(503, "Connect the server's repository-scoped GitHub credential before saving Admin changes.");
-    if (!draftStore && method === "uploadAsset" && (await client.request(""))?.private !== true) fail(503, "Private image uploads require a private repository or an approved private storage adapter. No image was saved to GitHub.");
-    if (!draftStore && method === "saveNotes" && (await client.request(""))?.private !== true) fail(503, "Private notes require a verified private repository. No notes were saved.");
+    await requirePrivateStorage();
     const loaded = await load();
     if (loaded.state.pending) fail(409, "A publication is in progress. Finish its checks and deployment before editing another draft.");
     const store = core(loaded.state);
@@ -129,11 +134,12 @@ function createGitHubContentPublication({ baseline, draftStore = null, runtimeCa
     await save(loaded, state, `Gauntlet Admin: ${method}${actorId ? ` by ${actorId}` : ""}`);
     return { ...project(state), ...(result.preview ? { preview: result.preview } : {}), ...(result.uploaded ? { uploaded: result.uploaded } : {}) };
   }
-  async function playtestContent(revision) { const loaded = await load(); if (loaded.state.pending) fail(409, "Finish the current publication before starting another playtest."); return core(loaded.state).playtestContent(revision); }
+  async function playtestContent(revision) { await requirePrivateStorage(); const loaded = await load(); if (loaded.state.pending) fail(409, "Finish the current publication before starting another playtest."); return core(loaded.state).playtestContent(revision); }
   async function recordPlaytest(draftHash, actorId) { return operate("recordPlaytest", draftHash, actorId); }
 
   async function publish(args, actorId, method = "publish") {
     if (!token) fail(503, "Connect the server's repository-scoped GitHub credential before publishing.");
+    await requirePrivateStorage();
     const loaded = await load();
     if (loaded.state.pending) return reconcile();
     const main = await mainHead();
@@ -145,6 +151,7 @@ function createGitHubContentPublication({ baseline, draftStore = null, runtimeCa
     return reconcile();
   }
   async function cancelPublication({ expectedRevision }) {
+    await requirePrivateStorage();
     const loaded = await load(), state = loaded.state, pending = state.pending;
     if (expectedRevision !== state.revision) fail(409, "Publication changed. Refresh before canceling.");
     if (!pending) return project(state);
@@ -162,6 +169,7 @@ function createGitHubContentPublication({ baseline, draftStore = null, runtimeCa
     return project(state);
   }
   async function reconcile() {
+    await requirePrivateStorage();
     const loaded = await load(), state = loaded.state, pending = state.pending;
     if (!pending) return project(state);
     const beforePending = hash(pending);
@@ -218,7 +226,7 @@ function createGitHubContentPublication({ baseline, draftStore = null, runtimeCa
       if (!row) fail(404, "Published image version not found.");
       return { mediaType: row.mediaType, sha256: row.sha256, body: imageAssets.verifiedBytes(row, packaged.assetPackage.blobs) };
     },
-    status: async () => project((await load()).state),
+    status: async () => project((await load()).state, await hasPrivateStorage()),
     lookupCard: id => clone(cardIndex.get(id) || null), lookupVariant: id => clone(variantIndex.get(id) || null),
     lookupSet: id => clone(deployedContent.manifest.draftSets.find(set => set.id === id) || null),
     paraDraft: (args, actor) => operate("paraDraft", args, actor),

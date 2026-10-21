@@ -2,6 +2,8 @@
 
 Current additive creation capabilities, operator workflows and qualification are tracked in [Admin Phase 2](admin-phase2.md). That record supersedes the earlier unsupported-feature list only where explicitly verified.
 
+The entry and Phase 1 matrices below are historical snapshots from 15 October. Current branch reconciliation, release checks, deployment status and Case's activation requirements are maintained in [the live release record](admin-suite-live-release.md). In particular, the public GitHub repository cannot store private drafts: production editing/publication requires the configured private Supabase authoring adapter. Live inspection and isolated live tests remain available.
+
 ## Scope and authority
 
 15 October 2026. Direct user assignment: complete supported operator journeys in isolated environments. No production deployment, PR merge, payment activation, paid provisioning, database migration, balance changes or production publication is authorized. Local fixture migrations and transactions are acceptance tests, never production actions. Original dirty checkout and Case's other branches are preserved.

@@ -20,9 +20,13 @@ Read-only inspection of the shared GitHub authoring record found an older source
 
 Current code deployment status: preparing release; no successful production deployment is claimed by this commit. Record exact PR, deployment commits, checks and smoke-test results after hosting readback.
 
+Local reconciliation evidence: 533 server tests and 769 client tests passed; the additional Assembly Station control passed in the 14-test Admin command suite. Qualification passed 52 checks. Source content and strict asset validation passed. Final browser and hosted checks remain release gates. Static support/printing guidance uses the existing private help projection and shared facts component to retain the 61 KiB Admin ceiling.
+
 ## Activation prerequisites verified before release
 
 Read-only production capture at 2026-10-21 01:19 UTC confirms backend `046f3be`, rules v12, 144 cards, 14 available factions and 188 campaign chapters. `/api/storage-status` reports Supabase accounts, account-only match storage, missing `gauntlet_match_archive_index`, and disabled Para/finite Gold/opening import. The available hosting accounts do not own the Gauntlet backend/database. The user confirmed these are under Case's account; no further login request is directed to the user. GitHub repository access and its existing deployment integrations are available.
+
+GitHub confirms the repository is public. Earlier code guarded private image/note writes but allowed ordinary drafts into its shared branch. This release refuses **every** private authoring write, draft test receipt, publication, rollback and publication-recovery mutation unless a private repository is verified or the private Supabase adapter is configured. It rechecks privacy immediately before saving. The operator receives an explicit read-only state and storage explanation. Live inspection and isolated live playtests remain available. No existing branch/history is deleted or rewritten. Case must configure `GAUNTLET_PRIVATE_AUTHORING_PROVIDER=supabase` after the reviewed private-authoring migration; a code deploy cannot enable private draft creation on the current public repository.
 
 Code may ship with the existing feature gates preserved. Complete production commerce/recovery activation additionally requires access to the existing Gauntlet Render service and its actual Supabase project, verified account CAS/private-authoring/match migrations, persistent single-writer storage, a coordinated backup/restore drill and explicit activation of the desired systems. See [the precise rollout procedure](durable-storage-setup.md). No substitute project or ephemeral financial ledger is acceptable.
 
