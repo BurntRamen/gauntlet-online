@@ -19,7 +19,7 @@ function readLayout() {
   } catch { return { cards: false, preview: true, matches: "icons", width: 290 }; }
 }
 export default function DeckWorkshop({ name, factionId, factions, loadoutPicker, renderRules, cards, owned, quantities, suitChoices, variantsByCard, variantSelections, boxId, frontCardSlot,
-  onNameChange, onFactionChange, onReplacementChange, onVariantChange, onBoxChange, onFrontCardChange, onSave, onReset, onRestore, onRename, savedName, saved, versionCount, message, invalid }) {
+  onNameChange, onFactionChange, onReplacementChange, onVariantChange, onBoxChange, onFrontCardChange, onSave, onReset, onRestore, onRename, savedName, saved, versionCount, message, invalid, pending = false }) {
   const faction = factions.find((entry) => entry.id === factionId) || {};
   const cardFactionName = (card) => {
     const id = card.factionId || factionId;
@@ -28,7 +28,8 @@ export default function DeckWorkshop({ name, factionId, factions, loadoutPicker,
   const factionLabel = (card, id) => <span id={id} className="deck-card-faction" title={card.factionId === "neutral" ? "Neutral · Usable in any faction" : "Faction: " + cardFactionName(card)}>{cardFactionName(card)}</span>;
   const [selectedKey, setSelectedKey] = useState("2:spades");
   const [candidateId, setCandidateId] = useState("");
-  const [saving, setSaving] = useState(false);
+  const [savePending, setSaving] = useState(false);
+  const saving = pending || savePending;
   const [layout, setLayout] = useState(readLayout);
   const [zoom, setZoom] = useState(null);
   const dragRef = useRef(null);

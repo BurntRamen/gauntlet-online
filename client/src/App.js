@@ -1577,6 +1577,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
   const [packPacing, setPackPacing] = useState(readPackPacing);
   const initialOpenedPack = useRef(lastOpenedPack);
   const [constructedSaveMessage, setConstructedSaveMessage] = useState("");
+  const [constructedSaving, setConstructedSaving] = useState(false);
   const [catalogFactionFilter, setCatalogFactionFilter] = useState("all");
   const [catalogRarityFilter, setCatalogRarityFilter] = useState("all");
   const [catalogSearch, setCatalogSearch] = useState("");
@@ -1704,6 +1705,8 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
   const constructedSlotWarning = Object.entries(constructedSlotCounts).find(([, count]) => count > 1);
 
   async function saveConstructedDeck() {
+    if (constructedSaving) return;
+    setConstructedSaving(true);
     setConstructedSaveMessage("");
     try {
       const saved = await onSaveConstructedDeck({
@@ -1725,6 +1728,8 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
       setConstructedSaveMessage("Constructed deck saved.");
     } catch (saveError) {
       setConstructedSaveMessage(saveError.message || "Could not save constructed deck.");
+    } finally {
+      setConstructedSaving(false);
     }
   }
 
@@ -1825,24 +1830,25 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
         </>}
         {lastOpenedPack?.length > 0 && <PackOpening cards={lastOpenedPack} pacing={packPacing} autoPlay={lastOpenedPack !== initialOpenedPack.current} visible={collectionView === "packs"} />}
         {collectionView === "decks" && <>
-        <div className="deck-workspace-header">
+        <div className="deck-workspace-header" inert={constructedSaving}>
         <div className="deck-workspace-nav">
-          <select aria-label="Saved deck" value={selectedConstructedDeckId} onChange={(event) => { if (event.target.value) setSelectedConstructedDeckId(event.target.value); else startNewConstructedDeck(); }}>
+          <select aria-label="Saved deck" disabled={constructedSaving} value={selectedConstructedDeckId} onChange={(event) => { if (event.target.value) setSelectedConstructedDeckId(event.target.value); else startNewConstructedDeck(); }}>
             <option value="">New deck</option>
             {(deckLibrary.decks || []).filter((deck) => deck.format === "constructed" && !deck.archived).map((deck) => <option key={deck.id} value={deck.id}>{deck.name}</option>)}
           </select>
-          <button type="button" onClick={startNewConstructedDeck}>New deck</button>
+          <button type="button" disabled={constructedSaving} onClick={startNewConstructedDeck}>New deck</button>
         </div>
         <details className="deck-library-drawer"><summary>Manage saved decks ({(deckLibrary.decks || []).filter((deck) => !deck.archived).length})</summary>
           <DeckLibraryPanel library={deckLibrary} selectedDeckId={selectedConstructedDeckId} collectorCatalog={collectorCatalog} catalog={catalog}
             onSelect={(deck) => setSelectedConstructedDeckId(deck.id)} onNew={startNewConstructedDeck} onAction={runDeckAction} onRename={renameDeck} onOpenMatch={onOpenMatch} />
         </details>
         </div>
-        <label className="deck-product-setting">Card access<select aria-label="Deck card access" value={constructedAccess} onChange={event => setConstructedAccess(event.target.value)}><option value="competitive">All legal cards · ranked and constructed events</option><option value="earned">Earned cards · casual and campaign too</option></select></label>
+        <label className="deck-product-setting">Card access<select aria-label="Deck card access" disabled={constructedSaving} value={constructedAccess} onChange={event => setConstructedAccess(event.target.value)}><option value="competitive">All legal cards · ranked and constructed events</option><option value="earned">Earned cards · casual and campaign too</option></select></label>
         <p>Gameplay access never unlocks paid printings. Draft and Sealed retain their generated pools.</p>
-        <label className="deck-product-setting">Deck card back<select aria-label="Deck card back" value={constructedBack} onChange={event => setConstructedBack(event.target.value)}><option value="">Account selection</option>{(account.progression?.cosmetics?.unlockedCardBacks || ["classic"]).map(id => <option value={id} key={id}>{account.progression?.definitions?.cardBacks?.[id]?.name || id}</option>)}</select></label>
+        <label className="deck-product-setting">Deck card back<select aria-label="Deck card back" disabled={constructedSaving} value={constructedBack} onChange={event => setConstructedBack(event.target.value)}><option value="">Account selection</option>{(account.progression?.cosmetics?.unlockedCardBacks || ["classic"]).map(id => <option value={id} key={id}>{account.progression?.definitions?.cardBacks?.[id]?.name || id}</option>)}</select></label>
         <DeckWorkshop
           key={selectedConstructedDeckId || "new-deck"}
+          pending={constructedSaving}
           name={constructedDeckName} factionId={constructedFactionId}
           savedName={savedConstructedDeck?.name} onRename={(name) => renameDeck(selectedConstructedDeckId, name)}
           factions={Object.entries(PACK_THEMES).map(([id, theme]) => ({ id, ...theme }))}
