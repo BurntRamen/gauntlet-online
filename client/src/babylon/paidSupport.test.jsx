@@ -4,6 +4,8 @@ import AccessibleMatchControls from "./AccessibleMatchControls";
 import { createBattlefieldPlaybackFrames } from "./battlefieldPlayback";
 import { createGauntletMatchViewModel } from "./matchViewModel";
 import SupportContractSummary from "../admin/SupportContractSummary";
+import { HelpProvider } from "../admin/AuthoringHelp";
+const help = require("../../../server/adminHelpTopics.json");
 const { createMatch, applyCommand, createCommandEnvelope, projectForPerspective } = require("@gauntlet/duel-rules");
 const { buildPublicReplaySnapshot } = require("@gauntlet/match-history");
 const card = (effect = "harmony-ward", factionId = "sheen", type = "shelter", value = 4) => ({ id: "support", definitionId: `${factionId}-${effect}`, name: effect, factionId, type, value, rank: String(value), suit: "spades" });
@@ -82,11 +84,12 @@ test("end-turn UI refuses ordinary support placement", () => {
 });
 
 test("Admin shows only deployed support capabilities and rejects unsupported effect previews", () => {
-  const view = render(<SupportContractSummary card={card()} />);
-  expect(screen.getByText(/4 printed value/)).toBeInTheDocument();
-  expect(screen.getByText(/No responsive play/)).toBeInTheDocument();
+  const summary = value => <HelpProvider value={help}><SupportContractSummary card={value} /></HelpProvider>;
+  const view = render(summary(card()));
+  expect(screen.getByText("Printed cost").nextElementSibling).toHaveTextContent("4");
+  expect(screen.getByText(/Support cannot enter during pending combat/)).toBeInTheDocument();
   expect(screen.getByText("explicit-removal-only")).toBeInTheDocument();
-  view.rerender(<SupportContractSummary card={{ ...card(), effect: { id: "custom-script", version: 1, parameters: {} } }} />);
+  view.rerender(summary({ ...card(), effect: { id: "custom-script", version: 1, parameters: {} } }));
   expect(screen.getByRole("alert")).toHaveTextContent("Unsupported support effect");
 });
 

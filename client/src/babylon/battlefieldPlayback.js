@@ -345,6 +345,16 @@ export class BattlefieldPlaybackQueue {
     const nextMatchId = update.viewModel.matchId || update.snapshot?.id || null;
     if (this.matchId && nextMatchId && this.matchId !== nextMatchId) this.reset();
     this.matchId = nextMatchId;
+    // A mounted/restored live table is already at this authoritative state.
+    // Seed receipt identities without replaying the action that preceded it;
+    // only subsequent live updates should stage payment/placement animations.
+    if (update.source === "live" && (!this.latestUpdate
+      || (this.latestUpdate.connected === false && update.connected === true))) {
+      this.reset();
+      (update.events || update.viewModel.events || []).forEach((entry, index) => {
+        this.seenEventIds.add(presentationEventIdentity(entry, index));
+      });
+    }
     const nextReplayIndex = Number(update.replay?.currentIndex);
     if (
       update.source === "replay"

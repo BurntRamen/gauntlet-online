@@ -2,6 +2,8 @@ const { handSize: configuredHandSize, SUITS: PLAYING_SUITS, VALUES: PLAYING_VALU
 const encounterDefaults = require("./encounterDefinitions.json");
 const { campaignDifficulty } = require("../shared/duel-rules/encounterContract");
 const { cardEffect, hasCardEffect, cardParameter, factionMechanicId, factionParameter } = require("../shared/duel-rules/effectRegistry");
+const { resolvePrinting, canUsePrinting } = require("../shared/duel-rules/printings");
+const { resolveComposition, compositionPayload } = require("../shared/duel-rules/deckContract");
 const PORT = process.env.PORT || 4000;
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
 const CLIENT_URLS = (process.env.CLIENT_URLS || "")
@@ -14,15 +16,17 @@ const ALLOWED_ORIGINS = [
   "https://gauntlet-online.vercel.app",
   ...CLIENT_URLS
 ];
-const ACCOUNT_DATA_FILE = process.env.ACCOUNT_DATA_FILE || `${__dirname}/accounts.json`;
-const FACTION_STATS_DATA_FILE = process.env.FACTION_STATS_DATA_FILE || `${__dirname}/faction-stats.json`;
-const MATCH_DATA_FILE = process.env.MATCH_DATA_FILE || `${__dirname}/matches.json`;
-const MATCH_ARCHIVE_DATA_DIR = process.env.MATCH_ARCHIVE_DATA_DIR || `${MATCH_DATA_FILE}.archive`;
+const runtimeStorage = require("./runtimeStorage").runtimeStorageConfig();
+const runtimeStorageStatus = require("./runtimeStorage").inspectRuntimeStorage(runtimeStorage);
+const ACCOUNT_DATA_FILE = runtimeStorage.paths.accounts;
+const FACTION_STATS_DATA_FILE = runtimeStorage.paths.factions;
+const MATCH_DATA_FILE = runtimeStorage.paths.matches;
+const MATCH_ARCHIVE_DATA_DIR = runtimeStorage.paths.archive;
 const MATCH_ARCHIVE_BUCKET = process.env.MATCH_ARCHIVE_BUCKET || "gauntlet-match-archives";
-const ACCOUNT_AVATAR_DATA_DIR = process.env.ACCOUNT_AVATAR_DATA_DIR || `${ACCOUNT_DATA_FILE}.avatars`;
+const ACCOUNT_AVATAR_DATA_DIR = runtimeStorage.paths.avatars;
 const ACCOUNT_AVATAR_BUCKET = process.env.ACCOUNT_AVATAR_BUCKET || "gauntlet-profile-images";
 const ACCOUNT_AVATAR_MAX_BYTES = 1024 * 1024;
-const ROOM_STATE_DATA_FILE = process.env.ROOM_STATE_DATA_FILE || `${__dirname}/rooms.json`;
+const ROOM_STATE_DATA_FILE = runtimeStorage.paths.rooms;
 const DEFAULT_ACCOUNT_AUTH_SECRET = "dev-gauntlet-auth-secret-change-me";
 const DEVELOPMENT_AUTH_SECRETS = new Set([
   DEFAULT_ACCOUNT_AUTH_SECRET,
@@ -168,9 +172,9 @@ const {
   SHEEN_COLLECTION_CARDS,
   campaignChapters,
   factionsData,
-  getCollectorVariantById,
+  getCollectorVariantById: getSourceCollectorVariantById,
   getFactionById,
-  getGameplayCardById,
+  getGameplayCardById: getSourceGameplayCardById,
   getPublicGameContent: getSourceGameContent,
   listFactions
 } = require("./gameContent");
@@ -187,6 +191,9 @@ let contentPublication = null;
 let paraRuntime = null;
 let goldEconomy = null;
 function getPublicGameContent() { return contentPublication ? contentPublication.active().manifest : getSourceGameContent(); }
+const { available: contentAvailable, cardsFor, assertConstructedCards } = require("./releaseCatalog");
+function getGameplayCardById(id) { return contentPublication ? contentPublication.lookupCard(id) : getSourceGameplayCardById(id); }
+function getCollectorVariantById(id) { return contentPublication ? contentPublication.lookupVariant(id) : getSourceCollectorVariantById(id); }
 const { createAuthoredBaseline, pinGameContent } = require("./authoredContent");
 const { createContentPublication, registerContentPublicationRoutes } = require("./contentPublication");
 
@@ -208,6 +215,7 @@ const matchArchive = createMatchArchive({
 });
 const roomLifecycleConfig = getRoomLifecycleConfig();
 const roomStateStore = createRoomStateStore(ROOM_STATE_DATA_FILE, {
+  strict: runtimeStorage.required,
   enabled: isRoomRecoveryEnabled(process.env.ROOM_STATE_RECOVERY_ENABLED)
 });
 let roomLifecycleTimer = null;
@@ -228,6 +236,7 @@ const corsOptions = {
 const app = express();
 app.set("trust proxy", 1);
 const server = http.createServer(app);
+server.on("listening", () => require("./contentAssets").setDeliveryOrigin(process.env.RENDER_EXTERNAL_URL || `http://127.0.0.1:${server.address().port}`));
 const io = new Server(server, {
   cors: {
     origin: ALLOWED_ORIGINS,
@@ -250,8 +259,14 @@ app.get(["/api/admin/access", "/admin/gauntlet", "/admin/gauntlet/{*section}"], 
   res.json({ authorized: true, accountId: req.gauntletAdminAccount.id });
 });
 app.use("/api/admin/match-archive/import", express.json({ limit: "6mb" }));
+app.use("/api/admin/authoring/assets/upload", express.json({ limit: "4200kb" }));
+app.use("/api/admin/authoring/assets/upload", (error, req, res, next) => {
+  if (!error) return next();
+  res.status(error.status === 413 ? 413 : 400).json({ error: "Upload request is invalid or too large. Use a still image up to 3 MiB." });
+});
 app.use("/api/admin/authoring", express.json({ limit: "160kb" }));
 app.use("/api/account/avatar", express.raw({ type: ["image/jpeg", "image/png", "image/webp"], limit: "1mb" }));
+app.use("/api/payments/webhook", express.raw({ type: "application/json", limit: "64kb" }));
 app.use(express.json({ limit: "20kb" }));
 
 function getRequestAddress(req) {
@@ -311,15 +326,20 @@ app.get("/", (_req, res) => {
 
 app.get("/api/storage-status", async (_req, res) => {
   try {
-    const [matchStorage, archiveStorage, profileImages] = await Promise.all([
+    const [matchStorage, archiveStorage, profileImages, privateAuthoring] = await Promise.all([
       matchPersistence.getMode(),
       matchArchive.probe(),
-      getAccountAvatarStorageStatus()
+      getAccountAvatarStorageStatus(),
+      privateAuthoringStore ? privateAuthoringStore.probe().catch(() => ({ provider: "supabase-private", available: false })) : { provider: "github-or-local", available: null }
     ]);
     const matchStorageStatus = publicMatchStorageStatus();
     res.json({
       accountStorage: SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY ? "supabase-configured" : "local-json",
       profileImages,
+      runtimeStorage: runtimeStorageStatus,
+      activeRooms: { ...roomStateStore.status(), durableVolume: runtimeStorageStatus.persistentMountVerified },
+      privateAuthoring,
+      runtimeBackups: { enabled: runtimeBackupService.status().enabled, lastSuccessfulAt: runtimeBackupService.status().lastSuccessfulAt, failed: !!runtimeBackupService.status().lastError, running: runtimeBackupService.status().running },
       matchStorage,
       matchStorageCapabilities: matchStorageStatus.capabilities,
       matchArchive: archiveStorage,
@@ -338,21 +358,18 @@ app.get("/api/storage-status", async (_req, res) => {
 });
 
 // ============ ACCOUNT AUTH ============
+function projectEconomyAccount(account) {
+  if (!account || !goldEconomy?.enabled) return account;
+  return require("./ledgerAccountProjection").projectLedgerAccount(account, goldEconomy.accountGrants(account.id), {
+    collection: normalizeCollection, progression: normalizeProgression, library: normalizeDeckLibrary, syncDecks: syncLegacyDeckPointers
+  });
+}
 function loadAccountStore() {
-  try {
-    if (!fs.existsSync(ACCOUNT_DATA_FILE)) return { accounts: [] };
-    const parsed = JSON.parse(fs.readFileSync(ACCOUNT_DATA_FILE, "utf8"));
-    return { accounts: Array.isArray(parsed.accounts) ? parsed.accounts : [] };
-  } catch (error) {
-    console.error("[Accounts] Failed to load account store", error);
-    return { accounts: [] };
-  }
+  const store = require("./accountStore").read(ACCOUNT_DATA_FILE);
+  store.accounts = store.accounts.map(projectEconomyAccount);
+  return store;
 }
-
-function saveAccountStore(store) {
-  fs.mkdirSync(path.dirname(ACCOUNT_DATA_FILE), { recursive: true });
-  fs.writeFileSync(ACCOUNT_DATA_FILE, JSON.stringify(store, null, 2));
-}
+function saveAccountStore(store) { return require("./accountStore").save(ACCOUNT_DATA_FILE, store); }
 
 function emptyFactionStatsStore() {
   return {
@@ -813,7 +830,7 @@ function normalizeCollection(stats = {}) {
   for (const [gameplayCardId, variantId] of Object.entries(collection.selectedVariants || {})) {
     const variant = getCollectorVariantById(String(variantId));
     if (!variant || variant.gameplayCardId !== gameplayCardId) continue;
-    if (variant.paid && !collectorVariants[variant.variantId]) continue;
+    if (!canUsePrinting(variant, collectorVariants)) continue;
     selectedVariants[gameplayCardId] = variant.variantId;
   }
   const openedGameplayPacks = Math.max(0, Number(collection.openedGameplayPacks ?? collection.openedPacks ?? 0));
@@ -868,9 +885,10 @@ function publicCollectorVariant(variant, content = null) {
 
 function collectionSummary(stats = {}) {
   const manifest = getPublicGameContent();
-  const catalog = Object.fromEntries([...new Set(COLLECTION_CARDS.map((card) => card.factionId))].map((factionId) => [
+  const visibleCards = manifest.cards.filter(card => contentAvailable(card, "library") || contentAvailable(card, "constructed") || Number(stats.collection?.gameplayEntitlements?.[card.id]) > 0);
+  const catalog = Object.fromEntries([...new Set(visibleCards.map((card) => card.factionId))].map((factionId) => [
     factionId,
-    COLLECTION_CARDS.filter((card) => card.factionId === factionId).map((card) => getPlayableCollectionCard(card, {}, manifest))
+    visibleCards.filter((card) => card.factionId === factionId).map((card) => getPlayableCollectionCard(card, {}, manifest))
   ]));
   return {
     ...normalizeCollection(stats),
@@ -912,17 +930,26 @@ function createDraftPlayerSeat() {
 }
 
 function getDraftSet(setId = "initiative") {
-  return DRAFT_SETS.find((set) => set.id === setId) || DRAFT_SETS.find((set) => set.id === "initiative");
+  return contentPublication ? contentPublication.lookupSet(setId) : DRAFT_SETS.find(set => set.id === setId);
 }
 
 function normalizeDraftType(draftType) {
   return draftType === "bot" || draftType === "sealed" ? draftType : "player";
 }
 
-function createDraftPack(ownerPlayer, factionIds, manifest = getPublicGameContent()) {
+function bindLimitedRelease(draft, manifest, format, resolved) {
+  const set = manifest.draftSets.find(set => set.id === (draft.setId || "initiative"));
+  if (!set?.[format === "sealed" ? "sealedAvailable" : "draftAvailable"]) throw new Error("This set is no longer available in the published release. Choose an available set.");
+  draft.factionIds = [...set.factionIds]; draft.setName = set.name;
+  draft.contentVersion = manifest.contentVersion;
+  draft.resolvedContent = clonePlain(resolved);
+}
+
+function createDraftPack(ownerPlayer, factionIds, manifest = getPublicGameContent(), setId = null, format = "draft") {
+  const pool = cardsFor(manifest, format, { setId });
   const availableFactionIds = (factionIds || [])
-    .filter((factionId) => COLLECTION_CARDS.some((card) => card.factionId === factionId));
-  if (NEUTRAL_COLLECTION_CARDS.length) availableFactionIds.push(NEUTRAL_FACTION_ID);
+    .filter((factionId) => pool.some((card) => card.factionId === factionId));
+  if (!availableFactionIds.includes(NEUTRAL_FACTION_ID) && pool.some(card => card.factionId === NEUTRAL_FACTION_ID)) availableFactionIds.push(NEUTRAL_FACTION_ID);
   if (availableFactionIds.length === 0) throw new Error("The selected set does not have a draft card catalog yet.");
   return {
     id: crypto.randomUUID(),
@@ -930,7 +957,7 @@ function createDraftPack(ownerPlayer, factionIds, manifest = getPublicGameConten
     cards: DRAFT_PACK_SLOTS.map((slot) => {
       const factionId = availableFactionIds[crypto.randomInt(availableFactionIds.length)];
       const rarity = resolveBoosterSlot(slot);
-      const card = pickCollectionCard(factionId, rarity, manifest);
+      const card = pickCollectionCard(factionId, rarity, manifest, format, setId);
       return card ? { ...card, suit: card.suit, replacementSuit: card.suit, draftCopyId: crypto.randomUUID() } : null;
     }).filter(Boolean)
   };
@@ -1290,11 +1317,11 @@ function resolveCollectorVariantSelections(collection, gameplayCardQuantities, r
     const requestedVariantId = requestedSelections[gameplayCardId]
       || collection.selectedVariants?.[gameplayCardId]
       || gameplayCard.defaultVariantId;
-    const variant = getCollectorVariantById(requestedVariantId);
+    const variant = resolvePrinting(gameplayCardId, getPublicGameContent().collectorVariants, requestedVariantId, gameplayCard.defaultVariantId);
     if (!variant || variant.gameplayCardId !== gameplayCardId) {
       throw new Error(`Choose a collector variant made for ${gameplayCard.name}.`);
     }
-    if (variant.paid && !collection.collectorVariants?.[variant.variantId]) {
+    if (!canUsePrinting(variant, collection.collectorVariants)) {
       throw new Error(`You do not own the ${variant.name} collector variant.`);
     }
     selections[gameplayCardId] = variant.variantId;
@@ -1308,7 +1335,8 @@ function expandConstructedCardQuantities(gameplayCardQuantities = {}, factionId,
       const count = Math.min(1, Math.max(0, Math.floor(Number(quantity || 0))));
       const card = getCollectionCatalogCard(cardId);
       if (!card || (card.factionId !== factionId && card.factionId !== NEUTRAL_FACTION_ID) || count <= 0) return [];
-      const variant = getCollectorVariantById(collectorVariantSelections[cardId] || card.defaultVariantId);
+      const variant = resolvePrinting(cardId, getPublicGameContent().collectorVariants, collectorVariantSelections[cardId], card.defaultVariantId);
+      if (!variant) throw new Error("Saved printing is unavailable or belongs to another card.");
       return Array.from({ length: count }, () => {
         const suit = card.suit;
         return getPlayableCollectionCard(card, {
@@ -1331,7 +1359,7 @@ function expandConstructedCardQuantities(gameplayCardQuantities = {}, factionId,
     });
 }
 
-function getSavedConstructedDeck(stats = {}) {
+function getSavedConstructedDeck(stats = {}, selection = null, { competitive = false, inspect = false } = {}) {
   const libraryRecord = getActiveDeckRecord(stats, "constructed");
   const libraryVersion = getDeckRecordVersion(libraryRecord);
   const deck = libraryVersion ? {
@@ -1344,7 +1372,12 @@ function getSavedConstructedDeck(stats = {}) {
   } : stats.savedConstructedDeck;
   const gameplayCardQuantities = deck?.gameplayCardQuantities || deck?.cardQuantities;
   if (!deck || !deck.factionId || !gameplayCardQuantities || typeof gameplayCardQuantities !== "object") return null;
+  if (selection && (deck.factionId !== selection.factionId || (selection.generalId !== undefined && (deck.generalId || getFactionById(deck.factionId)?.general?.id || null) !== selection.generalId))) return null;
+  const savedDefinitions = Object.entries(gameplayCardQuantities).filter(([, count]) => Number(count) > 0).map(([id]) => getGameplayCardById(id));
+  assertConstructedCards(savedDefinitions);
+  if (savedDefinitions.some(card => !card)) return null;
   const collection = normalizeCollection(stats);
+  if (!competitive && !inspect && savedDefinitions.some(card => !(Number(collection.gameplayEntitlements?.[card.id]) > 0))) throw Object.assign(new Error("This deck uses ranked/event card access. Earn the selected cards to use it in casual or campaign play, or choose a different deck."), { status: 422, code: "CONTENT_DECK_UNAVAILABLE" });
   let collectorVariantSelections;
   try {
     collectorVariantSelections = resolveCollectorVariantSelections(
@@ -1353,7 +1386,7 @@ function getSavedConstructedDeck(stats = {}) {
       deck.collectorVariantSelections || {}
     );
   } catch (error) {
-    collectorVariantSelections = resolveCollectorVariantSelections(collection, gameplayCardQuantities, {});
+    throw Object.assign(new Error("Your saved printing selection is unavailable or not owned. Edit or choose another deck; ownership and saved references are retained."), { code: "CONTENT_DECK_UNAVAILABLE", status: 422 });
   }
   const cards = expandConstructedCardQuantities(
     gameplayCardQuantities,
@@ -1384,6 +1417,8 @@ function getSavedConstructedDeck(stats = {}) {
     cardQuantities: canonicalQuantities,
     gameplayCardQuantities: canonicalQuantities,
     cardSuitChoices: canonicalSuitChoices,
+    accessMode: deck.accessMode || "earned",
+    cardBackId: normalizeProgression(stats).cosmetics.unlockedCardBacks.includes(deck.cardBackId) ? deck.cardBackId : null,
     deckBoxId: normalizeDeckBoxId(deck.deckBoxId),
     frontCardSlot: normalizeFrontCardSlot(deck.frontCardSlot),
     collectorVariantSelections,
@@ -1397,6 +1432,8 @@ function getSavedConstructedDeck(stats = {}) {
 }
 
 function validateConstructedDeckPayload(stats = {}, payload = {}) {
+  if (payload.accessMode != null && !["earned", "competitive"].includes(payload.accessMode)) throw new Error("Choose earned or competitive card access.");
+  if (payload.cardBackId != null && !normalizeProgression(stats).cosmetics.unlockedCardBacks.includes(payload.cardBackId)) throw new Error("Choose an unlocked card back.");
   if (payload.frontCardSlot != null && !normalizeFrontCardSlot(payload.frontCardSlot)) {
     throw new Error("Choose a valid front card from the 52-card deck.");
   }
@@ -1406,7 +1443,7 @@ function validateConstructedDeckPayload(stats = {}, payload = {}) {
   }
   const factionId = String(payload.factionId || "");
   const faction = getFactionById(factionId);
-  if (!faction) throw new Error("Choose a valid faction for the constructed deck.");
+  if (!faction || faction.campaignOnly) throw new Error("Choose a valid faction for the constructed deck.");
   const requestedQuantities = payload.gameplayCardQuantities || payload.cardQuantities;
   const requested = requestedQuantities && typeof requestedQuantities === "object" ? requestedQuantities : {};
   const requestedVariantSelections = payload.collectorVariantSelections && typeof payload.collectorVariantSelections === "object"
@@ -1414,47 +1451,28 @@ function validateConstructedDeckPayload(stats = {}, payload = {}) {
     : {};
   const collection = normalizeCollection(stats);
   const sanitized = {};
-  const sanitizedSuitChoices = {};
-  let totalReplacements = 0;
-  const valueCounts = {};
-  const slotCounts = {};
-
   for (const [cardId, rawQuantity] of Object.entries(requested)) {
     const quantity = Math.max(0, Math.floor(Number(rawQuantity || 0)));
     if (quantity <= 0) continue;
     const card = getCollectionCatalogCard(cardId);
-    if (!card || (card.factionId !== factionId && card.factionId !== NEUTRAL_FACTION_ID)) throw new Error("Constructed decks can include one faction plus neutral Reath cards.");
-    const value = getReplacementCardValue(card);
-    if (value == null) throw new Error(`${card.name} cannot be used in a 52-card deck because it does not have a valid playing-card value.`);
-    if (quantity > 1) throw new Error(`${card.name} occupies only the ${value} of ${card.suit}; a deck can include it once.`);
+    if (quantity !== 1 || !Number.isFinite(quantity)) throw new Error(card ? `${card.name} occupies only the ${card.value} of ${card.suit}; a deck can include it once.` : "Choose a valid gameplay card.");
     const entitled = Math.max(0, Math.floor(Number(collection.gameplayEntitlements?.[cardId] || 0)));
-    if (quantity > entitled) {
-      throw new Error(`You have earned ${entitled} gameplay cop${entitled === 1 ? "y" : "ies"} of ${card.name}.`);
-    }
-    valueCounts[value] = (valueCounts[value] || 0) + quantity;
-    if (valueCounts[value] > MAX_REPLACEMENTS_PER_VALUE) {
-      throw new Error(`Your 52-card deck can only have ${MAX_REPLACEMENTS_PER_VALUE} cards with value ${value}. Swap fewer cards at that value.`);
-    }
-    totalReplacements += quantity;
-    if (totalReplacements > MAX_CONSTRUCTED_REPLACEMENTS) {
-      throw new Error(`Constructed decks stay at ${BASE_PLAYING_DECK_SIZE} cards total.`);
-    }
+    if (payload.accessMode !== "competitive" && quantity > entitled) throw new Error(`You have earned ${entitled} gameplay cop${entitled === 1 ? "y" : "ies"} of ${card?.name || cardId}.`);
     sanitized[cardId] = quantity;
-    sanitizedSuitChoices[cardId] = [card.suit];
-    for (const suit of sanitizedSuitChoices[cardId]) {
-      const slotKey = `${value}:${suit}`;
-      slotCounts[slotKey] = (slotCounts[slotKey] || 0) + 1;
-      if (slotCounts[slotKey] > 1) {
-        throw new Error(`Only one card can replace the ${value} of ${suit}. Choose a different suit for one of those cards.`);
-      }
-    }
   }
-
-  const collectorVariantSelections = resolveCollectorVariantSelections(
-    collection,
-    sanitized,
-    requestedVariantSelections
-  );
+  const collectorVariantSelections = resolveCollectorVariantSelections(collection, sanitized, requestedVariantSelections);
+  // The player saver, Admin decks, shop fulfillment and opponents share the
+  // same slot, faction, release availability and printing contract.
+  const loadout = require("../shared/duel-rules/deckContract").resolveComposition({
+    factionId, generalId: payload.generalId || faction.general?.id || null,
+    cards: Object.keys(sanitized).map(cardId => ({ cardId, printingId: collectorVariantSelections[cardId] }))
+  }, getPublicGameContent(), { channel: "constructed", ownership: collection, allCards: payload.accessMode === "competitive" });
+  const totalReplacements = loadout.replacementCount, valueCounts = {}, slotCounts = {}, sanitizedSuitChoices = {};
+  for (const card of loadout.cards) {
+    valueCounts[card.value] = (valueCounts[card.value] || 0) + 1;
+    slotCounts[`${card.value}:${card.suit}`] = 1;
+    sanitizedSuitChoices[card.id] = [card.suit];
+  }
 
   return {
     name: String(payload.name || `${faction.name} Constructed Deck`).slice(0, 80),
@@ -1477,6 +1495,8 @@ function validateConstructedDeckPayload(stats = {}, payload = {}) {
     cardQuantities: sanitized,
     gameplayCardQuantities: sanitized,
     cardSuitChoices: sanitizedSuitChoices,
+    accessMode: payload.accessMode || "earned",
+    cardBackId: payload.cardBackId || null,
     deckBoxId: normalizeDeckBoxId(payload.deckBoxId),
     frontCardSlot: normalizeFrontCardSlot(payload.frontCardSlot),
     collectorVariantSelections,
@@ -1569,7 +1589,7 @@ function saveConstructedDeckToLibrary(stats = {}, payload = {}, ownerId = null) 
   library.activeConstructedDeckId = record.id;
   stats.deckLibrary = library;
   syncLegacyDeckPointers(stats);
-  return { record, playableDeck: getSavedConstructedDeck(stats) };
+  return { record, playableDeck: getSavedConstructedDeck(stats, null, { inspect: true }) };
 }
 
 function saveDraftDeckToLibrary(stats = {}, savedDraftDeck, ownerId = null) {
@@ -1696,6 +1716,7 @@ function normalizeProgression(stats = {}) {
       ...(progression.cosmetics || {}),
       unlockedTitles: [...new Set([...(base.cosmetics.unlockedTitles || []), ...((progression.cosmetics || {}).unlockedTitles || [])])],
       unlockedCardBacks,
+      selectedCardBack: unlockedCardBacks.includes(progression.cosmetics?.selectedCardBack) ? progression.cosmetics.selectedCardBack : "classic",
       unlockedFactionBadges: [...new Set([...(base.cosmetics.unlockedFactionBadges || []), ...((progression.cosmetics || {}).unlockedFactionBadges || [])])]
     }
   };
@@ -1726,6 +1747,7 @@ function publicAccountProfile(account) {
   const progression = normalizeProgression(account?.stats || {});
   return {
     avatar: normalizeAccountAvatar(account?.stats || {}, account?.id),
+    equipment: goldEconomy?.enabled && account?.id ? require("./cosmeticEquipment").selected(account, goldEconomy.accountGrants(account.id)) : {},
     cosmetics: {
       selectedCardBack: progression.cosmetics?.selectedCardBack || "classic"
     }
@@ -1741,7 +1763,8 @@ function publicAccountStats(stats = {}) {
     const { inlineData: _privatePortraitBytes, ...avatar } = profile.avatar;
     profile.avatar = avatar;
   }
-  return profile ? { ...stats, profile, economy } : { ...stats, economy };
+  const { _accountRevision, operatorAudit: _privateOperatorAudit, ledgerProjection: _privateLedgerProjection, accountCommerce: _privateCommerce, equipment: _privateEquipment, ...visible } = stats;
+  return profile ? { ...visible, profile, economy } : { ...visible, economy };
 }
 
 function economySummary(stats = {}) {
@@ -1756,16 +1779,19 @@ function economySummary(stats = {}) {
 }
 
 function publicAccount(account) {
+  account = projectEconomyAccount(account);
   const stats = account.stats || {};
   normalizeDeckLibrary(stats, account.id);
   const economy = { ...economySummary(stats), ...(goldEconomy?.enabled ? goldEconomy.wallet(account) : {}) };
+  const profile = publicAccountProfile(account), visible = publicAccountStats(stats);
+  if (visible.deckLibrary) visible.deckLibrary = { ...visible.deckLibrary, decks: visible.deckLibrary.decks.map(deck => ({ ...deck, appearance: profile.equipment.deckBox })) };
   return {
     id: account.id,
     name: account.name,
     createdAt: account.createdAt,
     lastLoginAt: account.lastLoginAt || null,
-    profile: publicAccountProfile(account),
-    stats: { ...publicAccountStats(stats), economy },
+    profile,
+    stats: { ...visible, economy },
     economy,
     progression: progressionSummary(stats),
     collection: collectionSummary(stats),
@@ -2061,6 +2087,7 @@ function getPublicDeckFeaturedArt(deck, limit = 3) {
 
 function buildPublicPlayerProfile(account, matchRecords = [], options = {}) {
   const stats = account?.stats || {};
+  const appearance = publicAccountProfile(account);
   const library = normalizeDeckLibrary(stats, account?.id);
   const ranked = {
     wins: Number(stats.rankedGamesWon || 0),
@@ -2126,7 +2153,8 @@ function buildPublicPlayerProfile(account, matchRecords = [], options = {}) {
       title: campaign.commanderName,
       pitch: campaign.pitch,
       coverImage: campaign.coverImage,
-      completed: completedChapterIds.length,
+      completed: (campaign.chapters || []).filter(chapter => completedChapterIds.includes(chapter.id)).length,
+      historicalCompleted: completedChapterIds.length,
       total: campaign.chapters?.length || 0
     };
   });
@@ -2139,10 +2167,11 @@ function buildPublicPlayerProfile(account, matchRecords = [], options = {}) {
     displayName: account.name,
     memberSince: account.createdAt,
     lastSeenAt: account.lastSeenAt || null,
-    avatar: publicAccountProfile(account).avatar,
+    avatar: appearance.avatar,
+    equipment: appearance.equipment,
     identity: {
       selectedTitle,
-      selectedTitleName: PROGRESSION_COSMETICS.titles[selectedTitle]?.name || selectedTitle,
+      selectedTitleName: appearance.equipment.title?.name || PROGRESSION_COSMETICS.titles[selectedTitle]?.name || selectedTitle,
       selectedFactionBadge,
       selectedFactionBadgeName: PROGRESSION_COSMETICS.factionBadges[selectedFactionBadge]?.name || selectedFactionBadge,
       selectedCardBack,
@@ -2164,6 +2193,7 @@ function buildPublicPlayerProfile(account, matchRecords = [], options = {}) {
     })),
     campaignRecords,
     featuredDecks: library.decks.filter((deck) => deck.featured && !deck.archived).slice(0, 3).map((deck) => ({
+      appearance: appearance.equipment.deckBox,
       id: deck.id,
       name: deck.name,
       factionId: deck.factionId,
@@ -2324,7 +2354,7 @@ function publicMatchStorageStatus() {
 function getNextCampaignMission(account, factionId, chapterId, result, setup = encounterDefaults[chapterId]) {
   if (result !== "win" || !factionId || !chapterId) return null;
   if (setup && setup.winRoute !== "first-uncompleted") throw new Error("Unsupported encounter routing policy.");
-  const chapters = campaignChapters[factionId] || [];
+  const chapters = activeCampaignChapters(factionId);
   const completed = account?.progression?.campaign?.[factionId]
     || normalizeProgression(account?.stats || {}).campaign[factionId]
     || [];
@@ -2406,7 +2436,7 @@ async function saveFactionStatsStore(store) {
 
 function accountFromSupabaseRow(row) {
   if (!row) return null;
-  return {
+  return projectEconomyAccount({
     id: row.id,
     name: row.name,
     nameKey: row.name_key,
@@ -2416,7 +2446,7 @@ function accountFromSupabaseRow(row) {
     lastLoginAt: row.last_login_at,
     lastSeenAt: row.last_seen_at,
     stats: row.stats || {}
-  };
+  });
 }
 
 async function findSupabaseAccountByName(name) {
@@ -3137,16 +3167,17 @@ function getDraftLeagueProfile(account) {
   return { wins, losses, draws, gamesPlayed, winRatio };
 }
 
-function pickCollectionCard(factionId, rarity, manifest = null) {
-  const cardPool = COLLECTION_CARDS.filter((card) => card.factionId === factionId && card.rarity === rarity);
+function pickCollectionCard(factionId, rarity, manifest = getPublicGameContent(), channel = "earnedPacks", setId = null) {
+  const cardPool = cardsFor(manifest, channel, { factionId, rarity, setId });
   if (cardPool.length === 0) return null;
   return getPlayableCollectionCard(cardPool[crypto.randomInt(cardPool.length)], {}, manifest);
 }
 
 function pickCollectionCardFromPool(rarity) {
-  const cardPool = COLLECTION_CARDS.filter((card) => card.factionId !== NEUTRAL_FACTION_ID && card.rarity === rarity);
+  const manifest = getPublicGameContent();
+  const cardPool = cardsFor(manifest, "earnedPacks", { rarity }).filter((card) => card.factionId !== NEUTRAL_FACTION_ID);
   if (cardPool.length === 0) return null;
-  return getPlayableCollectionCard(cardPool[crypto.randomInt(cardPool.length)]);
+  return getPlayableCollectionCard(cardPool[crypto.randomInt(cardPool.length)], {}, manifest);
 }
 
 function resolveBoosterSlot(slot) {
@@ -3222,7 +3253,7 @@ function grantPurchasedCollectorPack(stats, productId, options = {}) {
   if (!product) throw new Error("Unknown collector pack.");
   if (product.available === false) throw new Error(product.unavailableReason || `${product.name} is not available yet.`);
   const eligibleFactionIds = new Set(product.factionIds || (product.factionId ? [product.factionId] : []));
-  const eligibleVariants = COLLECTOR_VARIANTS.filter((variant) => (
+  const eligibleVariants = getPublicGameContent().collectorVariants.filter((variant) => (
     variant.paid
     && variant.acquisition === PAID_COLLECTOR_ACQUISITION
     && eligibleFactionIds.has(getGameplayCardById(variant.gameplayCardId)?.factionId)
@@ -3328,7 +3359,7 @@ function buildCompetitiveCapabilitySnapshot(stats = {}) {
       simultaneousLifeDepletion: "higher remaining life wins; equal life draws",
       concession: "the conceding player loses"
     },
-    gameplayPool: COLLECTION_CARDS
+    gameplayPool: getPublicGameContent().cards
       .filter((card) => Number(collection.gameplayEntitlements[card.gameplayCardId] || 0) > 0)
       .map((card) => ({
         gameplayCardId: card.gameplayCardId,
@@ -3581,7 +3612,7 @@ app.get("/api/profiles/:accountId", async (req, res) => {
       return;
     }
     const records = await listMatchRecordsByAccount(account.id, 100);
-    const season = getActiveSeason() || ACTIVE_SEASON;
+    const season = require("./seasons").getCurrentSeason();
     const accounts = useSupabaseStore()
       ? (await supabaseRequest("gauntlet_accounts?select=*")).map(accountFromSupabaseRow)
       : loadAccountStore().accounts;
@@ -3748,7 +3779,7 @@ app.get("/api/auth/me", async (req, res) => {
 
 app.get("/api/events", (_req, res) => {
   res.set("Cache-Control", "no-store");
-  res.json({ events: listEventDefinitions() });
+  res.json({ events: listEventDefinitions().map(event => goldEconomy?.enabled ? { ...event, entryDisabledReason: "New legacy runs are closed after the Gold cutover. Existing runs keep their promised rewards.", availability: { ...event.availability, canEnter: false } } : event) });
 });
 
 app.post("/api/events/:eventId/join", async (req, res) => {
@@ -3896,6 +3927,82 @@ app.post("/api/collection/open-pack", async (req, res) => {
   } catch (error) {
     res.status(400).json({ error: error.message || "Could not open booster pack." });
   }
+});
+
+async function deckPurchaseCapability() {
+  const authority = { gold: goldEconomy?.enabled ? "finite-gold-ledger" : "account", timetwisters: "account", gems: goldEconomy?.status().gemsEnabled ? "finite-gold-ledger" : "disabled" };
+  if (!useSupabaseStore()) return { ready: true, storage: "atomic-account-file", authority };
+  try {
+    const version = await supabaseRequest("rpc/gauntlet_account_write_capability", { method: "POST", body: "{}" });
+    if (version === 1) return { ready: true, storage: "supabase-revision-guard", authority };
+  } catch { /* Absence is a capability failure, never permission to debit. */ }
+  return { ready: false, reason: "Deck purchases require the account concurrency migration on this service's database." };
+}
+async function equipCosmetic(accountId, input) {
+  return withCollectorAccountLock(accountId, async () => {
+    if (!(await deckPurchaseCapability()).ready) throw Object.assign(new Error("Equipment selection requires verified account storage."), { status: 503 });
+    const store = useSupabaseStore() ? null : loadAccountStore();
+    const account = store ? store.accounts.find(row => row.id === accountId) : await findSupabaseAccountById(accountId);
+    if (!account) throw Object.assign(new Error("Account unavailable."), { status: 401 });
+    const grant = input?.entitlementId === "default" ? null : goldEconomy.access(account, input?.entitlementId).grant;
+    const stats = require("./cosmeticEquipment").prepareSelection(account, input, grant);
+    if (store) { account.stats = stats; saveAccountStore(store); }
+    else await patchSupabaseAccount(accountId, { stats });
+    return publicAccount({ ...account, stats });
+  });
+}
+async function refundDeckProduct(accountId, input, actor) {
+  return withCollectorAccountLock(accountId, async () => {
+    if (!(await deckPurchaseCapability()).ready) throw Object.assign(new Error("Refunds require verified atomic account storage."), { status: 503 });
+    const store = useSupabaseStore() ? null : loadAccountStore();
+    const account = store ? store.accounts.find(row => row.id === accountId) : await findSupabaseAccountById(accountId);
+    if (!account) throw Object.assign(new Error("Account unavailable."), { status: 404 });
+    const result = require("./accountCommerce").prepareRefund(account, input, actor, { normalizeCollection, normalizeProgression });
+    if (!result.alreadyRefunded) {
+      if (store) { account.stats = result.stats; saveAccountStore(store); }
+      else await patchSupabaseAccount(accountId, { stats: result.stats });
+    }
+    return result.receipt;
+  });
+}
+async function purchaseDeckProduct(accountId, input) {
+  return withCollectorAccountLock(accountId, async () => {
+    if (!(await deckPurchaseCapability()).ready) throw Object.assign(new Error("Deck purchases are not configured safely yet. No payment was taken."), { status: 503 });
+    const store = useSupabaseStore() ? null : loadAccountStore();
+    const account = store ? store.accounts.find(row => row.id === accountId) : await findSupabaseAccountById(accountId);
+    if (!account) throw Object.assign(new Error("Account unavailable."), { status: 401 });
+    const adapters = { normalizeCollection, normalizeProgression, saveDeck: saveConstructedDeckToLibrary };
+    const prior = account.stats?.economy?.purchaseReceipts?.[`deck:${input?.requestId}`];
+    if (goldEconomy?.enabled && ["gold", "gems"].includes(input?.currency) && (!prior || prior.ledgerPurchaseId)) {
+      const result = goldEconomy.purchaseDeck(account, input, contentPublication.active(), adapters);
+      return { account: publicAccount(account), receipt: result.receipt, alreadyPurchased: !!prior };
+    }
+    const result = require("./deckCommerce").preparePurchase(account, input, contentPublication.active(), adapters);
+    if (!result.alreadyPurchased) {
+      if (store) { account.stats = result.stats; saveAccountStore(store); }
+      else await patchSupabaseAccount(accountId, { stats: result.stats, last_seen_at: result.receipt.purchasedAt });
+    }
+    const updated = store ? account : await findSupabaseAccountById(accountId);
+    return { account: publicAccount(updated), receipt: result.receipt, alreadyPurchased: result.alreadyPurchased };
+  });
+}
+app.get("/api/economy/deck-products", async (req, res) => {
+  res.set("Cache-Control", "no-store");
+  const resolved = contentPublication.active();
+  const offers = resolved.manifest.deckOffers.filter(offer => offer.status === "available");
+  const ids = new Set(offers.flatMap(offer => offer.template.composition.cards.map(card => card.cardId)));
+  res.json({ offers, cards: resolved.manifest.cards.filter(card => ids.has(card.id)), collectorVariants: resolved.manifest.collectorVariants.filter(variant => ids.has(variant.gameplayCardId)), capability: await deckPurchaseCapability(), releaseId: resolved.releaseId });
+});
+app.get("/api/economy/deck-receipts", async (req, res) => {
+  const context = await requireAccountRecord(req, res); if (!context) return;
+  res.set("Cache-Control", "no-store");
+  res.json({ receipts: Object.entries(normalizeEconomy(context.account.stats).purchaseReceipts).filter(([key]) => key.startsWith("deck:")).map(([, receipt]) => receipt).sort((a, b) => b.purchasedAt.localeCompare(a.purchasedAt)) });
+});
+app.post("/api/economy/buy-deck-product", async (req, res) => {
+  try {
+    const context = await requireAccountRecord(req, res); if (!context) return;
+    res.json(await purchaseDeckProduct(context.account.id, req.body));
+  } catch (error) { res.status(error.status || 409).json({ error: error.message || "Purchase was not confirmed. Retry the same request.", purchaseRejected: error.purchaseRejected === true }); }
 });
 
 app.post("/api/economy/buy-gameplay-pack", async (req, res) => {
@@ -4474,7 +4581,7 @@ app.get("/api/leaderboard", async (req, res) => {
     .sort((a, b) => b.wins - a.wins || b.winRate - a.winRate || a.losses - b.losses || a.name.localeCompare(b.name))
     .slice(0, 25);
 
-  const season = getActiveSeason() || ACTIVE_SEASON;
+  const season = require("./seasons").getCurrentSeason();
   const standings = buildSeasonStandings(accounts, season);
   const authHeader = req.get("authorization") || "";
   const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
@@ -4487,6 +4594,13 @@ app.get("/api/leaderboard", async (req, res) => {
     lifetimeLeaderboard
   });
 });
+
+function profileForDeck(player) {
+  const profile = clonePlain(player.profile || {}), back = player.savedConstructedDeck?.cardBackId;
+  if (profile.equipment) profile.equipment = require("./cosmeticEquipment").revalidate(profile.equipment, player.accountId && goldEconomy?.enabled ? goldEconomy.accountGrants(player.accountId) : []);
+  if (back && PROGRESSION_COSMETICS.cardBacks[back]) profile.cosmetics = { ...profile.cosmetics, selectedCardBack: back };
+  return Object.keys(profile).length ? profile : null;
+}
 
 function getCampaignNarration(chapterId) {
   return CAMPAIGN_NARRATION[chapterId] || {};
@@ -4512,18 +4626,22 @@ function buildCampaignEndDialogue(chapter = {}, faction = null) {
   return lines;
 }
 
-function getCampaignChapterIndex(factionId, chapterId) {
-  return (campaignChapters[factionId] || []).findIndex((chapter) => chapter.id === chapterId);
+function activeCampaignChapters(factionId, resolved = null) {
+  return (resolved || contentPublication?.active())?.manifest.campaigns[factionId]?.chapters || campaignChapters[factionId] || [];
+}
+
+function getCampaignChapterIndex(factionId, chapterId, resolved = null) {
+  return activeCampaignChapters(factionId, resolved).findIndex((chapter) => chapter.id === chapterId);
 }
 
 function getCampaignEncounterSetup(factionId, chapterId) {
-  return (campaignChapters[factionId] || []).find((chapter) => chapter.id === chapterId)?.setup
+  return activeCampaignChapters(factionId).find((chapter) => chapter.id === chapterId)?.setup
     || encounterDefaults[chapterId];
 }
 
-function isCampaignChapterUnlocked(stats = {}, factionId, chapterId) {
-  const chapters = campaignChapters[factionId] || [];
-  const chapterIndex = getCampaignChapterIndex(factionId, chapterId);
+function isCampaignChapterUnlocked(stats = {}, factionId, chapterId, resolved = null) {
+  const chapters = activeCampaignChapters(factionId, resolved);
+  const chapterIndex = getCampaignChapterIndex(factionId, chapterId, resolved);
   if (chapterIndex <= 0) return chapterIndex === 0;
   const progression = normalizeProgression(stats);
   const completed = Array.isArray(progression.campaign[factionId]) ? progression.campaign[factionId] : [];
@@ -4536,16 +4654,16 @@ function getCampaignDifficulty(factionId, chapterId, setup) {
   return campaignDifficulty(resolvedSetup);
 }
 
-function getCampaignDeckAdditions(factionId, chapterIndex, side = "player", setup) {
-  const chapterId = campaignChapters[factionId]?.[chapterIndex]?.id;
+function getCampaignDeckAdditions(factionId, chapterIndex, side = "player", setup, manifest = getPublicGameContent()) {
+  const chapterId = manifest.campaigns[factionId]?.chapters[chapterIndex]?.id;
   const resolvedSetup = setup || getCampaignEncounterSetup(factionId, chapterId);
   return (resolvedSetup?.[side === "player" ? "playerAdditions" : "bossAdditions"] || [])
-    .map((cardId) => getCollectionCatalogCard(cardId)).filter(Boolean)
-    .map((card) => getPlayableCollectionCard(card, { suit: card.suit, replacementSuit: card.suit }));
+    .map((cardId) => manifest.cards.find(card => card.id === cardId)).filter(card => contentAvailable(card, "encounters"))
+    .map((card) => getPlayableCollectionCard(card, { suit: card.suit, replacementSuit: card.suit }, manifest));
 }
 
 function getCampaignBossAbility(factionId, chapterIndex, chapter = {}) {
-  const setup = chapter.setup || encounterDefaults[chapter.id || campaignChapters[factionId]?.[chapterIndex]?.id];
+  const setup = chapter.setup || encounterDefaults[chapter.id || activeCampaignChapters(factionId)[chapterIndex]?.id];
   return setup ? clonePlain(setup.bossAbility) : null;
 }
 
@@ -4752,7 +4870,7 @@ const adminRuntime = {
       progression: normalizeProgression,
       collection: normalizeCollection,
       decks: normalizeDeckLibrary,
-      season: () => publicSeasonDefinition(getActiveSeason() || ACTIVE_SEASON),
+      season: () => publicSeasonDefinition(require("./seasons").getCurrentSeason()),
       encounter: (factionId, chapter, index) => ({
         difficulty: getCampaignDifficulty(factionId, chapter.id, chapter.setup),
         bossAbility: getCampaignBossAbility(factionId, index, chapter),
@@ -4763,23 +4881,38 @@ const adminRuntime = {
       })
     };
 const publicationBaseline = createAuthoredBaseline(buildCatalog(adminRuntime));
+if (process.env.GAUNTLET_PRIVATE_AUTHORING_PROVIDER && !["supabase", "github"].includes(process.env.GAUNTLET_PRIVATE_AUTHORING_PROVIDER)) throw new Error("Unsupported private authoring provider.");
+const privateAuthoringStore = process.env.GAUNTLET_PRIVATE_AUTHORING_PROVIDER === "supabase"
+  ? require("./privateAuthoringStore").createPrivateAuthoringStore({ request: supabaseRequest }) : null;
+if (privateAuthoringStore && (!useSupabaseStore() || process.env.GAUNTLET_CONTENT_PROVIDER === "file")) throw new Error("Private Supabase authoring requires backend Supabase credentials and the GitHub publication provider.");
 contentPublication = (process.env.GAUNTLET_CONTENT_PROVIDER === "github" || ((process.env.NODE_ENV === "production" || process.env.RENDER === "true") && process.env.GAUNTLET_CONTENT_PROVIDER !== "file"))
-  ? require("./githubContentPublication").createGitHubContentPublication({ baseline: publicationBaseline, runtimeCapabilities: () => paraRuntime?.status() || { enabled: false }, economyCapabilities: () => goldEconomy?.status() || { enabled: false } })
+  ? require("./githubContentPublication").createGitHubContentPublication({ baseline: publicationBaseline, draftStore: privateAuthoringStore, runtimeCapabilities: () => paraRuntime?.status() || { enabled: false }, economyCapabilities: () => goldEconomy?.status() || { enabled: false } })
   : createContentPublication({
   baseline: publicationBaseline,
-  directory: process.env.GAUNTLET_CONTENT_DATA_DIR || `${ACCOUNT_DATA_FILE}.content`,
+  directory: runtimeStorage.paths.content,
   provider: process.env.GAUNTLET_CONTENT_PUBLICATION_PROVIDER || "local",
   runtimeCapabilities: () => paraRuntime?.status() || { enabled: false },
   economyCapabilities: () => goldEconomy?.status() || { enabled: false },
-  writable: process.env.NODE_ENV !== "production" || !!process.env.GAUNTLET_CONTENT_DATA_DIR
+  writable: process.env.NODE_ENV !== "production" || !!process.env.GAUNTLET_CONTENT_DATA_DIR || runtimeStorageStatus.persistentMountVerified
 });
 registerContentPublicationRoutes(app, contentPublication);
+require("./seasons").setSeasonProvider(() => {
+  const resolved = contentPublication.active();
+  return (resolved.manifest.competition?.ranked || []).map(row => require("./competitionConfig").season(row, resolved.releaseId));
+});
+require("./events").setEventProvider(() => {
+  const resolved = contentPublication.active();
+  return (resolved.manifest.competition?.events || []).map(row => require("./competitionConfig").event(row, resolved.releaseId));
+});
 require("./adminWorkshopData").registerAdminWorkshopRoutes(app, { publication: contentPublication });
 const { createParaRuntime, registerParaRoutes } = require("./paraRuntime");
-paraRuntime = createParaRuntime({ filename: process.env.GAUNTLET_PARA_DATA_DIR ? path.join(process.env.GAUNTLET_PARA_DATA_DIR, "para.sqlite") : null, publication: contentPublication });
+paraRuntime = createParaRuntime({ filename: runtimeStorage.paths.para, publication: contentPublication });
 registerParaRoutes(app, paraRuntime, requireAccountRecord);
-goldEconomy = require("./goldEconomy").createGoldEconomy({ legacyGoldImport: process.env.GAUNTLET_GOLD_MIGRATION === "legacy-opening-v1", filename: process.env.GAUNTLET_ECONOMY_DATA_DIR ? path.join(process.env.GAUNTLET_ECONOMY_DATA_DIR, "economy.sqlite") : null, publication: contentPublication });
-require("./economyRoutes").registerEconomyRoutes(app, goldEconomy, { requireAccount: requireAccountRecord, records: listMatchRecordsByAccount, findRecord: findMatchRecordById,
+goldEconomy = require("./goldEconomy").createGoldEconomy({ legacyGoldImport: process.env.GAUNTLET_GOLD_MIGRATION === "legacy-opening-v1", gemsEnabled: process.env.GAUNTLET_GEMS_ENABLED === "true", filename: runtimeStorage.paths.economy, publication: contentPublication });
+const paymentService = require("./paymentService").createPaymentService({ ledger: goldEconomy.payments });
+require("./paymentService").registerPaymentRoutes(app, paymentService, { requireAccount: requireAccountRecord });
+require("./economyRoutes").registerEconomyRoutes(app, goldEconomy, { paymentService, requireAccount: requireAccountRecord, records: listMatchRecordsByAccount, findRecord: findMatchRecordById,
+  listAccounts: loadStudioAccounts, refundDeck: refundDeckProduct, equip: equipCosmetic, accountView: publicAccount,
   findAccount: async (id) => useSupabaseStore() ? findSupabaseAccountById(id) : loadAccountStore().accounts.find((a) => a.id === id) });
 const paraQueue = new Map();
 function removeFromParaQueue(socketId) { for (const [id, entry] of paraQueue) if (entry.socketId === socketId) paraQueue.delete(id); }
@@ -4802,8 +4935,14 @@ const adminPlaytests = createAdminPlaytests({ publication: contentPublication, c
     } else {
       // Populate both decks from the selected draft faction to exercise its effects.
       for (const player of [1, 2]) room.lobby.players[player].savedConstructedDeck = { cards: resolved.manifest.cards.filter((card) => card.factionId === room.lobby.players[player].factionId).map((card, index) => ({ ...card, suit: DRAFT_CARD_SUITS[index % 4] })) };
+      if (selection.templateId) {
+        const template = resolved.manifest.deckTemplates.find(row => row.id === selection.templateId);
+        const loadout = resolveComposition(template.composition, resolved.manifest);
+        room.lobby.players[1].generalId = loadout.general.id;
+        room.lobby.players[1].savedConstructedDeck = { cards: loadout.cards, templateId: template.id, templateRevision: template.revision };
+      }
     }
-    createGameFromLobby(room, { contentRelease: resolved, seed: "gauntlet-admin-playtest", matchMetadata: { matchId: id, startedAt: new Date().toISOString() } });
+    createGameFromLobby(room, { contentRelease: resolved, isolatedPlaytest: true, ruleModifierId: selection.ruleModifierId, seed: "gauntlet-admin-playtest", matchMetadata: { matchId: id, startedAt: new Date().toISOString() } });
     return room.game;
   }
 });
@@ -4826,8 +4965,14 @@ registerAdminRoutes(app, {
     environment: process.env.NODE_ENV,
     backendCommit: process.env.RENDER_GIT_COMMIT || process.env.GIT_COMMIT || null,
     roomRecovery: isRoomRecoveryEnabled(process.env.ROOM_STATE_RECOVERY_ENABLED),
+    runtimeStorage: () => ({ ...runtimeStorageStatus, checkpoint: roomStateStore.status(), backups: runtimeBackupService.status() }),
     deckSchemaVersion: DECK_LIBRARY_SCHEMA_VERSION,
     adminAccountCount: gauntletAdminAuthorization.configuredAccounts,
+    para: paraRuntime,
+    gold: goldEconomy,
+    deckCapability: deckPurchaseCapability,
+    projectAccount: projectEconomyAccount,
+    loadAccounts: loadStudioAccounts,
     runtime: adminRuntime,
     publication: contentPublication
   })
@@ -4838,7 +4983,7 @@ app.get("/api/admin/overview", async (req, res) => {
   if (!requireOwnerAuthorization(req, res)) return;
   try {
     const accounts = await loadStudioAccounts();
-    const season = getActiveSeason() || ACTIVE_SEASON;
+    const season = require("./seasons").getCurrentSeason();
     const matchState = await studioMatchState(accounts);
     const storage = publicMatchStorageStatus();
     const recentRecords = await Promise.all(matchState.records.slice(0, 30).map(async (record) => {
@@ -5119,7 +5264,8 @@ function openSealedPool(roomState, playerNum = 1) {
   const draft = roomState.draft;
   if (!draft?.sealed) throw new Error("That room is not a sealed event.");
   const key = String(playerNum);
-  const manifest = getPublicGameContent();
+  const resolved = contentPublication.active(), manifest = resolved.manifest;
+  bindLimitedRelease(draft, manifest, "sealed", resolved);
   draft.status = "building";
   draft.activePlayers = [playerNum];
   draft.round = 0;
@@ -5130,7 +5276,7 @@ function openSealedPool(roomState, playerNum = 1) {
   draft.draftedPools = { [key]: [] };
   draft.deckAdditions = { [key]: [] };
   for (let packIndex = 0; packIndex < SEALED_PACKS_PER_PLAYER; packIndex++) {
-    draft.draftedPools[key].push(...createDraftPack(playerNum, draft.factionIds, manifest).cards);
+    draft.draftedPools[key].push(...createDraftPack(playerNum, draft.factionIds, manifest, draft.setId, "sealed").cards);
   }
   draft.completedAt = new Date().toISOString();
 }
@@ -5206,6 +5352,7 @@ function findMatchForEntry(entry) {
   return findMatchForEntryInQueue(entry, matchmakingQueue.filter((candidate) => (
     (candidate.bestOf || 1) === (entry.bestOf || 1)
     && (candidate.gameMode || "factions") === (entry.gameMode || "factions")
+    && candidate.season?.seasonId === entry.season?.seasonId
   )));
 }
 
@@ -5222,7 +5369,7 @@ function createMatchedRoom(entryA, entryB, options = {}) {
   const roomState = createRoom();
   roomState.ranked = options.ranked !== false;
   roomState.lobby.gameMode = entryA.gameMode === "basic" ? "basic" : "factions";
-  roomState.season = roomState.ranked ? buildSeasonMatchIdentity(getActiveSeason(), entryA.bestOf || 1) : null;
+  roomState.season = roomState.ranked ? clonePlain(entryA.season || buildSeasonMatchIdentity(getActiveSeason(), entryA.bestOf || 1)) : null;
   if ((entryA.bestOf || 1) === 3) {
     roomState.seriesId = crypto.randomUUID();
     roomState.bestOf3Series = {
@@ -5243,6 +5390,7 @@ function createMatchedRoom(entryA, entryB, options = {}) {
     roomState.event = {
       eventId: options.event.id,
       name: options.event.name,
+      definition: clonePlain(options.event),
       entries: Object.fromEntries(assignments.map(({ playerNum, entry }) => [playerNum, {
         accountId: entry.accountId,
         runId: entry.runId
@@ -5346,6 +5494,7 @@ function getRoom(roomCode) {
 function deleteRoom(roomCode) {
   const roomState = rooms.get(roomCode);
   if (!roomState) return false;
+  if (roomState.pendingFinalization) return false;
   if (roomState.aiMoveTimer) clearTimeout(roomState.aiMoveTimer);
   const socketIds = [
     ...getLobbyPlayerNumbers(roomState).map((playerNum) => roomState.lobby.players[playerNum].socket),
@@ -5369,6 +5518,7 @@ function deleteRoom(roomCode) {
 function canOfferRematch(roomState) {
   const players = roomState?.lobby?.players || {};
   return !roomState?.para && !!roomState?.game
+    && !roomState.pendingFinalization
     && (roomState.game.phase === "gameOver" || roomState.game.winner != null)
     && !roomState.draft
     && !roomState.event
@@ -5433,6 +5583,11 @@ async function sweepRoomLifecycle(options = {}) {
   try {
     await recoverParaMatches();
     for (const roomState of [...rooms.values()]) {
+      if (roomState.pendingFinalization) {
+        try { await recordFinalGameStats(roomState, roomState.pendingFinalization); }
+        catch { console.error("[Rooms] Pending match finalization will retry; its private checkpoint was retained."); }
+        continue;
+      }
       if (roomState.para && roomState.game?.phase !== "gameOver") {
         const official = paraRuntime.event(roomState.para.eventId);
         if (official.status === "cancelled" || now >= Date.parse(official.definition.endsAt)) {
@@ -5489,7 +5644,8 @@ async function attachSavedConstructedDeckForLobbyPlayer(roomState, playerNum) {
     if (lobbyPlayer) lobbyPlayer.savedConstructedDeck = null;
     return;
   }
-  const savedConstructedDeck = getSavedConstructedDeck(await getAccountStatsById(lobbyPlayer.accountId));
+  lobbyPlayer.savedConstructedDeck = null;
+  const savedConstructedDeck = getSavedConstructedDeck(await getAccountStatsById(lobbyPlayer.accountId), { factionId: lobbyPlayer.factionId, generalId: lobbyPlayer.generalId });
   lobbyPlayer.savedConstructedDeck = savedConstructedDeck?.factionId === lobbyPlayer.factionId
     && (savedConstructedDeck.generalId || null) === (lobbyPlayer.generalId || null) ? savedConstructedDeck : null;
 }
@@ -5537,7 +5693,7 @@ function emitLobbyState(roomState) {
     gameMode: getLobbyGameMode(roomState),
     players,
     ranked: Boolean(roomState.ranked),
-    factions: getPublicGameContent().factions.filter((faction) => !faction.draftRules || !isFreeForAllRoom(roomState)),
+    factions: getPublicGameContent().factions.filter((faction) => !faction.campaignOnly && (!faction.draftRules || !isFreeForAllRoom(roomState))),
     spectatorCount: roomState.lobby.spectators.length
   });
 }
@@ -5805,7 +5961,8 @@ function startDraft(roomState) {
   const draft = roomState.draft;
   // Resolve the release once for all 192 cards. Resolving/cloning the full
   // catalog per card blocks Socket.IO heartbeats on the production instance.
-  const manifest = getPublicGameContent();
+  const resolved = contentPublication.active(), manifest = resolved.manifest;
+  bindLimitedRelease(draft, manifest, "draft", resolved);
   const activePlayers = getConnectedDraftPlayers(roomState);
   draft.status = "drafting";
   draft.activePlayers = activePlayers;
@@ -5824,7 +5981,7 @@ function startDraft(roomState) {
     draft.draftedPools[key] = [];
     draft.deckAdditions[key] = [];
     for (let packIndex = 0; packIndex < DRAFT_PACKS_PER_PLAYER; packIndex++) {
-      draft.unopenedPacks[key].push(createDraftPack(playerNum, draft.factionIds, manifest));
+      draft.unopenedPacks[key].push(createDraftPack(playerNum, draft.factionIds, manifest, draft.setId, "draft"));
     }
     draft.currentPacks[key] = draft.unopenedPacks[key].shift();
   });
@@ -7052,11 +7209,23 @@ function buildAccountResultContext(roomState, matchRecord, playerNum) {
 }
 
 async function recordFinalGameStats(roomState, options = {}) {
+  if (roomState.finalizationPromise) return roomState.finalizationPromise;
+  roomState.finalizationPromise = finalizeRoomGameStats(roomState, options);
+  try { return await roomState.finalizationPromise; }
+  finally { delete roomState.finalizationPromise; }
+}
+
+async function finalizeRoomGameStats(roomState, options = {}) {
   const game = roomState.game;
   if (!game || game.statsRecorded) return;
   if (game.phase !== "gameOver") return;
+  options = roomState.pendingFinalization || options;
   const completedAt = options.completedAt || new Date().toISOString();
   const completionReason = options.completionReason || "life_total";
+  roomState.pendingFinalization = { completedAt, completionReason, abandonmentReason: options.abandonmentReason || null };
+  // Preserve final evidence before any remote consequence writes. A restart
+  // retries through the existing idempotent match/account receipt machinery.
+  if (roomRecoveryInitialized) persistRoomsNow();
   if (!(game.serverLeagueEvidence || []).some((entry) => ["match.ended", "match.abandoned"].includes(entry.eventType))) {
     captureLeagueEvidence(game, {
       command: { type: "finalizeMatch" },
@@ -7104,6 +7273,8 @@ async function recordFinalGameStats(roomState, options = {}) {
     await recordFactionGameStats(game);
   }
   game.statsRecorded = true;
+  delete roomState.pendingFinalization;
+  if (roomRecoveryInitialized) persistRoomsNow();
   return finalized.envelope;
 }
 
@@ -7744,14 +7915,19 @@ function prepareCampaignRoom(roomState, resolvedContent, factionId, chapterId) {
   const chapter = getCampaignChapter(factionId, chapterId, resolvedContent);
   if (!faction || !chapter?.setup) throw new Error("Unknown encounter.");
   const difficulty = getCampaignDifficulty(factionId, chapterId, chapter.setup);
-  const chapterIndex = Math.max(0, getCampaignChapterIndex(factionId, chapterId));
-  const playerCampaignCards = getCampaignDeckAdditions(factionId, chapterIndex, "player", chapter.setup);
-  const bossCampaignCards = getCampaignDeckAdditions(factionId, chapterIndex, "boss", chapter.setup);
+  const chapterIndex = Math.max(0, getCampaignChapterIndex(factionId, chapterId, resolvedContent));
+  const playerCampaignCards = getCampaignDeckAdditions(factionId, chapterIndex, "player", chapter.setup, resolvedContent.manifest);
+  const opponentTemplate = chapter.opponentDeckId && resolvedContent.manifest.deckTemplates.find(row => row.id === chapter.opponentDeckId);
+  if (chapter.opponentDeckId && (!opponentTemplate?.destinations.encounter || opponentTemplate.composition.factionId !== factionId || chapter.setup.bossAdditions.length)) throw new Error("This encounter's authored opponent deck is incompatible. Correct the deck assignment and legacy additions before starting.");
+  const bossCampaignCards = opponentTemplate ? resolveComposition(opponentTemplate.composition, resolvedContent.manifest, { channel: "encounters" }).cards : getCampaignDeckAdditions(factionId, chapterIndex, "boss", chapter.setup, resolvedContent.manifest);
+  if (opponentTemplate) roomState.lobby.players[2].generalId = opponentTemplate.composition.generalId;
   const bossAbility = getCampaignBossAbility(factionId, chapterIndex, chapter);
   const bossPowerProfile = getCampaignBossPowerProfile(faction, chapter, bossAbility);
   roomState.lobby.gameMode = "factions";
   roomState.lobby.campaign = {
+    ...(opponentTemplate ? { opponentTemplate: { id: opponentTemplate.id, revision: opponentTemplate.revision, name: opponentTemplate.name, composition: clonePlain(opponentTemplate.composition) } } : {}),
     setup: clonePlain(chapter.setup),
+    ...(chapter.ruleModifierId ? { ruleModifierId: chapter.ruleModifierId } : {}),
     factionId,
     chapterId,
     title: chapter.title,
@@ -7783,7 +7959,21 @@ function prepareCampaignRoom(roomState, resolvedContent, factionId, chapterId) {
 }
 
 function createGameFromLobby(roomState, options = {}) {
-  const resolvedContent = options.contentRelease || contentPublication.active();
+  const resolvedContent = options.contentRelease || roomState.draft?.resolvedContent || contentPublication.active();
+  if (!options.contentRelease && roomState.draft?.contentVersion && roomState.draft.contentVersion !== resolvedContent.releaseId) throw Object.assign(new Error("This limited session has no recoverable release binding. Its pool is retained; restore its original content before starting a match."), { code: "CONTENT_LIMITED_RELEASE_UNAVAILABLE", status: 422 });
+  const modifierId = options.ruleModifierId || roomState.lobby.campaign?.ruleModifierId;
+  const ruleModifier = modifierId && resolvedContent.manifest.ruleModifiers?.find(row => row.definition.id === modifierId);
+  if (modifierId && (!ruleModifier || (!options.isolatedPlaytest && !roomState.lobby.campaign) || isFreeForAllRoom(roomState))) throw Object.assign(new Error("Select a published modifier for a campaign or isolated test."), { status: 422 });
+  for (const player of Object.values(roomState.lobby.players)) {
+    const faction = resolvedContent.factions[player.factionId];
+    if (faction?.origin === "admin-faction-v1" && (isFreeForAllRoom(roomState) || !options.isolatedPlaytest && (!roomState.lobby.campaign || faction.status === "archived"))) throw Object.assign(new Error("Authored factions are available only in active campaigns or isolated engine tests."), { status: 422 });
+  }
+  // Recheck queued/cached decks against this game's release, before changing
+  // the room. A publication may have changed legality while players waited.
+  // The private harness also needs to test cards before they become legal.
+  for (const player of Object.values(roomState.lobby.players)) if (!options.isolatedPlaytest && !player.savedDraftDeck?.cards?.length) {
+    assertConstructedCards((player.savedConstructedDeck?.cards || []).map(card => resolvedContent.manifest.cards.find(row => row.id === (card.gameplayCardId || card.id))));
+  }
   if (isFreeForAllRoom(roomState)) {
     createFreeForAllGameFromLobby(roomState, resolvedContent);
     return;
@@ -7795,8 +7985,14 @@ function createGameFromLobby(roomState, options = {}) {
         gameNumber: roomState.bestOf3Series?.gameNumber || 1
       });
   const gameMode = getLobbyGameMode(roomState);
-  const faction1 = gameMode === "basic" ? basicGameProfile : getFactionById(roomState.lobby.players[1].factionId, roomState.lobby.players[1].generalId);
-  const faction2 = gameMode === "basic" ? basicGameProfile : getFactionById(roomState.lobby.players[2].factionId, roomState.lobby.players[2].generalId);
+  const factionFor = player => {
+    const faction = clonePlain(resolvedContent.factions[player.factionId]);
+    if (player.generalId && faction?.generals) faction.general = faction.generals.find(g => g.id === player.generalId);
+    if (!faction || player.generalId && faction.general?.id !== player.generalId) throw Object.assign(new Error("Choose a valid faction and General from this match's release."), { status: 422 });
+    return faction;
+  };
+  const faction1 = gameMode === "basic" ? basicGameProfile : factionFor(roomState.lobby.players[1]);
+  const faction2 = gameMode === "basic" ? basicGameProfile : factionFor(roomState.lobby.players[2]);
   const matchId = roomState.matchMetadata?.matchId || `room-${roomState.roomCode}`;
   const seed = String(options.seed || `${matchId}:game:${roomState.bestOf3Series?.gameNumber || 1}`);
   const random = createSharedSeededRandom(seed);
@@ -7903,7 +8099,7 @@ function createGameFromLobby(roomState, options = {}) {
         id: 1,
         accountId: roomState.lobby.players[1].accountId || null,
         accountName: roomState.lobby.players[1].accountName || null,
-        profile: clonePlain(roomState.lobby.players[1].profile || null),
+        profile: profileForDeck(roomState.lobby.players[1]),
         faction: faction1,
         life: BASIC_STARTING_LIFE,
         hand: [],
@@ -7919,7 +8115,7 @@ function createGameFromLobby(roomState, options = {}) {
         accountId: roomState.lobby.players[2].accountId || null,
         accountName: roomState.lobby.players[2].accountName || null,
         opponentKind: roomState.lobby.players[2].opponentKind || (roomState.lobby.campaign ? "campaign-boss" : null),
-        profile: clonePlain(roomState.lobby.players[2].profile || null),
+        profile: profileForDeck(roomState.lobby.players[2]),
         faction: faction2,
         life: BASIC_STARTING_LIFE,
         hand: [],
@@ -7949,14 +8145,6 @@ function createGameFromLobby(roomState, options = {}) {
     eventLog: []
   };
   
-  for (const p of [1, 2]) {
-    for (let i = 0; i < resolvedContent.manifest.gameConfig.handSize; i++) {
-      if (game.players[p].deck.length > 0) {
-        game.players[p].hand.push(game.players[p].deck.pop());
-      }
-    }
-  }
-  
   pinGameContent(game, resolvedContent);
   if (roomState.lobby.campaign) {
     game.campaign = clonePlain(roomState.lobby.campaign);
@@ -7965,14 +8153,17 @@ function createGameFromLobby(roomState, options = {}) {
     game.players[2].life = game.campaign.bossLife;
     game.players[2].opponentKind = "campaign-boss";
   }
+  if (ruleModifier) require("../shared/duel-rules/ruleModifierContract").apply(game, ruleModifier, roomState.lobby.campaign ? "campaign" : "test");
+  for (const player of [1, 2]) for (let i = 0; i < game.config.handSize; i++) if (game.players[player].deck.length) game.players[player].hand.push(game.players[player].deck.pop());
   if (game.players[2]?.opponentKind === "training-ai") game.players[2].accountName = resolvedContent.manifest.trainingOpponent.name;
   roomState.game = game;
   captureLeagueEvidence(game, {
     command: { type: "matchStarted" },
     events: [
       { id: `${matchId}:match-started`, type: "match.started" },
-      { id: `${matchId}:initial-draw:p1`, type: "cards.drawn", player: 1, count: resolvedContent.manifest.gameConfig.handSize },
-      { id: `${matchId}:initial-draw:p2`, type: "cards.drawn", player: 2, count: resolvedContent.manifest.gameConfig.handSize },
+      ...(ruleModifier ? [{ id: `${matchId}:modifier`, type: "ruleModifier.applied", ruleModifier: clonePlain(game.ruleModifier), message: require("../shared/duel-rules/ruleModifierContract").explain(ruleModifier.definition) }] : []),
+      { id: `${matchId}:initial-draw:p1`, type: "cards.drawn", player: 1, count: game.config.handSize },
+      { id: `${matchId}:initial-draw:p2`, type: "cards.drawn", player: 2, count: game.config.handSize },
       { id: `${matchId}:initial-priority`, type: "priority.granted", player: startingPriority }
     ],
     timestamp: roomState.matchMetadata?.startedAt || new Date().toISOString()
@@ -7981,6 +8172,15 @@ function createGameFromLobby(roomState, options = {}) {
 }
 
 function createFreeForAllGameFromLobby(roomState, resolvedContent = contentPublication.active()) {
+  if (Object.values(roomState.lobby.players).some(p => resolvedContent.factions[p.factionId]?.origin === "admin-faction-v1")) throw Object.assign(new Error("Authored factions do not support Free-For-All."), { status: 422 });
+  // V1 authored mechanics use the two-seat priority/target contract. Reject
+  // unsupported decks before creating any multiplayer state or evidence.
+  for (const player of Object.values(roomState.lobby.players)) {
+    for (const card of player.savedConstructedDeck?.cards || []) {
+      const definition = resolvedContent.manifest.cards.find(row => row.id === (card.gameplayCardId || card.definitionId || card.id));
+      if (definition?.effect?.id === "authored-mechanic") throw Object.assign(new Error(`${definition.name} uses a two-player authored mechanic. Choose a different deck for Free-For-All.`), { status: 422 });
+    }
+  }
   roomState.matchMetadata = createMatchMetadata();
   const seatedPlayers = getConnectedLobbyPlayerNumbers(roomState).filter((playerNum) => roomState.lobby.players[playerNum].factionId);
   const startingPriority = seatedPlayers[Math.floor(Math.random() * seatedPlayers.length)];
@@ -8046,7 +8246,7 @@ function createFreeForAllGameFromLobby(roomState, resolvedContent = contentPubli
     players[playerNum] = {
       accountId: roomState.lobby.players[playerNum].accountId || null,
       accountName: roomState.lobby.players[playerNum].accountName || null,
-      profile: clonePlain(roomState.lobby.players[playerNum].profile || null),
+      profile: profileForDeck(roomState.lobby.players[playerNum]),
       faction,
       life: BASIC_STARTING_LIFE,
       hand: [],
@@ -8187,6 +8387,8 @@ io.on("connection", (socket) => {
   onClientEvent("joinMatchmaking", async ({ authToken, bestOf = 1, gameMode = "factions", factionId, generalId } = {}) => {
     console.log("[Socket] joinMatchmaking");
     const requestedBestOf = Number(bestOf) === 3 ? 3 : 1;
+    const season = buildSeasonMatchIdentity(getActiveSeason(), requestedBestOf);
+    if (!season) { socket.emit("matchmakingStatus", { inQueue: false, message: "This ranked format has no open season." }); return; }
     const account = await getAccountRecordFromToken(authToken || socket.data.authToken);
     if (!account) {
       socket.emit("matchmakingStatus", { inQueue: false, message: "Sign in to use matchmaking." });
@@ -8205,7 +8407,7 @@ io.on("connection", (socket) => {
       socket.emit("matchmakingStatus", { inQueue: false, message: "Choose a valid ranked faction and General." });
       return;
     }
-    const savedDeck = getSavedConstructedDeck(account.stats || {});
+    const savedDeck = selectedFaction ? getSavedConstructedDeck(account.stats || {}, { factionId: selectedFaction.id, generalId: selectedFaction.general?.id || null }, { competitive: true }) : null;
     const profile = getAccountMatchProfile(account);
     const entry = {
       socketId: socket.id,
@@ -8213,6 +8415,7 @@ io.on("connection", (socket) => {
       accountName: account.name,
       profile: publicAccountProfile(account),
       bestOf: requestedBestOf,
+      season,
       gameMode: selectedMode,
       factionId: selectedFaction?.id || null,
       generalId: selectedFaction?.general?.id || null,
@@ -8237,7 +8440,7 @@ io.on("connection", (socket) => {
     )).length;
     socket.emit("matchmakingStatus", {
       inQueue: true,
-      message: `Searching ${ACTIVE_SEASON.displayName} ${selectedMode === "basic" ? "Classic" : "Faction"} Ranked${requestedBestOf === 3 ? " best-of-3" : ""} for a similar record... ${queueSize} player${queueSize === 1 ? "" : "s"} in this queue.`,
+      message: `Searching ${season.displayName} ${selectedMode === "basic" ? "Classic" : "Faction"} Ranked${requestedBestOf === 3 ? " best-of-3" : ""} for a similar record... ${queueSize} player${queueSize === 1 ? "" : "s"} in this queue.`,
       queueSize,
       bestOf: requestedBestOf,
       season: buildSeasonMatchIdentity(getActiveSeason(), requestedBestOf)
@@ -8251,7 +8454,7 @@ io.on("connection", (socket) => {
 
   onClientEvent("joinEventMatchmaking", async ({ authToken, eventId, factionId, generalId } = {}) => {
     const account = await getAccountRecordFromToken(authToken || socket.data.authToken);
-    const event = eventById(String(eventId || ""));
+    let event = eventById(String(eventId || ""));
     if (!account || !event) {
       socket.emit("eventMatchmakingStatus", { inQueue: false, message: account ? "Choose a valid event." : "Sign in to play events." });
       return;
@@ -8269,6 +8472,7 @@ io.on("connection", (socket) => {
       socket.emit("eventMatchmakingStatus", { inQueue: false, eventId: event.id, message: "This scheduled event is not currently live." });
       return;
     }
+    event = run.definition || event;
     removeFromMatchmaking(socket.id);
     removeFromDraftLeague(socket.id);
     const selectedFaction = event.format === "factions" && factionId ? getFactionById(factionId, generalId) : null;
@@ -8276,7 +8480,7 @@ io.on("connection", (socket) => {
       socket.emit("eventMatchmakingStatus", { inQueue: false, message: "Choose a valid faction and General for this event." });
       return;
     }
-    const savedDeck = getSavedConstructedDeck(account.stats || {});
+    const savedDeck = selectedFaction ? getSavedConstructedDeck(account.stats || {}, { factionId: selectedFaction.id, generalId: selectedFaction.general?.id || null }, { competitive: true }) : null;
     const profile = getAccountMatchProfile(account);
     const entry = {
       socketId: socket.id,
@@ -8638,11 +8842,12 @@ io.on("connection", (socket) => {
           ? (await findSupabaseAccountById(identity.id))?.stats || {}
           : (loadAccountStore().accounts.find((entry) => entry.id === identity.id)?.stats || {}))
       : {};
-    if (!isCampaignChapterUnlocked(accountStats, factionId, chapterId)) {
+    if (!isCampaignChapterUnlocked(accountStats, factionId, chapterId, resolvedContent)) {
       socket.emit("errorMessage", "Complete the previous chapter with this account to unlock that battle.");
       return;
     }
 
+    const campaignConstructedDeck = getSavedConstructedDeck(accountStats, { factionId });
     const roomState = createRoom();
     const { difficulty, bossAbility } = prepareCampaignRoom(roomState, resolvedContent, factionId, chapterId);
     roomState.lobby.players[1].socket = socket.id;
@@ -8653,7 +8858,6 @@ io.on("connection", (socket) => {
     roomState.lobby.players[1].profile = clonePlain(identity.profile || null);
     roomState.lobby.players[1].factionId = factionId;
     roomState.lobby.players[1].isGuest = identity.type === "guest";
-    const campaignConstructedDeck = getSavedConstructedDeck(accountStats);
     roomState.lobby.players[1].savedConstructedDeck = campaignConstructedDeck?.factionId === factionId ? campaignConstructedDeck : null;
     roomState.lobby.players[2].connected = true;
     roomState.lobby.players[2].accountId = null;
@@ -10372,9 +10576,16 @@ io.on("connection", (socket) => {
 
 let shutdownStarted = false;
 
+if (process.env.GAUNTLET_RUNTIME_BACKUPS && process.env.GAUNTLET_RUNTIME_BACKUPS !== "supabase") throw new Error("Unsupported runtime backup provider.");
+if (process.env.GAUNTLET_RUNTIME_BACKUPS && !runtimeStorageStatus.persistentMountVerified) throw new Error("Runtime backups require a verified persistent volume.");
+const { createRuntimeBackupService, createBackupStorage } = require("./runtimeBackups");
+const runtimeBackupService = createRuntimeBackupService({ config: runtimeStorage, beforeSnapshot: () => persistRoomsNow(),
+  storage: process.env.GAUNTLET_RUNTIME_BACKUPS === "supabase" ? createBackupStorage({ url: SUPABASE_URL, key: SUPABASE_SERVICE_ROLE_KEY }) : null });
+
 async function shutdownServer(signal = "shutdown") {
   if (shutdownStarted) return;
   shutdownStarted = true;
+  runtimeBackupService.stop();
   console.log(`[Server] ${signal} received; preserving active rooms.`);
   stopRoomLifecycleSweep();
   server.close();
@@ -10391,6 +10602,7 @@ async function shutdownServer(signal = "shutdown") {
 if (require.main === module) {
   const recovery = initializeRoomRecovery();
   server.listen(PORT, () => {
+    runtimeBackupService.start();
     startRoomLifecycleSweep();
     if (recovery.enabled) console.log(`[Rooms] Restored ${recovery.restored} active room${recovery.restored === 1 ? "" : "s"}.`);
     console.log(`Server running on port ${PORT}`);
@@ -10417,6 +10629,8 @@ module.exports = {
     createFreeForAllGameFromLobby,
     createGameFromLobby,
     contentPublication,
+    purchaseDeckProduct,
+    deckPurchaseCapability,
     paraRuntime,
     goldEconomy,
     recoverParaMatches,
@@ -10427,6 +10641,8 @@ module.exports = {
     createTurnData,
     adminPlaytests,
     prepareCampaignRoom,
+    isCampaignChapterUnlocked,
+    getNextCampaignMission,
     chooseSemanticTrainingAiCommand,
     applySemanticAutomatedCommand,
     executeSemanticDuelCommand,
@@ -10439,6 +10655,8 @@ module.exports = {
     buildCompetitiveCapabilitySnapshot,
     buildCollectorVariantProvenance,
     createDraftPack,
+    collectionSummary,
+    openCollectionBooster,
     createDraftRoom,
     matchArchive,
     matchPersistence,

@@ -1,0 +1,216 @@
+{
+  "contract": "eggs.execution-packet@1.0.0",
+  "schemaVersion": "1.0.0",
+  "packetId": "admin-suite-release-20261016-execution",
+  "createdAt": "2026-10-16T07:26:34.495Z",
+  "expiresAt": "2026-10-16T15:26:34.497Z",
+  "project": {
+    "id": "gauntlet",
+    "manifestVersion": "1.1.0",
+    "manifestSource": "repo-local",
+    "mode": "repository-backed"
+  },
+  "task": {
+    "id": "admin-suite-release-20261016",
+    "requestSummary": "Direct user instruction and .eggs/releases/admin-suite-20261016.json authorize tested Admin code release. Preserve existing task and all other worktrees; reconcile current main. No paid provisioning, production migrations, balance cutover or payment activation.",
+    "contractRequired": true,
+    "contractResolved": true,
+    "unresolvedComments": []
+  },
+  "authority": {
+    "account": "timetwisterbrand@gmail.com",
+    "resolutionPacketId": "admin-suite-release-20261016-authority",
+    "mode": "live",
+    "complete": true,
+    "current": true,
+    "conflictFree": true,
+    "writebackDisabled": true
+  },
+  "classification": {
+    "modality": "code",
+    "identityBearing": false,
+    "visualAuthorityMaterial": false,
+    "visualSkillRequired": false
+  },
+  "repositoryState": {
+    "remoteUrl": "https://github.com/BurntRamen/gauntlet-online.git",
+    "branch": "codex/modular-admin-suite",
+    "base": "6b5647713a2a30bbf3fb2a12b70a74ad5dd19976",
+    "canonicalBranch": "main",
+    "worktreeCount": 19,
+    "overlappingDirtyPaths": [],
+    "unrelatedDirtyPaths": [],
+    "matchesManifest": true
+  },
+  "workspaceState": {
+    "strategy": "dedicated-worktree",
+    "bindingResolved": true,
+    "policySatisfied": true
+  },
+  "skills": [
+    "eggs-project-preflight@1.0.0",
+    "eggs-safe-project-execution@1.0.0"
+  ],
+  "permissions": [
+    {
+      "action": "codeEdit",
+      "manifest": "task-contract-required",
+      "taskContract": "allowed",
+      "effective": "allowed"
+    },
+    {
+      "action": "createBranch",
+      "manifest": "task-contract-required",
+      "taskContract": "allowed",
+      "effective": "allowed"
+    },
+    {
+      "action": "commit",
+      "manifest": "task-contract-required",
+      "taskContract": "allowed",
+      "effective": "allowed"
+    },
+    {
+      "action": "push",
+      "manifest": "task-contract-required",
+      "taskContract": "allowed",
+      "effective": "allowed"
+    },
+    {
+      "action": "merge",
+      "manifest": "task-contract-required",
+      "taskContract": "allowed",
+      "effective": "allowed"
+    },
+    {
+      "action": "deploy",
+      "manifest": "task-contract-required",
+      "taskContract": "allowed",
+      "effective": "allowed"
+    },
+    {
+      "action": "productionDatabase",
+      "manifest": "denied",
+      "taskContract": "denied",
+      "effective": "denied"
+    },
+    {
+      "action": "driveWriteback",
+      "manifest": "denied",
+      "taskContract": "denied",
+      "effective": "denied"
+    },
+    {
+      "action": "canonApproval",
+      "manifest": "denied",
+      "taskContract": "denied",
+      "effective": "denied"
+    },
+    {
+      "action": "releaseApproval",
+      "manifest": "task-contract-required",
+      "taskContract": "allowed",
+      "effective": "allowed"
+    },
+    {
+      "action": "publication",
+      "manifest": "task-contract-required",
+      "taskContract": "allowed",
+      "effective": "allowed"
+    },
+    {
+      "action": "manufacturing",
+      "manifest": "denied",
+      "taskContract": "denied",
+      "effective": "denied"
+    },
+    {
+      "action": "spending",
+      "manifest": "denied",
+      "taskContract": "denied",
+      "effective": "denied"
+    },
+    {
+      "action": "externalCommunication",
+      "manifest": "task-contract-required",
+      "taskContract": "allowed",
+      "effective": "allowed"
+    }
+  ],
+  "commands": [
+    {
+      "id": "check",
+      "argv": [
+        "npm",
+        "run",
+        "check"
+      ],
+      "cwd": ".",
+      "required": true
+    },
+    {
+      "id": "asset-report",
+      "argv": [
+        "npm",
+        "run",
+        "report:match-assets",
+        "--",
+        "--strict"
+      ],
+      "cwd": ".",
+      "required": true
+    },
+    {
+      "id": "browser-entry",
+      "argv": [
+        "npm",
+        "run",
+        "test:e2e"
+      ],
+      "cwd": ".",
+      "required": true
+    },
+    {
+      "id": "browser-usability",
+      "argv": [
+        "npm",
+        "run",
+        "test:e2e:usability"
+      ],
+      "cwd": ".",
+      "required": true
+    },
+    {
+      "id": "browser-performance",
+      "argv": [
+        "npm",
+        "run",
+        "test:e2e:performance"
+      ],
+      "cwd": ".",
+      "required": true
+    },
+    {
+      "id": "preview",
+      "argv": [
+        "npm",
+        "run",
+        "serve:client-build"
+      ],
+      "cwd": ".",
+      "required": false
+    }
+  ],
+  "preview": {
+    "required": true,
+    "routes": [
+      "/",
+      "/admin/gauntlet"
+    ],
+    "readinessChecks": [
+      "Isolated published Admin browser journeys and ordinary gameplay; live frontend/backend version and unauthenticated access checks after code deployment."
+    ]
+  },
+  "blockers": [],
+  "determination": "ready"
+}

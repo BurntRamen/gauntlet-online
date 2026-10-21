@@ -1,81 +1,36 @@
-// Keep the portable history library shared across the live, Matches and replay
-// entry points. CRA's default size threshold duplicates this module otherwise.
-process.env.NODE_ENV = "production";
-process.env.BABEL_ENV = "production";
-const configPath = require.resolve("react-scripts/config/webpack.config");
-const createConfig = require(configPath);
-require.cache[configPath].exports = (environment) => {
-  const config = createConfig(environment);
-  // Keep maps for bundle attribution and manual debugging without downloading
-  // their discovery comments in every production chunk.
-  if (config.devtool === "source-map") config.devtool = "hidden-source-map";
-  // Repeated standard compression reduces duplicated UI expressions without
-  // relaxing CRA's compatibility safeguards or excluding counted chunks.
-  for (const plugin of config.optimization.minimizer) {
-    const compress = plugin.options?.minimizer?.options?.compress;
-    if (compress && typeof compress === "object") compress.passes = 4;
-  }
-  config.optimization.splitChunks = {
-    ...config.optimization.splitChunks,
-    cacheGroups: {
-      ...config.optimization.splitChunks?.cacheGroups,
-      matchRuntime: {
-        // The live adapter and table already load together. Compress them with
-        // their shared rules instead of paying for separate small chunks.
-        // Replay and ability-preview entry points retain their own lazy loads.
-        test: /[\\/]src[\\/]babylon[\\/](?!(?:MatchReplayScreen|ReplayMatchAdapter|ReplayTranscript|AbilityPreview)\.)|[\\/]shared[\\/](?:basic-gauntlet-rules|duel-rules)[\\/]/,
-        name: "gauntlet-match",
-        chunks: "async",
-        enforce: true,
-        priority: 15
-      },
-      adminShared: {
-        // Compress related workshop panels together while retaining the separate
-        // Admin entry. Every workshop byte remains in the aggregate budget.
-        test: /[\\/]src[\\/]admin[\\/](?:WorkshopShell|RelatedContent)\.js$/,
-        name: "gauntlet-admin-workshops",
-        chunks: "async",
-        minChunks: 2,
-        enforce: true,
-        priority: 35
-      },
-      runtimeHelpers: {
-        // Reuse helpers repeated across match/replay chunks to retain the
-        // existing JavaScript budget as the full-art card UI is added.
-        test: /[\\/]node_modules[\\/]@babel[\\/]runtime[\\/]helpers[\\/]/,
-        name: "runtime-helpers",
-        chunks: "all",
-        minChunks: 2,
-        enforce: true,
-        priority: 30
-      },
-      matchHistory: {
-        test: /[\\/](?:shared[\\/]match-history[\\/]|src[\\/]match(?:History|Transcript)\.js$)/,
-        name: "match-history",
-        chunks: "all",
-        enforce: true,
-        priority: 30
-      },
-      sharedBabylon: {
-        // Keep WebGPU-only shaders separable for the existing WebGL pruning.
-        test: /[\\/]node_modules[\\/]@babylonjs[\\/]core[\\/](?!ShadersWGSL[\\/])/,
-        name: "babylon-shared",
-        chunks: "all",
-        minChunks: 2,
-        enforce: true,
-        priority: 20
-      },
-      webglShaders: {
-        // The card foil uses the standard material's WebGL shaders. Group the
-        // small shader modules for shared compression and fewer table requests.
-        test: /[\\/]node_modules[\\/]@babylonjs[\\/]core[\\/]Shaders[\\/]/,
-        name: "babylon-webgl-shaders",
-        chunks: "all",
-        enforce: true,
-        priority: 25
-      }
-    }
-  };
-  return config;
-};
-require("react-scripts/scripts/build");
+const fs = require("node:fs");
+const path = require("node:path");
+const root = path.resolve(__dirname, "..");
+
+function prepareOutput() {
+  const output = path.resolve(root, "build");
+  // Only remove this client's generated build directory, never a symlink target.
+  if (path.dirname(output) !== root || path.basename(output) !== "build" || (fs.existsSync(output) && fs.lstatSync(output).isSymbolicLink())) throw new Error("Unsafe build output path");
+  fs.rmSync(output, { recursive: true, force: true });
+  fs.mkdirSync(output, { recursive: true });
+  fs.cpSync(path.join(root, "public"), output, { recursive: true, filter: source => source !== path.join(root, "public/index.html") });
+}
+
+async function build() {
+  process.env.NODE_ENV = "production";
+  process.env.BABEL_ENV = "production";
+  require("../config/environment").loadEnvironment(root, "production");
+  const { ESLint } = require("eslint");
+  const lint = new ESLint({ cwd: root });
+  const results = await lint.lintFiles(["src/**/*.{js,jsx}"]);
+  const report = (await lint.loadFormatter("stylish")).format(results);
+  if (report) console.log(report);
+  if (results.some(result => result.errorCount > 0)) throw new Error("Client lint failed");
+  if (process.env.CI && process.env.CI.toLowerCase() !== "false" && results.some(result => result.warningCount > 0)) throw new Error("Client lint warnings fail CI");
+  prepareOutput();
+  const compiler = require("webpack")(require("../config/webpack.config")("production"));
+  await new Promise((resolve, reject) => compiler.run((error, stats) => compiler.close(closeError => {
+    if (error || closeError) return reject(error || closeError);
+    console.log(stats.toString({ colors: false, preset: "errors-warnings" }));
+    if (stats.hasErrors()) return reject(new Error("Client compilation failed"));
+    if (process.env.CI && process.env.CI.toLowerCase() !== "false" && stats.hasWarnings()) return reject(new Error("Client compilation warnings fail CI"));
+    resolve();
+  })));
+}
+if (require.main === module) build().catch(error => { console.error(error); process.exitCode = 1; });
+module.exports = { build, prepareOutput };

@@ -17,12 +17,12 @@ let origin;
 test.before(async () => { await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve)); origin = `http://127.0.0.1:${server.address().port}`; });
 test.after(async () => { await new Promise((resolve) => server.close(resolve)); fs.rmSync(root, { recursive: true, force: true }); });
 async function call(route = "", body, account = accounts[0], method = body ? "POST" : "GET") {
-  const response = await fetch(`${origin}/api/admin/authoring${route}`, { method, headers: { "Content-Type": "application/json", ...(account ? { Authorization: `Bearer ${__test.issueAccountSession(account).token}` } : {}) }, ...(body ? { body: JSON.stringify(body) } : {}) });
+  const response = await fetch(`${origin}/api/admin/authoring${route}`, { method, headers: { "Content-Type": "application/json", Connection: "close", ...(account ? { Authorization: `Bearer ${__test.issueAccountSession(account).token}` } : {}) }, ...(body ? { body: JSON.stringify(body) } : {}) });
   return { status: response.status, body: await response.json() };
 }
 
 test("all authoring reads and writes retain the exact two-account server gate", async () => {
-  for (const [route, method] of [["", "GET"], ["/draft", "PATCH"], ["/para-draft", "POST"], ["/para-simulate", "POST"], ["/validate", "POST"], ["/preview", "POST"], ["/publish", "POST"], ["/discard", "POST"], ["/rollback", "POST"], ["/reconcile", "POST"], ["/cancel-publication", "POST"], ["/playtest", "POST"], ["/playtest/command", "POST"]]) {
+  for (const [route, method] of [["/studio-draft", "POST"], ["/assets/upload", "POST"], ["/assets/archive", "POST"], ["/assets/unknown", "GET"], ["/assets/unknown", "DELETE"], ["", "GET"], ["/draft", "PATCH"], ["/create", "POST"], ["/para-draft", "POST"], ["/para-simulate", "POST"], ["/validate", "POST"], ["/preview", "POST"], ["/publish", "POST"], ["/discard", "POST"], ["/rollback", "POST"], ["/reconcile", "POST"], ["/cancel-publication", "POST"], ["/playtest", "POST"], ["/playtest/command", "POST"]]) {
     assert.equal((await call(route, method === "GET" ? undefined : {}, null, method)).status, 401);
     assert.equal((await call(route, method === "GET" ? undefined : {}, accounts[2], method)).status, 403);
   }
@@ -210,6 +210,28 @@ test("HTTP stale writes, invalid drafts and stale previews fail without replacin
   assert.equal(discarded.body.activeReleaseId, originalId);
 });
 
+test("uploaded private bytes require stable-ID authorization; published bytes use immutable delivery", async () => {
+  const pub = __test.contentPublication;
+  if (pub.status().draft) pub.discard({ expectedRevision: pub.status().revision });
+  const data = (await require("sharp")({ create: { width: 40, height: 50, channels: 3, background: "green" } }).png().toBuffer()).toString("base64");
+  const uploaded = await call("/assets/upload", { expectedRevision: pub.status().revision, title: "Route image", description: "", notes: "Private", data }, accounts[1]);
+  assert.equal(uploaded.status, 200); const asset = uploaded.body.uploaded;
+  for (const actor of [null, accounts[2]]) assert.equal((await call("/assets/" + asset.id, undefined, actor)).status, actor ? 403 : 401);
+  for (const actor of accounts.slice(0, 2)) {
+    const result = await call("/assets/" + asset.id, undefined, actor); assert.equal(result.status, 200);
+    assert.equal(require("../authoredAssets").digest(Buffer.from(result.body.data, "base64")), asset.sha256);
+  }
+  const url = origin + require("../authoredAssets").publicPath(asset);
+  assert.equal((await fetch(url, { headers: { Connection: "close" } })).status, 404);
+  pub.patch({ expectedRevision: pub.status().revision, domain: "assets", id: "rumin-coin-scale-spear:standard", field: "art", value: asset.id }, accounts[0].id);
+  assert.equal((await call("/assets/" + asset.id, {}, accounts[0], "DELETE")).status, 409);
+  pub.preview({ expectedRevision: pub.status().revision }); pub.publish({ expectedRevision: pub.status().revision, label: "Private to published" }, accounts[0].id);
+  const result = await fetch(url, { headers: { Connection: "close" } }); assert.equal(result.status, 200);
+  assert.match(result.headers.get("cache-control"), /immutable/); assert.equal(result.headers.get("x-content-type-options"), "nosniff");
+  assert.equal(require("../authoredAssets").digest(Buffer.from(await result.arrayBuffer())), asset.sha256);
+  assert.equal((await call("/assets/" + asset.id, undefined, null)).status, 401, "private metadata endpoint stays private after publication");
+});
+
 test("Para HTTP lifecycle and simulation preserve account, deck and canonical match bytes", async () => {
   const accountBytes = fs.readFileSync(process.env.ACCOUNT_DATA_FILE), matchBytes = fs.readFileSync(process.env.MATCH_DATA_FILE);
   let state = (await call()).body;
@@ -231,4 +253,117 @@ test("Para HTTP lifecycle and simulation preserve account, deck and canonical ma
   assert.equal((await call("/rollback", { expectedRevision: state.revision, releaseId: originalId })).status, 200);
   assert.deepEqual(fs.readFileSync(process.env.ACCOUNT_DATA_FILE), accountBytes);
   assert.deepEqual(fs.readFileSync(process.env.MATCH_DATA_FILE), matchBytes);
+});
+
+test("Free-For-All rejects two-player authored mechanics before creating match state", () => {
+  const resolved = structuredClone(__test.contentPublication.active());
+  const card = resolved.manifest.cards[0]; card.effect = { id: "authored-mechanic" };
+  const room = { roomCode: "unsupported-authored-ffa", lobby: { gameMode: "freeForAll", players: { 1: { factionId: card.factionId, savedConstructedDeck: { cards: [{ gameplayCardId: card.id }] } } } } };
+  const before = structuredClone(room);
+  assert.throws(() => __test.createFreeForAllGameFromLobby(room, resolved), /two-player authored mechanic/);
+  assert.deepEqual(room, before);
+});
+
+test("rule modifiers publish, drive actual campaign creation, refill and stay pinned across revisions", async () => {
+  let status = (await call()).body;
+  const mutate = async (route, input, method) => { const result = await call(route, { expectedRevision: status.revision, ...input }, accounts[0], method); assert.equal(result.status, 200, JSON.stringify(result.body)); status = result.body; return result.body; };
+  await mutate("/studio-draft", { kind: "modifiers", operation: "create" });
+  let modifier = structuredClone(status.draft.snapshot.studio.modifiers[0]); Object.assign(modifier, { name: "Tense opening", playerLife: 25, opponentLife: 61, handSize: 5 });
+  await mutate("/studio-draft", { kind: "modifiers", operation: "update", id: modifier.id, value: modifier });
+  assert.equal(status.draft.updatedBy, accounts[0].id);
+  const encounter = status.draft.snapshot.domains.encounters.find(e => e.factionId === "rumin");
+  await mutate("/draft", { domain: "encounters", id: encounter.id, field: "ruleModifierId", value: modifier.id }, "PATCH");
+  const started = await call("/playtest", { source: "draft", expectedRevision: status.revision, subject: { kind: "rule-modifier", id: modifier.id } }); assert.equal(started.status, 200, JSON.stringify(started.body));
+  let session = started.body.playtest; assert.equal(session.game.players[1].life, 25); assert.equal(session.game.players[2].life, 61); assert.equal(session.game.players[1].hand.length, 5);
+  const action = await call("/playtest/command", { id: session.id, gameRevision: session.game.revision, command: { type: "passPriority", player: session.game.priority } }); assert.equal(action.status, 200, JSON.stringify(action.body)); status = action.body.authoring;
+  await mutate("/preview", {}); await mutate("/publish", { label: "Campaign modifier one" }); const first = status.activeReleaseId, resolved = __test.contentPublication.active();
+  const room = () => ({ roomCode: "modifier-engine", lobby: { gameMode: "factions", players: { 1: { factionId: "rumin" }, 2: { factionId: "rumin" } } } });
+  const campaign = room(); __test.prepareCampaignRoom(campaign, resolved, "rumin", encounter.id); __test.createGameFromLobby(campaign, { contentRelease: resolved, seed: "modifier-start" });
+  assert.equal(campaign.game.players[1].life, 25); assert.equal(campaign.game.players[2].life, 61); assert.equal(campaign.game.config.handSize, 5); assert.equal(campaign.game.players[1].hand.length, 5);
+  const pinned = JSON.stringify(campaign.game); const regular = room(); __test.createGameFromLobby(regular, { contentRelease: resolved }); assert.equal(regular.game.players[1].life, 42); assert.equal(regular.game.players[1].hand.length, resolved.manifest.gameConfig.handSize); assert.equal(regular.game.ruleModifier, undefined);
+  assert.throws(() => __test.createGameFromLobby(room(), { contentRelease: resolved, ruleModifierId: modifier.id }), /campaign or isolated test/);
+  modifier.handSize = 4; modifier.playerLife = 30;
+  await mutate("/studio-draft", { kind: "modifiers", operation: "update", id: modifier.id, value: modifier });
+  const draft = __test.contentPublication.playtestContent(status.revision); let tested = require("../../shared/duel-rules").createMatch({ ruleModifier: draft.resolved.manifest.ruleModifiers.find(m => m.definition.id === modifier.id) }).state;
+  assert.equal(tested.players[1].hand.length, 4); assert.equal(tested.players[1].life, 30);
+  const refillRules = require("../../shared/duel-rules");
+  tested.players[1].discard.push(tested.players[1].hand.pop());
+  const perform = command => { const result = refillRules.applyCommand(tested, command); assert.equal(result.accepted, true, result.rejectionReason); tested = result.state; };
+  perform({ type: "passPriority", player: tested.priority }); perform({ type: "passPriority", player: tested.priority });
+  while (tested.phase === "end") perform({ type: "skipPlacement", player: refillRules.currentPlacementPlayer(tested), laneIndex: tested.endPlacementLaneIndex });
+  assert.equal(tested.players[1].hand.length, 4, "the ordinary turn transition refills to the captured modifier size");
+  __test.contentPublication.recordPlaytest(draft.draftHash, accounts[0].id); status = __test.contentPublication.status(); await mutate("/preview", {}); await mutate("/publish", { label: "Campaign modifier two" });
+  assert.equal(JSON.stringify(campaign.game), pinned); assert.equal(JSON.parse(pinned).ruleModifier.definition.handSize, 5);
+  const future = room(); __test.prepareCampaignRoom(future, __test.contentPublication.active(), "rumin", encounter.id); __test.createGameFromLobby(future); assert.equal(future.game.players[1].hand.length, 4);
+  await mutate("/rollback", { releaseId: first }); assert.equal(__test.contentPublication.active().manifest.ruleModifiers[0].definition.handSize, 5);
+});
+
+test("additional encounters publish into actual campaign unlock, AI, progression and retirement consumers", async () => {
+  let status = (await call()).body;
+  const beforeRelease = status.activeReleaseId, originalCampaign = structuredClone(__test.contentPublication.active().manifest.campaigns.rumin);
+  const mutate = async (route, input, method) => { const result = await call(route, { expectedRevision: status.revision, ...input }, accounts[0], method); assert.equal(result.status, 200, JSON.stringify(result.body)); status = result.body; return status; };
+  await mutate("/create", { domain: "encounters", name: "Additional Rumin challenge", campaignId: "rumin" });
+  const encounter = status.draft.snapshot.domains.encounters.at(-1);
+  await mutate("/draft", { domain: "characters", id: encounter.opponentId, field: "name", value: "Challenge opponent" }, "PATCH");
+  await mutate("/draft", { domain: "encounters", id: encounter.id, field: "setup", value: { ...encounter.setup, bossLife: 19 } }, "PATCH");
+  let response = await call("/playtest", { source: "draft", expectedRevision: status.revision, subject: { kind: "encounter", id: encounter.id } }); assert.equal(response.status, 200, JSON.stringify(response.body));
+  let session = response.body.playtest;
+  assert.equal(session.game.players[2].life, 19); assert.equal(session.game.players[2].accountName, "Challenge opponent");
+  for (let index = 0; index < 8 && !session.game.winner; index++) {
+    const action = session.actions.find(a => a.command.type === "passPriority") || session.actions[0];
+    response = await call("/playtest/command", { id: session.id, gameRevision: session.game.revision, ...(session.game.priority === 2 && session.game.phase === "priority" ? { automated: true } : { command: action.command }) });
+    assert.equal(response.status, 200, JSON.stringify(response.body)); session = response.body.playtest; status = response.body.authoring;
+  }
+  assert.ok(session.acceptedCommands >= 8); assert.ok(session.game.campaign.bossAttacksThisTurn > 0 || session.game.players[1].life < 42, "the existing scripted opponent takes actual engine actions");
+  await mutate("/preview", {}); await mutate("/publish", { label: "Additional encounter qualified" }); const published = status.activeReleaseId;
+  const resolved = __test.contentPublication.active(), campaign = resolved.manifest.campaigns.rumin;
+  assert.deepEqual(campaign.chapters.slice(0, originalCampaign.chapters.length), originalCampaign.chapters); assert.equal(campaign.chapters.at(-1).id, encounter.id);
+  const stats = { progression: { campaign: { rumin: originalCampaign.chapters.map(c => c.id) } } };
+  assert.equal(__test.isCampaignChapterUnlocked({}, "rumin", encounter.id), false); assert.equal(__test.isCampaignChapterUnlocked(stats, "rumin", encounter.id), true);
+  assert.equal(__test.getNextCampaignMission({ stats }, "rumin", originalCampaign.chapters.at(-1).id, "win").chapterId, encounter.id);
+  const room = { roomCode: "additional-campaign", lobby: { gameMode: "factions", players: { 1: { factionId: "rumin" }, 2: { factionId: "rumin" } } } };
+  __test.prepareCampaignRoom(room, resolved, "rumin", encounter.id); __test.createGameFromLobby(room, { contentRelease: resolved, seed: "additional-campaign" });
+  assert.equal(room.game.players[2].life, 19); const pinned = JSON.stringify(room.game);
+  __test.applyProgressionForResult(stats, "win", { factionId: "rumin", campaign: room.game.campaign });
+  const credits = stats.collection.packCredits; __test.applyProgressionForResult(stats, "win", { factionId: "rumin", campaign: room.game.campaign }); assert.equal(stats.collection.packCredits, credits, "repeat clears do not duplicate the first-clear pack");
+  assert.ok(stats.progression.campaign.rumin.includes(encounter.id));
+  await mutate("/draft", { domain: "encounters", id: encounter.id, field: "status", value: "archived" }, "PATCH");
+  response = await call("/playtest", { source: "draft", expectedRevision: status.revision, subject: { kind: "game-config", id: "shared-rules" } }); assert.equal(response.status, 200, JSON.stringify(response.body)); session = response.body.playtest;
+  response = await call("/playtest/command", { id: session.id, gameRevision: session.game.revision, command: { type: "passPriority", player: session.game.priority } }); assert.equal(response.status, 200); status = response.body.authoring;
+  await mutate("/preview", {}); await mutate("/publish", { label: "Retired additional encounter" });
+  assert.equal(__test.isCampaignChapterUnlocked(stats, "rumin", encounter.id), false); assert.equal(JSON.stringify(room.game), pinned); assert.ok(stats.progression.campaign.rumin.includes(encounter.id));
+  assert.throws(() => __test.prepareCampaignRoom(structuredClone(room), __test.contentPublication.active(), "rumin", encounter.id), /Unknown encounter/);
+  const incompatible = await call("/rollback", { expectedRevision: status.revision, releaseId: beforeRelease }); assert.ok(incompatible.status >= 400);
+  await mutate("/rollback", { releaseId: published }); assert.equal(__test.isCampaignChapterUnlocked(stats, "rumin", encounter.id), true);
+});
+
+test("a new faction publishes into a real campaign with independent roles, captured rules and enforced mode boundaries", async () => {
+  let status = (await call()).body;
+  const before = status.activeReleaseId;
+  const mutate = async (route, input, method) => { const response = await call(route, { expectedRevision: status.revision, ...input }, accounts[0], method); assert.equal(response.status, 200, JSON.stringify(response.body)); status = response.body; return status; };
+  await mutate("/create", { domain: "factions", name: "Glass dynasty", family: "rumin" });
+  const faction = status.draft.snapshot.domains.factions.at(-1), encounter = status.draft.snapshot.domains.encounters.at(-1);
+  assert.equal(status.validation.valid, true);
+  await mutate("/draft", { domain: "characters", id: `${faction.id}:commander`, field: "name", value: "Glass Marshal" }, "PATCH");
+  await mutate("/draft", { domain: "factions", id: faction.id, field: "mechanics", value: { ...faction.mechanics, parameters: { fourthAttackBonus: 6 } } }, "PATCH");
+  let response = await call("/playtest", { source: "draft", expectedRevision: status.revision, subject: { kind: "encounter", id: encounter.id } }); assert.equal(response.status, 200, JSON.stringify(response.body));
+  const session = response.body.playtest; assert.equal(session.game.players[1].faction.id, faction.id); assert.equal(session.game.players[1].faction.commander.name, "Glass Marshal");
+  response = await call("/playtest/command", { id: session.id, gameRevision: session.game.revision, command: { type: "passPriority", player: session.game.priority } }); assert.equal(response.status, 200, JSON.stringify(response.body)); status = response.body.authoring;
+  await mutate("/preview", {}); await mutate("/publish", { label: "Glass campaign" }); const first = status.activeReleaseId, resolved = __test.contentPublication.active();
+  assert.equal(resolved.manifest.campaigns[faction.id].chapters[0].id, encounter.id); assert.equal(__test.isCampaignChapterUnlocked({}, faction.id, encounter.id), true);
+  const room = () => ({ roomCode: "authored-faction", lobby: { gameMode: "factions", players: { 1: { factionId: faction.id }, 2: { factionId: faction.id } } } });
+  const campaign = room(); __test.prepareCampaignRoom(campaign, resolved, faction.id, encounter.id); __test.createGameFromLobby(campaign, { contentRelease: resolved, seed: "glass-campaign" });
+  const pinned = JSON.stringify(campaign.game); assert.equal(campaign.game.players[1].faction.mechanics.parameters.fourthAttackBonus, 6);
+  assert.equal(campaign.game.contentBinding.factionFamilyVersion, "gauntlet.faction-families.v1");
+  const ordinary = room(), unchanged = JSON.stringify(ordinary); assert.throws(() => __test.createGameFromLobby(ordinary), /active campaigns/); assert.equal(JSON.stringify(ordinary), unchanged);
+  assert.throws(() => __test.createFreeForAllGameFromLobby(room()), /do not support Free-For-All/);
+  const stats = {}; __test.applyProgressionForResult(stats, "win", { factionId: faction.id, campaign: campaign.game.campaign }); assert.ok(stats.progression.campaign[faction.id].includes(encounter.id));
+  await mutate("/draft", { domain: "factions", id: faction.id, field: "status", value: "archived" }, "PATCH");
+  response = await call("/playtest", { source: "draft", expectedRevision: status.revision, subject: { kind: "faction", id: faction.id } }); assert.equal(response.status, 200, JSON.stringify(response.body));
+  const archivedTest = response.body.playtest;
+  response = await call("/playtest/command", { id: archivedTest.id, gameRevision: archivedTest.game.revision, command: { type: "passPriority", player: archivedTest.game.priority } }); assert.equal(response.status, 200); status = response.body.authoring;
+  await mutate("/preview", {}); await mutate("/publish", { label: "Retired Glass campaign" });
+  assert.equal(__test.contentPublication.active().manifest.campaigns[faction.id], undefined); assert.equal(JSON.stringify(campaign.game), pinned); assert.equal(__test.isCampaignChapterUnlocked(stats, faction.id, encounter.id), false);
+  assert.ok((await call("/rollback", { expectedRevision: status.revision, releaseId: before })).status >= 400);
+  await mutate("/rollback", { releaseId: first }); assert.equal(__test.isCampaignChapterUnlocked(stats, faction.id, encounter.id), true);
 });

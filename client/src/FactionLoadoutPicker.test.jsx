@@ -4,6 +4,10 @@ const monti = { id: "monti", name: "Monti", text: "Grand Celebration" };
 const hui = { id: "hui", name: "Hui", text: "Invite Everyone" };
 const basho = { id: "basho", name: "Basho", text: "Call the Formation" };
 const factions = [{ id: "rumin", name: "Rumin", general: { name: "Meerus" } }, { id: "mekan", name: "Mekan", general: monti, generals: [monti, hui], draftRules: true }, { id: "jali", name: "Jali", general: basho, generals: [basho], draftRules: true }];
+test("campaign-only authored factions are absent from competitive selection", () => {
+  render(<FactionLoadoutPicker factions={[...factions, { id: "auth-faction-test", name: "Glass dynasty", campaignOnly: true }]} factionId="rumin" onChange={jest.fn()} />);
+  expect(screen.queryByRole("option", { name: "Glass dynasty" })).not.toBeInTheDocument();
+});
 test("choosing Mekan selects its default General and offers a single alternative selection", () => {
   const onChange = jest.fn();
   const { rerender } = render(<FactionLoadoutPicker factions={factions} factionId="rumin" onChange={onChange} />);

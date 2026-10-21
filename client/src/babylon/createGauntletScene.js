@@ -2087,6 +2087,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       paintPublishedCardFace(context, card, null); texture.update(true);
       if (path) {
         const illustration = new Image();
+        illustration.crossOrigin = "anonymous";
         illustration.onload = () => { paintPublishedCardFace(context, card, illustration); texture.update(true); };
         texture.onDisposeObservable.add(() => { illustration.onload = null; });
         illustration.src = path;

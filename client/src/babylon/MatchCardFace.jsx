@@ -14,6 +14,7 @@ export default function MatchCardFace({ card, alt = "", fallbackClassName = "" }
     paintPublishedCardFace(context, publishedCard, null);
     if (!artPath) return undefined;
     const illustration = new Image();
+    illustration.crossOrigin = "anonymous";
     illustration.onload = () => paintPublishedCardFace(context, publishedCard, illustration);
     illustration.src = artPath;
     return () => { illustration.onload = null; };

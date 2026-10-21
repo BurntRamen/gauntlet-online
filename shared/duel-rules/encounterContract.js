@@ -72,4 +72,19 @@ function bossAttackBase(campaign, turn, attackNumber) {
   const min = Number(campaign.minAttackValue || 5), max = Number(campaign.maxAttackValue || 8);
   return min + ((Number(turn || 1) + attackNumber + Number(campaign.chapterNumber || 1)) % Math.max(1, max - min + 1));
 }
-module.exports = { ENCOUNTER_CONTRACT_VERSION, validateEncounterSetup, campaignDifficulty, bossAttackBase, bossAttackBonus, bossAbilityIds: Object.keys(bossHandlers), parameterRules };
+function encounterPresentation(chapter, manifest = {}) {
+  const setup = chapter?.setup;
+  if (!setup) return { difficulty: { bossLife: "—", attacksPerTurn: "—", minAttackValue: "—", maxAttackValue: "—" }, complexity: ["Encounter rules are unavailable. Refresh the published content before starting."] };
+  const modifier = manifest.ruleModifiers?.find(row => row.definition.id === chapter.ruleModifierId)?.definition;
+  const difficulty = { ...campaignDifficulty(setup), ...(modifier ? { bossLife: modifier.opponentLife } : {}) };
+  const template = manifest.deckTemplates?.find(row => row.id === chapter.opponentDeckId);
+  const complexity = [];
+  if (setup.playerAdditions?.length) complexity.push(`Your deck adds ${setup.playerAdditions.length} faction cards.`);
+  if (chapter.opponentDeckId) complexity.push(template ? `Opponent recipe: ${template.name}, ${template.composition.cards.length} authored card slots.` : "Opponent recipe unavailable in this release.");
+  else if (setup.bossAdditions?.length) complexity.push(`Opponent deck adds ${setup.bossAdditions.length} faction cards.`);
+  complexity.push(`Scripted attack bonuses, in order: ${Array.from({ length: setup.attacksPerTurn }, (_, i) => `+${bossAttackBonus(setup, i + 1)}`).join(" · ")}. Attacks use the normal priority window.`);
+  if (setup.bossAbility?.healAtTurnStart) complexity.push(`Opponent gains ${setup.bossAbility.healAtTurnStart} life at turn start.`);
+  if (modifier) complexity.push(require("./ruleModifierContract").explain(modifier));
+  return { difficulty, complexity };
+}
+module.exports = { ENCOUNTER_CONTRACT_VERSION, validateEncounterSetup, campaignDifficulty, encounterPresentation, bossAttackBase, bossAttackBonus, bossAbilityIds: Object.keys(bossHandlers), parameterRules };

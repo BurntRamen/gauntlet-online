@@ -1,4 +1,5 @@
 export default function FactionLoadoutPicker({ factions = [], factionId, generalId, onChange, disabled = false, showFaction = true }) {
+  factions = factions.filter(entry => !entry.campaignOnly);
   const faction = factions.find((entry) => entry.id === factionId);
   const generals = faction?.generals || (faction?.general ? [faction.general] : []);
   const general = generals.find((entry) => entry.id === generalId) || faction?.general;

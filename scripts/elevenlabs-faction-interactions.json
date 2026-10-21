@@ -6,6 +6,7 @@
   "publicDirectory": "client/public/assets/gauntlet/voices",
   "provenanceDirectory": "docs/generated-assets/elevenlabs-faction-interactions",
   "contentRegistry": "server/factionInteractionVoiceAssets.json",
+  "factionIds": ["rumin", "sheen", "frumo", "bizi", "mekan", "jali", "gracus", "indela", "zynarth", "astral-vanguard"],
   "voiceIds": {
     "rumin": "pxGtQ67D2H6Y2HH7NOYQ",
     "sheen": "7AqMHGzXXp8ntX5raY0P",

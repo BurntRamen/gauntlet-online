@@ -96,3 +96,32 @@ test("can be disabled and rejects corrupt snapshots without crashing startup", (
   assert.deepEqual(store.loadRooms(), []);
   assert.equal(errors.length, 1);
 });
+
+test("strict recovery preserves corrupt evidence and failed atomic writes preserve the last checkpoint", t => {
+  fs.writeFileSync(roomStateFile, "corrupt");
+  assert.throws(() => createRoomStateStore(roomStateFile, { strict: true }).loadRooms(), /verified backup/);
+  assert.equal(fs.readFileSync(roomStateFile, "utf8"), "corrupt");
+  const store = createRoomStateStore(roomStateFile);
+  store.saveRooms([makeActiveRoom()]);
+  const before = fs.readFileSync(roomStateFile);
+  const rename = t.mock.method(fs, "renameSync", () => { throw new Error("Disk write failed"); });
+  assert.throws(() => store.saveRooms([]), /Disk write failed/);
+  rename.mock.restore();
+  assert.deepEqual(fs.readFileSync(roomStateFile), before);
+  assert.equal(store.status().lastSaveFailed, true);
+  store.saveRooms([makeActiveRoom()]);
+  assert.equal(store.status().lastSaveFailed, false);
+});
+
+test("completed games awaiting durable finalization keep their evidence and original completion facts", () => {
+  const room = makeActiveRoom(); room.game.phase = "gameOver"; room.lifecycle.status = "completed";
+  room.pendingFinalization = { completedAt: "2026-10-14T00:00:00Z", completionReason: "concession", abandonmentReason: null };
+  const store = createRoomStateStore(roomStateFile, { strict: true });
+  store.saveRooms([room]);
+  const [recovered] = store.loadRooms();
+  assert.equal(recovered.lifecycle.status, "finalizing");
+  assert.deepEqual(recovered.pendingFinalization, room.pendingFinalization);
+  assert.deepEqual(recovered.game.players[1].hand, room.game.players[1].hand);
+  delete room.pendingFinalization; store.saveRooms([room]);
+  assert.deepEqual(store.loadRooms(), []);
+});

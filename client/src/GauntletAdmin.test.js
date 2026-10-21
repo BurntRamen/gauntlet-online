@@ -14,6 +14,7 @@ const catalog = {
 };
 const system = { environment: "test", checkedAt: "2026-10-02T00:00:00Z", issues: [], versions: {}, storage: {}, sources: [], boundaries: [], validation: { message: "Registry passed." } };
 const respond = async (path) => {
+  if (path.endsWith("/home")) return { seasons: [], events: [], purchases: [], modules: [], tasks: [], storefront: { accountProducts: 0, digitalProducts: 0 }, players: { seenLastDay: 1, scope: "Account sample" }, publication: { activeReleaseId: "content-v1" } };
   if (path.endsWith("/catalog")) return catalog;
   if (path.endsWith("/system")) return system;
   if (path.endsWith(`/matches/${id}`)) return { match: record, provenance: { source: "canonical archive", integrity: "verified" } };
@@ -24,19 +25,23 @@ const respond = async (path) => {
 const request = jest.fn();
 beforeEach(() => { window.history.replaceState({}, "", "/"); request.mockReset().mockImplementation(respond); jest.spyOn(window, "scrollTo").mockImplementation(() => {}); });
 afterEach(() => jest.restoreAllMocks());
-function select(area) { fireEvent.click(within(screen.getByRole("navigation", { name: "Administration sections" })).getByText(area)); }
+function select(area) {
+  fireEvent.click(within(screen.getByRole("navigation", { name: "Administration sections" })).getByText(({ Design: "Content", Matches: "Operations", System: "Operations" })[area] || area));
+  if (area === "Matches" && screen.queryByRole("button", { name: "Match evidence" })) fireEvent.click(screen.getByRole("button", { name: "Match evidence" }));
+  if (area === "System") fireEvent.click(screen.getByRole("button", { name: "Health" }));
+}
 
-test("provides six operational sections with Design, player state and original match evidence", async () => {
+test("provides seven modular areas with content, player state and original match evidence", async () => {
   render(<GauntletAdmin request={request} onClose={() => {}} />);
   await screen.findByText("content-v1");
-  fireEvent.click(screen.getByText("Advanced / Technical · content and rules versions"));
+  fireEvent.click(screen.getByText("Advanced · active content release"));
   expect(screen.getByText("content-v1")).toBeVisible();
   const navigation = within(screen.getByRole("navigation", { name: "Administration sections" }));
-  for (const area of ["Overview", "Design", "Players", "Matches", "Publishing", "System"]) expect(navigation.getByText(area)).toBeVisible();
-  expect(navigation.queryByText("Content")).not.toBeInTheDocument();
+  for (const area of ["Home", "Content", "Competition", "Store & Economy", "Players", "Publishing", "Operations"]) expect(navigation.getByText(area)).toBeVisible();
+  expect(navigation.getAllByRole("button")).toHaveLength(7);
   expect(navigation.queryByText("Game")).not.toBeInTheDocument();
   select("Design");
-  expect(await screen.findByText("Authoring area: Design")).toBeVisible();
+  expect(await screen.findByText("Authoring area: Content")).toBeVisible();
   select("Players");
   await screen.findByText("Player A");
   expect(screen.getByText("Next players")).toBeDisabled();
@@ -59,14 +64,14 @@ test("provides six operational sections with Design, player state and original m
 
 test("data failure is visible and can be retried without claiming zero counts", async () => {
   let failing = true;
-  const flaky = jest.fn((path) => path.endsWith("catalog") && failing ? Promise.reject(new Error("Registry unavailable")) : request(path));
+  const flaky = jest.fn((path) => path.endsWith("home") && failing ? Promise.reject(new Error("Registry unavailable")) : request(path));
   render(<GauntletAdmin request={flaky} onClose={() => {}} />);
   expect(await screen.findByRole("alert")).toHaveTextContent("Registry unavailable");
   failing = false;
   fireEvent.click(screen.getByText("Refresh admin"));
   await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
   await screen.findByText("content-v1");
-  fireEvent.click(screen.getByText("Advanced / Technical · content and rules versions"));
+  fireEvent.click(screen.getByText("Advanced · active content release"));
   expect(screen.getByText("content-v1")).toBeVisible();
 });
 
@@ -76,7 +81,7 @@ test("player edits retain typed metadata on failure and protect section navigati
   const editorRequest = jest.fn(async (path, options) => {
     if (path.endsWith("/metadata")) {
       expect(options.method).toBe("PATCH");
-      expect(JSON.parse(options.body)).toEqual({ expectedName: "Player A", metadata: { name: "Player B" } });
+      expect(JSON.parse(options.body)).toEqual({ expectedName: "Player A", metadata: { name: "Player B" }, reason: "Support requested correction" });
       if (failSave) throw new Error("This player's name changed elsewhere.");
       playerName = "Player B";
       return { player: { id, name: playerName } };
@@ -94,6 +99,7 @@ test("player edits retain typed metadata on failure and protect section navigati
     fireEvent.click(screen.getByRole("button", { name: "Edit player name" }));
     expect(screen.getByRole("button", { name: "Save player name" })).toBeDisabled();
     fireEvent.change(screen.getByLabelText("Player name"), { target: { value: "Player B" } });
+    fireEvent.change(screen.getByLabelText("Correction reason"), { target: { value: "Support requested correction" } });
     select("Matches");
     expect(screen.getByLabelText("Player name")).toHaveValue("Player B");
     expect(exitGuard.current()).toBe(false);
@@ -122,6 +128,7 @@ test("Players protects browser Back before a workshop has mounted and resolves d
     fireEvent.click(await screen.findByRole("button", { name: "View player Player A" }));
     fireEvent.click(screen.getByRole("button", { name: "Edit player name" }));
     fireEvent.change(screen.getByLabelText("Player name"), { target: { value: "Player B" } });
+    fireEvent.change(screen.getByLabelText("Correction reason"), { target: { value: "Support requested correction" } });
     fireEvent(window, new PopStateEvent("popstate", { state: null }));
     expect(go).toHaveBeenLastCalledWith(1);
     expect(downstream).not.toHaveBeenCalled();

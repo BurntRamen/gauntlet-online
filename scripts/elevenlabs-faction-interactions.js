@@ -36,7 +36,16 @@ function writeJson(filePath, value) { fs.mkdirSync(path.dirname(filePath), { rec
 function readJson(filePath) { return JSON.parse(fs.readFileSync(filePath, "utf8")); }
 
 function buildPlan(manifest) {
-  const factions = getPublicGameContent().factions;
+  const available = getPublicGameContent().factions;
+  // Generation scope is explicit so adding playable factions never silently
+  // expands a previously approved voice-production batch or its cost.
+  const selected = manifest.factionIds || available.map(faction => faction.id);
+  if (!Array.isArray(selected) || !selected.length || new Set(selected).size !== selected.length) throw new Error("Choose distinct faction IDs for voice production.");
+  const factions = selected.map(id => {
+    const faction = available.find(row => row.id === id);
+    if (!faction) throw new Error(`Unknown playable faction: ${id}.`);
+    return faction;
+  });
   const lines = [];
   for (const faction of factions) {
     const voiceId = manifest.voiceIds[faction.id];

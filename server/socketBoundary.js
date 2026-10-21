@@ -55,6 +55,10 @@ function createSocketBoundary(socket, { getRoomForSocket, onError = console.erro
         try {
           await handler(...args);
         } catch (error) {
+          if (error.code === "CONTENT_DECK_UNAVAILABLE") {
+            reject(error.code, "Your saved deck contains a card that is no longer legal in constructed play. Edit or choose another deck. Your collection and saved deck are retained.");
+            return;
+          }
           onError(`[Socket] ${event} failed`, error);
           reject("REQUEST_FAILED", "The request could not be completed. Please try again.");
         }

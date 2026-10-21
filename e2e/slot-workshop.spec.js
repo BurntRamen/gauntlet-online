@@ -24,7 +24,11 @@ test("52-card workshop saves exact swaps and boxes; packs reveal sequentially on
   await page.getByRole("button", { name: "Open Collection Workshop" }).click();
   await page.getByRole("tab", { name: "Decks", exact: true }).click();
   await expect(page.locator(".deck-slot")).toHaveCount(52);
-  await expect(page.getByLabel("Deck faction", { exact: true }).locator("option")).toHaveCount(10);
+  const factions = page.getByLabel("Deck faction", { exact: true }).locator("option");
+  await expect.poll(async () => (await factions.evaluateAll(options => options.map(option => option.value))).sort()).toEqual([
+    "rumin", "sheen", "frumo", "bizi", "mekan", "jali", "gracus", "indela",
+    "ingles", "mercaw", "mtano", "russo", "zynarth", "astral-vanguard"
+  ].sort());
   await expect(page.getByRole("button", { name: "Compact", exact: true })).toHaveAttribute("aria-pressed", "true");
   expect((await page.locator(".deck-slot-panel").boundingBox()).height).toBeLessThan(550);
   await expect(page.locator(".deck-settings")).not.toHaveAttribute("open", "");
@@ -108,8 +112,25 @@ test("52-card workshop saves exact swaps and boxes; packs reveal sequentially on
   await page.locator(".deck-workshop").screenshot({ path: path.join(out, "deck-workshop-mobile.png") });
   await page.getByRole("button", { name: `Restore standard ${rank}♥`, exact: true }).click();
   await expect(page.locator(".deck-slot.is-replaced")).toHaveCount(0);
-  await page.getByRole("button", { name: "Save New Version", exact: true }).click();
-  await expect(() => expect(getSaved().replacementCount).toBe(0)).toPass({ timeout: 10000 });
+  // Hold the acknowledgement after the actual server write to exercise a slow
+  // save response. Navigation must not race its selected-deck update.
+  let releaseSave;
+  const saveGate = new Promise(resolve => { releaseSave = resolve; });
+  const saveUrl = "**/api/collection/save-constructed-deck";
+  await page.route(saveUrl, async route => {
+    const response = await route.fetch();
+    await saveGate;
+    await route.fulfill({ response });
+  });
+  try {
+    await page.getByRole("button", { name: "Save New Version", exact: true }).click();
+    await expect(() => expect(getSaved().replacementCount).toBe(0)).toPass({ timeout: 10000 });
+    await expect(page.getByRole("button", { name: "New deck", exact: true, includeHidden: true })).toBeDisabled();
+    await expect(page.getByLabel("Saved deck", { exact: true })).toBeDisabled();
+    await expect(page.getByLabel("Deck card access", { exact: true })).toBeDisabled();
+  } finally { releaseSave(); }
+  await expect(page.getByRole("button", { name: "Save New Version", exact: true })).toBeEnabled();
+  await page.unroute(saveUrl);
   await page.getByRole("button", { name: "New deck", exact: true }).click();
   await expect(page.getByRole("button", { name: "Create Deck", exact: true })).toBeEnabled();
   await expect(page.getByLabel("Deck name", { exact: true })).toHaveValue("Rumin Constructed Deck");
