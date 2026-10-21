@@ -360,6 +360,9 @@ test("manifest-picked faction and portrait artwork previews load immutable draft
   const role = original.live.domains.characters.find((entry) => entry.factionId === "rumin" && entry.role === "commander");
   for (const [tab, name, field] of [["Factions", "Rumin", "faction artwork"], ["Characters / opponents", role.name, "portrait"]]) {
     await otherContent(page, tab);
+    // Campaign cast and commander records can share a display name. Exercise
+    // the existing ID search so this edits the intended portrait owner.
+    if (tab === "Characters / opponents") await page.getByLabel("Search characters / opponents").fill(role.id);
     await page.getByRole("button", { name: "Inspect " + name, exact: true }).click();
     await page.getByLabel("Draft " + field, { exact: true }).locator("..").getByText("Advanced · manual reference", { exact: true }).click();
     await page.getByLabel("Draft " + field, { exact: true }).fill(artwork.id);
