@@ -106,6 +106,13 @@ function formatMatchLogEntry(entry, { players = {} } = {}) {
   const damage = numeric(entry.damage ?? entry.amount);
 
   switch (entry.type) {
+    case "card.supportPlaced":
+      if (!entry.permission) return { icon: "ability", title: `${actor} placed a support card`,
+        detail: numeric(entry.laneIndex) == null ? "" : `Lane ${numeric(entry.laneIndex) + 1}` };
+      return { icon: "placement", title: `${actor} placed ${entry.card ? logCardName(entry.card) : entry.concealed ? "a concealed Ambush" : "a support card"}`,
+        detail: `Support Zone ${Number(entry.laneIndex) + 1}${entry.permission === "polea-put-empty-lane" ? " · Polea's explicit free placement" : " · paid play"}` };
+    case "support.discarded":
+      return { icon: "discard", title: `${logCardName(entry.card)} resolved and was discarded`, detail: `Support Zone ${Number(entry.laneIndex) + 1} is available again.` };
     case "effect.applied":
     case "effect.expired":
     case "effect.consumed":
@@ -218,12 +225,6 @@ function formatMatchLogEntry(entry, { players = {} } = {}) {
       return {
         icon: "placement",
         title: `${entry.source ? `${abilityName(entry)} · ` : ''}${actor} placed a face-down card`,
-        detail: numeric(entry.laneIndex) == null ? "" : `Lane ${numeric(entry.laneIndex) + 1}`
-      };
-    case "card.supportPlaced":
-      return {
-        icon: "ability",
-        title: `${actor} placed a support card`,
         detail: numeric(entry.laneIndex) == null ? "" : `Lane ${numeric(entry.laneIndex) + 1}`
       };
     case "priority.granted":

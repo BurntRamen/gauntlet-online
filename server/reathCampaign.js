@@ -31,14 +31,15 @@ const TRANSIT_MODEL = Object.freeze({
 const HOMEWORLDS = Object.freeze({
   rumin: { homeworld: "Orthea", origin: "The marble river kingdoms of Orthea", reathArrival: "Imperial scouts reached Reath through a buried Timetwister beneath Rumie." },
   sheen: { homeworld: "Gao", origin: "The forest moon Gao and its living canopy cities", reathArrival: "Root-bound receiver stones carried Sheen envoys into Reath's oldest forests." },
-  frumo: { homeworld: "Pelagos", origin: "The ocean world Pelagos", reathArrival: "Frumo navigators mistook a submerged Timetwister aperture for a new current and emerged beneath Reath's seas." },
-  bizi: { homeworld: "Volaris", origin: "The storm-lit industrial world Volaris", reathArrival: "Bizi engineers deliberately powered a receiver stone while searching for a world where Constanti could begin again." },
-  mekan: { homeworld: "Teyotl", origin: "The lake continent Teyotl", reathArrival: "Mekan rites learned to encode memory into a stone long before they understood its physical machinery." },
-  jali: { homeworld: "Aozora", origin: "The cloud world Aozora", reathArrival: "Katana's navigators stabilized a high-altitude receiver and opened a disciplined passage to Reath." },
-  gracus: { homeworld: "Thalassa", origin: "The island world Thalassa", reathArrival: "A contest relic proved to be a dormant Timetwister and carried the first Gracus delegation to Reath." },
-  indela: { homeworld: "Varuna", origin: "The observatory world Varuna", reathArrival: "Indela scholars solved the parity sequence of a receiver stone and followed its signal to Reath." },
-  zynarth: { homeworld: "Ilyr-Vesh", origin: "The brood cradle Ilyr-Vesh", reathArrival: "A queen sent eggs and memory-patterns through a failing lattice as XenDra pressure consumed their outer hives." },
-  "astral-vanguard": { homeworld: "The Meridian Reach", origin: "A human interstellar commonwealth centered on Meridian", reathArrival: "The Vanguard arrived by starship, then discovered that Reath's stones connect worlds their drives could never reach." },
+  frumo: { homeworld: "Pelagos", origin: "The ocean world Pelagos, where amphibious merfolk captains sail between reef kingdoms and the underwater capital Ristus", reathArrival: "After restoring the Council of Captains, Frumo navigators charted a submerged Timetwister beneath Ristus and sent a voluntary expedition through its verified current into Reath's seas." },
+  bizi: { homeworld: "Volaris", origin: "The storm-lit industrial world Volaris, where human Mekanists built self-repairing automatons to save the failing empire of Constanti; the Bizi awakened, claimed personhood, and inherited its machinery and unfinished arguments", reathArrival: "After Constanti fell, Bizi archivists deliberately powered a receiver stone and carried protected minds, blueprints, tools, and Titan records to Reath while Volaris remained their world of origin." },
+  mekan: { homeworld: "Teyotl", origin: "The flower-ringed lake continent Teyotl, where San Mikal surrounds a vast ancestral burial complex", reathArrival: "San Mikal encoded consenting travelers as error-corrected memory patterns in an entangled ceremonial stone; a receiver on Reath reconstructed those patterns into local matter while a living record on Teyotl verified identity and continuity." },
+  jali: { homeworld: "Aozora", origin: "The low-gravity cloud world Aozora, where aeromagnetic mineral islands support the Celestial Archipelago", reathArrival: "After the Mirror crisis, Katana’s navigators isolated a fragment quantum-correlated with a Reath receiver; its stable interference pattern supplied the reference and error correction needed to reconstruct consenting travelers without making Reath their place of origin." },
+  gracus: { homeworld: "Thalassa", origin: "The marble island world Thalassa, where sentient-stone city-states surround Athun's brilliant seas", reathArrival: "The First Stone beneath Athun unfolded into a Timetwister after the Keepers' defeat, carrying a voluntary Gracus delegation to Reath while Thalassa remained their living home." },
+  indela: { homeworld: "Varuna", origin: "The observatory world Varuna, where the beetle-wizard city of Kashi surrounds the Grand Academy and Eternal Archive", reathArrival: "Centuries after Kashi's golden age, Indela archivists recognized a Reath signal in Aryabhata's celestial equations, answered through a dormant Timetwister receiver, and only later sent a scholarly delegation from Varuna." },
+  voltari: { homeworld: "Voltara", origin: "A human colony transformed by centuries of life beneath electrically charged oceans, permanent storms, and voluntary cybernetic augmentation", reathArrival: "Voltari scientists isolated a receiver quantum-correlated with Reath, then sent consenting travelers through one-way verified relays while Voltara retained protected continuity records and remained their home." },
+  zynarth: { homeworld: "K'lar", origin: "The living world K'lar, a planetary Overmind whose Zynarth broods function as its cells and organs", reathArrival: "After an offworld coalition wounded K'lar, Zalara carried eggs, ecological memory, and consenting biological patterns through a Timetwister to establish a bounded new brood on Reath." },
+  "astral-vanguard": { homeworld: "The Meridian Reach", origin: "A plural human and post-biological commonwealth centered on Meridian, where mortal volunteers can Ascend into long-lived sentinels bound by law, Aegis doctrine, and retained personal choice", reathArrival: "The Vanguard exploration ship Resolute reached Reath by conventional starflight, then discovered that the planet's stones connect worlds their drives could never reach." },
   xendra: { homeworld: "The Nacre Rift", origin: "A nonlocal habitat the Voltari call the Nacre Rift", reathArrival: "XenDra manifestations propagate through corrupted receiver states rather than ordinary travel." }
 });
 
@@ -70,10 +71,10 @@ const SPECS = [
   {
     id: "other-intelligence", title: "The Other Intelligence", foe: "The Feral Brood", hero: "High Marshal Alden",
     story: "Protect a diplomatic meeting with Zalara from a rival brood and decide whether intelligence can exist without a single unified mind.",
-    before: "Zalara offers a ceasefire and warns that the Zynarth were driven from Ilyr-Vesh by a presence she calls the Voice Behind Sleep.",
+    before: "Zalara offers a ceasefire and explains that this Reath brood crossed from the wounded living world K'lar, whose distant planetary chorus can no longer direct every choice.",
     lines: ["Zalara: A brood is a conversation written in bodies.", "Alden: Then we will speak to the mind choosing peace.", "K'Lar: Not every queen chooses it.", "Myra Cross: Feral signatures incoming from three tunnels.", "Zalara: Defend the meeting, and I will teach you what followed us."],
     after: "The meeting survives. Zalara reveals that Zynarth queens remain individuals, capable of diplomacy, rivalry, and fear.",
-    end: ["Zalara: Ilyr-Vesh still lives in our memory-patterns.", "Dr. Sera Venn: You transmitted minds inside the eggs.", "K'Lar: Bodies are local. Continuity is the pattern.", "Alden: The stones rebuilt you here.", "Zalara: And something listened during the rebuilding. Your thoughts are becoming loud."]
+    end: ["Zalara: K'lar still lives in our memory-patterns.", "Dr. Sera Venn: You transmitted minds inside the eggs.", "K'Lar: Bodies are local. Continuity is the pattern.", "Alden: The stones rebuilt you here.", "Zalara: And something listened during the rebuilding. Your thoughts are becoming loud."]
   },
   {
     id: "golden-machine", title: "The Golden Machine", foe: "Voltari Custodian Oru", hero: "Sergeant Myra Cross",
@@ -96,16 +97,16 @@ const SPECS = [
     story: "Explore a ruined city absent from yesterday's scans and recover the Timetwister at its center without losing the expedition to contradictory corridors.",
     before: "The city changes when unobserved. Its dead wear Vanguard identification and dates of death seventeen years in the future.",
     lines: ["Myra Cross: That body has my unit patch.", "Dr. Sera Venn: And a service record that has not been issued.", "Future Myra: Do not touch the stone with an unshielded mind.", "Alden: Sergeant, that voice is yours.", "Myra Cross: Then future me can wait until present me secures the room."],
-    after: "Touching the stone produces glimpses of Orthea, Gao, Pelagos, Volaris, Ilyr-Vesh, and civilizations the Vanguard has never met.",
+    after: "Touching the stone produces glimpses of Orthea, Gao, Pelagos, Volaris, K'lar, and civilizations the Vanguard has never met.",
     end: ["Dr. Sera Venn: It is not a time machine. It is a receiver index.", "Myra Cross: For planets?", "Oru: For compatible histories.", "Unknown Voice: You finally arrived.", "Alden: Seal the chamber. No one touches it alone again."]
   },
   {
-    id: "fracture", title: "Fracture", foe: "The Unreliable Battlefield", hero: "Sergeant Myra Cross",
-    story: "Restore anchor coverage while objectives, maps, timers, and unit identities become unreliable beyond stabilized zones.",
-    before: "XenDra influence spreads through the receiver network and begins altering the expedition's shared evidence instead of its physical defenses.",
-    lines: ["Myra Cross: Trust the blue anchor light, not the minimap.", "Dr. Sera Venn: The timer is counting backward.", "Oru: Local chronology is intact. The interface is reporting another branch.", "Zalara: I can smell our real soldiers.", "Alden: Then biology guides the advance. Vanguard protects the anchors."],
-    after: "The network restores a common battlefield. The expedition realizes Voltari technology protects the ability to perceive the world accurately.",
-    end: ["Myra Cross: Friendly markers match friendly faces again.", "Oru: For now.", "Dr. Sera Venn: The XenDra attacked consensus itself.", "Zalara: Consensus can heal if enough minds remain distinct.", "Unknown Voice: Distinction is the oldest loneliness."]
+    id: "fracture", title: "Blackreach: Veilfract", foe: "The Unreliable Battlefield", hero: "Commander Jonah Hale",
+    story: "In Blackreach Basin, Hale's contact team restores anchor coverage while XenDra manifestations alter distance, sound, objectives, and the evidence soldiers use to recognize one another.",
+    before: "Three stationary figures appear in Blackreach Basin. Every instrument reports ordinary ground, ordinary air, and impossible agreement; Captain Elara Venn is the first to realize the horizon is bending for her alone.",
+    lines: ["Jonah Hale: Hold formation. Report only what two observers can verify.", "Soren Ilias: Contact is unreliable. Visuals are shifting.", "Elara Venn: They are not shifting. We are.", "Tamsin Rook: Thermals show one temperature. Motion says everything is moving.", "XenDra: You resist incorrectly."],
+    after: "Automated extraction returns the team to agreed reality with no confirmed casualties and severe cognitive disruption. Elara insists the XenDra were showing them something; Hale records that this may be worse than an attack.",
+    end: ["Tamsin Rook: Soren was beside me. Then nobody else could see him.", "Soren Ilias: I never moved.", "Elara Venn: They are not enemies. I do not think that question works anymore.", "Jonah Hale: Archive every contradiction. None of us gets to decide alone which memory is real.", "XenDra: You are consistent. That is why you fail."]
   },
   {
     id: "enemy-of-my-enemy", title: "The Enemy of My Enemy", foe: "A XenDra Manifestation", hero: "High Marshal Alden",
@@ -124,23 +125,38 @@ const SPECS = [
     end: ["Myra Cross: They predicted every breach pattern.", "Alden: Technology is not the same thing as intelligence.", "Envoy of Kaisar: At last, a useful sentence.", "Dr. Sera Venn: The passage remains open to Orthea.", "Envoy of Kaisar: Then Kaisar will expect an embassy, not an invasion report."]
   },
   {
-    id: "world-between", title: "The World Between", foe: "The Convergence Storm", hero: "High Marshal Alden",
-    story: "Defend the central convergence site as glimpses of distant homeworlds begin overlapping Reath and the transit network opens without permission.",
-    before: "Frumo vessels appear inland, Sheen vegetation crosses steel walls, Bizi instruments record tomorrow, and Rumin standards rise beside Vanguard antennas.",
-    lines: ["Dr. Sera Venn: Reath is not suffering random anomalies. It is routing arrivals.", "Oru: A stable intersection between receiver lattices.", "Zalara: A nest made from many skies.", "Myra Cross: And someone has opened every door at once.", "Alden: Hold the convergence site. Every world gets a road home."],
-    after: "The defenders learn that Timetwisters connect compatible realities by reconstructing travelers from protected biological information.",
-    end: ["Dr. Sera Venn: The stone does not carry a body. It carries the constraints needed to rebuild one.", "Myra Cross: An essence written as error-corrected biology.", "Oru: Crude wording. Accurate result.", "Alden: Reath lowers the error enough for distant histories to meet.", "Unknown Voice: And meeting changes every history involved."]
+    id: "world-between", title: "The World Between", foe: "The Convergence Storm", hero: "High Marshal Alden and Commander Jonah Hale",
+    story: "Defend the central convergence site as distant homeworlds overlap Reath and Marek Solis invokes Unified Command Protocol Nine, arguing that only centralized certainty can coordinate the crisis.",
+    before: "Frumo vessels appear inland, Sheen vegetation crosses steel walls, Bizi instruments record tomorrow, and Rumin standards rise beside Vanguard antennas. Blackreach has convinced High Command that independent judgment is now a strategic vulnerability.",
+    lines: ["Dr. Sera Venn: Reath is not suffering random anomalies. It is routing arrivals.", "Marek Solis: Protocol Nine places every unit on one verified command layer.", "Jonah Hale: Shared evidence is not surrendered judgment.", "Elara Venn: If every officer improvises, the convergence becomes twelve private wars.", "Alden: Hold the site. Share what is true. No system chooses for the people inside it."],
+    after: "The defenders learn that Timetwisters rebuild travelers from protected biological information. Lieutenant Adrian Kade disobeys a faulty centralized order and saves a shelter, forcing the command dispute into the open.",
+    end: ["Dr. Sera Venn: The stone carries the constraints needed to rebuild a living pattern.", "Adrian Kade: Protocol Nine marked those civilians as an acceptable loss.", "Marek Solis: An army cannot survive if every soldier decides which orders are real.", "Jonah Hale: A civilization cannot survive if nobody remains responsible for obeying them.", "Alden: Reath connects histories. It must not erase the choices that made them distinct."]
   },
   {
-    id: "when-stars-remember", title: "When the Stars Remember", foe: "The XenDra Intelligence", hero: "High Marshal Alden and Sergeant Myra Cross",
-    story: "Stabilize Reath through simultaneous Vanguard, Voltari, Zynarth, and historical-faction operations while a XenDra intelligence rewrites the network.",
-    before: "The final event cannot be defeated as a single creature. Reath itself must be held in one coherent state long enough to close the uncontrolled paths.",
-    lines: ["Alden: Vanguard protects the settlements and convergence towers.", "Oru: Voltari anchors resolve the network.", "Zalara: Zynarth structures keep living matter viable through the phase change.", "Envoy of Kaisar: The old roads remain guarded from our side.", "XenDra: You believe we opened the door."],
-    after: "The fractures close and Reath survives as a permanent meeting point. The XenDra imply that the planet itself initiated the convergence.",
-    end: ["XenDra: Reath opened it.", "Myra Cross: Then why were you waiting?", "XenDra: To see what answered.", "Alden: Anchors synchronized. Close the final path.", "XenDra: You have mistaken postponement for victory."],
-    cinematic: { kicker: "The network remembers", title: "When the Stars Remember", subtitle: "Reath survives, and distant homeworlds illuminate across the dark.", image: ASTRAL_ART }
+    id: "when-stars-remember", title: "When the Stars Remember", foe: "The XenDra Intelligence and the Astral Nexus", hero: "The Free Vanguard Coalition",
+    story: "Stabilize Reath through Vanguard, Voltari, Zynarth, and historical-faction operations while Hale prevents Marek's Astral Nexus from turning shared information into compulsory command.",
+    before: "Reath must be held in one coherent state long enough to close the uncontrolled paths. The Astral Nexus offers perfect information and optimized orders, but removes uncertainty by transferring every battlefield decision to one authority.",
+    lines: ["Marek Solis: The Voltari coordinate better than us. The Zynarth adapt faster. The XenDra understand minds. What advantage remains?", "Jonah Hale: We disagree.", "Marek Solis: You call that an advantage?", "Jonah Hale: We connect different answers without making them one. We get to choose.", "Alden: Vanguard protects the settlements. Every ally keeps command of its own people."],
+    after: "Hale disables compulsory control while preserving the Nexus as a voluntary information network. The fractures close, Protocol Nine is abolished, and Reath survives as a permanent meeting point whose strength comes from coordinated differences.",
+    end: ["XenDra: Reath opened it.", "Elara Venn: Then we decide what answering makes us.", "Marek Solis: Uncertainty will cost lives.", "Jonah Hale: So will certainty without responsibility.", "Alden: Anchors synchronized. Close the final path.", "XenDra: You have mistaken postponement for victory.", "Narrator: Months later, the Resolute turns toward another unknown signal. The crew begins by arguing what to do."],
+    cinematic: { kicker: "The network remembers", title: "When the Stars Remember", subtitle: "Reath survives because different minds choose to stand together.", image: ASTRAL_ART }
   }
 ];
+
+const SCENE_STARTERS = Object.freeze({
+  "new-horizon": { where: "Low orbit and the Horizon landing basin, Reath", when: "The first day of the Astral Vanguard landing", perspective: "Sergeant Myra Cross" },
+  "something-beneath-us": { where: "The living tunnels beneath Outpost Horizon", when: "Twelve days after landing", perspective: "Myra leading the missing-colonist search" },
+  "the-brood": { where: "The Horizon defensive perimeter", when: "The third week of the colony", perspective: "High Marshal Alden during first contact" },
+  "other-intelligence": { where: "A neutral nursery chamber below Horizon", when: "Hours after the first ceasefire", perspective: "Alden across the table from Broodmother Zalara" },
+  "golden-machine": { where: "The western sky above Horizon", when: "The first Voltari arrival on Reath", perspective: "Myra watching a fortress call itself an instrument" },
+  conduit: { where: "The unfinished reality-anchor line in Mirror Valley", when: "The morning after Voltari first contact", perspective: "Alden coordinating three incompatible command systems" },
+  "city-that-wasnt-there": { where: "A city absent from every previous orbital scan", when: "Expedition day forty-two—and seventeen years too early", perspective: "Myra confronting evidence of her future" },
+  fracture: { where: "Blackreach Basin, beyond the nearest reliable anchor", when: "The first recorded Veilfract contact event", perspective: "Hale, Elara, Soren, and Rook experiencing incompatible versions of one encounter" },
+  "enemy-of-my-enemy": { where: "The widening convergence scar", when: "The coalition's first joint offensive", perspective: "Alden translating between Vanguard, Voltari, and Zynarth methods" },
+  "first-empire": { where: "The ancient-road breach at the convergence site", when: "After the coalition's apparent victory", perspective: "Myra meeting an army from Orthea" },
+  "world-between": { where: "Reath's central convergence complex", when: "As distant homeworlds share one sky and Protocol Nine goes live", perspective: "Alden and Hale deciding whether coordination requires surrendered judgment" },
+  "when-stars-remember": { where: "Every active convergence point and the Astral Nexus on Reath", when: "The final night of the uncontrolled opening", perspective: "Hale preserving choice while Alden coordinates a coalition of distinct commands" }
+});
 
 function setupFor(index, spec) {
   const number = index + 1;
@@ -174,6 +190,7 @@ const CAMPAIGN = SPECS.map((spec, index) => ({
   story: spec.story,
   beforeBattle: spec.before,
   afterBattle: spec.after,
+  sceneStarter: SCENE_STARTERS[spec.id],
   dialogue: [`Narrator: ${spec.before}`, ...spec.lines],
   endDialogue: [`Narrator: ${spec.after}`, ...spec.end],
   image: ASTRAL_ART,
@@ -183,7 +200,7 @@ const CAMPAIGN = SPECS.map((spec, index) => ({
 
 const METADATA = Object.freeze({
   commanderName: "The World Between",
-  pitch: "Lead the Astral Vanguard from an uncertain first landing through contact with the Zynarth and Voltari, then defend Reath as distant homeworlds begin sharing one sky.",
+  pitch: "Lead the plural civilization of the Meridian Reach from first landing through Voltari precision, Zynarth adaptation, XenDra uncertainty, and a crisis over whether humanity can coordinate without surrendering choice.",
   coverImage: ASTRAL_ART,
   homeworld: HOMEWORLDS["astral-vanguard"].homeworld,
   arrivalOnReath: HOMEWORLDS["astral-vanguard"].reathArrival,
@@ -191,11 +208,18 @@ const METADATA = Object.freeze({
 });
 
 const CHARACTERS = Object.freeze({
-  "High Marshal Alden": "The expedition commander, committed to protecting settlements without turning first contact into occupation.",
+  "High Marshal Alden": "The expedition commander, committed to protecting settlements without turning first contact into occupation or coordination into ownership.",
   "Sergeant Myra Cross": "A field leader whose practical adaptability becomes the coalition's strongest shared language.",
   "Dr. Sera Venn": "A physicist who recognizes that Timetwisters preserve biological information across an error-corrected spacetime network.",
-  "Broodmother Zalara": "An individual Zynarth queen carrying the living memory of Ilyr-Vesh and seeking survival without assimilation.",
-  "Voltari Custodian Oru": "A precise machine-intelligence whose reality anchors protect observers as much as battlefields."
+  "Commander Jonah Hale": "Leader of the Blackreach contact team and defender of accountable field judgment. Hale accepts command, coordination, and disagreement as compatible duties.",
+  "Captain Elara Venn": "A disciplined officer whose unusual sensitivity recognizes XenDra distortions before instruments do. She fears fractured authority but refuses easy certainty after Veilfract.",
+  "Lieutenant Soren Ilias": "A xenological analyst who records conflicting observations without forcing them into one premature answer, later building first-contact doctrine around understanding before combat.",
+  "Sergeant Tamsin Rook": "A direct, capable soldier whose experience at Blackreach turns distrust into careful restraint. She becomes the practical voice behind the Vanguard's new contact protocols.",
+  "Marek Solis": "The political architect of Protocol Nine and the Astral Nexus. Marek sincerely believes optimized central command is humanity's only defense against civilizations that coordinate, adapt, or alter reality better than it can.",
+  "Lieutenant Adrian Kade": "An officer arrested after disobeying a tactically correct but morally catastrophic order. His case makes responsibility for obedience the campaign's human question.",
+  "Colonel Adrian Vale": "An officer recovered after eleven missing years without aging. His impossible memories suggest the greatest threat may lie inside Vanguard institutions rather than beyond them.",
+  "Broodmother Zalara": "An individual Zynarth queen carrying the living memory of K'lar and seeking survival on Reath without turning coexistence into assimilation.",
+  "Voltari Custodian Oru": "A heavily augmented human-descended engineer from Voltara whose reality anchors protect observers as much as battlefields."
 });
 
 module.exports = { REATH_CAMPAIGN: CAMPAIGN, REATH_CAMPAIGN_METADATA: METADATA, REATH_CAMPAIGN_CHARACTERS: CHARACTERS, TIMETWISTER_TRANSIT_MODEL: TRANSIT_MODEL, FACTION_HOMEWORLDS: HOMEWORLDS };

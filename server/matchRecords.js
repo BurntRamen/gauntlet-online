@@ -361,7 +361,7 @@ function buildMatchRecord(roomState, options = {}) {
     matchId: metadata.matchId,
     seriesId: metadata.seriesId || null,
     mode,
-    rulesVersion: RULES_VERSION,
+    rulesVersion: game.rulesVersion || RULES_VERSION,
     contentVersion: game.contentVersion || CONTENT_VERSION,
     ...(roomState.para ? { para: clonePlain(roomState.para) } : {}),
     ...(roomState.event ? { event: clonePlain(roomState.event) } : {}),

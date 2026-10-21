@@ -10,7 +10,7 @@ const {
 } = require("../shared/duel-rules");
 const { COLLECTION_CARDS, getFactionById } = require("../server/gameContent");
 
-const ALL_FACTIONS = ["rumin", "sheen", "frumo", "bizi", "mekan", "jali", "gracus", "indela", "zynarth", "astral-vanguard"];
+const ALL_FACTIONS = ["rumin", "sheen", "frumo", "bizi", "mekan", "jali", "gracus", "indela", "ingles", "mercaw", "mtano", "russo", "zynarth", "astral-vanguard"];
 const CONSTRUCTED_FACTIONS = [...new Set(COLLECTION_CARDS.map((card) => card.factionId))];
 const DEFAULT_GENERALS = { mekan: "monti", jali: "basho", gracus: "platus", indela: "ramar" };
 const SUPPORT_TYPES = new Set(["armament", "shelter", "ambush", "contraption", "biomorph", "operation", "arcana"]);

@@ -46,11 +46,13 @@ export const EMPTY_MATCH_SELECTION = Object.freeze({
   blockerCardIds: [],
   paymentCardIds: [],
   placementCardId: null,
+  supportCardId: null,
   laneIndex: null,
   useHeraBonus: false,
   useMeerusFreeAttack: false,
   forumLedgerPaymentCardId: null,
   useJewelBankBonus: false,
+  useAssemblyStation: false,
   armWeaponCardIds: [],
   useSandstormProcessor: false,
   useBeliAwakenedBonus: false,
@@ -412,7 +414,7 @@ export class LocalDuelAdapter {
 
   heraPaymentState() {
     const actor = this.game.players[this.controller];
-    const paymentKinds = ["handAttack", "laneAttack", "handBlock", "laneBlock"];
+    const paymentKinds = ["handAttack", "laneAttack", "handBlock", "laneBlock", "support"];
     const suits = actor?.turnData?.suitsPlayedThisTurn || [];
     const selectedCards = (actor?.hand || [])
       .filter((card) => this.selection.paymentCardIds.includes(card.id));
@@ -451,6 +453,7 @@ export class LocalDuelAdapter {
   }
 
   currentLegalAction() {
+    if (this.selection.kind === "support") return this.legalActions().find(action => action.type === "playSupport" && action.cardId === this.selection.supportCardId && action.laneIndex === this.selection.laneIndex) || null;
     const actions = this.legalActions();
     if (this.selection.kind === "handAttack") {
       return actions.find((action) => (
@@ -493,7 +496,8 @@ export class LocalDuelAdapter {
   }
 
   currentConstructedOptions() {
-    return this.currentLegalAction()?.optionalEffects || [];
+    return (this.currentLegalAction()?.optionalEffects || []).filter(option => option.id !== "deckhand-diver-peek"
+      || !option.cardIds || option.cardIds.includes(this.selection.abilityCardId));
   }
 
   constructedCommandFields() {
@@ -503,6 +507,7 @@ export class LocalDuelAdapter {
       armWeaponCardIds: this.selection.armWeaponCardIds,
       useSandstormProcessor: this.selection.useSandstormProcessor,
       useBeliAwakenedBonus: this.selection.useBeliAwakenedBonus,
+      useAssemblyStation: this.selection.useAssemblyStation,
       sunforgeAccelerationToSpend: this.selection.sunforgeAccelerationToSpend,
       useVoltaricUltimatum: this.selection.useVoltaricUltimatum,
       primeSignalBonus: this.selection.primeSignalBonus,
@@ -516,6 +521,7 @@ export class LocalDuelAdapter {
     const s = this.selection;
     const common = { player: this.controller, ...this.constructedCommandFields(), paymentCardIds: s.paymentCardIds, useHeraBonus: s.useHeraBonus, useMeerusFreeAttack: s.useMeerusFreeAttack };
     if (s.kind === "ability" && s.abilityId?.startsWith("mechanic:")) return { ...common, type: "useFactionAbility", ...this.currentLegalAction()?.confirmationPayload.fixed };
+    if (s.kind === "support") return { ...common, type: "playSupport", cardId: s.supportCardId, laneIndex: s.laneIndex };
     if (s.kind === "ability") {
       const [laneA, laneB] = s.abilityLaneIndexes || [];
       return { ...common, type: "useFactionAbility", abilityId: s.abilityId, cardId: s.abilityCardId,
@@ -546,7 +552,7 @@ export class LocalDuelAdapter {
       const target = command.laneIndex != null ? `${Number(command.targetPlayerId) === this.perspective ? "Your" : "Opponent"} lane ${command.laneIndex + 1}` : "Chosen inspection source";
       value = { title: "Confirm private inspection", lines: [action?.label || "Inspect the chosen card privately", `Target: ${target}`, "The card becomes visible only to you after confirmation."], response };
     } else {
-      const result = applyCommand(this.projectGameForView(), command);
+      const result = applyCommand(this.projectGameForView(), createCommandEnvelope(this.game, this.controller, command));
       const lines = [];
       if (this.selection.forumLedgerPaymentCardId) lines.push(`Stockbroker’s Gloves: ${displayCardName(this.game.players[this.controller].hand.find(c => c.id === this.selection.forumLedgerPaymentCardId))} contributes +1 payment.`);
       if (result.accepted) for (const e of result.animationEvents || []) {
@@ -604,6 +610,7 @@ export class LocalDuelAdapter {
 
   confirmState() {
     const values = this.selectionValues();
+    if (this.selection.kind === "support") return { label: "Play Support", disabled: !this.currentLegalAction() || !!values.error || values.total < values.required };
     if (this.selection.kind === "ability") {
       const lanes = this.selection.abilityLaneIndexes || [];
       const abilityId = this.selection.abilityId;
@@ -648,6 +655,7 @@ export class LocalDuelAdapter {
 
   confirmationReason() {
     const values = this.selectionValues();
+    if (this.selection.kind === "support") return values.error || (values.total < values.required ? `Select ${values.required - values.total} more payment value.` : "Choose an empty Support Zone.");
     if (values.error) return values.error;
     if (this.selection.kind === "handAttack" || this.selection.kind === "laneAttack") {
       const missing = Math.max(0, values.required - values.total);
@@ -701,8 +709,8 @@ export class LocalDuelAdapter {
       const opportunity = laneIndex * 2 + Number(this.game.endPlacementStep || 0) + 1;
       const canPlace = this.legalActions().some((action) => action.type === "placeFacedown");
       return canPlace
-        ? `Placement ${opportunity} of 6 · Player ${actor}: choose a combatant or support for Lane ${laneIndex + 1}, or skip.`
-        : `Placement ${opportunity} of 6 · Player ${actor}: both available slots are occupied, so skip this placement.`;
+        ? `Placement ${opportunity} of 6 · Player ${actor}: choose a ${this.game.rulesVersion === "gauntlet-duel-v12" ? "combatant for the Commitment Zone" : "combatant or support"} in Lane ${laneIndex + 1}, or skip.`
+        : `Placement ${opportunity} of 6 · Player ${actor}: no eligible commitment placement is available, so skip this placement.`;
     }
     if (this.selection.kind === "ability") {
       if (/^(mechanic|mekan|jali|gracus):/.test(this.selection.abilityId)) return `${this.currentLegalAction()?.label || "Ability selected"}. Review the target and consequence, then confirm activation.`;
@@ -750,6 +758,7 @@ export class LocalDuelAdapter {
       this.selection.lastGambleChoice ? `Last Gamble chose ${this.selection.lastGambleChoice}` : ""
     ].filter(Boolean);
     const constructedNote = constructedNotes.length ? ` ${constructedNotes.join(" · ")}.` : "";
+    if (this.selection.kind === "support") return `Choose an empty Support Zone and ${values.required} payment. Selected payment: ${values.total}. The played card cannot pay for itself.${constructedNote}`;
     if (this.selection.kind === "handAttack") return `Choose ${values.required} payment for this independent hand attack.${heraNote}${meerusNote}${constructedNote}`;
     if (this.selection.kind === "laneAttack") return `Lane ${this.selection.laneIndex + 1} attack · choose ${values.required} payment.${constructedNote}`;
     if (this.selection.kind === "handBlock") return `Choose ${values.required} payment for the selected blocker.${heraNote}${constructedNote}`;
@@ -758,15 +767,17 @@ export class LocalDuelAdapter {
       const selected = this.game.players[this.controller]?.hand?.find((card) => card.id === this.selection.placementCardId);
       const role = ["armament", "shelter", "ambush", "contraption", "biomorph", "operation", "arcana"].includes(String(selected?.type || "").toLowerCase())
         ? "support slot"
-        : "combat slot";
+        : this.game.rulesVersion === "gauntlet-duel-v12" ? "Commitment Zone" : "combat slot";
       return `Place this card in Lane ${this.selection.laneIndex + 1}'s ${role}, or skip this placement.${constructedNote}`;
     }
     if (this.game.phase === "priority" && !activeAttack(this.game)) {
       const hasLaneAttack = this.legalActions().some((action) => action.type === "declareLaneAttack");
       const hasAbility = this.legalActions().some((action) => action.type === "useFactionAbility");
+      const hasSupport = this.legalActions().some((action) => action.type === "playSupport");
       const choices = [
         "select a hand card for an independent attack",
         hasLaneAttack ? "choose one of your occupied lanes for a lane attack" : "",
+        hasSupport ? "play a support card with payment" : "",
         hasAbility ? "use a faction action" : "",
         "or pass"
       ].filter(Boolean);
@@ -795,8 +806,8 @@ export class LocalDuelAdapter {
     const attackIndex = this.selection.attackerCardId
       ? projectedHand.findIndex((card) => card.id === this.selection.attackerCardId)
       : null;
-    const placementIndex = this.selection.placementCardId
-      ? projectedHand.findIndex((card) => card.id === this.selection.placementCardId)
+    const placementIndex = this.selection.placementCardId || this.selection.supportCardId
+      ? projectedHand.findIndex((card) => card.id === (this.selection.supportCardId || this.selection.placementCardId))
       : null;
     const immediatelyLegalLanes = legalActions
       .filter((action) => (
@@ -810,6 +821,7 @@ export class LocalDuelAdapter {
       : this.selection.kind == null
         ? [...new Set(immediatelyLegalLanes)]
         : [];
+    if (this.selection.kind === "support") legalLanes = legalActions.filter(action => action.type === "playSupport" && action.cardId === this.selection.supportCardId).map(action => action.laneIndex);
     if (
       (this.selection.kind === "laneAttack" || this.selection.kind === "laneBlock")
       && Number.isInteger(this.selection.laneIndex)
@@ -896,7 +908,11 @@ export class LocalDuelAdapter {
       });
     }
     for (const option of this.currentConstructedOptions()) {
-      if (option.id === "forum-ledger-payment") {
+      if (option.id === "assembly-station") {
+        abilities.push({ id: "constructed:assembly-station", label: option.label,
+          active: this.selection.useAssemblyStation, available: this.selection.paymentCardIds.length > 0,
+          intent: "Optional: make one payment card provide +1 value for this first Servitor attack." });
+      } else if (option.id === "forum-ledger-payment") {
         for (const id of this.selection.paymentCardIds) {
           const card = projectedHand.find(c => c.id === id);
           abilities.push({ id: `constructed:forum-ledger:${id}`, label: `Stockbroker’s Gloves · ${card?.rank}${card?.suit} pays +1`,
@@ -1033,8 +1049,8 @@ export class LocalDuelAdapter {
           : this.selection.kind === "laneBlock"
             ? { type: "laneAttack", lane: this.selection.laneIndex }
             : null,
-        placementMode: this.selection.kind === "placement"
-          ? { lane: this.selection.laneIndex }
+        placementMode: ["placement", "support"].includes(this.selection.kind)
+          ? { lane: this.selection.laneIndex, support: this.selection.kind === "support" }
           : null,
         abilityMode: this.selection.kind === "ability"
           ? {
@@ -1064,7 +1080,7 @@ export class LocalDuelAdapter {
         paymentCardIds: this.selection.paymentCardIds,
         paymentTotal: values.total,
         paymentRequired: values.required,
-        paymentActive: ["handAttack", "laneAttack", "handBlock", "laneBlock"].includes(this.selection.kind) || this.selection.abilityId?.startsWith("mechanic:"),
+        paymentActive: ["handAttack", "laneAttack", "handBlock", "laneBlock", "support"].includes(this.selection.kind) || this.selection.abilityId?.startsWith("mechanic:"),
         canDeclareAttack: this.game.phase === "priority" && !pending && this.game.priority === this.controller,
         canBlock: !!pending && pending.attack.targetPlayer === this.controller,
         canPlace: this.game.phase === "end" && currentPlacementPlayer(this.game) === this.controller,
@@ -1168,6 +1184,10 @@ export class LocalDuelAdapter {
 
     if (this.game.phase === "end") {
       if (currentPlacementPlayer(this.game) !== this.controller) return;
+      if (!this.legalActions().some(action => action.type === "placeFacedown" && action.cardId === card.id)) {
+        this.notice = "This card is not eligible for end-turn commitment placement.";
+        this.emit(); return;
+      }
       this.selection = freshSelection({
         kind: "placement",
         laneIndex: this.game.endPlacementLaneIndex,
@@ -1178,6 +1198,10 @@ export class LocalDuelAdapter {
       return;
     }
 
+    if (this.selection.kind === "support") {
+      this.selection = card.id === this.selection.supportCardId ? freshSelection() : this.normalizeConstructedSelection({ ...this.selection, paymentCardIds: toggleId(this.selection.paymentCardIds, card.id) });
+      this.emit(); return;
+    }
     const pending = activeAttack(this.game);
     if (pending) {
       if (pending.attack.targetPlayer !== this.controller) return;
@@ -1234,6 +1258,11 @@ export class LocalDuelAdapter {
     }
     if (this.selection.kind !== "handAttack") {
       if (!isCombatCapableCard(card)) {
+        const support = this.legalActions().find(action => action.type === "playSupport" && action.cardId === card.id);
+        if (support) {
+          this.selection = freshSelection({ kind: "support", supportCardId: card.id, laneIndex: support.laneIndex, selectionRole: "payment" });
+          this.emit(); return;
+        }
         this.notice = `${displayCardName(card)} is a ${cardTypeLabel(card)} support card. Only Servitors and standard playing cards can attack.`;
         this.emit();
         return;
@@ -1257,6 +1286,11 @@ export class LocalDuelAdapter {
   activateLane(laneIndex, owner = "local") {
     if (this.privacyRequired || this.controller !== this.perspective || this.game.phase === "gameOver") return;
     this.notice = "";
+    if (this.selection.kind === "support") {
+      if (owner === "local" && this.legalActions().some(action => action.type === "playSupport" && action.cardId === this.selection.supportCardId && action.laneIndex === laneIndex)) this.selection = { ...this.selection, laneIndex };
+      else this.notice = "Choose an empty Support Zone you control.";
+      this.emit(); return;
+    }
     if (this.selection.kind === "ability") {
       const entity = actionSelectionEntities(this.currentLegalAction(), "targets")
         .find((candidate) => entityMatchesLane(candidate, laneIndex, owner, this.controller));
@@ -1352,7 +1386,9 @@ export class LocalDuelAdapter {
       if (this.privacyRequired || this.controller !== this.perspective) return;
       const options = this.currentConstructedOptions();
       this.notice = "";
-      if (abilityId.startsWith("constructed:forum-ledger")) {
+      if (abilityId === "constructed:assembly-station") {
+        this.selection = { ...this.selection, useAssemblyStation: !this.selection.useAssemblyStation };
+      } else if (abilityId.startsWith("constructed:forum-ledger")) {
         const paymentCardId = abilityId.slice("constructed:forum-ledger:".length);
         if (!this.selection.paymentCardIds.includes(paymentCardId)) {
           this.notice = "Choose the payment card that Stockbroker’s Gloves will enhance.";

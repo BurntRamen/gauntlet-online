@@ -2,6 +2,33 @@ const { test, expect } = require("./admin-release-test");
 const { origin } = require("./admin-urls"), { area } = require("./admin-navigation");
 const fs = require("node:fs"), path = require("node:path"), AxeBuilder = require("@axe-core/playwright").default;
 async function cardSection(page, name) { const select = page.getByRole("combobox", { name: "Card Workshop section", exact: true }); if (await select.isVisible()) await select.selectOption({ label: name }); else await page.getByRole("navigation", { name: "Card Workshop sections", exact: true }).getByRole("button", { name, exact: true }).click(); }
+
+test("authored support preview and execution share v12 payment and exactly-once entry", async ({ page, request }) => {
+  test.setTimeout(180000);
+  const token = JSON.parse(fs.readFileSync(path.resolve(__dirname, "../.playwright-data/admin/sessions.json")))["simply"], headers = { Authorization: `Bearer ${token}` };
+  let state = await (await request.get(origin + "/api/admin/authoring", { headers })).json();
+  const save = async (route, data) => { const response = await request.post(origin + "/api/admin/authoring/" + route, { headers, data: { expectedRevision: state.revision, ...data } }); expect(response.ok()).toBe(true); state = await response.json(); };
+  await save("studio-draft", { operation: "create" }); const mechanic = state.draft.snapshot.studio.mechanics.at(-1);
+  await save("create", { domain: "sets", name: "Paid support integration" }); const set = state.draft.snapshot.domains.sets.find(row => row.name === "Paid support integration");
+  await save("create", { domain: "cards", name: "Paid support draw", setId: set.id, effectId: mechanic.id, factionId: "rumin", type: "spell" }); const card = state.draft.snapshot.domains.cards.at(-1);
+  await page.goto("/admin/gauntlet"); await page.evaluate(token => localStorage.setItem("gauntlet_auth_token", token), token);
+  await page.goto("/admin/gauntlet?workshop=cards&object=" + card.id); await cardSection(page, "Test");
+  const harness = page.getByRole("region", { name: "Real engine playtest" });
+  await harness.getByRole("combobox", { name: "Test content", exact: true }).selectOption("draft");
+  await harness.getByRole("button", { name: "Configure custom starting state", exact: true }).click(); const setup = harness.getByRole("region", { name: "Custom starting state", exact: true });
+  await setup.getByLabel("Player 1 hand 1 card", { exact: true }).selectOption(card.id); await setup.getByLabel("Player 1 hand 1 suit", { exact: true }).selectOption(card.suit);
+  await setup.getByRole("button", { name: "Add to player 1 hand", exact: true }).click(); await setup.getByLabel("Player 1 hand 2 value", { exact: true }).fill("14");
+  page.once("dialog", d => d.accept()); let pending = page.waitForResponse(r => r.url().endsWith("/authoring/playtest")); await harness.getByRole("button", { name: "Start draft duel playtest", exact: true }).click();
+  const session = (await (await pending).json()).playtest, action = session.legalActions.find(a => a.type === "playSupport" && a.laneIndex === 0);
+  expect(action).toBeTruthy(); await harness.getByRole("combobox", { name: "Action", exact: true }).selectOption(action.id); await harness.getByRole("group", { name: /^Payment cards/ }).getByRole("checkbox", { name: /Ace|A of|14/ }).check();
+  pending = page.waitForResponse(r => r.url().endsWith("/playtest/preview-command")); await harness.getByRole("button", { name: "Calculate command preview", exact: true }).click();
+  const preview = (await (await pending).json()).preview; expect(preview.accepted).toBe(true); expect(preview.payment.required).toBe(card.value);
+  pending = page.waitForResponse(r => r.url().endsWith("/playtest/command")); await harness.getByRole("button", { name: "Execute selected action", exact: true }).click();
+  const executed = (await (await pending).json()).playtest;
+  expect(executed.game.lanes[0].support[1].effect.mechanicId).toBe(mechanic.id); expect(executed.lastCommand.events.filter(e => e.type === "cards.drawn")).toHaveLength(1);
+  expect(executed.lastCommand.changes).toEqual(preview.changes); await page.screenshot({ path: "artifacts/phase2-paid-authored-support.png", fullPage: true });
+  state = await (await request.get(origin + "/api/admin/authoring", { headers })).json(); await save("discard", {});
+});
 test("operator composes a reusable mechanic, creates a card, executes it and publishes the captured behavior", async ({ page, request }) => {
   test.setTimeout(180000);
   const token = JSON.parse(fs.readFileSync(path.resolve(__dirname, "../.playwright-data/admin/sessions.json")))["simply"];

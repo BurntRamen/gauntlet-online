@@ -1,8 +1,13 @@
 "use strict";
 const engine = require("../shared/duel-rules");
 const clone = value => JSON.parse(JSON.stringify(value));
+// The private session supplies revision and identity, never an operator envelope.
+function executeAction(game, command, options) {
+  return engine.applyCommand(game, command.type === "playSupport" ? engine.createCommandEnvelope(game, command.player, command) : command, options);
+}
 const actionLabels = { declareHandAttack: "Attack from hand", declareLaneAttack: "Attack from lane", declareHandBlock: "Block from hand", declareLaneBlock: "Block from lane", placeFacedown: "Place face-down", skipPlacement: "Skip placement", passPriority: "Pass priority", declineBlock: "Decline block", concede: "Concede", useFactionAbility: "Use faction ability" };
 const optionalFields = { "forum-ledger-payment": "forumLedgerPaymentCardId", "jewel-bank-payment": "useJewelBankBonus", "arm-rumin-weapons": "armWeaponCardIds",
+  "assembly-station": "useAssemblyStation",
   "sandstorm-processor": "useSandstormProcessor", "beli-awakened": "useBeliAwakenedBonus", "constanti-sunforge": "sunforgeAccelerationToSpend",
   "voltaric-ultimatum": "useVoltaricUltimatum", "focus-prime-signal": "primeSignalBonus", "acceleration-blockers": "accelerationBlockerCardIds",
   "deckhand-diver-peek": "useDeckhandDiverPeek", "last-gamble-choice": "lastGambleChoice", "meerus-free-attack": "useMeerusFreeAttack" };
@@ -64,7 +69,7 @@ function defaultActions(game) {
       const weapon = lane.support?.[player] || lane.facedown?.[player];
       if (["weapon", "armament"].includes(weapon?.type)) candidates.push({ label: `${action.label} · arm ${weapon.name}`, command: { ...command, armWeaponCardIds: [weapon.id] } });
     }
-    return candidates.filter(candidate => engine.applyCommand(clone(game), candidate.command).accepted);
+    return candidates.filter(candidate => executeAction(clone(game), candidate.command).accepted);
   });
   const concede = { type: "concede", player: 1 };
   return engine.applyCommand(clone(game), concede).accepted ? [...actions, { label: "Concede", command: concede }] : actions;
@@ -101,9 +106,9 @@ function cardNames(...games) {
   return names;
 }
 function previewAction(game, command) {
-  const copy = clone(game), result = engine.applyCommand(copy, clone(command), { diagnostics: true });
+  const copy = clone(game), result = executeAction(copy, clone(command), { diagnostics: true });
   const payment = engine.previewPayment(clone(game), command.player, command);
   return { kind: "calculated-preview", command: clone(command), accepted: result.accepted, error: result.rejectionReason || result.error || null,
     cardNames: cardNames(game, result.state), payment, mechanicsTrace: result.mechanicsTrace, events: clone(result.animationEvents || []), changes: result.accepted ? stateChanges(game, result.state) : [] };
 }
-module.exports = { legalActions, defaultActions, previewAction, stateChanges, cardNames };
+module.exports = { legalActions, defaultActions, previewAction, stateChanges, cardNames, executeAction };

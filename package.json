@@ -8,6 +8,7 @@
     "test:server": "npm --prefix server test",
     "test:client": "npm --prefix client test -- --watchAll=false",
     "test:e2e": "playwright test",
+    "test:e2e:support": "playwright test --config=playwright.support.config.js",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:workshop": "playwright test --config=playwright.workshop.config.js",
     "test:e2e:install": "playwright install chromium",

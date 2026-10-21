@@ -76,6 +76,7 @@ function run(game, player, source, ability, index, context, api) {
       const destination = context.command.destinationLane;
       if (!Number.isInteger(destination) || destination < 0 || destination > 2 || destination === t.laneIndex || game.lanes[destination][t.slot]?.[player]) throw invalid("Choose an empty different slot of the same kind.");
       removeTarget(game, t); game.lanes[destination][t.slot] ||= { 1: null, 2: null }; game.lanes[destination][t.slot][player] = t.card;
+      if (t.slot === "support" && t.card.supportState) t.card.supportState.laneIndex = destination;
       api.emit("laneCard.moved", { player, cardId: t.card.id, from: t.laneIndex, to: destination, source: source.name });
     }
     // paymentReduction is evaluated before normal payment validation and marked

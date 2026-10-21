@@ -25,6 +25,23 @@ test("guided contract rejects unknown, excessive, recursive and incompatible com
   }
   assert.match(explain(composed()), /overpayment at least 2.*add 2.*then gain 1/s);
 });
+
+test("composed armament pays to enter v12 support before arming and consumes only after combat", () => {
+  const { game, command } = fixture();
+  const weapon = game.lanes[0].support[1]; game.lanes[0].support[1] = null;
+  game.players[1].hand.push(weapon, { id: "support-payment", value: 4, suit: "hearts" });
+  const enter = engine.applyCommand(game, engine.createCommandEnvelope(game, 1, { type: "playSupport", cardId: weapon.id, laneIndex: 0, paymentCardIds: ["support-payment"] }));
+  assert.equal(enter.accepted, true, enter.rejectionReason);
+  assert.equal(enter.state.lanes[0].support[1].supportState.charges, 1);
+  assert.equal(enter.state.paymentLog.at(-1).required, 4);
+  const armed = engine.applyCommand(enter.state, command); assert.equal(armed.accepted, true, armed.rejectionReason);
+  assert.equal(armed.state.lanes[0].support[1], null);
+  assert.equal(armed.state.handAttacks[0].effectiveValue, 4);
+  const declined = engine.applyCommand(armed.state, { type: "declineBlock", player: 2 });
+  const finished = engine.applyCommand(declined.state, { type: "passPriority", player: 1 });
+  assert.ok(finished.state.players[1].discard.some(c => c.id === weapon.id));
+  assert.ok(finished.animationEvents.some(e => e.type === "support.discarded" && e.cardId === weapon.id));
+});
 test("real legal descriptors, transactional payment, ordered effects and private trace", () => {
   const effect = composed(); effect.abilities[0].effects.push({ kind: "attackBonus", amount: 3, ...contract.operations.attackBonus });
   const { game, command } = fixture(effect), before = clone(game);

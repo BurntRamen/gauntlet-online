@@ -15,6 +15,21 @@ function createGame(resolved, selection, id) {
 const harness = publication => createAdminPlaytests({ publication, createGame, chooseAi: () => ({ type: "passPriority", player: 2 }) });
 const args = session => ({ id: session.id, gameRevision: session.game.revision, command: { type: "passPriority", player: session.game.priority } });
 
+test("Admin previews and executes paid support with server-owned envelopes and stale-revision protection", () => {
+  const publication = createContentPublication({ baseline, memory: true }), playtests = harness(publication);
+  const session = playtests.start({ source: "live", subject: { kind: "card", id: "rumin-coin-scale-spear" }, scenario: { version: 1, turn: 1, priority: 1, players: { 1: { factionId: "rumin", hand: [{ cardId: "rumin-coin-scale-spear", value: 4, suit: "diamonds" }, { value: 14, suit: "hearts" }] }, 2: { factionId: "sheen" } } } }, "admin").playtest;
+  const action = session.legalActions.find(a => a.type === "playSupport" && a.laneIndex === 0);
+  assert.ok(action); assert.ok(session.actions.some(a => a.command.type === "playSupport"));
+  const body = { ...args(session), command: { ...action.confirmationPayload.fixed, type: action.type, player: 1, paymentCardIds: action.payment.eligibleCardIds } };
+  const preview = playtests.preview(body, "admin").preview;
+  assert.equal(preview.accepted, true, preview.error); assert.equal(preview.payment.required, 4);
+  assert.equal(session.game.lanes[0].support[1], null);
+  const result = playtests.command(body, "admin").playtest;
+  assert.equal(result.game.lanes[0].support[1].definitionId, "rumin-coin-scale-spear");
+  assert.deepEqual(result.lastCommand.changes, preview.changes);
+  assert.throws(() => playtests.command(body, "admin"), /changed/);
+});
+
 test("live testing without a GitHub credential needs no draft reads or writes and exposes pinned identities", async () => {
   const publication = createGitHubContentPublication({ baseline, token: "", releaseFile: "absent-test-release.json", client: new Proxy({}, { get() { throw Error("No GitHub operation is permitted"); } }) });
   const playtests = harness(publication), card = publication.active().manifest.cards.find(card => card.factionId === "indela");
@@ -223,4 +238,16 @@ test("pending single-card Jewel Bank payment is available on blocks and attack o
   const attackGame = paymentActionGame("declareHandAttack", "rumin"); attackGame.players[1].turnData.ruminJewelBankAvailable = true;
   const attack = legalActions(attackGame).find(action => action.type === "declareHandAttack");
   assert.equal([...attack.optionalEffects, ...attack.optionalPaymentModifiers].filter(option => option.commandField === "useJewelBankBonus").length, 1);
+});
+
+test("Admin's Assembly Station toggle reaches the authoritative optional payment", () => {
+  const game = paymentActionGame("declareHandAttack", "rumin");
+  game.players[1].hand[0] = { ...game.players[1].hand[0], type: "servitor", factionId: "neutral", definitionId: "neutral-soldier", value: 2 };
+  game.players[1].hand[1].value = 1;
+  game.lanes[0].support[1] = { id: "assembly", definitionId: "neutral-assembly-station", factionId: "neutral", type: "contraption", value: 7 };
+  const action = legalActions(game).find(a => a.type === "declareHandAttack");
+  assert.equal(action.optionalEffects.find(option => option.id === "assembly-station").commandField, "useAssemblyStation");
+  const command = { ...action.confirmationPayload.fixed, type: action.type, player: 1, paymentCardIds: ["payment"] };
+  assert.equal(previewAction(game, command).accepted, false);
+  assert.equal(previewAction(game, { ...command, useAssemblyStation: true }).accepted, true);
 });

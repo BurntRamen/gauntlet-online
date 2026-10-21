@@ -87,6 +87,7 @@
   },
   "speakerVoices": {
     "Narrator": "narrator",
+    "Epilogue": "narrator",
     "Lafayette": "lafayette",
     "Polea": "polea",
     "Danton": "danton",

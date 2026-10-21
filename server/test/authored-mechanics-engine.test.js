@@ -14,21 +14,25 @@ function game() {
   return state;
 }
 function accept(state, command) { const r = rules.applyCommand(state, command); assert.equal(r.accepted, true, r.rejectionReason); return r; }
-test("placed non-Servitor draws exactly once, cannot attack/block, and rejected choices commit nothing", () => {
+test("paid authored support draws exactly once, cannot attack/block, and rejected choices commit nothing", () => {
   let state = game(); const source = authored("spell", [contract.ability()]); state.players[1].hand.push(source);
   assert.equal(rules.applyCommand(state, { type: "declareHandAttack", player: 1, cardId: source.id, paymentCardIds: ["pay-1"] }).accepted, false);
   const blockState = structuredClone(state); blockState.priority = 2;
   const incoming = accept(blockState, { type: "declareHandAttack", player: 2, cardId: "extra-2", paymentCardIds: ["pay-2"] }).state;
   assert.equal(rules.applyCommand(incoming, { type: "declareHandBlock", player: 1, blockerCardIds: [source.id], paymentCardIds: ["pay-1"] }).accepted, false);
-  state = accept(state, { type: "passPriority", player: 1 }).state;
-  state = accept(state, { type: "passPriority", player: 2 }).state;
+  const command = rules.createCommandEnvelope(state, 1, { type: "playSupport", player: 1, laneIndex: 0, cardId: source.id, paymentCardIds: ["pay-1"] }, "authored-entry");
   const before = JSON.stringify(state);
-  assert.equal(rules.applyCommand(state, { type: "placeFacedown", player: 2, laneIndex: 0, cardId: source.id }).accepted, false);
+  assert.equal(rules.applyCommand(state, { ...command, actorPlayerId: 2 }).accepted, false);
+  assert.equal(rules.applyCommand(state, { ...command, command: { ...command.command, paymentCardIds: ["extra-1"] } }).accepted, false);
   assert.equal(JSON.stringify(state), before);
-  const placed = accept(state, { type: "placeFacedown", player: 1, laneIndex: 0, cardId: source.id });
+  const placed = accept(state, command);
   assert.equal(placed.state.players[1].hand.filter(c => c.id === "draw-1").length, 1);
   assert.equal(placed.animationEvents.filter(e => e.type === "cards.drawn").length, 1);
   assert.equal(placed.state.lanes[0].support[1].id, source.id);
+  assert.equal(placed.state.paymentLog.at(-1).required, source.value);
+  assert.ok(placed.state.players[1].discard.some(c => c.id === "pay-1"));
+  const retry = accept(placed.state, command);
+  assert.equal(retry.duplicate, true); assert.deepEqual(retry.state, placed.state); assert.deepEqual(retry.animationEvents, []);
   assert.equal(rules.applyCommand(placed.state, { type: "placeFacedown", player: 1, laneIndex: 0, cardId: source.id }).accepted, false);
 });
 test("ordered attack effects and payment reductions use normal payment, priority and captured definitions", () => {
@@ -44,6 +48,39 @@ test("ordered attack effects and payment reductions use normal payment, priority
   const declined = accept(r.state, { type: "declineBlock", player: 2 }).state;
   const resolved = accept(declined, { type: "passPriority", player: 1 }).state;
   assert.equal(resolved.players[2].life, state.players[2].life - 7); assert.equal(resolved.handAttacks.length, 0);
+});
+
+test("pinned v11 authored support retains its original end-turn placement", () => {
+  let state = game(); state.rulesVersion = "gauntlet-duel-v11";
+  state.players[1].hand.push(authored("spell", [contract.ability()]));
+  state = accept(state, { type: "passPriority", player: 1 }).state;
+  state = accept(state, { type: "passPriority", player: 2 }).state;
+  const result = accept(state, { type: "placeFacedown", player: 1, laneIndex: 0, cardId: "source" });
+  assert.ok(result.state.players[1].hand.some(c => c.id === "pay-1"));
+  assert.ok(result.state.players[1].hand.some(c => c.id === "draw-1"));
+  assert.equal(result.state.rulesVersion, "gauntlet-duel-v11");
+});
+
+test("moving a paid authored support preserves its entry receipt and updates its lane", () => {
+  let state = game(); state.players[1].hand.push(authored("spell", [{ ...contract.ability("activate"), target: "support", effects: [{ kind: "moveLane", amount: 1, duration: "instant" }] }]));
+  state = accept(state, rules.createCommandEnvelope(state, 1, { type: "playSupport", cardId: "source", laneIndex: 0, paymentCardIds: ["pay-1"] })).state;
+  const receipt = structuredClone(state.lanes[0].support[1].supportState);
+  const action = rules.getLegalActions(state, 1).find(a => a.abilityId?.startsWith("mechanic:") && a.destinationLane === 2);
+  const moved = accept(state, { type: action.type, player: 1, ...action.confirmationPayload.fixed, paymentCardIds: [] });
+  assert.equal(moved.state.lanes[0].support[1], null);
+  assert.deepEqual(moved.state.lanes[2].support[1].supportState, { ...receipt, laneIndex: 2 });
+  assert.equal(moved.animationEvents.some(e => e.type === "support.discarded"), false);
+});
+
+test("unresolved or mismatched authored support never becomes a payable legal action", () => {
+  const support = require("../../shared/duel-rules/supportContract");
+  const source = authored("spell", [contract.ability()]);
+  assert.ok(support.definition(source));
+  assert.equal(support.definition({ ...source, type: "armament" }), null);
+  delete source.effect.definition; delete source.effect.revision;
+  assert.equal(support.definition(source), null);
+  const state = game(); state.players[1].hand.push(source);
+  assert.equal(rules.getLegalActions(state, 1).some(a => a.type === "playSupport" && a.cardId === "source"), false);
 });
 test("paid support activations validate authoritative targets, reset passes and enforce per-turn usage atomically", () => {
   const a = { ...contract.ability("activate"), label: "Recover", target: "discard", cost: { payment: 3, life: 1, counters: 0, consumeSource: false }, effects: [{ kind: "recover", amount: 1, duration: "instant" }, { kind: "gainLife", amount: 2, duration: "instant" }] };

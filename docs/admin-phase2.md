@@ -229,7 +229,7 @@ The earlier milestone counts are historical evidence, not additional tests to ad
 
 ## Remaining boundaries and Case's next steps
 
-No input or credentials are needed for the completed local adapter scope. No Phase 2 changes are live, and no branch has been pushed or merged. Case's original working tree and separate paid-support worktree were not edited.
+No input or credentials are needed for the completed adapter scope. This was the local implementation status on 16 October; subsequent PR, reconciliation and deployment evidence is tracked in [the release record](admin-suite-live-release.md). Case's original working tree and separate paid-support worktree were not edited.
 
 Before a later release, review this branch, authorize deployment/migration/publication separately, verify persistent authoring/account/currency/room storage and the two administrator identities, and rehearse a coordinated restore. Preserve the approved opening-Gold policy. Gem spending requires its own activation; publishing prices does not enable it. Real payments additionally require the provider/merchant qualification and checkout UI described in the [payment guide](payment-adapter-contract.md).
 

@@ -9,6 +9,10 @@ export const FACTION_VISUALS = {
   bizi: { name: "Bizi", accent: "#b080ce", art: "/assets/gauntlet/factions/bizi/constanti-technology-hub.webp" },
   zynarth: { name: "Zynarth", accent: "#a3e635", art: "/assets/gauntlet/factions/zynarth/brood-nest.webp" },
   "astral-vanguard": { name: "Astral Vanguard", accent: "#60a5fa", art: "/assets/gauntlet/factions/astral-vanguard/vanguard-outpost.webp" },
+  ingles: { name: "Ingles", accent: "#e9c46a", art: "/assets/gauntlet/ingles-emblem.svg" },
+  mercaw: { name: "Mercaw", accent: "#60a5fa", art: "/assets/gauntlet/mercaw-emblem.svg" },
+  mtano: { name: "M'Tano", accent: "#9ccf9b", art: "/assets/gauntlet/mtano-emblem.svg" },
+  russo: { name: "Russo", accent: "#b9d7ea", art: "/assets/gauntlet/russo-emblem.svg" },
   xendra: { name: "XenDra", accent: "#a88ad8", art: "" },
   basic: { name: "Basic Gauntlet", accent: "#d0a863", art: "" }
 };
@@ -29,6 +33,14 @@ export function factionIdFrom(value) {
   if (normalized.includes("bizi")) return "bizi";
   if (normalized.includes("mekan")) return "mekan";
   if (normalized.includes("jali")) return "jali";
+  if (normalized.includes("ingles") || normalized.includes("engles")) return "ingles";
+  if (normalized.includes("mercaw")) return "mercaw";
+  if (normalized.includes("mtano")) return "mtano";
+  if (normalized.includes("russo")) return "russo";
+  if (normalized.includes("gracus")) return "gracus";
+  if (normalized.includes("indela")) return "indela";
+  if (normalized.includes("zynarth")) return "zynarth";
+  if (normalized.includes("astralvanguard")) return "astral-vanguard";
   if (normalized.includes("xendra")) return "xendra";
   return "basic";
 }

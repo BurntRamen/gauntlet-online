@@ -216,6 +216,10 @@ const FACTION_COLORS = {
   jali: { primary: "#be3651", light: "#ffe4e6", border: "#7f1d3a" },
   gracus: { primary: "#c26522", light: "#ffedd5", border: "#7c2d12" },
   indela: { primary: "#7c3aed", light: "#ede9fe", border: "#4c1d95" },
+  ingles: { primary: "#9a6b20", light: "#fff8df", border: "#594016" },
+  mercaw: { primary: "#2563eb", light: "#e8f0ff", border: "#1e3a8a" },
+  mtano: { primary: "#2f855a", light: "#e6f6ec", border: "#173f35" },
+  russo: { primary: "#486581", light: "#edf6fb", border: "#202b3c" },
   xendra: { primary: "#a855f7", light: "#f5e8ff", border: "#6b21a8" },
   default: { primary: "#374151", light: "#f3f4f6", border: "#1f2937" }
 };
@@ -252,43 +256,24 @@ const MUSIC_TRACKS = {
   },
   basic: { label: "Basic Gauntlet Theme", pad: [65.41, 87.31, 130.81], notes: [261.63, 293.66, 329.63, 392, 349.23, 293.66, 246.94, 261.63], tempo: 600, wave: "triangle" },
   rumin: {
-    label: "March of the Rumin",
-    sources: [
-      "/assets/gauntlet/music/rumin-1.mp3",
-      "/assets/gauntlet/music/rumin-2.mp3",
-      "/assets/gauntlet/music/rumin-3.mp3",
-      "/assets/gauntlet/music/rumin-4.mp3"
-    ]
+    label: "The Civic Imperium",
+    sources: ["/assets/gauntlet/music/factions/rumin-civic-imperium-v1.mp3"]
   },
   sheen: {
-    label: "Song of the Sheen",
-    sources: [
-      "/assets/gauntlet/music/sheen-1.mp3",
-      "/assets/gauntlet/music/sheen-2.mp3",
-      "/assets/gauntlet/music/sheen-3.mp3",
-      "/assets/gauntlet/music/sheen-4.mp3"
-    ]
+    label: "The Living Renewal",
+    sources: ["/assets/gauntlet/music/factions/sheen-living-renewal-v1.mp3"]
   },
   frumo: {
-    label: "The Frumos Anthem",
-    sources: [
-      "/assets/gauntlet/music/frumo-1.mp3",
-      "/assets/gauntlet/music/frumo-2.mp3",
-      "/assets/gauntlet/music/frumo-3.mp3",
-      "/assets/gauntlet/music/frumo-4.mp3"
-    ]
+    label: "The Council of Captains",
+    sources: ["/assets/gauntlet/music/factions/frumo-council-of-captains-v1.mp3"]
   },
   bizi: {
-    label: "Hymn of the Gilded Dust",
-    sources: [
-      "/assets/gauntlet/music/bizi-1.mp3",
-      "/assets/gauntlet/music/bizi-2.mp3",
-      "/assets/gauntlet/music/bizi-3.mp3",
-      "/assets/gauntlet/music/bizi-4.mp3"
-    ]
+    label: "The Plural Machine",
+    sources: ["/assets/gauntlet/music/factions/bizi-plural-machine-v1.mp3"]
   },
   mekan: {
     label: "The Eternal Festival",
+    sources: ["/assets/gauntlet/music/factions/mekan-eternal-festival-v1.mp3"],
     pad: [55, 82.41, 110],
     notes: [329.63, 392, 440, 523.25, 493.88, 392],
     tempo: 520,
@@ -296,14 +281,22 @@ const MUSIC_TRACKS = {
   },
   jali: {
     label: "The Revenant Formation",
+    sources: ["/assets/gauntlet/music/factions/jali-revenant-formation-v1.mp3"],
     pad: [46.25, 69.3, 92.5],
     notes: [220, 261.63, 293.66, 349.23, 293.66, 246.94],
     tempo: 680,
     wave: "sawtooth"
   },
-  gracus: { label: "The Giant Coast", pad: [55, 82.41, 110], notes: [164.81, 220, 246.94, 329.63, 293.66], tempo: 610, wave: "square" },
-  indela: { label: "The Turning Omen", pad: [69.3, 103.83, 138.59], notes: [277.18, 311.13, 369.99, 415.3, 369.99], tempo: 740, wave: "sine" },
-  xendra: { label: "The Deep Currents", pad: [46.25, 69.3, 92.5], notes: [185, 174.61, 207.65, 138.59, 155.56, 123.47], tempo: 780, wave: "sine" }
+  gracus: { label: "The Stone Question", sources: ["/assets/gauntlet/music/factions/gracus-stone-question-v1.mp3"], pad: [55, 82.41, 110], notes: [164.81, 220, 246.94, 329.63, 293.66], tempo: 610, wave: "square" },
+  indela: { label: "The Turning Omen", sources: ["/assets/gauntlet/music/factions/indela-turning-omen-v1.mp3"], pad: [69.3, 103.83, 138.59], notes: [277.18, 311.13, 369.99, 415.3, 369.99], tempo: 740, wave: "sine" },
+  zynarth: { label: "The Infinite Hive", sources: ["/assets/gauntlet/music/factions/zynarth-infinite-hive-v1.mp3"], pad: [41.2, 61.74, 82.41], notes: [164.81, 155.56, 185, 220, 207.65], tempo: 720, wave: "sawtooth" },
+  "astral-vanguard": { label: "The Hybrid Horizon", sources: ["/assets/gauntlet/music/factions/astral-vanguard-hybrid-horizon-v1.mp3"], pad: [55, 82.41, 110], notes: [220, 277.18, 329.63, 293.66, 369.99], tempo: 600, wave: "triangle" },
+  voltari: { label: "The Golden Conduit", sources: ["/assets/gauntlet/music/factions/voltari-golden-conduit-v1.mp3"], pad: [46.25, 69.3, 92.5], notes: [277.18, 311.13, 415.3, 369.99], tempo: 540, wave: "sine" },
+  xendra: { label: "Aspect Without Form", sources: ["/assets/gauntlet/music/factions/xendra-aspect-without-form-v1.mp3"], pad: [46.25, 69.3, 92.5], notes: [185, 174.61, 207.65, 138.59, 155.56, 123.47], tempo: 780, wave: "sine" },
+  ingles: { label: "The Unwritten Charter", sources: ["/assets/gauntlet/music/factions/ingles-unwritten-charter-v1.mp3"] },
+  mercaw: { label: "The Many-Star Accord", sources: ["/assets/gauntlet/music/factions/mercaw-many-star-accord-v1.mp3"] },
+  mtano: { label: "The Mountain Remembers", sources: ["/assets/gauntlet/music/factions/mtano-mountain-remembers-v1.mp3"] },
+  russo: { label: "The Long Winter Oath", sources: ["/assets/gauntlet/music/factions/russo-long-winter-oath-v1.mp3"] }
 };
 
 const MENU_THEME = {
@@ -1419,7 +1412,11 @@ const PACK_THEMES = {
   gracus: { name: "Gracus", subtitle: "Giant Coast Arena", accent: "#f59e0b", glow: "rgba(245,158,11,.3)", background: "linear-gradient(145deg, #431407, #9a3412 44%, #155e75 90%)", art: "radial-gradient(circle at 50% 25%, rgba(251,191,36,.5), transparent 22%), repeating-linear-gradient(90deg, rgba(255,237,213,.1) 0 3px, transparent 3px 28px)" },
   indela: { name: "Indela", subtitle: "Academy of Omens", accent: "#c4b5fd", glow: "rgba(196,181,253,.3)", background: "linear-gradient(145deg, #1e1b4b, #581c87 46%, #172554 90%)", art: "repeating-radial-gradient(circle at 50% 40%, rgba(254,243,199,.18) 0 2px, transparent 2px 28px), radial-gradient(circle at 50% 38%, rgba(192,132,252,.5), transparent 25%)" },
   zynarth: { name: "Zynarth", subtitle: "Adaptive Brood", accent: "#a3e635", glow: "rgba(163,230,53,.3)", background: "linear-gradient(145deg, #1a2e05, #3f6212 44%, #3b0764 90%)", art: "radial-gradient(circle at 32% 30%, rgba(190,242,100,.5), transparent 20%), repeating-radial-gradient(circle at 60% 60%, rgba(217,249,157,.12) 0 3px, transparent 3px 26px)" },
-  "astral-vanguard": { name: "Astral Vanguard", subtitle: "Rapid Deployment", accent: "#60a5fa", glow: "rgba(96,165,250,.32)", background: "linear-gradient(145deg, #0c1f3f, #1d4ed8 42%, #312e81 88%)", art: "linear-gradient(120deg, transparent 38%, rgba(147,197,253,.3) 39% 42%, transparent 43%), radial-gradient(circle at 72% 24%, rgba(224,242,254,.58), transparent 18%)" }
+  "astral-vanguard": { name: "Astral Vanguard", subtitle: "Rapid Deployment", accent: "#60a5fa", glow: "rgba(96,165,250,.32)", background: "linear-gradient(145deg, #0c1f3f, #1d4ed8 42%, #312e81 88%)", art: "linear-gradient(120deg, transparent 38%, rgba(147,197,253,.3) 39% 42%, transparent 43%), radial-gradient(circle at 72% 24%, rgba(224,242,254,.58), transparent 18%)" },
+  ingles: { name: "Ingles", subtitle: "The Unwritten Charter", accent: "#e9c46a", glow: "#e9c46a4d", background: "linear-gradient(145deg,#102a43,#7c5b22)" },
+  mercaw: { name: "Mercaw", subtitle: "The Many-Star Accord", accent: "#60a5fa", glow: "#60a5fa57", background: "linear-gradient(145deg,#172554,#7c3aed)" },
+  mtano: { name: "M'Tano", subtitle: "The Mountain Remembers", accent: "#9ccf9b", glow: "#9ccf9b4d", background: "linear-gradient(145deg,#173f35,#155e75)" },
+  russo: { name: "Russo", subtitle: "The Long Winter Oath", accent: "#b9d7ea", glow: "#b9d7ea52", background: "linear-gradient(145deg,#202b3c,#7c2d12)" }
 };
 
 const factionName = (id) => id === "neutral" ? "Reath" : PACK_THEMES[id]?.name || id;
@@ -2678,7 +2675,7 @@ function RulebookPanel() {
     {
       title: "Blocking",
       rules: [
-        "Hand attacks may be blocked by one or more cards from hand, paid for by cards from hand.",
+        "Hand attacks may be blocked by one card from hand, paid for by other cards from hand.",
         "Lane attacks may only be blocked by the defender's face-down card in that same lane.",
         "Damage equals attack effective value minus total block effective value."
       ]
@@ -2706,6 +2703,11 @@ function RulebookPanel() {
   return (
     <section className="field-rulebook-panel">
       <a className="card-keyword-link" href="/card-keywords.html" target="_blank" rel="noreferrer">Card keyword guide ↗</a>
+      <section aria-label="Paid support rules">
+        <h3>Support Zones in faction duels</h3>
+        <p>Each of your three lanes has a Commitment Zone and a Support Zone. With open priority and no pending combat, select a non-Servitor from your hand, choose an empty Support Zone, and discard other hand cards to pay its printed value after payment modifiers. Non-Servitors can also pay.</p>
+        <p>Resolve its printed instructions and choices. One-shot cards leave after resolution; ongoing cards remain until their text removes them and cannot be replaced. Support cards cannot attack or block. Ordinary end-turn placement uses only Commitment Zones. Polea's printed free placement is a separate exception. Older matches keep their original rules.</p>
+      </section>
       <img
         className="field-rulebook-art"
         src={resolveAssetPath("/assets/gauntlet/field-rulebook.png")}
@@ -3204,7 +3206,7 @@ export default function App() {
   const babylonGameplayActive = Boolean(
     game
     && ["basic", "factions"].includes(game.gameMode)
-    && shouldUseProductionMatchRenderer()
+    && (shouldUseProductionMatchRenderer() || game.rulesVersion === "gauntlet-duel-v12")
   );
 
   useEffect(() => {
@@ -5498,6 +5500,7 @@ export default function App() {
             onOpenReplay={gameIsOver && game.matchId ? () => openReplay(game.matchId) : null}
             onOpenMatches={returnToMatches}
             options={{
+              forceAccessible: !shouldUseProductionMatchRenderer(),
               audioEnabled: !accountSoundMuted,
               cardBackAsset: game.players?.[player]?.profile?.equipment?.cardBack?.url || resolveCardBackAsset(game.players?.[player]?.profile?.cosmetics?.selectedCardBack),
               serverUrl: SOCKET_URL,

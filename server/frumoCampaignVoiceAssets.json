@@ -191,7 +191,9 @@
         "/assets/gauntlet/voices/frumo-ch12-after-02-lafayette.mp3",
         "/assets/gauntlet/voices/frumo-ch12-after-03-councilor.mp3",
         "/assets/gauntlet/voices/frumo-ch12-after-04-lafayette.mp3",
-        "/assets/gauntlet/voices/frumo-ch12-after-05-polea.mp3"
+        "/assets/gauntlet/voices/frumo-ch12-after-05-polea.mp3",
+        null,
+        null
       ]
     }
   }
