@@ -296,23 +296,28 @@ test("manifest-picked faction and portrait artwork previews load immutable draft
   const nav = page.getByRole("navigation", { name: "Administration sections" });
   await nav.getByText("Design", { exact: true }).click();
   const role = original.live.domains.characters.find((entry) => entry.factionId === "rumin" && entry.role === "commander");
-  for (const [tab, name, field] of [["Factions", "Rumin", "faction artwork"], ["Characters / opponents", role.name, "portrait"]]) {
-    await otherContent(page, tab);
-    await page.getByRole("button", { name: "Inspect " + name, exact: true }).click();
-    await page.getByLabel("Draft " + field, { exact: true }).locator("..").getByText("Advanced · manual reference", { exact: true }).click();
-    await page.getByLabel("Draft " + field, { exact: true }).fill(artwork.id);
-    await page.getByRole("button", { name: "Save " + field + " to draft", exact: true }).click();
-    await expect(page.getByRole("status")).toHaveText("Field saved to the shared draft. Live content is unchanged.");
-    await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
-    const preview = page.getByRole("region", { name: "Isolated draft preview" });
-    const image = preview.getByRole("img", { name, exact: true });
-    await expect(image).toHaveAttribute("src", artwork.path);
-    await expect.poll(() => image.evaluate((element) => element.complete && element.naturalWidth > 0)).toBeTruthy();
-    await preview.screenshot({ path: "artifacts/admin-qualification-" + field.replace(/ /g, "-") + ".png" });
+  try {
+    for (const [tab, name, field] of [["Factions", "Rumin", "faction artwork"], ["Characters / opponents", role.name, "portrait"]]) {
+      await otherContent(page, tab);
+      const record = page.getByRole("button", { name: "Inspect " + name, exact: true });
+      await (tab === "Characters / opponents" ? record.filter({ hasText: role.id }) : record).click();
+      await page.getByLabel("Draft " + field, { exact: true }).locator("..").getByText("Advanced · manual reference", { exact: true }).click();
+      await page.getByLabel("Draft " + field, { exact: true }).fill(artwork.id);
+      await page.getByRole("button", { name: "Save " + field + " to draft", exact: true }).click();
+      await expect(page.getByRole("status")).toHaveText("Field saved to the shared draft. Live content is unchanged.");
+      await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
+      const preview = page.getByRole("region", { name: "Isolated draft preview" });
+      const image = preview.getByRole("img", { name, exact: true });
+      await expect(image).toHaveAttribute("src", artwork.path);
+      await expect.poll(() => image.evaluate((element) => element.complete && element.naturalWidth > 0)).toBeTruthy();
+      await preview.screenshot({ path: "artifacts/admin-qualification-" + field.replace(/ /g, "-") + ".png" });
+    }
+    const current = await (await request.get(origin + "/api/admin/authoring", { headers, maxRetries: 2 })).json();
+    expect(current.activeReleaseId).toBe(original.activeReleaseId);
+  } finally {
+    const current = await (await request.get(origin + "/api/admin/authoring", { headers, maxRetries: 2 })).json();
+    if (current.changes.length) expect((await request.post(origin + "/api/admin/authoring/discard", { headers, data: { expectedRevision: current.revision } })).ok()).toBeTruthy();
   }
-  const current = await (await request.get(origin + "/api/admin/authoring", { headers, maxRetries: 2 })).json();
-  expect(current.activeReleaseId).toBe(original.activeReleaseId);
-  expect((await request.post(origin + "/api/admin/authoring/discard", { headers, data: { expectedRevision: current.revision } })).ok()).toBeTruthy();
 });
 
 test("Admin is discoverable only after access approval and review controls retain keyboard context", async ({ page, request }) => {

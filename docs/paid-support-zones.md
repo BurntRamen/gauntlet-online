@@ -56,6 +56,8 @@ Support inspection and preview also omit the combat-value readout for non-combat
 
 Release qualification also updates `e2e/slot-workshop.spec.js` to assert the exact current set of 14 constructible factions after main added the four Frontier factions; the former hardcoded count of 10 was obsolete. This adds no factions or gameplay permissions.
 
+`e2e/admin.spec.js` qualifies the portrait test's commander selection by its visible record ID because current content also has a same-named character. The test cleans up its isolated draft in `finally` to prevent cascading failures.
+
 Follow-up files: `server/paidSupportAi.js`, `server/index.js`, `server/test/paid-support-ai.test.js`, `client/src/babylon/cardDetails.js`, `client/src/babylon/ProductionMatchExperience.jsx`, `client/src/babylon/ProductionMatchExperience.test.js`, `e2e/paid-support-server.js`, `e2e/paid-support.spec.js`, `docs/paid-support-test-results.md`, and this review packet. Case should run the new AI tests alongside `server/test/automated-opponents.test.js`, then `npm run test:e2e:support`; the added phone-browser case passes priority to the training opponent and verifies paid Hospital placement and public slot inspection.
 
 Existing matches retain their stored rules version, including v11 free end-turn support behavior. Unversioned recovered duels explicitly use the pre-change v11 compatibility behavior, never v12. Snapshots without a support map receive empty projection defaults without being repriced or upgraded. Historical replay remains snapshot-driven under its recorded version. Snapshot schema 2 and command/event schema 1 remain compatible additive contracts. New support metadata uses `gauntlet.support.v1`; completed match records now retain the duel's actual rules version.
