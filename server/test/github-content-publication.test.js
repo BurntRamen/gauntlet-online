@@ -202,14 +202,18 @@ test("a packaged content release never silently reconciles divergent saved histo
 });
 
 test("Supabase-private drafts import GitHub history, keep unused uploads and notes private, and publish through the existing gates", async () => {
-  const repo = repository(); repo.client.private = false;
+  const repo = repository();
   const originalStore = repo.store();
   const old = await draft(originalStore);
+  // Model a legacy record already present when the repository is public.
+  repo.client.private = false;
+  assert.equal((await originalStore.status()).writable, false);
   let privateState = null, version = 0;
   const draftStore = { load: async () => privateState ? { state: clone(privateState), version } : null,
     save: async (expected, state) => { if (expected !== version) fail(409); privateState = clone(state); version += 1; } };
   const store = repo.store({ draftStore });
   assert.equal((await store.status()).draft.hash, old.draft.hash);
+  assert.equal((await store.status()).writable, true);
   const writesBefore = repo.client.writes.length;
   let state = await store.saveNotes({ expectedRevision: old.revision, id: "standard", value: "PRIVATE-SUPABASE-NOTE" }, "admin");
   const data = (await require("sharp")({ create: { width: 32, height: 32, channels: 3, background: "red" } }).png().toBuffer()).toString("base64");
