@@ -1230,7 +1230,7 @@ function CardInspection({ inspection, commands, viewModel, snapshot, docked = fa
         <strong>Printed value {inspection.value}</strong>
         {details.combatCapable && inspection.valueBreakdown && <>
           <p className="ability-value-equation">{inspection.valueBreakdown.equation}</p>
-          <p>Attack/block: {inspection.valueBreakdown.total}. Payment is calculated separately.</p>
+          <p>Attack/block: {inspection.valueBreakdown.total}</p>
           {inspection.valueBreakdown.modifiers.map(e => <p key={e.id}>{e.source.name}: {e.amount >= 0 ? '+' : ''}{e.amount} · {e.duration?.kind === 'combat' ? 'this combat' : 'until turn end'}</p>)}
           {inspection.valueBreakdown.notes?.length > 0 && <p>Sources: {inspection.valueBreakdown.notes.join('; ')}</p>}
         </>}
