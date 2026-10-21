@@ -1,0 +1,28 @@
+{
+  "id": "admin-suite-release-20261016",
+  "authorization": "Direct user: complete it in funtionality and user interface and publish it live",
+  "scope": "Complete and validate the existing modular Admin suite and release its compatible code to existing Gauntlet Online hosting using the normal GitHub PR/main deployment route.",
+  "base": "codex/modular-admin-suite at 6b56477, reconcile origin/main aa00d80 including already retained Reath campaign",
+  "preserve": [
+    "Original dirty checkout",
+    "Other 18 existing worktrees",
+    "PR78 campaign rewrite",
+    "PR79 paid support zones"
+  ],
+  "exceptions": [
+    "Existing task worktree retained per explicit continuation; do not delete other worktrees to meet an obsolete retained-count limit.",
+    "Current direct user release instruction supplies code publication/deploy authorization and supersedes the earlier no-deploy restriction."
+  ],
+  "excluded": [
+    "Production database migrations",
+    "Paid provisioning",
+    "Payment provider connection or live collection",
+    "Gems activation",
+    "Account balance mutation or finite Gold cutover",
+    "Production content/competition activation",
+    "Drive writes",
+    "Unrelated PR merges"
+  ],
+  "verification": "Existing local Phase 2 evidence plus release CI, current content validation, unchanged bundle ceilings, browser UX/performance and deployed frontend/backend readback.",
+  "infrastructure": "Code release is separable from disabled runtime activation; missing Gauntlet Render/Supabase access recorded, not bypassed."
+}

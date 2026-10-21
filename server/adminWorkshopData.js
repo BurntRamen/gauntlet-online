@@ -20,12 +20,14 @@ function selectWorkshopSnapshot(status, { source = "live", hash: expectedHash } 
 
 function workshopMetadata(selection) {
   const { snapshot, ...identity } = selection;
+  const composition = require("../shared/duel-rules/compositionContract");
   // Metadata must remain readable while the shared draft has validation errors.
   // Contract bindings are protected fields, so do not execute draft resolution.
   const bindings = { authoredRelease: identity.releaseId, ...Object.fromEntries([
     "rulesVersion", "cardEffectContractVersion", "factionEffectContractVersion", "encounterContractVersion", "assetManifestVersion", "gameConfigVersion"
   ].map(key => [key, snapshot.engine[key]])) };
-  return { version: 1, ...identity, cardEffects: cardAuthoringDefinitions(), ...rulesAuthoringData(snapshot),
+  if (snapshot.domains.cards.some(card => card.effect?.id === composition.ID)) bindings.compositionVersion = composition.VERSION;
+  return { version: 1, ...identity, studio: require("./mechanicAuthoring").metadata(snapshot), cardEffects: cardAuthoringDefinitions(), ...rulesAuthoringData(snapshot),
     bindings: clone(bindings), capabilities: { liveTests: true, customScenarios: 1, commandPreview: true, livePresentation: true, relationships: true, releaseReview: true } };
 }
 

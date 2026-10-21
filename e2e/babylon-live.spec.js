@@ -198,6 +198,19 @@ test("faction abilities, spectator privacy, responsive layout, and accessibility
     .getByRole("button", { name: /Polea.*place a hand card/i })).toBeVisible();
   await expect(playerPage.locator("canvas.babylon-match-canvas")).toBeVisible();
 
+  const accessibility = await new AxeBuilder({ page: playerPage })
+    .exclude("canvas")
+    .analyze();
+  expect(accessibility.violations).toEqual([]);
+
+  await playerPage.setViewportSize({ width: 844, height: 390 });
+  await expect(playerPage.locator("canvas.babylon-match-canvas")).toBeVisible();
+  await expect(playerPage.locator(".production-context-panel")).toBeVisible();
+  // These independent perspective checks do not need simultaneous WebGL scenes.
+  // Release the player scene before loading the spectator on software-rendered CI;
+  // the preceding test separately exercises concurrent live clients and reconnects.
+  await playerContext.close();
+
   const spectatorContext = await browser.newContext({ viewport: { width: 1366, height: 768 } });
   await spectatorContext.addInitScript(({ roomCode }) => {
     localStorage.setItem("gauntlet_room_code", roomCode);
@@ -211,16 +224,6 @@ test("faction abilities, spectator privacy, responsive layout, and accessibility
   await expect(spectatorPage.getByRole("button", { name: "Pass Priority" })).toHaveCount(0);
   await expect(spectatorPage.locator("[data-match-zone='hand']")).toHaveCount(0);
 
-  const accessibility = await new AxeBuilder({ page: playerPage })
-    .exclude("canvas")
-    .analyze();
-  expect(accessibility.violations).toEqual([]);
-
-  await playerPage.setViewportSize({ width: 844, height: 390 });
-  await expect(playerPage.locator("canvas.babylon-match-canvas")).toBeVisible();
-  await expect(playerPage.locator(".production-context-panel")).toBeVisible();
-
-  await playerContext.close();
   await spectatorContext.close();
 });
 

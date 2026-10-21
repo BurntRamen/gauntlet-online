@@ -2,7 +2,7 @@
 export type ParaFormat = "faction-constructed" | "classic";
 export type ProposalState = "draft" | "archived";
 export type ProductCategory = "profile-music" | "faction-soundtrack" | "digital-publication" |
-  "collector-treatment" | "card-back" | "deck-box" | "analytics" | "variant-lab" | "digital-edition" | "bundle";
+  "collector-treatment" | "card-back" | "deck-box" | "profile-title" | "faction-banner" | "analytics" | "variant-lab" | "digital-edition" | "bundle";
 interface Definition { id: string; name: string; description: string; }
 interface Window { startsAt: string | null; endsAt: string | null; }
 export interface ParaSeason extends Definition, Window {
@@ -29,8 +29,9 @@ export interface Entitlement extends Definition {
   asset: string; rightsReference: string; fulfillment: "unavailable" | "available";
 }
 export interface Product extends Definition, Window {
-  category: ProductCategory; status: "unavailable" | "active" | "archived"; artwork: string;
-  entitlements: string[]; pricing: "gold" | "gems" | "dual" | "free" | "unavailable";
+  category: ProductCategory | "gem-credit"; status: "unavailable" | "active" | "archived"; artwork: string;
+  entitlements: string[]; pricing: "gold" | "gems" | "dual" | "split" | "cash" | "free" | "unavailable";
+  cashPriceMinor?: number; cashCurrency?: "usd" | "eur" | "gbp"; gemCredit?: number;
   goldPrice: number; gemPrice: number; purchaseLimit: number;
 }
 export interface ParaConfiguration {

@@ -76,8 +76,12 @@ for (const [name, renderer, viewport] of [["desktop Babylon", "babylon", { width
       expect(state.replay.lanes[1].support[1].name).toBe("Hospital");
       await request.post(`${API}/__support/recover`);
       peer.socket.emit("reconnectToRoom", { roomCode: fixture.roomCode, reconnectToken: fixture.tokens[2] });
-      await page.reload(); await settle(page, 4);
+      await page.reload();
       await expect(page.getByTestId("production-babylon-match")).toHaveAttribute("data-revision", "4");
+      // Restored receipts are evidence of an already committed action, not new
+      // animation work that may lock the recovered board again.
+      expect(await page.getByTestId("production-babylon-match").getAttribute("data-active-event-type")).toBe("");
+      await settle(page, 4);
       await expect(page.locator("body")).not.toContainText("Unknown support");
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
       const accessibility = await new AxeBuilder({ page }).include('[data-testid="production-babylon-match"]').withTags(["wcag2a", "wcag2aa"]).analyze();

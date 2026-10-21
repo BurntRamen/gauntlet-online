@@ -2690,6 +2690,7 @@ textarea:focus-visible {
 .identity-dossier-portrait { align-self: start; }
 .identity-dossier-portrait .player-avatar { width: 80px; height: 88px; font-size: 32px; }
 .identity-dossier-copy { max-width: 720px; min-width: 0; }
+.identity-dossier-copy audio, .competitive-profile-persona audio { width: 300px; max-width: 100%; }
 .identity-dossier-copy > span { color: color-mix(in srgb, var(--faction-accent) 74%, white); font-size: 10px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
 .identity-dossier-copy h3 { margin: 5px 0 8px; color: #fffaf0; font: 700 clamp(26px, 3vw, 34px)/1.1 Georgia, serif; overflow-wrap: anywhere; }
 .identity-dossier-copy p { margin: 0; color: #c3d3d9; font-size: 12px; }

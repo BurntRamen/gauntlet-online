@@ -20,6 +20,12 @@ Example: with Harmony Ward (4), Think (3 with its printed +1 payment effect), an
 
 The policy is deterministic and bounded; it is not a strategic search. Campaign bosses keep their authored attack sequence. The initial-release limitations below describe the October 16 release; the training-strategy limitation is superseded for v12 faction training by this follow-up.
 
+### Main-branch reconciliation
+
+Candidate `61c85ea` passed the complete release workflow: **435 server tests, 736 client tests and 86 browser tests**, with 3 existing opt-in skips. Production compilation, bundle budgets, content checks and all 20 Admin/economy browser cases passed. Local Admin transport/timing failures passed on unchanged focused reruns; the clean CI run is authoritative for that candidate.
+
+PR #80 merged as `7b4fce1` while that workflow was finishing. GitHub rejected the merge of PR #85 because both branches updated the Admin portrait test. The follow-up merges that main revision, keeps its record-ID search and the isolated-draft cleanup, and preserves the newer support recovery, bounded authored mechanics, toolchain and release workflow. A new integration test covers paid AI placement of a captured authored support with exactly one on-play draw. The earlier voice-qualification failures are historical: main updated those manifests, and the additional qualification suite now passes **all 52 tests** on the reconciled tree. Final combined-tree results and deployment evidence are recorded in PR #85.
+
 ## Initial release
 
 Run locally on Windows, Node 24.16.0, Chromium with software WebGL, 15–16 October 2026. No production services or deployment were used. Full local logs and screenshots are retained under `artifacts/paid-support/` (ignored generated files).

@@ -26,7 +26,16 @@ const DEFINITIONS = Object.fromEntries(cardEffectDefinitions().filter(row => TYP
 })]));
 function definition(card) {
   const effect = cardEffect(card);
-  return validateCardEffect(effect, card) ? DEFINITIONS[effect.id] || null : null;
+  if (!TYPES.has(card?.type) || !validateCardEffect(effect, card)) return null;
+  if (effect.id === "composed-rumin-armament" || effect.id === "authored-mechanic" && effect.definition) {
+    const composed = effect.id === "composed-rumin-armament";
+    return { version: VERSION, effectId: effect.id, timing: "open-priority", cost: "printed-value",
+      responseTiming: null, onPlay: effect.definition?.abilities.some(a => a.trigger === "placed") ? "captured-mechanic" : null,
+      ongoing: effect.id, paymentEffect: null, duration: composed ? "until-armed-combat-ends" : "until-text-removes",
+      charges: composed ? 1 : null, discardCondition: composed ? "after-armed-combat" : "captured-cost-or-explicit-removal",
+      concealed: card.type === "ambush" };
+  }
+  return DEFINITIONS[effect.id] || null;
 }
 function enabled(game) { return game?.rulesVersion === "gauntlet-duel-v12"; }
 module.exports = { VERSION, TYPES, DEFINITIONS, definition, enabled };

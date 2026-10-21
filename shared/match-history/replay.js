@@ -126,7 +126,7 @@ function buildPublicReplaySnapshot(game) {
     eventSchemaVersion: Number(game?.eventSchemaVersion || 0),
     rulesVersion: game?.rulesVersion || null,
     cardContentVersion: game?.cardContentVersion || null,
-    ...(game?.contentBinding ? { contentBinding: clonePlain(game.contentBinding), contentVersion: game.contentVersion, config: clonePlain(game.config) } : {}),
+    ...(game?.contentBinding ? { contentBinding: clonePlain(game.contentBinding), contentVersion: game.contentVersion, ...(game.presentationAssets ? { presentationAssets: clonePlain(game.presentationAssets) } : {}), config: clonePlain(game.config) } : {}),
     matchId: game?.matchId || null,
     gameMode: game?.gameMode || "basic",
     revision: Number(game?.revision || 0),

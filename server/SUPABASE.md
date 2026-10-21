@@ -46,3 +46,7 @@ In `account-only` mode, global full record-v2 persistence is unavailable after b
 The match tables are accessed only by the backend service role. They are not granted to `anon` or `authenticated`; public match pages must use the privacy-filtered server API. Current Supabase projects may require the explicit `service_role` grants in `supabase-schema.sql` because newly created tables are no longer automatically exposed to the Data API.
 
 If the optional canonical cloud archive is enabled later, its objects remain backend-only. Do not make the bucket public or add `anon`/`authenticated` Storage policies. See `docs/match-archive.md` for canonical bytes, local-library identity, import conflict handling, and the competitive trust boundary.
+
+## Broader runtime durability
+
+For the separate match-table/private-authoring migration, persistent runtime volume, verified backups and Case's rollout order, see [durable-storage-setup.md](../docs/durable-storage-setup.md). Apply versioned migrations after the baseline schema; the baseline schema alone does not install the account revision guard or private authoring provider.

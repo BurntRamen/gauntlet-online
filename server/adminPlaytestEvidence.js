@@ -2,13 +2,15 @@
 const { formatMatchLogEntry, isAbilityLogEntry } = require("../shared/match-history/formatLog");
 
 function createEvidence() {
-  return { events: [], omitted: 0, combatDamage: { 1: null, 2: null }, largestAttack: { 1: null, 2: null }, references: [], conceded: false };
+  return { events: [], mechanicsTrace: [], omittedTrace: 0, omitted: 0, combatDamage: { 1: null, 2: null }, largestAttack: { 1: null, 2: null }, references: [], conceded: false };
 }
 
 // Accumulate only committed engine results. Totals do not depend on the engine's
 // capped reconnect logs, and an absent receipt stays null, never a fabricated zero.
 function recordEvidence(evidence, result, command, knownCards) {
   evidence.conceded ||= command.type === "concede";
+  evidence.mechanicsTrace.push(...(result.mechanicsTrace || []).map(entry => ({ ...entry, revision: result.revision })));
+  if (evidence.mechanicsTrace.length > 2000) evidence.omittedTrace += evidence.mechanicsTrace.splice(0, evidence.mechanicsTrace.length - 2000).length;
   const visit = (value) => {
     if (!value || typeof value !== "object") return;
     const id = value.definitionId || value.gameplayCardId;
@@ -35,6 +37,7 @@ function projectEvidence(evidence, game) {
     facts: { Turn: game.turn, "Player life": game.players[1]?.life ?? null, "Opponent life": game.players[2]?.life ?? null,
       "Combat damage dealt": evidence.combatDamage[1], "Combat damage taken": evidence.combatDamage[2],
       "Largest player attack (declared)": evidence.largestAttack[1], "Largest opponent attack (declared)": evidence.largestAttack[2] },
+    mechanicsTrace: evidence.mechanicsTrace, omittedTrace: evidence.omittedTrace,
     references: evidence.references,
     omitted: evidence.omitted,
     events: evidence.events.map((entry) => ({ ...entry, ...formatMatchLogEntry(entry, { players: game.players }), ability: isAbilityLogEntry(entry) }))

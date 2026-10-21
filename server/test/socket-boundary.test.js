@@ -37,3 +37,15 @@ test("disconnect cleanup follows in-flight work and skips later client requests"
   await new Promise(setImmediate);
   assert.deepEqual(order, ["created", "detached"]);
 });
+
+test("a content legality rejection gives a fixed recovery message without leaking handler details", async () => {
+  const handlers = new Map(), messages = [];
+  const socket = { connected: true, on: (event, handler) => handlers.set(event, handler), emit: (...args) => messages.push(args) };
+  const on = createSocketBoundary(socket, { getRoomForSocket: () => null });
+  on("startGame", () => { throw Object.assign(new Error("private diagnostics"), { code: "CONTENT_DECK_UNAVAILABLE" }); });
+  handlers.get("startGame")();
+  await new Promise(setImmediate);
+  assert.match(messages[0][1], /Edit or choose another deck/);
+  assert.match(messages[0][1], /retained/);
+  assert.doesNotMatch(messages[0][1], /private diagnostics/);
+});

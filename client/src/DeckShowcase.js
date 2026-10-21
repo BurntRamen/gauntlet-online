@@ -22,7 +22,7 @@ export default function DeckShowcase({ deck, cards = [], collectorCatalog = [], 
   const variant = card && findCollectorVariant(card.gameplayCardId || card.id, collectorCatalog, version.collectorVariantSelections?.[card.gameplayCardId || card.id]);
   const frontSlot = card || slot;
   return <span className={"deck-showcase" + (compact ? " is-compact" : "")} aria-label={(deck?.name || "Your deck") + " showcase"}>
-    <DeckBox boxId={version.deckBoxId} factionId={deck?.factionId} name={deck?.factionName || FACTION_VISUALS[deck?.factionId]?.name || deck?.factionId || "Gauntlet"} compact={compact} />
+    <DeckBox boxId={version.deckBoxId} appearance={deck?.appearance} factionId={deck?.factionId} name={deck?.factionName || FACTION_VISUALS[deck?.factionId]?.name || deck?.factionId || "Gauntlet"} compact={compact} />
     <span className="deck-showcase-front" aria-label={"Front card: " + (card?.name || slotLabel(frontSlot))}>
       {card && (card.id || card.gameplayCardId) ? <SpecialCardFace card={card} art={variant?.art} presentation={variant || card.collector} />
         : <img src={resolveVisualAsset(getPlayingCardArtPath(frontSlot, "basic"))} alt={slotLabel(frontSlot) + " standard playing card"} />}

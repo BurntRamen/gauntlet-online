@@ -1,21 +1,20 @@
 import { definition, TYPES } from "@gauntlet/duel-rules/supportContract";
+import { ID } from "@gauntlet/duel-rules/compositionContract";
+import { explain } from "@gauntlet/duel-rules/compositionExplanation";
+import Help from "./AuthoringHelp";
+import { WorkshopFacts } from "./WorkshopShell";
 
 export default function SupportContractSummary({ card }) {
   if (!TYPES.has(card?.type)) return null;
+  if (card.effect?.id === "authored-mechanic" && !card.effect.definition) return <Help topic="supportUnresolved" />;
   const contract = definition(card);
-  if (!contract) return <p role="alert">Unsupported support effect. Select a deployed effect matching this faction and type.</p>;
+  if (!contract) return <Help role="alert" topic="supportUnsupported" />;
   return <section aria-label="Support rules contract">
     <h5>Support Zone rules</h5>
-    <dl>
-      <dt>Cost</dt><dd>{card.value} printed value; existing pitch and payment modifiers apply.</dd>
-      <dt>Timing</dt><dd>Open priority. No responsive play during combat.</dd>
-      <dt>On play</dt><dd>{contract.onPlay || "No on-play instruction."}</dd>
-      <dt>Activated / continuous effect</dt><dd>{contract.ongoing ? card.text : contract.onPlay ? "Only the printed on-play instruction and its resulting pending effect." : "No effect while occupying a Support Zone."}</dd>
-      {contract.paymentEffect && <><dt>Payment from hand</dt><dd>{card.text}</dd></>}
-      <dt>Duration</dt><dd>{contract.duration}</dd>
-      <dt>Charges</dt><dd>{contract.charges ?? "Not consumed by triggering"}</dd>
-      <dt>Discard condition</dt><dd>{contract.discardCondition}</dd>
-    </dl>
-    <p>Timing, printed cost, duration and exit conditions are deployed rules. Only the existing effect selector and its declared parameters are editable; arbitrary mechanics require code.</p>
+    <Help topic="supportRules" />
+    <WorkshopFacts values={{ "Printed cost": card.value, "On play": contract.onPlay || "None",
+      "Activated / continuous effect": contract.effectId === ID ? explain(card.effect, card) : contract.ongoing ? card.text : <Help topic={contract.onPlay ? "supportEntryOnly" : "supportNoEffect"} />,
+      ...(contract.paymentEffect ? { "Payment from hand": card.text } : {}),
+      Duration: contract.duration, Charges: contract.charges ?? "See effect", "Discard condition": contract.discardCondition }} />
   </section>;
 }

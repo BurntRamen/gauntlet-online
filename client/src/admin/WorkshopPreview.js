@@ -1,8 +1,9 @@
+import { encounterPresentation } from "@gauntlet/duel-rules/encounterContract";
 import CampaignChapterBriefing from "../CampaignChapterBriefing";
-import SpecialCardFace from "../SpecialCardFace";
+import { PrivateCard as SpecialCardFace, PrivateImage } from "./PrivateAsset";
 const title = row => row.name || row.title || row.commanderName || row.id;
 
-export default function WorkshopPreview({ preview, domain, row, catalog, onClose, guide, suit = "spades", variantId, source = "draft" }) {
+export default function WorkshopPreview({ preview, domain, row, onClose, guide, suit = "spades", variantId, source = "draft" }) {
   const manifest = preview.manifest;
   const metadata = domain === "factions" ? preview.factions?.[row.id] || row
     : domain === "game" ? manifest.modeMetadata?.[row.id] || row
@@ -29,8 +30,8 @@ export default function WorkshopPreview({ preview, domain, row, catalog, onClose
   return <section className="admin-preview" aria-label="Isolated draft preview">
     <div className="admin-title-row"><h4>{source === "live" ? "Live presentation" : "Saved draft preview"}</h4><button onClick={onClose}>Close preview</button></div>
     <p className="admin-note">{guide.previewPurpose}</p>
-    {chapter ? <CampaignChapterBriefing campaign={manifest.campaigns[factionId]} factionId={factionId} chapter={chapter} chapterIndex={manifest.campaigns[factionId].chapters.indexOf(chapter)} theme={{ primary: "#efc06e", border: "#73613e" }} difficulty={chapter.setup || catalog?.domains.encounters.find((entry) => entry.id === chapter.id)?.definition.runtime.difficulty || {}} completed unlocked canPlayAsPlayer={false} previewOnly audioEnabled={false} musicEnabled={false} onBack={onClose} />
-      : card ? <><div className="admin-card-preview"><SpecialCardFace card={card} art={art} /></div><h4>{card.name}</h4><p>{card.text}</p><p className="admin-note">{guide.cardPreview}</p>{art && <img className="admin-art-preview" src={art} alt="Selected draft illustration" />}</>
-      : <article>{metadata.heroTitle && <><small>{metadata.heroEyebrow}</small><h3>{metadata.heroTitle}</h3><p>{metadata.heroDescription}</p>{metadata.menuDetail && <p>Menu description: {metadata.menuDetail}</p>}</>}<h4>{title(metadata)}</h4>{(metadata.cardImage || metadata.image || metadata.art || metadata.coverImage) && <img className="admin-art-preview" src={metadata.cardImage || metadata.image || metadata.art || metadata.coverImage} alt={title(metadata)} />}<p>{metadata.description || metadata.pitch || metadata.text}</p><p className="admin-note">{guide.metadataPreview}</p></article>}
+    {chapter ? <CampaignChapterBriefing campaign={manifest.campaigns[factionId]} factionId={factionId} chapter={chapter} chapterIndex={manifest.campaigns[factionId].chapters.indexOf(chapter)} theme={{ primary: "#efc06e", border: "#73613e" }} difficulty={encounterPresentation(chapter, manifest).difficulty} complexity={encounterPresentation(chapter, manifest).complexity} completed unlocked canPlayAsPlayer={false} previewOnly audioEnabled={false} musicEnabled={false} onBack={onClose} />
+      : card ? <><div className="admin-card-preview"><SpecialCardFace card={card} art={art} /></div><h4>{card.name}</h4><p>{card.text}</p><p className="admin-note">{guide.cardPreview}</p>{art && <PrivateImage className="admin-art-preview" src={art} alt="Selected draft illustration" />}</>
+      : <article>{metadata.heroTitle && <><small>{metadata.heroEyebrow}</small><h3>{metadata.heroTitle}</h3><p>{metadata.heroDescription}</p>{metadata.menuDetail && <p>Menu description: {metadata.menuDetail}</p>}</>}<h4>{title(metadata)}</h4>{(metadata.cardImage || metadata.image || metadata.art || metadata.coverImage) && <PrivateImage className="admin-art-preview" src={metadata.cardImage || metadata.image || metadata.art || metadata.coverImage} alt={title(metadata)} />}<p>{metadata.description || metadata.pitch || metadata.text}</p><p className="admin-note">{guide.metadataPreview}</p></article>}
   </section>;
 }

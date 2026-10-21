@@ -39,6 +39,33 @@ test("training AI pays for ongoing support using printed payment effects without
   assert.equal(room.game.revision, before.revision + 1);
 });
 
+test("training AI pays for a captured authored support without previewing its on-play effect twice", async t => {
+  const contract = require("../../shared/duel-rules/mechanicContract");
+  const definition = {
+    id: "mechanic-11111111-1111-4111-8111-111111111111", name: "Captured support draw",
+    status: "active", interpreter: 1, cardTypes: ["spell"], abilities: [contract.ability()]
+  };
+  assert.deepEqual(contract.errors(definition), []);
+  const source = {
+    ...pitch("authored-support", 4), name: "Captured support", type: "spell", factionId: "rumin",
+    effect: { id: contract.ID, version: 1, mechanicId: definition.id, definition,
+      revision: require("node:crypto").createHash("sha256").update(JSON.stringify(definition)).digest("hex") }
+  };
+  const room = roomFor(t, [source, pitch("reserve", 6), pitch("pay", 4)]);
+  room.game.players[2].deck = [pitch("draw-once", 8)];
+  const before = structuredClone(room.game);
+  const selected = __test.chooseSemanticTrainingAiCommand(room.game);
+  assert.deepEqual(selected, { type: "playSupport", cardId: source.id, laneIndex: 0, paymentCardIds: ["pay"] });
+  assert.deepEqual(room.game, before);
+  const result = await __test.applySemanticAutomatedCommand(room, selected);
+  assert.equal(result?.accepted, true);
+  assert.equal(room.game.paymentLog.at(-1).required, 4);
+  assert.deepEqual(room.game.players[2].discard.map(c => c.id), ["pay"]);
+  assert.equal(room.game.players[2].hand.filter(c => c.id === "draw-once").length, 1);
+  assert.equal(room.game.lastEvents.filter(e => e.type === "cards.drawn").length, 1);
+  assert.equal(room.game.lanes[0].support[2].id, source.id);
+});
+
 test("training AI never selects a non-Servitor as its one hand blocker", async t => {
   const room = roomFor(t, [card("neutral-think"), pitch("blocker", 4), pitch("pay", 7)]);
   room.game.handAttacks = [{

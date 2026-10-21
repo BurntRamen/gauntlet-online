@@ -4,6 +4,12 @@ import EventHub from "./EventHub";
 const originalFetch = global.fetch;
 afterEach(() => { global.fetch = originalFetch; });
 
+test("paused published events cannot be reopened by the browser's local schedule clock", async () => {
+  global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({ events: [{ id: "paused", name: "Paused event", status: "paused", availability: { state: "paused", label: "Paused", canEnter: false, canPlay: false }, schedule: { startsAt: "2020-01-01T00:00:00.000Z", entryClosesAt: "2099-01-01T00:00:00.000Z", endsAt: "2099-01-01T00:00:00.000Z" }, maxWins: 1, maxLosses: 1, rewardTiers: [] }] }) });
+  render(<EventHub socket={{ on: jest.fn(), off: jest.fn(), emit: jest.fn() }} account={{ events: { runs: { paused: { status: "active" } } } }} onError={() => {}} />);
+  expect(await screen.findByRole("button", { name: "Event unavailable" })).toBeDisabled();
+});
+
 test("shows free entry and the event win track", async () => {
   global.fetch = jest.fn().mockResolvedValue({
     ok: true,

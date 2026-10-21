@@ -1,6 +1,6 @@
 .economy-console { color: #f1e4c6; padding: 18px; background: #151e1b; border: 1px solid #635942; border-radius: 12px; min-width: 0; }
 .economy-console p { overflow-wrap: anywhere; line-height: 1.5; }
-.economy-console button, .economy-console input { font: inherit; padding: 9px; color: inherit; background: #26342e; border: 1px solid #908261; border-radius: 5px; }
+.economy-console button, .economy-console input, .economy-console select { font: inherit; padding: 9px; color: inherit; background: #26342e; border: 1px solid #908261; border-radius: 5px; }
 .economy-console button { cursor: pointer; }
 .economy-console button:disabled { opacity: .5; }
 .economy-console label { display: grid; gap: 6px; min-width: 0; }

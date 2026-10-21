@@ -36,13 +36,13 @@ export function resolveCardBackAsset(cardBackId = "classic") {
   return `${process.env.PUBLIC_URL || ""}${asset}`;
 }
 
-export function CardBackArt({ cardBackId = "classic", className = "", decorative = false, label = "" }) {
+export function CardBackArt({ cardBackId = "classic", className = "", decorative = false, label = "", appearance }) {
   const definition = getCardBackDefinition(cardBackId);
-  const accessibleLabel = label || `${definition.name} card back`;
+  const accessibleLabel = label || `${appearance?.name || definition.name} card back`;
   return (
     <span
       className={`card-back-art ${className}`.trim()}
-      style={{ backgroundImage: `url(${resolveCardBackAsset(definition.id)})` }}
+      style={{ backgroundImage: `url(${appearance?.url || resolveCardBackAsset(definition.id)})` }}
       role={decorative ? undefined : "img"}
       aria-hidden={decorative ? "true" : undefined}
       aria-label={decorative ? undefined : accessibleLabel}

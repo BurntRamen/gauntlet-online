@@ -1,3 +1,4 @@
+const { area: adminArea, paraTab, identity } = require("./admin-navigation");
 const { origin, clientOrigin } = require("./admin-urls");
 const { test, expect } = require("@playwright/test");
 const AxeBuilder = require("@axe-core/playwright").default;
@@ -16,23 +17,34 @@ test("Admin publication becomes a free human event with durable Prestige and ins
   const token = await login(page, "simply", true), headers = { Authorization: `Bearer ${token}` };
   const get = async (route) => (await (await request.get(`${origin}${route}`, { headers, maxRetries: 2 })).json());
   const nav = page.getByRole("navigation", { name: "Administration sections" });
-  await nav.getByRole("button", { name: "Para League & Economy", exact: true }).click();
+  await adminArea(page, "Para League & Economy");
   const tabs = page.getByRole("navigation", { name: "Para workspaces" });
-  const choose = (name) => tabs.getByRole("button", { name, exact: true }).click();
-  const save = async () => { await page.getByRole("button", { name: "Save definition to draft" }).click(); await expect(page.getByLabel("Name", { exact: true })).toHaveCount(0); };
+  const choose = (name) => paraTab(page, name);
+  const save = async () => {
+    const saved = page.waitForResponse(response => response.url().endsWith("/authoring/para-draft") && response.request().method() === "POST", { timeout: 15000 });
+    await page.getByRole("button", { name: "Save definition to draft" }).click();
+    expect((await saved).ok()).toBeTruthy();
+    await expect(page.getByLabel("Name", { exact: true })).toHaveCount(0);
+  };
+  const preview = async () => {
+    const pending = page.waitForResponse(response => response.url().endsWith("/authoring/preview") && response.request().method() === "POST", { timeout: 15000 });
+    await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
+    const response = await pending; expect(response.ok()).toBeTruthy(); await response.finished();
+    await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible();
+  };
   const dates = async (registration = false) => {
-    await page.getByLabel("Start (UTC)", { exact: true }).fill("2026-01-01T00:00");
-    await page.getByLabel("End (UTC)", { exact: true }).fill("2099-01-01T00:00");
-    if (registration) { await page.getByLabel("Registration opens (UTC)").fill("2026-01-01T00:00"); await page.getByLabel("Registration closes (UTC)").fill("2099-01-01T00:00"); }
+    await page.getByLabel("Start", { exact: true }).fill("2026-01-01T00:00");
+    await page.getByLabel("End", { exact: true }).fill("2099-01-01T00:00");
+    if (registration) { await page.getByLabel("Registration opens").fill("2026-01-01T00:00"); await page.getByLabel("Registration closes").fill("2099-01-01T00:00"); }
   };
   await choose("Seasons"); await page.getByRole("button", { name: "New season", exact: true }).click();
-  await page.getByLabel("ID", { exact: true }).fill("runtime-season"); await page.getByLabel("Name", { exact: true }).fill("Runtime qualification season");
+  await identity(page, "runtime-season"); await page.getByLabel("Name", { exact: true }).fill("Runtime qualification season");
   await page.getByLabel("State", { exact: true }).selectOption("active"); await dates();
   await page.getByLabel("classic", { exact: true }).check(); await page.getByLabel("Public rules version").fill("runtime-rules-v1");
   await page.getByLabel("Invitational Prestige threshold").fill("12"); await page.getByLabel("Championship Prestige threshold").fill("20"); await save();
   async function createEvent(id, name, week, type) {
     await choose("Events"); await page.getByRole("button", { name: "New event", exact: true }).click();
-    await page.getByLabel("ID", { exact: true }).fill(id); await page.getByLabel("Name", { exact: true }).fill(name);
+    await identity(page, id); await page.getByLabel("Name", { exact: true }).fill(name);
     await page.getByLabel("Season", { exact: true }).selectOption("runtime-season"); await page.getByLabel("State", { exact: true }).selectOption("scheduled");
     await page.getByLabel("Event type", { exact: true }).selectOption(type); await page.getByLabel("Planned format", { exact: true }).selectOption("classic");
     await page.getByLabel("Week", { exact: true }).fill(String(week)); await dates(true);
@@ -41,7 +53,7 @@ test("Admin publication becomes a free human event with durable Prestige and ins
   await createEvent("runtime-qualifier", "Runtime Classic Trial", 1, "qualifier");
   await createEvent("runtime-invitational", "Runtime Invitational", 2, "invitational");
   await page.getByRole("button", { name: "Validate draft", exact: true }).click();
-  await page.getByRole("button", { name: "Preview saved draft", exact: true }).click(); await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible();
+  await preview();
   const publish = async (name) => { await nav.getByRole("button", { name: "Publishing", exact: true }).click(); await page.getByLabel("Release name").fill(name); await page.getByRole("button", { name: "Publish release", exact: true }).click(); await page.getByRole("button", { name: "Confirm publish", exact: true }).click(); await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible(); };
   await publish("Browser official runtime event"); const release = (await get("/api/admin/authoring")).activeReleaseId;
   const contexts = await Promise.all([browser.newContext(), browser.newContext()]);
@@ -77,14 +89,14 @@ test("Admin publication becomes a free human event with durable Prestige and ins
     await expect(players[0].getByText("Para member · 12 lifetime Prestige · Official runs completed: 1", { exact: true })).toBeVisible();
     const before = (await get("/api/admin/para")).awards;
     expect(before).toHaveLength(1); expect(before[0].releaseId).toBe(release); expect(before[0].evidence).toHaveLength(2);
-    await nav.getByRole("button", { name: "Para League & Economy", exact: true }).click(); await choose("Events");
+    await adminArea(page, "Para League & Economy"); await choose("Events");
     await page.getByRole("button", { name: /^Runtime Classic Trial runtime-qualifier/ }).click(); await page.getByLabel("Prestige for 0 wins", { exact: true }).fill("99"); await save();
-    await page.getByRole("button", { name: "Preview saved draft", exact: true }).click(); await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible(); await publish("Later scoring definition");
+    await preview(); await publish("Later scoring definition");
     expect((await get("/api/admin/para")).awards).toEqual(before);
-    await nav.getByRole("button", { name: "Competition", exact: true }).click();
-    await expect(page.getByText(/12 Prestige/)).toBeVisible();
+    await nav.getByRole("button", { name: "Competition", exact: true }).click(); await page.getByRole("navigation", { name: "Competition workspaces" }).getByRole("button", { name: "Results", exact: true }).click();
+    await expect(page.getByText(/^#1 · Visitor · 12 Prestige/)).toBeVisible();
     await expect(page.getByText("Published definition differs; pinned rules retained.")).toBeVisible();
-    await expect(page.getByText(before[0].evidence[0].matchId, { exact: true })).toBeVisible();
+    await page.getByText("Visitor · 12 Prestige", { exact: true }).click(); await expect(page.getByText(before[0].evidence[0].matchId, { exact: true })).toBeVisible();
     await page.screenshot({ path: "artifacts/para-runtime-admin-evidence.png", fullPage: true });
   } finally { await Promise.all(contexts.map((c) => c.close())); }
 });

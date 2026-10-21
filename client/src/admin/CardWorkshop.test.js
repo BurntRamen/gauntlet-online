@@ -1,5 +1,8 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import CardWorkshop from "./CardWorkshop";
+import { HelpProvider } from "./AuthoringHelp";
+const wrapper = ({ children }) => <HelpProvider value={require("../../../server/adminHelpTopics.json")}>{children}</HelpProvider>;
+import { create } from "@gauntlet/duel-rules/compositionContract";
 
 jest.mock("../SpecialCardFace", () => ({ __esModule: true, default: ({ card }) => <p data-testid="card-face">{card.name} · {card.suit} · {card.presentation?.illustration}</p> }));
 const card = { id: "spear", name: "Coin Spear", factionId: "rumin", type: "weapon", rarity: "rare", value: 6, text: "Old wording", effect: { id: "spear-effect", version: 1, parameters: { armBonus: 2 } }, defaultVariantId: "spear-first" };
@@ -24,8 +27,19 @@ test("keeps wording separate from mechanics and previews resolved suit and colle
 
 test("unsaved artwork prevents silently switching its owner and has no fabricated preview", () => {
   const data = state(); delete data.previewContent;
-  render(<CardWorkshop row={card} state={data} field={() => null} unsaved />);
+  render(<CardWorkshop row={card} state={data} field={() => null} unsaved />, { wrapper });
   expect(screen.getByLabelText("Collector version")).toBeDisabled();
   expect(screen.queryByTestId("card-face")).not.toBeInTheDocument();
   expect(screen.getByText(/Preview the saved draft/)).toBeVisible();
+});
+
+test("authored mechanics retain printing controls and show their deployed Support Zone lifecycle", () => {
+  const row = { ...card, origin: "admin-v1", factionId: "rumin", type: "armament", effect: create(), text: "Editable marketing copy" };
+  const data = state(); data.live.domains.cards = [row]; data.previewContent.manifest.cards = [row];
+  render(<CardWorkshop row={row} state={data} field={() => null} section="mechanics" busy />);
+  expect(screen.getByLabelText("Collector version")).toBeDisabled();
+  expect(screen.queryByText(/Unsupported support effect/)).not.toBeInTheDocument();
+  expect(screen.getAllByText(/When this Rumin armament is selected/).length).toBeGreaterThan(0);
+  expect(screen.getAllByText("after-armed-combat").length).toBeGreaterThan(0);
+  expect(screen.queryByText("Editable marketing copy")).not.toBeInTheDocument();
 });
