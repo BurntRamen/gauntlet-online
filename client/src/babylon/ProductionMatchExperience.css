@@ -3423,8 +3423,8 @@
 .has-desktop-panels .production-turn-marker { left: 496px; }
 .has-desktop-panels .production-mode-marker { top: 94px; left: 496px; }
 .has-desktop-panels .production-card-and-log.is-inspecting { visibility: hidden; }
-.has-desktop-panels .production-inspection-copy a { color: #a8d3ff; }
-[data-match-theme="light"].has-desktop-panels .production-inspection-copy a { color: #165b9c; }
+.production-inspection-copy a { color: #a8d3ff; }
+[data-match-theme="light"] .production-inspection-copy a { color: #165b9c; }
 .has-desktop-panels .production-combat-recap {
   right: calc(var(--desktop-rail-width) + 32px); left: auto; top: auto; bottom: 16px;
   transform: none; max-width: 300px;
