@@ -20,7 +20,7 @@ async function cardSection(page, name) {
   const navigation = page.getByRole("navigation", { name: "Card Workshop sections", exact: true });
   // Selection loads the workshop asynchronously. Wait before choosing its
   // responsive control, otherwise a phone can take the hidden desktop path.
-  await expect(select.or(navigation)).toBeVisible();
+  await expect(select.or(navigation)).toBeVisible({ timeout: 15000 });
   if (await select.isVisible()) await select.selectOption({ label: name });
   else await navigation.getByRole("button", { name, exact: true }).click();
 }

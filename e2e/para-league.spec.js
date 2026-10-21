@@ -20,7 +20,12 @@ test("operators author Para definitions, simulate, publish and restore without t
   expect((await get("/api/admin/authoring")).live.paraLeague).toBeUndefined();
   const tabs = page.getByRole("navigation", { name: "Para workspaces" });
   const choose = (name) => tabs.getByRole("button", { name, exact: true }).click();
-  const save = async () => { await page.getByRole("button", { name: "Save definition to draft" }).click(); await expect(page.getByLabel("Name", { exact: true })).toHaveCount(0); };
+  const save = async () => {
+    const saved = page.waitForResponse(response => response.url().endsWith("/authoring/para-draft") && response.request().method() === "POST", { timeout: 15000 });
+    await page.getByRole("button", { name: "Save definition to draft" }).click();
+    expect((await saved).ok()).toBeTruthy();
+    await expect(page.getByLabel("Name", { exact: true })).toHaveCount(0);
+  };
 
   await choose("Seasons");
   await page.getByRole("button", { name: "New season", exact: true }).click();
