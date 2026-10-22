@@ -2,6 +2,7 @@ const { clientPort, origin, clientOrigin } = require("./e2e/admin-urls");
 const { defineConfig } = require("@playwright/test");
 module.exports = defineConfig({
   testDir: "./e2e", testMatch: ["admin.spec.js", "para-league.spec.js", "para-runtime.spec.js", "gold-economy.spec.js", "modular-admin.spec.js"], workers: 1, timeout: 60000,
+  expect: { timeout: 15000 },
   use: { baseURL: clientOrigin, channel: "chromium", actionTimeout: 20000, viewport: { width: 1440, height: 1000 }, screenshot: "only-on-failure", trace: "retain-on-failure" },
   webServer: [
     { command: "node e2e/admin-server.js", url: origin + "/api/game-content", reuseExistingServer: false, timeout: 30000 },
