@@ -33,6 +33,9 @@ async function quickActions(playtest) {
   const summary = playtest.getByText("Quick actions", { exact: true });
   if (!(await summary.locator("..").evaluate(node => node.open))) await summary.click();
 }
+const waitForJson = (page, predicate) => page.waitForResponse(predicate).then(async response => ({
+  ok: response.ok(), status: response.status(), body: await response.json()
+}));
 async function signIn(page, request, name) {
   if (!loginSessions.has(name)) {
     // Keep unrelated operator flows independent of login throttling when a
@@ -76,20 +79,20 @@ test.describe("authored support payments", () => {
       await scenario.getByRole("button", { name: "Add to player 1 hand", exact: true }).click();
       await scenario.getByLabel("Player 1 hand 2 value", { exact: true }).fill("14");
       await scenario.getByLabel("Player 1 hand 2 suit", { exact: true }).selectOption("hearts");
-      let pending = page.waitForResponse(response => response.url().endsWith("/authoring/playtest") && response.request().method() === "POST");
+      let pending = waitForJson(page, response => response.url().endsWith("/authoring/playtest") && response.request().method() === "POST");
       await playtest.getByRole("button", { name: "Start draft duel playtest", exact: true }).click();
-      const session = (await (await pending).json()).playtest;
+      const session = (await pending).body.playtest;
       const action = session.legalActions.find(row => row.type === "playSupport" && row.laneIndex === 0);
       expect(action).toBeTruthy();
       await playtest.getByRole("combobox", { name: "Action", exact: true }).selectOption(action.id);
       await playtest.getByRole("group", { name: /^Payment cards/ }).getByRole("checkbox").check();
-      pending = page.waitForResponse(response => response.url().endsWith("/playtest/preview-command"));
+      pending = waitForJson(page, response => response.url().endsWith("/playtest/preview-command"));
       await playtest.getByRole("button", { name: "Calculate command preview", exact: true }).click();
-      const preview = await (await pending).json();
+      const preview = (await pending).body;
       expect(preview.preview.accepted).toBeTruthy(); expect(preview.gameRevision).toBe(session.game.revision);
-      pending = page.waitForResponse(response => response.url().endsWith("/playtest/command"));
+      pending = waitForJson(page, response => response.url().endsWith("/playtest/command"));
       await playtest.getByRole("button", { name: "Execute selected action", exact: true }).click();
-      const result = (await (await pending).json()).playtest;
+      const result = (await pending).body.playtest;
       expect(result.acceptedCommands).toBe(1); expect(result.game.lanes[0].support[1].definitionId).toBe(card.id);
       await expect(playtest.getByRole("region", { name: "Executed command result" })).toContainText("Accepted by the engine");
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
@@ -464,9 +467,9 @@ test("disconnected authoring explains the blocker and preserves readable technic
   await cardSection(page, "Test");
   const playtest = page.getByRole("region", { name: "Real engine playtest" });
   await expect(playtest.getByRole("button", { name: "Start live duel playtest", exact: true })).toBeEnabled();
-  const started = page.waitForResponse(response => response.url().endsWith("/authoring/playtest") && response.request().method() === "POST");
+  const started = waitForJson(page, response => response.url().endsWith("/authoring/playtest") && response.request().method() === "POST");
   await playtest.getByRole("button", { name: "Start live duel playtest", exact: true }).click();
-  expect((await (await started).json()).playtest.source).toBe("live");
+  expect((await started).body.playtest.source).toBe("live");
   await page.setViewportSize({ width: 390, height: 844 });
   expect((await new AxeBuilder({ page }).include(".gauntlet-admin").analyze()).violations).toEqual([]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
@@ -495,13 +498,13 @@ test("a reported authoring outage keeps real live testing available without publ
   await cardSection(page, "Test");
   const playtest = page.getByRole("region", { name: "Real engine playtest" });
   await expect(playtest.getByRole("option", { name: "Saved draft", exact: true })).toHaveJSProperty("disabled", true);
-  let pending = page.waitForResponse(response => response.url().endsWith("/authoring/playtest") && response.request().method() === "POST");
+  let pending = waitForJson(page, response => response.url().endsWith("/authoring/playtest") && response.request().method() === "POST");
   await playtest.getByRole("button", { name: "Start live duel playtest", exact: true }).click();
-  expect((await (await pending).json()).playtest.source).toBe("live");
+  expect((await pending).body.playtest.source).toBe("live");
   await quickActions(playtest);
-  pending = page.waitForResponse(response => response.url().endsWith("/playtest/command"));
+  pending = waitForJson(page, response => response.url().endsWith("/playtest/command"));
   await playtest.getByRole("button", { name: "Pass priority", exact: true }).click();
-  expect((await (await pending).json()).playtest.acceptedCommands).toBe(1);
+  expect((await pending).body.playtest.acceptedCommands).toBe(1);
   const after = await (await request.get(base, { headers, maxRetries: 2 })).json();
   expect(after.revision).toBe(before.revision);
   expect(after.draft).toEqual(before.draft);
@@ -562,9 +565,9 @@ test("Encounter Workshop keeps editing and engine evidence tied to the correct s
   const playtest = page.getByRole("region", { name: "Real engine playtest" });
   await encounterSection(page, "test");
   await playtest.getByRole("combobox", { name: "Test content", exact: true }).selectOption("draft");
-  let pending = page.waitForResponse((response) => response.url().endsWith("/authoring/playtest") && response.request().method() === "POST");
+  let pending = waitForJson(page, (response) => response.url().endsWith("/authoring/playtest") && response.request().method() === "POST");
   await page.getByRole("button", { name: "Start Brothers of Destiny playtest", exact: true }).click();
-  let session = (await (await pending).json()).playtest;
+  let session = (await pending).body.playtest;
   expect(session.context.encounterId).toBe("brothers-of-destiny");
   expect(session.context.chapter).toBe(1);
   expect(session.draftHash).toBe((await saved()).draft.hash);
@@ -581,11 +584,11 @@ test("Encounter Workshop keeps editing and engine evidence tied to the correct s
       || (!attacked && session.actions.find((action) => action.command.type === "declareHandAttack"))
       || session.actions.find((action) => ["passPriority", "skipPlacement"].includes(action.command.type));
     if (!automated && action?.command.type === "declareHandAttack") attacked = true;
-    pending = page.waitForResponse((response) => response.url().endsWith("/playtest/command"));
+    pending = waitForJson(page, (response) => response.url().endsWith("/playtest/command"));
     await playtest.getByRole("button", { name: automated ? "Run opponent action" : action.label, exact: true }).click();
     const response = await pending;
-    expect(response.ok()).toBeTruthy();
-    session = (await response.json()).playtest;
+    expect(response.ok).toBeTruthy();
+    session = response.body.playtest;
     if (step === 1) {
       await playtest.getByRole("status").evaluate((element) => element.scrollIntoView({ block: "start" }));
       await page.screenshot({ path: "artifacts/workshop-active-playtest.png" });
@@ -594,9 +597,9 @@ test("Encounter Workshop keeps editing and engine evidence tied to the correct s
   expect(session.game.turn).toBeGreaterThanOrEqual(2);
   expect(session.evidence.events.some((event) => event.type === "damage.calculated")).toBeTruthy();
   await expect(playtest.getByText(/Engine action checked for this saved draft/)).toBeVisible();
-  pending = page.waitForResponse((response) => response.url().endsWith("/playtest/command"));
+  pending = waitForJson(page, (response) => response.url().endsWith("/playtest/command"));
   await playtest.getByRole("button", { name: "Concede", exact: true }).click();
-  session = (await (await pending).json()).playtest;
+  session = (await pending).body.playtest;
   expect(session.evidence.status).toBe("Conceded");
   await playtest.getByRole("heading", { name: /Conceded/ }).evaluate((element) => element.scrollIntoView({ block: "start" }));
   await page.screenshot({ path: "artifacts/workshop-post-test.png" });
@@ -614,9 +617,9 @@ test("Encounter Workshop keeps editing and engine evidence tied to the correct s
   await page.getByRole("button", { name: "Validate draft", exact: true }).click();
   await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
   page.once("dialog", (dialog) => dialog.accept());
-  pending = page.waitForResponse((response) => response.url().endsWith("/authoring/playtest"));
+  pending = waitForJson(page, (response) => response.url().endsWith("/authoring/playtest"));
   await page.getByRole("button", { name: "Start Brothers of Destiny playtest", exact: true }).click();
-  const replacement = (await (await pending).json()).playtest;
+  const replacement = (await pending).body.playtest;
   expect(replacement.draftHash).not.toBe(session.draftHash);
   await expect(playtest.getByText("Current saved draft · at last refresh", { exact: true })).toBeVisible();
   await quickActions(playtest);
@@ -703,9 +706,9 @@ test("card workshop previews and executes a custom live scenario without creatin
   await scenario.getByLabel("Player 1 life", { exact: true }).fill("37");
   await scenario.getByRole("button", { name: "Add to player 1 hand", exact: true }).click();
   await scenario.getByLabel("Player 1 hand 2 suit", { exact: true }).selectOption("clubs");
-  let pending = page.waitForResponse(response => response.url().endsWith("/authoring/playtest") && response.request().method() === "POST");
+  let pending = waitForJson(page, response => response.url().endsWith("/authoring/playtest") && response.request().method() === "POST");
   await playtest.getByRole("button", { name: "Start live duel playtest", exact: true }).click();
-  let session = (await (await pending).json()).playtest;
+  let session = (await pending).body.playtest;
   expect(session.source).toBe("live");
   expect(session.subject.kind).toBe("card");
   expect(session.subject.label).toBe("Capital Investment Spear · Capital Investment Spear Standard");
@@ -720,9 +723,9 @@ test("card workshop previews and executes a custom live scenario without creatin
   const attack = session.legalActions.find(action => action.type === "declareHandAttack" && (action.cardId || action.confirmationPayload?.fixed?.cardId) === attacker.id);
   expect(attack).toBeTruthy();
   await playtest.getByRole("combobox", { name: "Action", exact: true }).selectOption(attack.id);
-  pending = page.waitForResponse(response => response.url().endsWith("/playtest/preview-command"));
+  pending = waitForJson(page, response => response.url().endsWith("/playtest/preview-command"));
   await playtest.getByRole("button", { name: "Calculate command preview", exact: true }).click();
-  const unpaid = await (await pending).json();
+  const unpaid = (await pending).body;
   expect(unpaid.preview.accepted).toBeFalsy();
   expect(unpaid.gameRevision).toBe(session.game.revision);
   pending = page.waitForResponse(response => response.url().endsWith("/playtest/command"));
@@ -731,22 +734,22 @@ test("card workshop previews and executes a custom live scenario without creatin
   await expect(playtest.getByRole("alert")).toContainText(unpaid.preview.error);
   await expect(playtest.getByRole("combobox", { name: "Action", exact: true })).toHaveValue(attack.id);
   await playtest.getByRole("group", { name: /^Payment cards/ }).getByRole("checkbox", { name: /Capital Investment Spear/ }).check();
-  pending = page.waitForResponse(response => response.url().endsWith("/playtest/preview-command"));
+  pending = waitForJson(page, response => response.url().endsWith("/playtest/preview-command"));
   await playtest.getByRole("button", { name: "Calculate command preview", exact: true }).click();
-  const paid = await (await pending).json();
+  const paid = (await pending).body;
   expect(paid.preview.accepted).toBeTruthy();
   expect(paid.gameRevision).toBe(session.game.revision);
   await expect(playtest.getByRole("region", { name: "Calculated command preview" })).toContainText("Payment cards: Capital Investment Spear");
   await playtest.getByRole("combobox", { name: "Action", exact: true }).selectOption({ label: "Pass priority" });
-  pending = page.waitForResponse(response => response.url().endsWith("/playtest/preview-command"));
+  pending = waitForJson(page, response => response.url().endsWith("/playtest/preview-command"));
   await playtest.getByRole("button", { name: "Calculate command preview", exact: true }).click();
-  const preview = await (await pending).json();
+  const preview = (await pending).body;
   expect(preview.preview.accepted).toBeTruthy();
   expect(preview.gameRevision).toBe(session.game.revision);
   await expect(playtest.getByRole("region", { name: "Calculated command preview" })).toContainText("no state changes applied");
-  pending = page.waitForResponse(response => response.url().endsWith("/playtest/command"));
+  pending = waitForJson(page, response => response.url().endsWith("/playtest/command"));
   await playtest.getByRole("button", { name: "Execute selected action", exact: true }).click();
-  session = (await (await pending).json()).playtest;
+  session = (await pending).body.playtest;
   expect(session.acceptedCommands).toBe(1);
   await expect(playtest.getByRole("region", { name: "Executed command result" })).toContainText("Accepted by the engine");
   const after = await (await request.get(base, { headers, maxRetries: 2 })).json();
@@ -1049,9 +1052,9 @@ test("Admin creates a set and new card, executes its mechanics, publishes and sa
   await page.getByLabel("New content name").fill("Browser lifecycle blade");
   await page.getByLabel("Mechanical effect", { exact: true }).selectOption("coin-scale-spear");
   await page.getByLabel("Fixed suit", { exact: true }).selectOption("diamonds");
-  let pending = page.waitForResponse(r => r.url().endsWith("/authoring/create") && r.request().method() === "POST");
+  let pending = waitForJson(page, r => r.url().endsWith("/authoring/create") && r.request().method() === "POST");
   await page.getByRole("button", { name: "Save new card to draft", exact: true }).click();
-  const created = await (await pending).json(), card = created.draft.snapshot.domains.cards.at(-1);
+  const created = (await pending).body, card = created.draft.snapshot.domains.cards.at(-1);
   expect(card.id).toMatch(/^auth-card-/);
   await expect(page.getByRole("heading", { name: "Browser lifecycle blade", exact: true })).toBeVisible();
   await page.getByLabel("Eligible for existing earned packs").check();
@@ -1079,18 +1082,18 @@ test("Admin creates a set and new card, executes its mechanics, publishes and sa
     await setup.getByLabel("Player 1 support 1 card", { exact: true }).selectOption(card.id);
     await setup.getByLabel("Player 1 support 1 suit", { exact: true }).selectOption("diamonds");
     page.once("dialog", dialog => dialog.accept());
-    pending = page.waitForResponse(r => r.url().endsWith("/authoring/playtest"));
+    pending = waitForJson(page, r => r.url().endsWith("/authoring/playtest"));
     await playtest.getByRole("button", { name: "Start draft duel playtest", exact: true }).click();
-    const session = (await (await pending).json()).playtest;
+    const session = (await pending).body.playtest;
     expect(session.subject.id).toBe(card.id);
     const action = session.legalActions.find(a => a.type === "declareHandAttack" && (a.cardId || a.confirmationPayload?.fixed?.cardId) === session.game.players[1].hand[0].id);
     await playtest.getByRole("combobox", { name: "Action", exact: true }).selectOption(action.id);
     await playtest.getByRole("group", { name: /^Payment cards/ }).getByRole("checkbox", { name: /Ace|A of|14/ }).check();
     await playtest.getByRole("checkbox", { name: /Browser lifecycle blade/ }).check();
-    pending = page.waitForResponse(r => r.url().endsWith("/playtest/command"));
+    pending = waitForJson(page, r => r.url().endsWith("/playtest/command"));
     await playtest.getByRole("button", { name: "Execute selected action" }).click();
-    const response = await pending; expect(response.ok()).toBeTruthy();
-    expect((await response.json()).playtest.game.handAttacks[0].effectiveValue).toBe(expectedValue);
+    const response = await pending; expect(response.ok).toBeTruthy();
+    expect(response.body.playtest.game.handAttacks[0].effectiveValue).toBe(expectedValue);
   };
   const publish = async label => {
     await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
@@ -1140,9 +1143,9 @@ test("Admin composes abilities through guided blocks and proves two releases wit
   await page.getByLabel("New content name").fill("Browser composed blade");
   await page.getByLabel("Mechanical effect", { exact: true }).selectOption("coin-scale-spear");
   await page.getByLabel("Fixed suit", { exact: true }).selectOption("diamonds");
-  let pending = page.waitForResponse(r => r.url().endsWith("/authoring/create") && r.request().method() === "POST");
+  let pending = waitForJson(page, r => r.url().endsWith("/authoring/create") && r.request().method() === "POST");
   await page.getByRole("button", { name: "Save new card to draft", exact: true }).click();
-  const card = (await (await pending).json()).draft.snapshot.domains.cards.at(-1);
+  const card = (await pending).body.draft.snapshot.domains.cards.at(-1);
   await cardSection(page, "Mechanics");
   await page.getByLabel("Execution model", { exact: true }).selectOption("composition");
   await page.getByLabel("Ability 1 requirement", { exact: true }).selectOption("overpay");
@@ -1186,18 +1189,18 @@ test("Admin composes abilities through guided blocks and proves two releases wit
     await setup.getByLabel("Player 1 support 1 card", { exact: true }).selectOption(card.id);
     await setup.getByLabel("Player 1 support 1 suit", { exact: true }).selectOption("diamonds");
     page.once("dialog", dialog => dialog.accept());
-    pending = page.waitForResponse(r => r.url().endsWith("/authoring/playtest"));
+    pending = waitForJson(page, r => r.url().endsWith("/authoring/playtest"));
     await playtest.getByRole("button", { name: "Start draft duel playtest", exact: true }).click();
-    const session = (await (await pending).json()).playtest;
+    const session = (await pending).body.playtest;
     expect(session.subject.id).toBe(card.id);
     const action = session.legalActions.find(a => a.type === "declareHandAttack" && (a.cardId || a.confirmationPayload?.fixed?.cardId) === session.game.players[1].hand[0].id);
     await playtest.getByRole("combobox", { name: "Action", exact: true }).selectOption(action.id);
     await playtest.getByRole("group", { name: /^Payment cards/ }).getByRole("checkbox", { name: /Ace|A of|14/ }).check();
     await playtest.getByRole("checkbox", { name: /Browser composed blade/ }).check();
-    pending = page.waitForResponse(r => r.url().endsWith("/playtest/command"));
+    pending = waitForJson(page, r => r.url().endsWith("/playtest/command"));
     await playtest.getByRole("button", { name: "Execute selected action" }).click();
-    const response = await pending; expect(response.ok()).toBeTruthy();
-    const result = (await response.json()).playtest;
+    const response = await pending; expect(response.ok).toBeTruthy();
+    const result = response.body.playtest;
     expect(result.game.handAttacks[0].effectiveValue).toBe(expectedValue);
     expect(result.game.players[1].life).toBe(expectedLife);
     expect(result.lastCommand.mechanicsTrace.length).toBeGreaterThan(1);
