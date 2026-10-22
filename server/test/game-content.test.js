@@ -12,6 +12,7 @@ const {
   DECK_RULES,
   DRAFT_SETS,
   FRUMO_COLLECTION_CARDS,
+  FULL_FACTION_COLLECTIONS,
   INDELA_COLLECTION_CARDS,
   NEUTRAL_COLLECTION_CARDS,
   RUMIN_COLLECTION_CARDS,
@@ -34,7 +35,7 @@ test("validates the authoritative versioned game content registry", () => {
   assert.equal(content.schemaVersion, 2);
   assert.equal(content.contentVersion, CONTENT_VERSION);
   assert.equal(content.rulesVersion, RULES_VERSION);
-  assert.equal(content.factions.length, 14);
+  assert.equal(content.factions.length, 16);
   assert.equal(Object.values(content.campaigns).flatMap((campaign) => campaign.chapters).length, 188);
   for (const factionId of ["mekan", "jali", "gracus", "indela", "voltari", "zynarth"]) {
     assert.equal(content.campaigns[factionId].chapters.length, 12, `${factionId}: campaign length`);
@@ -353,7 +354,7 @@ test("maps every catalog constructed card into the shared deterministic rules", 
     .map((card) => effectRegistry.defaultCardEffect(card.id)?.id)
     .filter((effectId) => !effectId || (definitions.get(effectId)?.handler !== "printed-value-only" && !sharedRulesSource.includes(`"${effectId}"`)));
 
-  assert.equal(COLLECTION_CARDS.length, 176);
+  assert.equal(COLLECTION_CARDS.length, 644);
   assert.deepEqual(missing, []);
 });
 
@@ -391,16 +392,32 @@ test("assigns every constructed card one unique, balanced rank-and-suit slot", (
   }
 });
 
+test("gives every newly cataloged faction a complete 52-card rank-and-suit deck", () => {
+  const expectedValues = Array.from({ length: 13 }, (_, index) => index + 2);
+  for (const [factionId, cards] of Object.entries(FULL_FACTION_COLLECTIONS)) {
+    assert.equal(cards.length, 52, `${factionId}: catalog size`);
+    assert.equal(new Set(cards.map((card) => `${card.value}:${card.suit}`)).size, 52, `${factionId}: unique slots`);
+    assert.deepEqual([...new Set(cards.map((card) => card.value))].sort((a, b) => a - b), expectedValues, `${factionId}: ranks`);
+    for (const suit of ["spades", "hearts", "diamonds", "clubs"]) assert.equal(cards.filter((card) => card.suit === suit).length, 13, `${factionId}: ${suit}`);
+    assert.deepEqual(cards.filter((card) => card.value >= 11).map((card) => card.rarity), ["uncommon", "rare", "rare", "mythic", "uncommon", "rare", "rare", "mythic", "uncommon", "rare", "rare", "mythic", "uncommon", "rare", "rare", "mythic"]);
+  }
+});
+
 test("requires card-specific constructed behavior coverage for the full catalog", () => {
   const behaviorSources = [
     path.join(__dirname, "..", "..", "shared", "duel-rules", "index.js"),
     path.join(__dirname, "..", "gameContent.js")
   ].map((sourcePath) => fs.readFileSync(sourcePath, "utf8")).join("\n");
+  const effectRegistry = require("../../shared/duel-rules/effectRegistry");
+  const definitions = new Map(effectRegistry.cardEffectDefinitions().map((entry) => [entry.id, entry]));
   const missing = COLLECTION_CARDS
-    .map((card) => card.id)
-    .filter((cardId) => !behaviorSources.includes(`"${cardId}"`));
+    .filter((card) => {
+      const effectId = effectRegistry.defaultCardEffect(card.id)?.id;
+      return definitions.get(effectId)?.handler !== "printed-value-only" && !behaviorSources.includes(`"${card.id}"`);
+    })
+    .map((card) => card.id);
 
-  assert.equal(COLLECTION_CARDS.length, 176);
+  assert.equal(COLLECTION_CARDS.length, 644);
   assert.deepEqual(missing, []);
 });
 
@@ -490,8 +507,14 @@ test("draft sets publish their factions and packs stay inside the selected set",
   assert.equal(sealedView.myPool.length, 48);
   assert.equal(sealedView.myPool.every((card) => card.factionId === "neutral" || beyond.factionIds.includes(card.factionId)), true);
   assert.equal(sealedSpectator.myPool.length, 0);
-  assert.throws(() => __test.createDraftRoom({ setId: "legacies" }), /still in development/);
-  assert.throws(() => __test.createDraftRoom({ setId: "legacies", sealed: true }), /still in development/);
+  for (const set of DRAFT_SETS) {
+    const draftRoom = __test.createDraftRoom({ setId: set.id });
+    const setSealedRoom = __test.createDraftRoom({ setId: set.id, sealed: true });
+    assert.equal(draftRoom.draft.setId, set.id);
+    assert.equal(setSealedRoom.draft.setId, set.id);
+    __test.rooms.delete(draftRoom.roomCode);
+    __test.rooms.delete(setSealedRoom.roomCode);
+  }
   __test.rooms.delete(room.roomCode);
   __test.rooms.delete(sealedRoom.roomCode);
 });

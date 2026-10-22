@@ -2,7 +2,22 @@
 
 // This is a deployed, finite catalogue of engine handlers. Authors configure
 // these definitions; they never supply handler names or executable code.
-const definitions = require("./effectDefinitions.json");
+const baseDefinitions = require("./effectDefinitions.json");
+const completeCatalogFactions = ["mekan", "jali", "gracus", "voltari", "xendra", "ingles", "mercaw", "mtano", "russo"];
+const completeCatalogSuits = ["spades", "hearts", "diamonds", "clubs"];
+const completeCatalogRanks = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "jack", "queen", "king", "ace"];
+const definitions = [
+  ...baseDefinitions,
+  ...completeCatalogFactions.flatMap((factionId) => completeCatalogSuits.flatMap((suit) => completeCatalogRanks.map((rank) => ({
+    id: `catalog-${factionId}-${suit}-${rank}`,
+    version: 1,
+    legacyCardId: `${factionId}-${suit}-${rank}`,
+    factionId,
+    cardType: "servitor",
+    handler: "printed-value-only",
+    parameters: {}
+  }))))
+];
 const CARD_EFFECT_CONTRACT_VERSION = "gauntlet.card-effects.v1";
 const FACTION_EFFECT_CONTRACT_VERSION = "gauntlet.faction-effects.v1";
 const entries = Object.fromEntries(definitions.map((row) => [row.id, row]));
@@ -32,7 +47,7 @@ function cardEffect(card) {
 function hasCardEffect(card, handler) { return cardEffect(card)?.id === handler; }
 function cardParameter(card, key) { return cardEffect(card)?.parameters[key] ?? 0; }
 const factionDefinitions = Object.freeze({
-  ...Object.fromEntries(["mekan", "jali", "gracus", "indela", "ingles", "mercaw", "mtano", "russo", "zynarth", "astral-vanguard"].map(id => [id, { id: `engine-${id}`, version: 1, factionId: id, parameters: {} }])),
+  ...Object.fromEntries(["mekan", "jali", "gracus", "indela", "ingles", "mercaw", "mtano", "russo", "zynarth", "astral-vanguard", "voltari", "xendra"].map(id => [id, { id: `engine-${id}`, version: 1, factionId: id, parameters: {} }])),
   rumin: { id: "imperial-rhythm", version: 1, factionId: "rumin", parameters: { fourthAttackBonus: { min: 0, max: 8, default: 3 } } },
   sheen: { id: "living-defense", version: 1, factionId: "sheen", parameters: { largeAttackBonus: { min: 0, max: 8, default: 2 } } },
   frumo: { id: "sunken-maneuvers", version: 1, factionId: "frumo", parameters: {} },

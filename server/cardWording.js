@@ -181,6 +181,14 @@ for (const id of [
   "neutral-freeblade-envoy", "neutral-convergence-oracle", "neutral-gauntlet-regent", "neutral-timetwister-ascendant"
 ]) CARD_WORDING[id] = "No additional ability.";
 
+for (const factionId of ["mekan", "jali", "gracus", "voltari", "xendra", "ingles", "mercaw", "mtano", "russo"]) {
+  for (const suit of ["spades", "hearts", "diamonds", "clubs"]) {
+    for (const rank of ["2", "3", "4", "5", "6", "7", "8", "9", "10", "jack", "queen", "king", "ace"]) {
+      CARD_WORDING[`${factionId}-${suit}-${rank}`] = "No additional ability.";
+    }
+  }
+}
+
 // ‘New suit’ always compares attacks, never payments or other card plays.
 CONVENTIONS.push("New suit means a different suit from your previous attack this turn. Your first attack has no previous suit, so it cannot qualify. ‘Empty lane’ means an empty lane you control.");
 

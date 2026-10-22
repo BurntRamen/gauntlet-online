@@ -35,9 +35,10 @@ const COLLECTOR_VARIANT_SCHEMA_VERSION = 1;
 
 const DRAFT_SETS = Object.freeze([
   Object.freeze({ id: "initiative", number: 1, name: "Initiative", factionIds: Object.freeze(["rumin", "sheen", "frumo", "bizi"]), draftAvailable: true, sealedAvailable: true }),
-  Object.freeze({ id: "legacies", number: 2, name: "Legacies", factionIds: Object.freeze(["mekan", "jali", "gracus", "indela"]), draftAvailable: false, sealedAvailable: false, unavailableReason: "Faction-card catalogs are still in development." }),
-  Object.freeze({ id: "frontiers", number: 3, name: "Frontiers", factionIds: Object.freeze(["ingles", "mercaw", "mtano", "russo"]), draftAvailable: false, sealedAvailable: false, unavailableReason: "Faction-card catalogs are still in development." }),
-  Object.freeze({ id: "reath-beyond", number: 4, name: "Reath Beyond", factionIds: Object.freeze(["zynarth", "astral-vanguard"]), draftAvailable: true, sealedAvailable: true })
+  Object.freeze({ id: "legacies", number: 2, name: "Legacies", factionIds: Object.freeze(["mekan", "jali", "gracus", "indela"]), draftAvailable: true, sealedAvailable: true }),
+  Object.freeze({ id: "frontiers", number: 3, name: "Frontiers", factionIds: Object.freeze(["ingles", "mercaw", "mtano", "russo"]), draftAvailable: true, sealedAvailable: true }),
+  Object.freeze({ id: "reath-beyond", number: 4, name: "Reath Beyond", factionIds: Object.freeze(["zynarth", "astral-vanguard"]), draftAvailable: true, sealedAvailable: true }),
+  Object.freeze({ id: "convergence", number: 5, name: "Convergence", factionIds: Object.freeze(["voltari", "xendra"]), draftAvailable: true, sealedAvailable: true })
 ]);
 
 const RUMIN_COLLECTION_CARDS = [
@@ -789,6 +790,80 @@ const NEUTRAL_COLLECTION_CARDS = [
   { id: "neutral-holy-ground", factionId: NEUTRAL_FACTION_ID, name: "Holy Ground", type: "shelter", rarity: "mythic", value: 10, text: "While this occupies a support slot, prevent 1 damage from each blocked attack." }
 ];
 
+// Factions introduced through Legacies and the Reath frontier still use the
+// standard 52-card geometry. Give each one a named replacement for every
+// rank-and-suit slot so the faction can be collected and built as a complete
+// deck without changing Gauntlet's fixed-slot rules.
+const FULL_CATALOG_FACTIONS = Object.freeze({
+  mekan: {
+    art: "/assets/gauntlet/mekan-emblem.svg",
+    aspects: { spades: "Midnight", hearts: "Festival", diamonds: "Marigold", clubs: "Drumfire" },
+    ranks: ["Welcomer", "Lantern Bearer", "Mask Dancer", "Memory Keeper", "Procession Guide", "Ancestor Host", "Candlewright", "Feast Steward", "Sunset Herald", "Bridge Walker", "Revel Matriarch", "Eternal Celebrant", "Dawn Returned"]
+  },
+  jali: {
+    art: "/assets/gauntlet/jali-emblem.svg",
+    aspects: { spades: "Shadow", hearts: "Oath", diamonds: "Moonsteel", clubs: "Formation" },
+    ranks: ["Initiate", "Standard Guard", "Quiet Archer", "Line Keeper", "Name Caller", "Revenant Guide", "Wind Reader", "Gate Sentinel", "Fallen Captain", "Veil Strider", "Memory Queen", "Oath Shogun", "Ancestor Ascendant"]
+  },
+  gracus: {
+    art: "/assets/gauntlet/gracus-emblem.svg",
+    aspects: { spades: "Obsidian", hearts: "Civic", diamonds: "Sunstone", clubs: "Arena" },
+    ranks: ["Debater", "Shield Bearer", "Stone Runner", "Arena Witness", "Civic Hoplite", "Question Keeper", "Coastal Strategist", "Laurel Champion", "Monument Warden", "Forum Tribune", "Marble Queen", "Philosopher King", "Living Colossus"]
+  },
+  voltari: {
+    art: "/assets/gauntlet/constructed/bizi/bizi-voltaric-ultimatum.webp",
+    aspects: { spades: "Null", hearts: "Sovereign", diamonds: "Golden", clubs: "Conduit" },
+    ranks: ["Relay Adept", "Grid Surveyor", "Signal Warden", "Process Auditor", "Energy Broker", "Consent Keeper", "Pattern Engineer", "System Mediator", "Anchor Architect", "Optimization Envoy", "Circuit Matriarch", "Process Sovereign", "Prime Continuity"]
+  },
+  xendra: {
+    art: "/assets/gauntlet/bizi-card.webp",
+    aspects: { spades: "Absent", hearts: "Dreaming", diamonds: "Prismatic", clubs: "Resonant" },
+    ranks: ["Distant Witness", "Borrowed Reflection", "Unfixed Shape", "Horizon Listener", "Memory Current", "Aspect Weaver", "Threshold Echo", "Impossible Pilgrim", "Veiled Harbinger", "Deep Voice", "Queen of Angles", "King Without Form", "Total Eclipse"]
+  },
+  ingles: {
+    art: "/assets/gauntlet/ingles-emblem.svg",
+    aspects: { spades: "Crownless", hearts: "Common", diamonds: "Harbor", clubs: "Charter" },
+    ranks: ["Petitioner", "Harbor Watch", "Clause Keeper", "Island Scout", "Council Guard", "Public Advocate", "Fleet Delegate", "Common Marshal", "Accord Captain", "Charter Envoy", "First Speaker", "Crownless Warden", "Unwritten Compact"]
+  },
+  mercaw: {
+    art: "/assets/gauntlet/mercaw-emblem.svg",
+    aspects: { spades: "Stormwing", hearts: "Accord", diamonds: "Starbright", clubs: "Aerie" },
+    ranks: ["Rook Scout", "Signal Runner", "Nest Inventor", "Sky Courier", "Compact Guard", "Aerie Delegate", "Frontier Tactician", "Wind Convener", "Federation Captain", "Many-Star Envoy", "Accord Matriarch", "Talon Marshal", "Convergent Flight"]
+  },
+  mtano: {
+    art: "/assets/gauntlet/mtano-emblem.svg",
+    aspects: { spades: "Stone", hearts: "Living", diamonds: "Rain", clubs: "Ancestor" },
+    ranks: ["Name Student", "River Guide", "Terrace Keeper", "Veil Listener", "Memory Bearer", "Savannah Warden", "Watershed Scout", "Covenant Speaker", "Golden Defender", "Passage Envoy", "Rain Queen", "Mountain Elder", "Remembered Many"]
+  },
+  russo: {
+    art: "/assets/gauntlet/russo-emblem.svg",
+    aspects: { spades: "Winter", hearts: "Hearth", diamonds: "Iron", clubs: "Forest" },
+    ranks: ["Snow Scout", "Store Keeper", "Pine Guard", "Hearth Worker", "Ice Road Warden", "Common Steward", "Foundry Captain", "Thaw Engineer", "Oath Defender", "Winter Envoy", "Hearth Matriarch", "Forest Marshal", "Long Winter Bear"]
+  }
+});
+const CATALOG_SUITS = Object.freeze(["spades", "hearts", "diamonds", "clubs"]);
+const CATALOG_VALUES = Object.freeze([2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]);
+const CATALOG_RANK_SLUG = Object.freeze({ 11: "jack", 12: "queen", 13: "king", 14: "ace" });
+const CATALOG_RARITY = Object.freeze({ 2: "common", 3: "common", 4: "common", 5: "common", 6: "uncommon", 7: "uncommon", 8: "uncommon", 9: "rare", 10: "rare", 11: "uncommon", 12: "rare", 13: "rare", 14: "mythic" });
+const FULL_FACTION_COLLECTIONS = Object.freeze(Object.fromEntries(Object.entries(FULL_CATALOG_FACTIONS).map(([factionId, profile]) => [
+  factionId,
+  CATALOG_SUITS.flatMap((suit) => CATALOG_VALUES.map((value, index) => {
+    const rank = CATALOG_RANK_SLUG[value] || String(value);
+    const name = `${profile.aspects[suit]} ${profile.ranks[index]}`;
+    return {
+      id: `${factionId}-${suit}-${rank}`,
+      factionId,
+      name,
+      type: "servitor",
+      rarity: CATALOG_RARITY[value],
+      value,
+      suit,
+      art: profile.art,
+      text: `This card has no additional ability beyond the normal rules for its card type and printed value. ${name} carries the ${profile.aspects[suit].toLowerCase()} tradition into the convergence.`
+    };
+  }))
+])));
+
 // Every constructed catalog covers the full 2-A playing-card range. Face cards
 // share a predictable rarity ladder across factions: J uncommon, Q/K rare,
 // and A mythic. Their fixed suits make each one a stable replacement slot.
@@ -862,7 +937,7 @@ ASTRAL_VANGUARD_COLLECTION_CARDS.push(...FACE_CARD_COLLECTIONS["astral-vanguard"
 INDELA_COLLECTION_CARDS.push(...FACE_CARD_COLLECTIONS.indela);
 NEUTRAL_COLLECTION_CARDS.push(...FACE_CARD_COLLECTIONS.neutral);
 
-const COLLECTION_CARDS = [...RUMIN_COLLECTION_CARDS, ...SHEEN_COLLECTION_CARDS, ...FRUMO_COLLECTION_CARDS, ...BIZI_COLLECTION_CARDS, ...ZYNARTH_COLLECTION_CARDS, ...ASTRAL_VANGUARD_COLLECTION_CARDS, ...INDELA_COLLECTION_CARDS, ...NEUTRAL_COLLECTION_CARDS];
+const COLLECTION_CARDS = [...RUMIN_COLLECTION_CARDS, ...SHEEN_COLLECTION_CARDS, ...FRUMO_COLLECTION_CARDS, ...BIZI_COLLECTION_CARDS, ...ZYNARTH_COLLECTION_CARDS, ...ASTRAL_VANGUARD_COLLECTION_CARDS, ...INDELA_COLLECTION_CARDS, ...NEUTRAL_COLLECTION_CARDS, ...Object.values(FULL_FACTION_COLLECTIONS).flat()];
 const FIXED_CARD_SUITS = Object.freeze({
   "rumin-gilded-scale-legionary": "spades",
   "rumin-forum-ledger-runner": "hearts",
@@ -988,7 +1063,7 @@ const SUPPORT_RULES_TEXT = {
 };
 for (const card of COLLECTION_CARDS) {
   if (SUPPORT_RULES_TEXT[card.id]) card.text = SUPPORT_RULES_TEXT[card.id];
-  card.suit = FIXED_CARD_SUITS[card.id];
+  card.suit = FIXED_CARD_SUITS[card.id] || card.suit;
   card.replacementSuit = card.suit;
   card.displayText = getCardWording(card);
   card.gameplayCardId = card.id;
@@ -997,7 +1072,7 @@ for (const card of COLLECTION_CARDS) {
 }
 
 function getConstructedCardArt(card) {
-  return `/assets/gauntlet/constructed/${card.factionId}/${card.id}.webp`;
+  return card.art || `/assets/gauntlet/constructed/${card.factionId}/${card.id}.webp`;
 }
 
 const COLLECTOR_ANIMATION_STYLES = Object.freeze({
@@ -1008,7 +1083,9 @@ const COLLECTOR_ANIMATION_STYLES = Object.freeze({
   zynarth: "brood-pulse",
   "astral-vanguard": "orbital-sweep",
   indela: "elemental-omen"
-  ,neutral: "reath-prism"
+  ,neutral: "reath-prism", mekan: "festival-memory", jali: "revenant-formation", gracus: "living-stone",
+  voltari: "golden-conduit", xendra: "aspect-shift", ingles: "open-charter", mercaw: "many-star-flight",
+  mtano: "ancestral-rain", russo: "winter-hearth"
 });
 
 const COLLECTOR_VARIANTS = COLLECTION_CARDS.flatMap((card) => ([
@@ -1082,7 +1159,8 @@ const COMMANDER_ANNOUNCEMENTS = Object.freeze({
   ingles: { selected: "The charter is open. Take your place.", clicked: "No voice stands above the common promise.", wounded: "Twenty-one life. Amend the formation and hold.", critical: "Ten life. The council remains in session.", denied: "The charter grants no authority for that assault." },
   mercaw: { selected: "Many wings, one chosen course.", clicked: "Argue freely. Act together.", wounded: "Twenty-one life. Every aerie stays in the accord.", critical: "Ten life. Concentrate the federation's strength.", denied: "No member has authorized that commitment." },
   mtano: { selected: "The mountain remembers our path.", clicked: "Listen before the water changes course.", wounded: "Twenty-one life. Carry the lesson to every terrace.", critical: "Ten life. The watershed survives through us.", denied: "The living record does not support that choice." },
-  russo: { selected: "The hearth is lit. The line will hold.", clicked: "Endurance belongs to everyone beside us.", wounded: "Twenty-one life. Share the heat and close the breach.", critical: "Ten life. No one freezes alone.", denied: "The reserve cannot sustain that order." }
+  russo: { selected: "The hearth is lit. The line will hold.", clicked: "Endurance belongs to everyone beside us.", wounded: "Twenty-one life. Share the heat and close the breach.", critical: "Ten life. No one freezes alone.", denied: "The reserve cannot sustain that order." },
+  xendra: { selected: "We arrive where your certainty thins.", clicked: "A shape is only the angle from which you agreed to see it.", wounded: "Twenty-one remains in the account you call life.", critical: "Ten. The smallest opening admits an infinite horizon.", denied: "That possibility is not facing you yet." }
 });
 
 const COMMANDER_ANNOUNCEMENT_AUDIO = Object.freeze({
@@ -1114,7 +1192,14 @@ const COMMANDER_ANNOUNCEMENT_AUDIO = Object.freeze({
     critical: "/assets/gauntlet/voices/bizi-ch07-before-05-focus.mp3",
     denied: "/assets/gauntlet/voices/focus-1.mp3"
   },
-  zynarth: { denied: "/assets/gauntlet/voices/zalara-1.mp3" }
+  zynarth: { denied: "/assets/gauntlet/voices/zalara-1.mp3" },
+  xendra: {
+    selected: "/assets/gauntlet/voices/xendra-ch05-before-01-nulth.mp3",
+    clicked: "/assets/gauntlet/voices/xendra-ch07-before-01-krauth.mp3",
+    wounded: "/assets/gauntlet/voices/xendra-ch03-before-01-syllith.mp3",
+    critical: "/assets/gauntlet/voices/xendra-ch04-before-02-thrallmaker.mp3",
+    denied: "/assets/gauntlet/voices/xendra-ch05-before-03-nulth.mp3"
+  }
 });
 
 const GENERAL_CLICK_ANNOUNCEMENTS = Object.freeze({
@@ -1132,7 +1217,8 @@ const GENERAL_CLICK_ANNOUNCEMENTS = Object.freeze({
   ingles: "A formation is a promise every soldier can inspect.",
   mercaw: "The accord moves because each aerie chose it.",
   mtano: "Carry strength where the watershed needs it.",
-  russo: "Keep the shared hearth alive through the longest night."
+  russo: "Keep the shared hearth alive through the longest night.",
+  xendra: "You hear one voice because the others are standing behind it."
 });
 
 const GENERAL_CLICK_AUDIO = Object.freeze({
@@ -1148,7 +1234,8 @@ const COMMANDER_VOICE_PROFILES = Object.freeze({
   rumin: [0.82, 0.55], sheen: [0.72, 0.72], frumo: [1.08, 0.95], bizi: [0.9, 1.18],
   mekan: [1.06, 1.08], jali: [0.78, 0.72], gracus: [1.04, 0.84], indela: [0.88, 1.08],
   voltari: [0.9, 0.92], zynarth: [0.72, 0.48], "astral-vanguard": [0.94, 0.82],
-  ingles: [0.96, 0.86], mercaw: [1.04, 0.94], mtano: [0.86, 0.78], russo: [0.8, 0.68]
+  ingles: [0.96, 0.86], mercaw: [1.04, 0.94], mtano: [0.86, 0.78], russo: [0.8, 0.68],
+  xendra: [0.58, 0.32]
 });
 
 const COMMANDER_VOICE_HINTS = Object.freeze({
@@ -1166,7 +1253,8 @@ const COMMANDER_VOICE_HINTS = Object.freeze({
   ingles: ["george", "david", "ryan", "liam"],
   mercaw: ["aria", "andrew", "christopher", "samantha"],
   mtano: ["guy", "davis", "aria", "william"],
-  russo: ["mark", "davis", "george", "andrew"]
+  russo: ["mark", "davis", "george", "andrew"],
+  xendra: ["william", "davis", "mark", "zira"]
 });
 
 // ============ FACTION DATA ============
@@ -1244,11 +1332,10 @@ const factionsData = {
   voltari: {
     id: "voltari",
     name: "Voltari",
-    campaignOnly: true,
     cardImage: "/assets/gauntlet/constructed/bizi/bizi-voltaric-ultimatum.webp",
-    commander: { name: "Stormlord Veyra", image: "/assets/gauntlet/constructed/bizi/bizi-voltaric-ultimatum.webp", text: "Campaign faction: build localized conduit networks while preserving independent command and civilian power." },
-    general: { name: "Warden Kryos", image: "/assets/gauntlet/constructed/bizi/bizi-voltaric-ultimatum.webp", text: "Campaign faction: overload isolated systems to break stronger centralized machines." },
-    city: { name: "Voltara Skyhold", image: "/assets/gauntlet/constructed/bizi/bizi-voltaric-ultimatum.webp", text: "Campaign faction: storm power, defensive anchors, and local shutdown keys keep the network accountable." }
+    commander: { name: "Stormlord Veyra", image: "/assets/gauntlet/constructed/bizi/bizi-voltaric-ultimatum.webp", text: "Playable identity: arrange exact printed values into efficient conduit sequences while preserving independent command." },
+    general: { name: "Warden Kryos", image: "/assets/gauntlet/constructed/bizi/bizi-voltaric-ultimatum.webp", text: "Playable identity: redirect effort between isolated systems and decide who retains agency over each optimization." },
+    city: { name: "Voltara Skyhold", image: "/assets/gauntlet/constructed/bizi/bizi-voltaric-ultimatum.webp", text: "Storm power, defensive anchors, and local shutdown keys keep the network accountable." }
   },
   zynarth: {
     id: "zynarth",
@@ -1271,11 +1358,10 @@ const factionsData = {
   xendra: {
     id: "xendra",
     name: "XenDra",
-    campaignOnly: true,
     cardImage: "/assets/gauntlet/bizi-card.webp",
-    commander: { name: "Elias Varen, Final Conduit", image: "/assets/gauntlet/rumin-card.webp", text: "Campaign faction: survive the Deep Currents while reality changes around the battle." },
-    general: { name: "Syllith, the Echoing Child", image: "/assets/gauntlet/sheen-card.webp", text: "Campaign faction: memories, dialogue, and repeated attacks become unreliable." },
-    city: { name: "The Deep Currents", image: "/assets/gauntlet/frumo-card.webp", text: "Campaign faction: each chapter reveals more of the XenDra ritual beneath Reath." }
+    commander: { name: "Elias Varen, Final Conduit", image: "/assets/gauntlet/rumin-card.webp", text: "Playable identity: change suits and perspectives until apparently fixed values reveal another aspect." },
+    general: { name: "Syllith, the Echoing Child", image: "/assets/gauntlet/sheen-card.webp", text: "Playable identity: repeat and reinterpret ordinary actions as memories, echoes, and unreliable predictions." },
+    city: { name: "The Deep Currents", image: "/assets/gauntlet/frumo-card.webp", text: "The battlefield presents several true aspects of the same event without promising which one will endure." }
   }
 };
 
@@ -1302,7 +1388,7 @@ for (const [factionId, announcements] of Object.entries(COMMANDER_ANNOUNCEMENTS)
 }
 
 function listFactions() {
-  return ["rumin", "sheen", "frumo", "bizi", "mekan", "jali", "gracus", "indela", "ingles", "mercaw", "mtano", "russo", "zynarth", "astral-vanguard"].map((id) => factionsData[id]);
+  return ["rumin", "sheen", "frumo", "bizi", "mekan", "jali", "gracus", "indela", "ingles", "mercaw", "mtano", "russo", "zynarth", "astral-vanguard", "voltari", "xendra"].map((id) => factionsData[id]);
 }
 
 function getFactionById(id, generalId) {
@@ -2372,7 +2458,7 @@ function validateGameContent() {
   requireText(CONTENT_VERSION, "contentVersion");
   const factionIds = Object.keys(factionsData);
   const playableFactionIds = factionIds.filter((factionId) => !factionsData[factionId].campaignOnly);
-  if (playableFactionIds.length !== 14) throw new Error("Invalid game content: expected fourteen playable factions.");
+  if (playableFactionIds.length !== 16) throw new Error("Invalid game content: expected sixteen playable factions.");
   for (const factionId of factionIds) {
     const faction = factionsData[factionId];
     if (faction.id !== factionId) throw new Error(`Invalid game content: faction key ${factionId} does not match its ID.`);
@@ -2387,7 +2473,7 @@ function validateGameContent() {
       }
     }
     const chapters = campaignChapters[factionId];
-    if (!faction.campaignPending && (!Array.isArray(chapters) || (faction.campaignOnly ? chapters.length === 0 : chapters.length !== 12))) {
+    if (!faction.campaignPending && (!Array.isArray(chapters) || chapters.length < 1 || chapters.length > 12)) {
       throw new Error(`Invalid game content: faction ${factionId} has an invalid campaign chapter count.`);
     }
   }
@@ -2531,6 +2617,7 @@ module.exports = {
   DRAFT_CARD_SUITS,
   DRAFT_SETS,
   FREE_GAMEPLAY_ACQUISITION,
+  FULL_FACTION_COLLECTIONS,
   FRUMO_COLLECTION_CARDS,
   INDELA_COLLECTION_CARDS,
   MAX_CONSTRUCTED_ADDITIONS,

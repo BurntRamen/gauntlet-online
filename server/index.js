@@ -503,12 +503,12 @@ const BOOSTER_PRODUCTS = {
     setName: "Initiative",
     productType: "earned-gameplay-pack",
     pool: "all-factions",
-    cardCount: 12,
+    cardCount: 17,
     artPath: "/assets/gauntlet/packs/initiative-set-1-suits.png",
     guaranteedFactionIds: [...new Set(COLLECTION_CARDS.filter((card) => card.factionId !== NEUTRAL_FACTION_ID).map((card) => card.factionId))],
-    slots: ["common", "common", "common", "common", "common", "common", "uncommon", "uncommon", "rare", "rare", "wild", "face"],
+    slots: [...Array(16).fill("common"), "face"],
     faceCardOdds: FACE_CARD_ODDS,
-    description: "A 12-card free-play reward with every catalog faction represented and one guaranteed face card (J, Q, K, or A)."
+    description: "A 17-card free-play reward with every catalog faction represented and one guaranteed face card (J, Q, K, or A)."
   },
   "rumin-foundation": {
     id: "rumin-foundation",
@@ -602,6 +602,28 @@ const BOOSTER_PRODUCTS = {
     description: "A seeded Indela reward with one guaranteed face card. Earn credits through first-time campaign clears."
   }
 };
+
+// Every playable faction has a seeded earned pack. Existing named packs retain
+// their release metadata; newly completed catalogs inherit the set that owns
+// the faction, including the playable Voltari and XenDra Convergence set.
+for (const faction of listFactions()) {
+  const packId = `${faction.id}-foundation`;
+  if (BOOSTER_PRODUCTS[packId]) continue;
+  const set = DRAFT_SETS.find((entry) => entry.factionIds.includes(faction.id));
+  BOOSTER_PRODUCTS[packId] = {
+    id: packId,
+    name: `${faction.name} Foundation Pack`,
+    productType: "earned-gameplay-pack",
+    setId: set?.id || "convergence",
+    setNumber: set?.number || 5,
+    setName: set?.name || "Convergence",
+    factionId: faction.id,
+    cardCount: 8,
+    slots: ["common", "common", "common", "uncommon", "uncommon", "rare", "wild", "face"],
+    faceCardOdds: FACE_CARD_ODDS,
+    description: `A seeded ${faction.name} reward with one guaranteed face card. Earn credits through first-time campaign clears.`
+  };
+}
 
 const FACTION_COLLECTOR_PACK_PRODUCTS = Object.fromEntries(Object.values(BOOSTER_PRODUCTS).filter((pack) => pack.factionId).map((pack) => {
   const id = `${pack.factionId}-collector`;

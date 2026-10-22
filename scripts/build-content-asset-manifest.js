@@ -20,11 +20,14 @@ visit(registry.getPublicGameContent(), "content");
 visit(registry.factionsData, "factions");
 const faces = {}, illustrations = {};
 for (const { id, factionId } of registry.COLLECTION_CARDS) {
-  const source = `/assets/gauntlet/constructed/${factionId}/${id}.webp`;
+  const source = registry.COLLECTOR_VARIANTS.find((variant) => variant.gameplayCardId === id && variant.variantId.endsWith(":standard"))?.art
+    || `/assets/gauntlet/constructed/${factionId}/${id}.webp`;
   add(source, "card-illustration", id); illustrations[id] = source;
   for (const suit of ["spades", "hearts", "diamonds", "clubs"]) {
     const face = `/assets/gauntlet/constructed/faces/${id}-${suit}.webp`;
-    add(face, "card-face", id); faces[`${id}:${suit}`] = face;
+    if (fs.existsSync(path.join(root, face))) {
+      add(face, "card-face", id); faces[`${id}:${suit}`] = face;
+    }
   }
 }
 for (const file of fs.readdirSync(path.join(root, "assets/gauntlet/playing-cards")).filter((file) => file.endsWith(".webp")).sort()) {

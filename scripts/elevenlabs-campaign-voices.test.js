@@ -11,11 +11,11 @@ const xendraManifest = require("./elevenlabs-xendra-campaign.json");
 
 test("Frumo manifest covers every scripted campaign speaker and line", () => {
   const plan = buildLinePlan(manifest);
-  assert.equal(plan.length, 120);
+  assert.equal(plan.length, 122);
   assert.equal(new Set(plan.map((line) => line.chapterId)).size, 12);
   assert.equal(new Set(plan.map((line) => line.voiceKey)).size, 15);
   assert.equal(plan[0].fileName, "frumo-ch01-before-01-narrator.mp3");
-  assert.equal(plan.at(-1).fileName, "frumo-ch12-after-05-polea.mp3");
+  assert.equal(plan.at(-1).fileName, "frumo-ch12-after-07-lafayette.mp3");
 });
 
 test("Bizi manifest covers every scripted campaign speaker and line", () => {
@@ -67,10 +67,10 @@ test("voice design, generation, and publication are resumable", async () => {
   assert.equal(designs, 1);
   await generateLines({ manifest: tiny, workspaceRoot, apiKey: "test", confirmCost: true, fetchImpl });
   await generateLines({ manifest: tiny, workspaceRoot, apiKey: "test", confirmCost: true, fetchImpl });
-  assert.equal(generations, 120);
-  assert.equal(publishLines({ manifest: tiny, workspaceRoot }), 120);
+  assert.equal(generations, 122);
+  assert.equal(publishLines({ manifest: tiny, workspaceRoot }), 122);
   assert.ok(fs.existsSync(path.join(workspaceRoot, "public", "frumo-ch01-before-01-narrator.mp3")));
   const registry = JSON.parse(fs.readFileSync(path.join(workspaceRoot, "server", "frumoCampaignVoiceAssets.json"), "utf8"));
   assert.equal(registry.chapters["tax-of-tides"].dialogueAudio.length, 5);
-  assert.equal(registry.chapters["last-tide"].endDialogueAudio.length, 5);
+  assert.equal(registry.chapters["last-tide"].endDialogueAudio.length, 7);
 });

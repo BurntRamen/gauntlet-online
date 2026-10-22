@@ -6,8 +6,8 @@ const { buildPlan, parseArgs } = require("./elevenlabs-faction-interactions");
 
 test("faction interaction manifest covers every playable faction event", () => {
   const plan = buildPlan(manifest);
-  assert.equal(Object.keys(manifest.voiceIds).length, 10);
-  assert.equal(plan.length, 60);
+  assert.equal(Object.keys(manifest.voiceIds).length, 16);
+  assert.equal(plan.length, 96);
   for (const factionId of Object.keys(manifest.voiceIds)) {
     const lines = plan.filter((line) => line.factionId === factionId);
     assert.deepEqual(lines.map((line) => `${line.role}:${line.event}`).sort(), [

@@ -98,7 +98,7 @@ function makeSemanticGame(card) {
 }
 
 test("every competitive gameplay definition has a free acquisition path and free default presentation", () => {
-  assert.equal(COLLECTION_CARDS.length, 176);
+  assert.equal(COLLECTION_CARDS.length, 644);
   for (const card of COLLECTION_CARDS) {
     assert.equal(card.gameplayCardId, card.id);
     assert.equal(card.freeAcquisition, FREE_GAMEPLAY_ACQUISITION);
@@ -308,14 +308,14 @@ test("earned gameplay packs change free entitlement while collector grants do no
   assert.equal(collectorStats.collection.openedGameplayPacks, 0);
 });
 
-test("Initiative packs include every catalog faction and keep faction packs seeded", () => {
+test("all-faction packs include every playable faction and keep faction packs seeded", () => {
   const initiativeStats = { collection: { packCredits: 1 } };
   const initiativeCards = openCollectionBooster(initiativeStats, "initiative-all-factions");
-  assert.equal(initiativeCards.length, 12);
+  assert.equal(initiativeCards.length, 17);
   assert.equal(initiativeCards.filter((card) => card.value >= 11).length >= 1, true);
   assert.deepEqual(
     [...new Set(initiativeCards.map((card) => card.factionId))].sort(),
-    ["astral-vanguard", "bizi", "frumo", "indela", "rumin", "sheen", "zynarth"]
+    ["astral-vanguard", "bizi", "frumo", "gracus", "indela", "ingles", "jali", "mekan", "mercaw", "mtano", "rumin", "russo", "sheen", "voltari", "xendra", "zynarth"]
   );
 
   const zynarthStats = { collection: { packCredits: 1 } };
@@ -333,6 +333,14 @@ test("Initiative packs include every catalog faction and keep faction packs seed
   const indelaCards = openCollectionBooster(indelaStats, "indela-foundation");
   assert.equal(indelaCards.length, 8);
   assert.equal(indelaCards.every((card) => card.factionId === "indela"), true);
+
+  for (const factionId of ["mekan", "jali", "gracus", "voltari", "xendra", "ingles", "mercaw", "mtano", "russo"]) {
+    const stats = { collection: { packCredits: 1 } };
+    const cards = openCollectionBooster(stats, `${factionId}-foundation`);
+    assert.equal(cards.length, 8, factionId);
+    assert.equal(cards.every((card) => card.factionId === factionId), true, factionId);
+    assert.equal(cards.some((card) => card.value >= 11), true, `${factionId}: guaranteed face`);
+  }
 });
 
 test("a physical collector entitlement changes presentation provenance but no competitive capability", () => {
