@@ -24,8 +24,11 @@ export default function useDraftRequest(socket, onError) {
   useEffect(() => {
     const disconnected = () => {
       if (!active.current?.sent) return;
+      const entering = active.current.action === "enter";
       clear();
-      errorHandler.current("Connection lost. Your draft will reload when you reconnect; check it before trying again.");
+      errorHandler.current(entering
+        ? "Connection lost while opening your table. Reconnect and check whether it opened before trying again."
+        : "Connection lost. Your draft will reload when you reconnect; check it before trying again.");
     };
     socket.on("disconnect", disconnected);
     return () => {
@@ -46,7 +49,9 @@ export default function useDraftRequest(socket, onError) {
       if (active.current !== request) return;
       clear();
       if (error || response?.error || !response?.ok) {
-        errorHandler.current(response?.error || "The draft server did not respond. Check your connection and try again.");
+        errorHandler.current(response?.error || (action === "enter"
+          ? "The game server did not respond while opening your table. Check your connection and try again."
+          : "The draft server did not respond. Check your connection and try again."));
       }
     };
     request.send = () => {

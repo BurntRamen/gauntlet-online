@@ -97,3 +97,25 @@ test("disconnect clears pending controls and late replies cannot clear a newer r
   act(() => oldReply(null, { ok: true }));
   expect(result.current.pending.action).toBe("build");
 });
+
+test("campaign entry disconnects describe the table without promising draft recovery", () => {
+  const socket = mockSocket();
+  const error = jest.fn();
+  const { result } = renderHook(() => useDraftRequest(socket, error));
+  act(() => result.current.run("enter", "createCampaignRoom", { factionId: "bizi", chapterId: "last-victories" }));
+  act(() => socket.trigger("disconnect"));
+  expect(result.current.pending).toBeNull();
+  expect(error.mock.calls.at(-1)[0]).toMatch(/Connection lost while opening your table/);
+  expect(error.mock.calls.at(-1)[0]).not.toMatch(/draft/i);
+});
+
+test("campaign entry timeouts identify the game server and clear the loading state", () => {
+  const socket = mockSocket();
+  const error = jest.fn();
+  const { result } = renderHook(() => useDraftRequest(socket, error));
+  act(() => result.current.run("enter", "createCampaignRoom"));
+  act(() => jest.advanceTimersByTime(20000));
+  expect(result.current.pending).toBeNull();
+  expect(error.mock.calls.at(-1)[0]).toMatch(/game server did not respond/);
+  expect(error.mock.calls.at(-1)[0]).not.toMatch(/draft/i);
+});

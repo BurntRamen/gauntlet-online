@@ -1312,13 +1312,14 @@ function getCollectionCatalogCard(cardId) {
 
 function resolveCollectorVariantSelections(collection, gameplayCardQuantities, requestedSelections = {}) {
   const selections = {};
+  const variants = getPublicGameContent().collectorVariants;
   for (const gameplayCardId of Object.keys(gameplayCardQuantities || {})) {
     const gameplayCard = getGameplayCardById(gameplayCardId);
     if (!gameplayCard) continue;
     const requestedVariantId = requestedSelections[gameplayCardId]
       || collection.selectedVariants?.[gameplayCardId]
       || gameplayCard.defaultVariantId;
-    const variant = resolvePrinting(gameplayCardId, getPublicGameContent().collectorVariants, requestedVariantId, gameplayCard.defaultVariantId);
+    const variant = resolvePrinting(gameplayCardId, variants, requestedVariantId, gameplayCard.defaultVariantId);
     if (!variant || variant.gameplayCardId !== gameplayCardId) {
       throw new Error(`Choose a collector variant made for ${gameplayCard.name}.`);
     }
@@ -1331,12 +1332,13 @@ function resolveCollectorVariantSelections(collection, gameplayCardQuantities, r
 }
 
 function expandConstructedCardQuantities(gameplayCardQuantities = {}, factionId, cardSuitChoices = {}, collectorVariantSelections = {}) {
+  const manifest = getPublicGameContent();
   return Object.entries(gameplayCardQuantities)
     .flatMap(([cardId, quantity]) => {
       const count = Math.min(1, Math.max(0, Math.floor(Number(quantity || 0))));
       const card = getCollectionCatalogCard(cardId);
       if (!card || (card.factionId !== factionId && card.factionId !== NEUTRAL_FACTION_ID) || count <= 0) return [];
-      const variant = resolvePrinting(cardId, getPublicGameContent().collectorVariants, collectorVariantSelections[cardId], card.defaultVariantId);
+      const variant = resolvePrinting(cardId, manifest.collectorVariants, collectorVariantSelections[cardId], card.defaultVariantId);
       if (!variant) throw new Error("Saved printing is unavailable or belongs to another card.");
       return Array.from({ length: count }, () => {
         const suit = card.suit;
@@ -1355,7 +1357,7 @@ function expandConstructedCardQuantities(gameplayCardQuantities = {}, factionId,
           } : null,
           suit,
           replacementSuit: suit
-        });
+        }, manifest);
       });
     });
 }
