@@ -2,31 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import FactionLoadoutPicker from "./FactionLoadoutPicker";
 import "./EventHub.css";
 
-function Reward({ tier, earned }) {
-  const parts = [];
-  if (tier.gold) parts.push(`${Number(tier.gold).toLocaleString()} gold`);
-  if (tier.boosterCredits) parts.push(`${tier.boosterCredits} booster credit${tier.boosterCredits === 1 ? "" : "s"}`);
-  if (tier.cardStyleId) parts.push("animated collector card style");
-  return <li className={earned ? "is-earned" : ""}>
-    <strong>{tier.wins} win{tier.wins === 1 ? "" : "s"}</strong>
-    <span>{parts.join(" + ")}</span>
-    <small>{earned ? "Earned" : "Upcoming"}</small>
-  </li>;
-}
-
-function localDate(value, options = {}) {
-  if (!value) return "";
-  return new Intl.DateTimeFormat(undefined, {
-    month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit", ...options
-  }).format(new Date(value));
-}
-
-function scheduleSummary(event) {
-  if (!event?.schedule) return "Always available";
-  return `${localDate(event.schedule.startsAt)} – ${localDate(event.schedule.endsAt, { year: undefined })}`;
-}
+import { Reward, localDate, scheduleSummary, EventHeader } from "./EventPresentation";
 
 function liveAvailability(event, nowMs) {
+  if (event?.entryDisabledReason) return { ...liveAvailability({ ...event, entryDisabledReason: null }, nowMs), canEnter: false };
+  if (event?.status && event.status !== "scheduled") return { ...event.availability, canEnter: false, canPlay: event.status === "archived" && liveAvailability({ ...event, status: "scheduled" }, nowMs).canPlay };
   if (!event?.schedule) return event?.availability || { state: "open", label: "Open now", canEnter: true, canPlay: true };
   const startsAt = new Date(event.schedule.startsAt).getTime();
   const entryClosesAt = new Date(event.schedule.entryClosesAt).getTime();
@@ -39,6 +19,7 @@ function liveAvailability(event, nowMs) {
 
 function entryLabel(event, active) {
   if (active) return event.availability?.canPlay ? "Find event match" : "Event unavailable";
+  if (event.entryDisabledReason) return "New entries closed";
   if (event.availability?.state === "upcoming") return `Opens ${localDate(event.schedule?.startsAt, { year: undefined })}`;
   if (event.availability?.state === "entry-closed") return "Registration closed";
   if (event.availability?.state === "ended") return "Event ended";
@@ -122,7 +103,6 @@ export default function EventHub({
   if (!event) return <section className="event-hub"><p>Events are unavailable right now.</p></section>;
   const canEnter = event.availability?.canEnter !== false;
   const canPlay = event.availability?.canPlay !== false;
-  const entryAmount = Number(event.entryCost?.amount || 0);
   return <section className="event-hub">
     {majors.length > 0 && <section className="event-major-schedule" aria-labelledby="major-event-schedule-title">
       <div className="event-schedule-heading"><div><span className="event-eyebrow">Championship calendar</span><h2 id="major-event-schedule-title">Major Gauntlet weekends</h2></div><p>Free entry for the inaugural season · times shown locally</p></div>
@@ -133,10 +113,7 @@ export default function EventHub({
         <small>{major.maxWins} wins · {major.format === "basic" ? "Classic" : "Faction"}</small>
       </button>)}</div>
     </section>}
-    <header>
-      <div><span className="event-eyebrow">{event.scale === "major" ? "Featured major" : "Gauntlet Events"}</span><h2>{event.name}</h2><p>{event.description}</p>{event.schedule && <p className="event-selected-schedule"><strong>{event.availability?.label}</strong> · {scheduleSummary(event)}<br /><small>Registration closes {localDate(event.schedule.entryClosesAt)}.</small></p>}</div>
-      <div className="event-entry-cost"><small>Entry</small><strong>{entryAmount === 0 ? "Free" : `${entryAmount} booster credits`}</strong></div>
-    </header>
+    <EventHeader event={event} />
     <nav aria-label="Available events">
       {visibleDefinitions.map((entry) => <button key={entry.id} type="button" aria-pressed={entry.id === event.id} disabled={status.inQueue} onClick={() => setSelectedId(entry.id)}>{entry.name}<small>{entry.scale === "major" ? entry.availability?.label : entry.format === "basic" ? "Classic" : "Faction"}</small></button>)}
     </nav>
@@ -147,6 +124,7 @@ export default function EventHub({
         <p>A run ends at {event.maxWins} wins or {event.maxLosses} losses. Draws do not change your record.</p>
         {active && event.format === "factions" && <FactionLoadoutPicker factions={factions} factionId={factionId} generalId={generalId} disabled={status.inQueue} onChange={(nextFactionId, nextGeneralId) => { setFactionId(nextFactionId); setGeneralId(nextGeneralId); }} />}
         {!account && <p className="event-notice">Sign in to enter and keep your prizes.</p>}
+        {event.entryDisabledReason && <p className="event-notice">{event.entryDisabledReason}</p>}
         {!active ? <button className="event-primary" type="button" disabled={!account || pending || !canEnter} onClick={() => updateRun(event.id, "join")}>{pending ? "Entering…" : entryLabel(event, false)}</button> : <>
           {!status.inQueue ? <button className="event-primary" type="button" disabled={pending || !canPlay} onClick={() => joinQueue(event)}>{entryLabel(event, true)}</button> : <button className="event-secondary" type="button" onClick={() => socket.emit("leaveEventMatchmaking")}>Leave queue</button>}
           <button className="event-link" type="button" disabled={status.inQueue || pending} onClick={() => updateRun(event.id, "resign")}>Resign run</button>

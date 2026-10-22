@@ -5,7 +5,7 @@ const { cardEffectDefinitions } = require("../shared/duel-rules/effectRegistry")
 const { hash } = require("./authoredContent");
 const { createEvidence, recordEvidence, projectEvidence } = require("./adminPlaytestEvidence");
 const { scenarioSpec, applyScenario, focusCard } = require("./adminTestScenarios");
-const { defaultActions, legalActions, previewAction, stateChanges, cardNames } = require("./adminPlaytestActions");
+const { defaultActions, legalActions, previewAction, stateChanges, cardNames, executeAction } = require("./adminPlaytestActions");
 const fail = (status, message) => { throw Object.assign(new Error(message), { status }); };
 const clone = value => JSON.parse(JSON.stringify(value));
 const then = (value, finish) => value?.then ? value.then(finish) : finish(value);
@@ -14,14 +14,24 @@ const liveHash = resolved => /^gauntlet-content-[a-f0-9]{64}$/.test(resolved.rel
 function selectionFor(resolved, body) {
   let subject = body.subject;
   if (!subject) subject = body.encounterId ? { kind: "encounter", id: body.encounterId } : { kind: "game-config", id: "shared-rules" };
-  if (!subject || typeof subject !== "object" || Array.isArray(subject) || Object.keys(subject).some(key => !["kind", "id", "cardId"].includes(key)) || typeof subject.id !== "string") fail(422, "Choose a supported test subject.");
+  if (!subject || typeof subject !== "object" || Array.isArray(subject) || Object.keys(subject).some(key => !["kind", "id", "cardId", "printingId"].includes(key)) || typeof subject.id !== "string") fail(422, "Choose a supported test subject.");
   const selection = { ...body }, cards = resolved.manifest.cards;
+  delete selection.templateId; delete selection.ruleModifierId;
   let label, factionId;
   if (subject.kind === "encounter") {
     const entry = Object.entries(resolved.manifest.campaigns).find(([, campaign]) => campaign.chapters.some(chapter => chapter.id === subject.id));
     if (!entry || body.encounterId && body.encounterId !== subject.id) fail(422, "The test encounter does not match its subject.");
     factionId = entry[0]; label = entry[1].chapters.find(chapter => chapter.id === subject.id).title; selection.encounterId = subject.id;
     if (body.scenario) fail(422, "Encounter tests use their authored setup. Open the custom rules harness for a custom board.");
+  } else if (subject.kind === "rule-modifier") {
+    const modifier = resolved.manifest.ruleModifiers?.find(row => row.definition.id === subject.id);
+    if (!modifier || body.scenario) fail(422, "Choose a saved modifier and use its captured starting state.");
+    label = modifier.definition.name; selection.ruleModifierId = subject.id;
+  } else if (subject.kind === "deck") {
+    const template = resolved.manifest.deckTemplates?.find(row => row.id === subject.id && row.composition);
+    if (!template?.destinations.practice) fail(422, "Choose a template enabled for practice in this release.");
+    if (body.scenario) fail(422, "Template tests use the exact authored composition and production shuffle.");
+    factionId = template.composition.factionId; label = template.name; selection.templateId = template.id;
   } else if (subject.kind === "card" || subject.kind === "card-effect") {
     const card = cards.find(card => card.id === (subject.kind === "card" ? subject.id : subject.cardId));
     if (!card || subject.kind === "card-effect" && (!cardEffectDefinitions().some(effect => effect.id === subject.id) || card.effect?.id !== subject.id)) fail(422, "Select a card using this published effect.");
@@ -32,6 +42,11 @@ function selectionFor(resolved, body) {
   } else if (subject.kind === "game-config" && subject.id === "shared-rules") label = "Shared rules";
   else fail(422, "Unknown test subject.");
   if (subject.kind !== "card-effect" && subject.cardId !== undefined) fail(422, "A card reference is supported only for an effect subject.");
+  if (subject.printingId !== undefined) {
+    const printing = subject.kind === "card" && require("../shared/duel-rules/printings").resolvePrinting(subject.id, resolved.manifest.collectorVariants, subject.printingId);
+    if (!printing || typeof subject.printingId !== "string") fail(422, "Choose a printing of this card from the selected release.");
+    selection.printing = printing; label += ` · ${printing.name}`;
+  }
   if (subject.kind !== "encounter" && body.encounterId) fail(422, "An encounter requires an encounter subject.");
   const requestedFaction = body.scenario?.players?.[1]?.factionId || body.factionId;
   if (factionId && requestedFaction && factionId !== requestedFaction) fail(422, "The test faction does not match its subject.");
@@ -67,6 +82,12 @@ function createAdminPlaytests({ publication, createGame, chooseAi }) {
       let game = createGame(resolved, selection, id), scenario = null, scenarioHash = null;
       if (body.scenario !== undefined) ({ game, scenario, scenarioHash } = applyScenario(game, resolved, body.scenario, id));
       else if (selection.focusCardId) game = focusCard(game, resolved, selection.focusCardId, id);
+      if (selection.printing) {
+        const player = game.players[1];
+        for (const card of [...player.hand, ...player.deck, ...player.discard, ...game.lanes.flatMap(lane => [lane.facedown?.[1], lane.support?.[1]])]) {
+          if (card && (card.gameplayCardId || card.definitionId) === subject.id) Object.assign(card, { variantId: selection.printing.variantId, collector: clone(selection.printing), presentation: clone(selection.printing.presentation) });
+        }
+      }
       if (selection.focusCardId && !Object.values(game.players).flatMap(player => [...player.hand, ...player.deck, ...player.discard])
         .concat(game.lanes.flatMap(lane => [...Object.values(lane.facedown), ...Object.values(lane.support || {})]))
         .some(card => card && (card.definitionId || card.gameplayCardId) === selection.focusCardId)) fail(422, "Include the selected card in this custom starting state.");
@@ -76,7 +97,8 @@ function createAdminPlaytests({ publication, createGame, chooseAi }) {
         draftHash: draftHash ?? null, draftRevision: draftRevision ?? null, releaseId: resolved.releaseId,
         binding: { contractVersion: resolved.contractVersion, ...clone(resolved.manifest.contentBinding) }, scenario, scenarioHash,
         game, touchedAt: Date.now(), acceptedCommands: 0, evidence: createEvidence(), cards: resolved.manifest.cards,
-        context: { encounterId: chapter?.id || null, encounter: chapter?.title || (scenario ? "Custom starting state" : (source === "live" ? "Live" : "Draft") + " duel"),
+        context: { template: selection.templateId ? { id: selection.templateId, revision: resolved.manifest.deckTemplates.find(row => row.id === selection.templateId).revision } : game.campaign?.opponentTemplate || null,
+          encounterId: chapter?.id || null, encounter: chapter?.title || (scenario ? "Custom starting state" : (source === "live" ? "Live" : "Draft") + " duel"),
           campaign: chapter ? campaign.commanderName : null, chapter: chapter ? chapterIndex + 1 : null,
           factionId, faction: resolved.factions[factionId]?.name, opponent: game.players[2]?.accountName, setup: chapter?.setup || null } };
       const result = { playtest: project(id, session) };
@@ -135,12 +157,12 @@ function createAdminPlaytests({ publication, createGame, chooseAi }) {
     session.busy = true;
     const run = () => {
       const command = selectedCommand(body, session), before = session.game;
-      const result = engine.applyCommand(clone(before), command);
+      const result = executeAction(clone(before), command, { diagnostics: true });
       if (!result.accepted) fail(422, result.rejectionReason || result.error || "The engine rejected this command.");
       const finish = authoring => {
         recordEvidence(session.evidence, result, command, session.cards);
         session.lastCommand = { kind: "executed", command, accepted: true, payment: engine.previewPayment(before, command.player, command),
-          cardNames: cardNames(before, result.state), events: clone(result.animationEvents || []), changes: stateChanges(before, result.state) };
+          cardNames: cardNames(before, result.state), mechanicsTrace: result.mechanicsTrace, events: clone(result.animationEvents || []), changes: stateChanges(before, result.state) };
         session.game = result.state; session.touchedAt = Date.now(); session.acceptedCommands += 1;
         return { playtest: project(body.id, session), ...(authoring ? { authoring } : {}) };
       };

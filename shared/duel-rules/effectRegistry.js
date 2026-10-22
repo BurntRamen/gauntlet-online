@@ -18,6 +18,7 @@ const definitions = [
     parameters: {}
   }))))
 ];
+const composition = require("./compositionContract");
 const CARD_EFFECT_CONTRACT_VERSION = "gauntlet.card-effects.v1";
 const FACTION_EFFECT_CONTRACT_VERSION = "gauntlet.faction-effects.v1";
 const entries = Object.fromEntries(definitions.map((row) => [row.id, row]));
@@ -33,6 +34,8 @@ function defaultCardEffect(cardId) {
   return definition ? { id: definition.id, version: definition.version, parameters: Object.fromEntries(Object.entries(definition.parameters).map(([key, rule]) => [key, rule.default])) } : null;
 }
 function validateCardEffect(effect, card) {
+  if (effect?.id === require("./mechanicContract").ID) return require("./mechanicContract").validateEffect(effect, card);
+  if (effect?.id === composition.ID) return composition.validate(effect, card);
   const entry = effect && entries[effect.id];
   return !!entry && Object.keys(effect).sort().join() === "id,parameters,version" && effect.version === entry.version
     && (!card || (entry.factionId === card.factionId && entry.cardType === card.type))
@@ -63,15 +66,16 @@ function validateFactionMechanics(mechanics, factionId) {
   return !!mechanics && Object.keys(mechanics).sort().join() === "id,parameters,version" && mechanics.id === definition.id
     && mechanics.version === definition.version && validateParameters(mechanics.parameters, definition.parameters);
 }
+const { mechanicFamily } = require("./factionFamilyContract");
 function factionMechanicId(player) {
   const faction = player?.faction;
   if (!faction || !Object.hasOwn(faction, "mechanics")) return faction?.id || "basic";
-  return validateFactionMechanics(faction.mechanics, faction.id) && faction.mechanics ? faction.id : "basic";
+  return validateFactionMechanics(faction.mechanics, mechanicFamily(faction)) && faction.mechanics ? mechanicFamily(faction) : "basic";
 }
 function factionParameter(player, key) {
   const faction = player?.faction;
   const mechanics = faction && Object.hasOwn(faction, "mechanics") ? faction.mechanics : defaultFactionMechanics(faction?.id);
-  return validateFactionMechanics(mechanics, faction?.id) ? mechanics?.parameters[key] ?? 0 : 0;
+  return validateFactionMechanics(mechanics, mechanicFamily(faction)) ? mechanics?.parameters[key] ?? 0 : 0;
 }
 module.exports = { CARD_EFFECT_CONTRACT_VERSION, FACTION_EFFECT_CONTRACT_VERSION, cardEffect, hasCardEffect, cardParameter,
   defaultCardEffect, validateCardEffect, factionMechanicId, factionParameter, defaultFactionMechanics, validateFactionMechanics,

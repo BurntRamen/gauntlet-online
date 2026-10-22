@@ -76,8 +76,12 @@ for (const [name, renderer, viewport] of [["desktop Babylon", "babylon", { width
       expect(state.replay.lanes[1].support[1].name).toBe("Hospital");
       await request.post(`${API}/__support/recover`);
       peer.socket.emit("reconnectToRoom", { roomCode: fixture.roomCode, reconnectToken: fixture.tokens[2] });
-      await page.reload(); await settle(page, 4);
+      await page.reload();
       await expect(page.getByTestId("production-babylon-match")).toHaveAttribute("data-revision", "4");
+      // Restored receipts are evidence of an already committed action, not new
+      // animation work that may lock the recovered board again.
+      expect(await page.getByTestId("production-babylon-match").getAttribute("data-active-event-type")).toBe("");
+      await settle(page, 4);
       await expect(page.locator("body")).not.toContainText("Unknown support");
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
       const accessibility = await new AxeBuilder({ page }).include('[data-testid="production-babylon-match"]').withTags(["wcag2a", "wcag2aa"]).analyze();
@@ -86,3 +90,34 @@ for (const [name, renderer, viewport] of [["desktop Babylon", "babylon", { width
     } finally { peer.socket.disconnect(); }
   });
 }
+
+test("training opponent pays for support through the live session and exposes public slot inspection", async ({ page, request }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const fixture = await (await request.post(`${API}/__support/seed`, { data: { trainingAi: true } })).json();
+  await page.addInitScript(({ roomCode, tokens }) => {
+    localStorage.setItem("gauntlet_room_code", roomCode);
+    localStorage.setItem("gauntlet_reconnect_token", tokens[1]);
+    localStorage.setItem("gauntlet_role", "player");
+  }, fixture);
+  await page.goto("/");
+  await settle(page, 0);
+  await page.getByRole("region", { name: "Current match action" })
+    .getByRole("button", { name: "Pass Priority", exact: true }).click();
+  await expect.poll(async () => {
+    const state = await (await request.get(`${API}/__support/state/${fixture.roomCode}`)).json();
+    return state.game.lanes[0].support?.[2]?.id;
+  }).toBe("ai-hospital");
+  await settle(page, 3);
+  const state = await (await request.get(`${API}/__support/state/${fixture.roomCode}`)).json();
+  expect(state.game.players[2].discard.map(card => card.id)).toEqual(["ai-payment"]);
+  expect(state.game.paymentLog.at(-1)).toMatchObject({ type: "support", player: 2, required: 6, total: 6 });
+  const inspection = page.getByRole("button", { name: "Opponent Support Zone 1: Hospital", exact: true });
+  await inspection.focus();
+  await inspection.press("Enter");
+  await expect(page.getByRole("dialog", { name: /Inspect/ })).toContainText("Hospital");
+  await expect(page.getByRole("dialog", { name: /Inspect/ })).not.toContainText("Attack/block");
+  const inspectionAccessibility = await new AxeBuilder({ page }).include(".production-card-inspection")
+    .withTags(["wcag2a", "wcag2aa"]).analyze();
+  expect(inspectionAccessibility.violations).toEqual([]);
+  await page.screenshot({ path: "test-results/support-training-ai-phone.png" });
+});

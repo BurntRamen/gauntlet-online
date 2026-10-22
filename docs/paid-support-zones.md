@@ -40,7 +40,25 @@ The engine discards 2+5, emits `payment.discarded`, then `card.supportPlaced`, r
 
 ## Compatibility and boundaries
 
-New faction, constructed, draft, faction practice/training, and campaign player duels share v12 support rules. Campaign action limits still apply. Basic and free-for-all cannot play support; their combat rules are unchanged. Automated opponents retain their existing strategy and scripted action choices; this change does not teach them a new support strategy.
+New faction, constructed, draft, faction practice/training, and campaign player duels share v12 support rules. Campaign action limits still apply. Basic and free-for-all cannot play support; their combat rules are unchanged. The initial release left automated strategy unchanged; the training follow-up below adds paid support decisions without altering scripted campaign choices.
+
+### Training opponent follow-up
+
+The follow-up starts from main `046f3be` on `codex/support-zones-followup` and incorporates main `7b4fce1` after PR #80 merged during release qualification. Ordinary v12 faction training and private Admin playtests can now choose paid support through the same authoritative command envelope used by players. Selection is deterministic and does not mutate the current match or consult an opponent's concealed hand/deck.
+
+The policy uses registered support contracts and the shared payment preview. It keeps payment-only cards available for payment, reserves a combat card when setting up lanes, respects occupied slots, and only prepares Coordinated Strike when a paid follow-up attack remains possible. Deep Dive's optional peek is explicitly chosen when the deck is nonempty. Armament, Assembly Station, Vital Grove and Interference Matrix combat choices use the existing legal-action options. Supports still cannot become independent attackers or blockers.
+
+Hand blockers come from the engine's legal source entities, fixing a rejected-command loop when the cheapest hand card was a non-Servitor. Payment selection includes printed payment effects and Indela adjustments. It examines single cards and ascending payment prefixes rather than an exponential search; it is a bounded training policy, not an optimal opponent.
+
+Campaign bosses retain their authored attacks and action budget. Legacy paid-support eligibility and free end placement are unchanged. This changes automated decision-making, not the rules, printed balance, snapshots, or replay contracts; the duel rules version remains v12.
+
+Support inspection and preview also omit the combat-value readout for non-combat cards; their printed value and support instructions remain visible. The phone screenshot exposed this contradictory label, and a component regression covers both surfaces. Inspection links use the existing readable dark/light colors on phones as well as desktop; the phone browser case now scans the open inspection dialog with axe in addition to its keyboard checks.
+
+Release qualification also updates `e2e/slot-workshop.spec.js` to assert the exact current set of 14 constructible factions after main added the four Frontier factions; the former hardcoded count of 10 was obsolete. This adds no factions or gameplay permissions.
+
+`e2e/admin.spec.js` preserves main's stable-ID search for the portrait owner because current content also has a same-named character. The test cleans up its isolated draft in `finally` to prevent cascading failures. The reconciliation retains main's modular authoring, bounded captured mechanics, support-recovery presentation, build toolchain, and expanded release checks. An added AI regression pays for a captured authored support and proves its draw resolves once, while selection remains side-effect free.
+
+Follow-up files: `server/paidSupportAi.js`, `server/index.js`, `server/test/paid-support-ai.test.js`, `client/src/babylon/cardDetails.js`, `client/src/babylon/ProductionMatchExperience.jsx`, `client/src/babylon/ProductionMatchExperience.css`, `client/src/babylon/ProductionMatchExperience.test.js`, `e2e/admin.spec.js`, `e2e/paid-support-server.js`, `e2e/paid-support.spec.js`, `docs/paid-support-test-results.md`, and this review packet. Case should run the new AI tests alongside `server/test/automated-opponents.test.js`, then `npm run test:e2e:support`; the added phone-browser case passes priority to the training opponent and verifies paid Hospital placement and public slot inspection.
 
 Existing matches retain their stored rules version, including v11 free end-turn support behavior. Unversioned recovered duels explicitly use the pre-change v11 compatibility behavior, never v12. Snapshots without a support map receive empty projection defaults without being repriced or upgraded. Historical replay remains snapshot-driven under its recorded version. Snapshot schema 2 and command/event schema 1 remain compatible additive contracts. New support metadata uses `gauntlet.support.v1`; completed match records now retain the duel's actual rules version.
 
@@ -77,7 +95,7 @@ Final commands and results are recorded in `paid-support-test-results.md`. The r
 
 ## Case's review steps
 
-1. Review this feature branch against `aa00d80`; leave the original dirty checkout and preservation branch alone.
+1. Review PR #85 against main `7b4fce1`; its first candidate was qualified against `046f3be` before PR #80 merged. The initial feature in PR #79 was based on `aa00d80`; leave the original dirty checkout and preservation branch alone.
 2. Run `npm ci`, `npm --prefix server ci`, `npm --prefix client ci`, then `npm run test:server` and the client command in the results file. Run `npx playwright install chromium` once, then `npm run test:e2e:support`.
 3. Review the generated `playwright-report/support/index.html` and `test-results/support-*.png`. Check that payment is required, entry precedes discard, persistent supports occupy their zones, and the phone/fallback controls remain usable.
 4. Inspect `supportContract.js` beside printed card text; pay particular attention to Deep Dive, Coordinated Strike, Interference Matrix, ongoing shelters, Arm equipment and Polea's auditable exception.

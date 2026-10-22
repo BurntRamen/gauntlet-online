@@ -1,4 +1,7 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { HelpProvider } from "./admin/AuthoringHelp";
+const help = require("../../server/adminHelpTopics.json");
+const render = element => renderWithoutHelp(element, { wrapper: ({ children }) => <HelpProvider value={help}>{children}</HelpProvider> });
+import { fireEvent, render as renderWithoutHelp, screen, within } from "@testing-library/react";
 import EncounterWorkshop, { EncounterSetupFields, encounterSessionStatus } from "./EncounterWorkshop";
 
 const setup = { version: 1, bossLife: 40, attacksPerTurn: 2, minAttackValue: 3, maxAttackValue: 8, chapterNumber: 2, bossAbility: { id: "first-strike", title: "First strike", text: "Attack bonus", name: "Vanguard", tier: 1 }, playerAdditions: ["spear"], bossAdditions: [], attackTiming: "clear-priority", winRoute: "first-uncompleted", lossRoute: "retry" };

@@ -1,3 +1,5 @@
+import { mechanicFamily } from "@gauntlet/duel-rules/factionFamilyContract";
+import { encounterPresentation } from "@gauntlet/duel-rules/encounterContract";
 import "./AppLayouts.css";
 import { lazy, startTransition, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
@@ -46,6 +48,7 @@ import { PlayMenu, PlayModeCard } from "./PlayMenu";
 import JourneyIntroduction, { JOURNEY_ART, TUTORIAL_ART } from "./JourneyMenu";
 import { fetchGameContent } from "./loadGameContent";
 import CurrencyWallet from "./CurrencyWallet";
+import { canUsePrinting } from "@gauntlet/duel-rules/printings";
 
 const DraftScreen = lazy(() => import("./DraftScreen"));
 const LiveBabylonMatchExperience = lazy(() => import("./babylon/LiveBabylonMatchExperience"));
@@ -401,88 +404,6 @@ function getFactionTheme(factionId) {
 
 function getBoardBackground(factionId) {
   return BOARD_BACKGROUNDS[factionId] || BOARD_BACKGROUNDS.default;
-}
-
-function getCampaignDifficulty(factionId, chapterIndex) {
-  if (factionId === "rumin" || factionId === "sheen" || factionId === "frumo" || factionId === "bizi" || factionId === "astral-vanguard") {
-    return {
-      bossLife: Math.min(58, 18 + chapterIndex * 3),
-      attacksPerTurn: Math.min(4, 2 + Math.floor(chapterIndex / 4)),
-      minAttackValue: 2 + Math.floor(chapterIndex / 5),
-      maxAttackValue: 5 + Math.floor(chapterIndex / 4)
-    };
-  }
-  if (factionId === "xendra") {
-    return {
-      bossLife: Math.min(48, 16 + chapterIndex * 4),
-      attacksPerTurn: Math.min(4, 1 + Math.floor((chapterIndex + 1) / 2)),
-      minAttackValue: 2 + Math.floor(chapterIndex / 3),
-      maxAttackValue: 4 + Math.floor(chapterIndex / 2)
-    };
-  }
-  return {
-    bossLife: [18, 24, 32][chapterIndex] || 32,
-    attacksPerTurn: Math.min(4, 2 + chapterIndex),
-    minAttackValue: 2 + chapterIndex,
-    maxAttackValue: 5 + chapterIndex
-  };
-}
-
-function getCampaignAddedCardCount(chapterIndex, side = "player") {
-  if (side === "player") {
-    if (chapterIndex < 2) return 0;
-    if (chapterIndex < 5) return 2;
-    if (chapterIndex < 8) return 4;
-    return 6;
-  }
-  if (chapterIndex < 4) return 0;
-  if (chapterIndex < 8) return 2;
-  return 4;
-}
-
-function getCampaignBossAbilityPreview(factionId, chapterIndex, opponentName = "Boss") {
-  const tier = chapterIndex >= 9 ? 3 : chapterIndex >= 6 ? 2 : 1;
-  const earlyBonus = tier >= 3 ? 2 : 1;
-  const previews = {
-    rumin: [
-      `${opponentName}: Fortified Claim - first scripted attack each turn gets +1.`,
-      `${opponentName}: Senate Pressure - final scripted attack each turn gets +${earlyBonus}.`,
-      `${opponentName}: Imperial Doctrine - ${tier >= 3 ? "last two scripted attacks each turn get +1" : "final scripted attack each turn gets +1"}.`
-    ],
-    sheen: [
-      `${opponentName}: Ironroot Pressure - odd-numbered attacks get +1.`,
-      `${opponentName}: Thorned Advance - first scripted attack each turn gets +1.`,
-      `${opponentName}: Living Siege - odd-numbered attacks get +1${tier >= 3 ? " and the boss restores 1 life each turn" : ""}.`
-    ],
-    frumo: [
-      `${opponentName}: Tide Feint - even-numbered attacks get +1.`,
-      `${opponentName}: Boarding Rush - final scripted attack each turn gets +${earlyBonus}.`,
-      `${opponentName}: Admiral's Ruse - even-numbered attacks get +${tier >= 3 ? 2 : 1}.`
-    ],
-    bizi: [
-      `${opponentName}: Prototype Surge - final scripted attack each turn gets +1.`,
-      `${opponentName}: Overclock Directive - last two scripted attacks each turn get +1.`,
-      `${opponentName}: Machine Logic - ${tier >= 3 ? "first and final scripted attacks each turn get +1" : "final scripted attack each turn gets +1"}.`
-    ],
-    xendra: [
-      `${opponentName}: Unreliable Perception - first scripted attack each turn gets +1.`,
-      `${opponentName}: Hallucination Loop - even-numbered attacks get +1.`,
-      `${opponentName}: Ritual Completion - first and final scripted attacks each turn get +1.`
-    ]
-  };
-  const options = previews[factionId];
-  return options ? options[Math.min(options.length - 1, Math.floor(chapterIndex / 4))] : null;
-}
-
-function getCampaignComplexityPreview(factionId, chapterIndex, opponentName) {
-  const playerCards = getCampaignAddedCardCount(chapterIndex, "player");
-  const bossCards = getCampaignAddedCardCount(chapterIndex, "boss");
-  const bossAbility = getCampaignBossAbilityPreview(factionId, chapterIndex, opponentName);
-  const details = [];
-  if (playerCards > 0) details.push(`Your deck adds ${playerCards} faction card${playerCards === 1 ? "" : "s"}.`);
-  if (bossCards > 0) details.push(`Boss deck adds ${bossCards} faction card${bossCards === 1 ? "" : "s"}.`);
-  if (bossAbility) details.push(bossAbility);
-  return details;
 }
 
 function saveReconnectInfo({ roomCode, reconnectToken, role }) {
@@ -1387,7 +1308,7 @@ function ProgressionPanel({ account, campaigns, onSelectCosmetic }) {
     <section className="identity-progression" aria-labelledby="identity-progression-title">
       <header className="identity-section-heading">
         <div><span>Personalization</span><h3 id="identity-progression-title">Honors & progression</h3></div>
-        <p>Your selected insignia shapes how your dossier appears.</p>
+        <p>{account.profile?.equipment?.title || account.profile?.equipment?.cardBack ? "Owned equipment takes precedence. Change or reset it in Gold & Library; these choices set your defaults." : "Your selected insignia shapes how your dossier appears."}</p>
       </header>
       <div className="identity-cosmetic-controls">
           <label>
@@ -1397,10 +1318,10 @@ function ProgressionPanel({ account, campaigns, onSelectCosmetic }) {
           <label className="identity-card-back-control">
             <span>Card Back</span>
             <span className="identity-card-back-choice">
-              <CardBackArt cardBackId={selectedCardBack.id} className="identity-card-back-preview" decorative />
+              <CardBackArt cardBackId={selectedCardBack.id} appearance={account?.profile?.equipment?.cardBack} className="identity-card-back-preview" decorative />
               <span className="identity-card-back-copy">
                 {renderOptions(cosmetics.unlockedCardBacks, "cardBacks", cosmetics.selectedCardBack, "cardBack")}
-                <small>{selectedCardBack.description}</small>
+                <small>{account.profile?.equipment?.cardBack?.name || selectedCardBack.description}</small>
               </span>
             </span>
           </label>
@@ -1433,7 +1354,7 @@ function ProgressionPanel({ account, campaigns, onSelectCosmetic }) {
           <div className="identity-subheading"><span>Campaign Archives</span><strong>Faction progress</strong></div>
           <div className="identity-campaign-grid">
             {Object.entries(campaigns).map(([factionId, entry]) => {
-              const completed = campaign[factionId]?.length || 0;
+              const completed = entry.chapters.filter(chapter => campaign[factionId]?.includes(chapter.id)).length;
               return (
                 <CampaignArchiveCard key={factionId} factionId={factionId} entry={entry} completed={completed} />
               );
@@ -1451,12 +1372,13 @@ function IdentityDossierHero({ account, featuredDecks, authToken, serverUrl, onA
   const badgeId = cosmetics.selectedFactionBadge && cosmetics.selectedFactionBadge !== "none"
     ? cosmetics.selectedFactionBadge
     : featuredDecks?.[0]?.factionId || "basic";
-  const title = definitions.titles?.[cosmetics.selectedTitle]?.name || cosmetics.selectedTitle || (account ? "Recruit" : "Guest Operative");
+  const equipment = account?.profile?.equipment || {};
+  const title = equipment.title?.name || definitions.titles?.[cosmetics.selectedTitle]?.name || cosmetics.selectedTitle || (account ? "Recruit" : "Guest Operative");
   const achievements = Object.keys(progression.achievements || {}).length;
   const chapters = Object.values(progression.campaign || {}).reduce((total, entries) => total + (entries?.length || 0), 0);
   return (
     <section className="identity-dossier-hero" style={{ "--faction-accent": FACTION_VISUALS[badgeId]?.accent || FACTION_VISUALS.basic.accent }}>
-      <FactionArtwork factionId={badgeId} decorative className="identity-dossier-art" />
+      {equipment.banner ? <img src={equipment.banner.url} alt={equipment.banner.name} className="identity-dossier-art" /> : <FactionArtwork factionId={badgeId} decorative className="identity-dossier-art" />}
       <div className="identity-dossier-portrait">
         <PlayerAvatar subject={account} name={account?.name || "Guest"} serverUrl={serverUrl} size="large" />
       </div>
@@ -1464,6 +1386,7 @@ function IdentityDossierHero({ account, featuredDecks, authToken, serverUrl, onA
         <span>{title}</span>
         <h3>{account?.name || "Guest Identity"}</h3>
         <p>{account ? "Your honors, progress, and personal style." : "Sign in to save your progress, or choose a guest name below."}</p>
+        {equipment.music && <audio controls preload="none" src={equipment.music.url} aria-label={equipment.music.name} />}
         {account && <details className="identity-portrait-settings">
           <summary>Edit profile picture</summary>
           <ProfilePortraitEditor account={account} authToken={authToken} serverUrl={serverUrl} onAccountUpdated={onAccountUpdated} />
@@ -1513,7 +1436,7 @@ function CardArtInspector({ card, collectorCatalog, selectedVariantId = "", owne
         <CardRulesDetails card={card} />
         <small>{owned} gameplay cop{owned === 1 ? "y" : "ies"} · {variant?.finish || "standard"} presentation</small>
       </div>
-      {expanded && <CardInspectModal card={{ ...card, collector: variant }} artFactionId={card.factionId} onClose={() => { setExpanded(false); previewButton.current?.focus(); }} />}
+      {expanded && <CardInspectModal card={{ ...card, collector: variant, presentation: variant?.presentation || card.presentation }} artFactionId={card.factionId} onClose={() => { setExpanded(false); previewButton.current?.focus(); }} />}
     </aside>
   );
 }
@@ -1670,7 +1593,7 @@ function BoosterPackTile({ booster, collectorPack, opening, canOpen, onOpen, onB
   );
 }
 
-function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onBuyGameplayPack, onBuyTimetwisters, economyPending, onSaveConstructedDeck, onDeckAction, onOpenMatch, initialView = "shop" }) {
+function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onBuyGameplayPack, onBuyTimetwisters, deckStore, economyPending, onSaveConstructedDeck, onDeckAction, onOpenMatch, initialView = "shop" }) {
   const PLAYING_DECK_VALUES = deckRules.playingDeckValues;
   const MAX_REPLACEMENTS_PER_VALUE = deckRules.maxReplacementsPerValue;
   const deckLibrary = account?.stats?.deckLibrary || { decks: [], activeDraftDeckIds: {} };
@@ -1693,11 +1616,14 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
   const [constructedQuantities, setConstructedQuantities] = useState(savedConstructedDeck?.gameplayCardQuantities || savedConstructedDeck?.cardQuantities || {});
   const [constructedSuitChoices, setConstructedSuitChoices] = useState(savedConstructedDeck?.cardSuitChoices || {});
   const [constructedVariantSelections, setConstructedVariantSelections] = useState(savedConstructedDeck?.collectorVariantSelections || {});
+  const [constructedAccess, setConstructedAccess] = useState(savedConstructedDeck?.accessMode || "competitive");
+  const [constructedBack, setConstructedBack] = useState(savedConstructedDeck?.cardBackId || "");
   const [constructedBoxId, setConstructedBoxId] = useState(savedConstructedDeck?.deckBoxId || "classic");
   const [constructedFrontCardSlot, setConstructedFrontCardSlot] = useState(savedConstructedDeck?.frontCardSlot || null);
   const [packPacing, setPackPacing] = useState(readPackPacing);
   const initialOpenedPack = useRef(lastOpenedPack);
   const [constructedSaveMessage, setConstructedSaveMessage] = useState("");
+  const [constructedSaving, setConstructedSaving] = useState(false);
   const [catalogFactionFilter, setCatalogFactionFilter] = useState("all");
   const [catalogRarityFilter, setCatalogRarityFilter] = useState("all");
   const [catalogSearch, setCatalogSearch] = useState("");
@@ -1719,6 +1645,8 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
     // Account updates and name-only saves must not replace in-progress card edits.
     if (loadedConstructedVersion.current === versionKey) return;
     loadedConstructedVersion.current = versionKey;
+    setConstructedAccess(savedConstructedDeck?.accessMode || "competitive");
+    setConstructedBack(savedConstructedDeck?.cardBackId || "");
     setConstructedGeneralId(savedConstructedDeck?.generalId || "monti");
     setConstructedBoxId(savedConstructedDeck?.deckBoxId || "classic");
     setConstructedFrontCardSlot(savedConstructedDeck?.frontCardSlot || null);
@@ -1727,7 +1655,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
     setConstructedQuantities(savedConstructedDeck?.gameplayCardQuantities || savedConstructedDeck?.cardQuantities || {});
     setConstructedSuitChoices(savedConstructedDeck?.cardSuitChoices || {});
     setConstructedVariantSelections(savedConstructedDeck?.collectorVariantSelections || {});
-  }, [account?.id, selectedConstructedDeckId, savedConstructedDeck?.versionId, savedConstructedDeck?.generalId, savedConstructedDeck?.savedAt, savedConstructedDeck?.name, savedConstructedDeck?.factionId, savedConstructedDeck?.factionName, savedConstructedDeck?.gameplayCardQuantities, savedConstructedDeck?.cardQuantities, savedConstructedDeck?.cardSuitChoices, savedConstructedDeck?.collectorVariantSelections, savedConstructedDeck?.deckBoxId, savedConstructedDeck?.frontCardSlot]);
+  }, [account?.id, selectedConstructedDeckId, savedConstructedDeck?.versionId, savedConstructedDeck?.generalId, savedConstructedDeck?.savedAt, savedConstructedDeck?.name, savedConstructedDeck?.factionId, savedConstructedDeck?.factionName, savedConstructedDeck?.gameplayCardQuantities, savedConstructedDeck?.cardQuantities, savedConstructedDeck?.cardSuitChoices, savedConstructedDeck?.collectorVariantSelections, savedConstructedDeck?.deckBoxId, savedConstructedDeck?.frontCardSlot, savedConstructedDeck?.accessMode, savedConstructedDeck?.cardBackId]);
 
   useEffect(() => {
     setConstructedDeckName(savedConstructedDeck?.name || `${savedConstructedDeck?.factionName || "Rumin"} Constructed Deck`);
@@ -1773,7 +1701,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
   });
   const normalizedCollectorSearch = collectorSearch.trim().toLowerCase();
   const ownedCollectorVariants = collectorCatalog
-    .filter((variant) => variant.paid && Number(collectorOwnership[variant.variantId] || 0) > 0)
+    .filter((variant) => (variant.paid || variant.entitlementRequired) && Number(collectorOwnership[variant.variantId] || 0) > 0)
     .map((variant) => ({
       variant,
       card: allCatalogCards.find((card) => card.id === variant.gameplayCardId) || {
@@ -1795,7 +1723,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
     || null;
   const availableVariantsByGameplayCard = collectorCatalog.reduce((byCard, variant) => {
     if (!variant?.gameplayCardId) return byCard;
-    if (variant.paid && Number(collectorOwnership[variant.variantId] || 0) <= 0) return byCard;
+    if (!canUsePrinting(variant, collectorOwnership)) return byCard;
     if (!byCard[variant.gameplayCardId]) byCard[variant.gameplayCardId] = [];
     byCard[variant.gameplayCardId].push(variant);
     return byCard;
@@ -1823,6 +1751,8 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
   const constructedSlotWarning = Object.entries(constructedSlotCounts).find(([, count]) => count > 1);
 
   async function saveConstructedDeck() {
+    if (constructedSaving) return;
+    setConstructedSaving(true);
     setConstructedSaveMessage("");
     try {
       const saved = await onSaveConstructedDeck({
@@ -1835,6 +1765,8 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
         collectorVariantSelections: Object.fromEntries(Object.keys(constructedQuantities)
           .filter((cardId) => constructedQuantities[cardId] > 0)
           .map((cardId) => [cardId, findCollectorVariant(cardId, availableVariantsByGameplayCard[cardId] || [], constructedVariantSelections[cardId])?.variantId || constructedCardsById[cardId]?.defaultVariantId])),
+        accessMode: constructedAccess,
+        cardBackId: constructedBack || null,
         deckBoxId: constructedBoxId,
         frontCardSlot: constructedFrontCardSlot
       });
@@ -1842,6 +1774,8 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
       setConstructedSaveMessage("Constructed deck saved.");
     } catch (saveError) {
       setConstructedSaveMessage(saveError.message || "Could not save constructed deck.");
+    } finally {
+      setConstructedSaving(false);
     }
   }
 
@@ -1910,7 +1844,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
             <button key={viewId} type="button" role="tab" aria-selected={collectionView === viewId} onClick={() => setCollectionView(viewId)}>{label}</button>
           ))}
         </div>
-        {collectionView === "shop" && <Suspense fallback={<p className="economy-sign-in">Loading shop…</p>}><EconomyShop economy={account?.economy} pending={economyPending} onBuyGameplayPack={onBuyGameplayPack} onBuyTimetwisters={onBuyTimetwisters} /></Suspense>}
+        {collectionView === "shop" && <Suspense fallback={<p className="economy-sign-in">Loading shop…</p>}><EconomyShop deckStore={deckStore} economy={account?.economy} pending={economyPending} onBuyGameplayPack={onBuyGameplayPack} onBuyTimetwisters={onBuyTimetwisters} /></Suspense>}
         {collectionView === "packs" && <>
         <div className="collection-view-heading">
           <div><h3>Buy Collector Packs</h3><p>Choose Set 1 or Set 2 for animated styles. Purchases never change ranked power.</p></div>
@@ -1942,27 +1876,31 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
         </>}
         {lastOpenedPack?.length > 0 && <PackOpening cards={lastOpenedPack} pacing={packPacing} autoPlay={lastOpenedPack !== initialOpenedPack.current} visible={collectionView === "packs"} />}
         {collectionView === "decks" && <>
-        <div className="deck-workspace-header">
+        <div className="deck-workspace-header" inert={constructedSaving}>
         <div className="deck-workspace-nav">
-          <select aria-label="Saved deck" value={selectedConstructedDeckId} onChange={(event) => { if (event.target.value) setSelectedConstructedDeckId(event.target.value); else startNewConstructedDeck(); }}>
+          <select aria-label="Saved deck" disabled={constructedSaving} value={selectedConstructedDeckId} onChange={(event) => { if (event.target.value) setSelectedConstructedDeckId(event.target.value); else startNewConstructedDeck(); }}>
             <option value="">New deck</option>
             {(deckLibrary.decks || []).filter((deck) => deck.format === "constructed" && !deck.archived).map((deck) => <option key={deck.id} value={deck.id}>{deck.name}</option>)}
           </select>
-          <button type="button" onClick={startNewConstructedDeck}>New deck</button>
+          <button type="button" disabled={constructedSaving} onClick={startNewConstructedDeck}>New deck</button>
         </div>
         <details className="deck-library-drawer"><summary>Manage saved decks ({(deckLibrary.decks || []).filter((deck) => !deck.archived).length})</summary>
           <DeckLibraryPanel library={deckLibrary} selectedDeckId={selectedConstructedDeckId} collectorCatalog={collectorCatalog} catalog={catalog}
             onSelect={(deck) => setSelectedConstructedDeckId(deck.id)} onNew={startNewConstructedDeck} onAction={runDeckAction} onRename={renameDeck} onOpenMatch={onOpenMatch} />
         </details>
         </div>
+        <label className="deck-product-setting">Card access<select aria-label="Deck card access" disabled={constructedSaving} value={constructedAccess} onChange={event => setConstructedAccess(event.target.value)}><option value="competitive">All legal cards · ranked and constructed events</option><option value="earned">Earned cards · casual and campaign too</option></select></label>
+        <p>Gameplay access never unlocks paid printings. Draft and Sealed retain their generated pools.</p>
+        <label className="deck-product-setting">Deck card back<select aria-label="Deck card back" disabled={constructedSaving} value={constructedBack} onChange={event => setConstructedBack(event.target.value)}><option value="">Account selection</option>{(account.progression?.cosmetics?.unlockedCardBacks || ["classic"]).map(id => <option value={id} key={id}>{account.progression?.definitions?.cardBacks?.[id]?.name || id}</option>)}</select></label>
         <DeckWorkshop
           key={selectedConstructedDeckId || "new-deck"}
+          pending={constructedSaving}
           name={constructedDeckName} factionId={constructedFactionId}
           savedName={savedConstructedDeck?.name} onRename={(name) => renameDeck(selectedConstructedDeckId, name)}
           factions={Object.entries(PACK_THEMES).map(([id, theme]) => ({ id, ...theme }))}
           renderRules={(card) => <CardRulesDetails card={card} />}
           loadoutPicker={<FactionLoadoutPicker factions={deckRules.factions} factionId={constructedFactionId} generalId={constructedGeneralId} showFaction={false} onChange={(_, generalId) => { setConstructedGeneralId(generalId); setConstructedSaveMessage(""); }} />}
-          cards={constructedCatalogCards} owned={cardsOwned}
+          cards={constructedCatalogCards} owned={constructedAccess === "competitive" ? Object.fromEntries(constructedCatalogCards.map(card => [card.id, 1])) : cardsOwned}
           quantities={constructedQuantities} suitChoices={constructedSuitChoices}
           variantsByCard={availableVariantsByGameplayCard} variantSelections={constructedVariantSelections}
           boxId={constructedBoxId} saved={!!selectedConstructedDeckId}
@@ -2020,7 +1958,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
               const rarity = RARITY_STYLES[card.rarity] || RARITY_STYLES.common;
               const count = cardsOwned[card.id] || 0;
               const collectorCount = (collectorCatalog || [])
-                .filter((variant) => variant.gameplayCardId === card.id && variant.paid)
+                .filter((variant) => variant.gameplayCardId === card.id && (variant.paid || variant.entitlementRequired))
                 .reduce((sum, variant) => sum + Number(collectorOwnership[variant.variantId] || 0), 0);
               const art = resolveVisualAsset(getCardIllustration(card, findCollectorVariant(card.id, collectorCatalog, card.defaultVariantId)?.art));
               return (
@@ -2045,7 +1983,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
           <div className="collection-view-heading">
             <div>
               <h3>Collector Styles</h3>
-              <p>Animated presentations you own. Styles are visible here even when their gameplay card has not been earned.</p>
+              <p>Card presentations you own. Styles are visible here even when their gameplay card has not been earned.</p>
             </div>
             <label className="collection-search-field">
               <span>Search collection</span>
@@ -2088,7 +2026,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
   );
 }
 
-function CollectionScreen({ account, deckRules, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onBuyGameplayPack, onBuyTimetwisters, economyPending, onSaveConstructedDeck, onDeckAction, onOpenMatch, onBack, initialView }) {
+function CollectionScreen({ account, deckRules, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onBuyGameplayPack, onBuyTimetwisters, deckStore, economyPending, onSaveConstructedDeck, onDeckAction, onOpenMatch, onBack, initialView }) {
   return (
     <div className="collection-page menu-page area-build" style={{ ...MENU_THEME.page, "--area-image": `url(${resolveAssetPath(AREA_BACKGROUNDS.build)})` }}>
       <div className="collection-frame menu-frame" style={MENU_THEME.frame}>
@@ -2100,7 +2038,7 @@ function CollectionScreen({ account, deckRules, lastOpenedPack, openingPackId, o
           </div>
           <MenuButton variant="secondary" onClick={onBack}>Main Menu</MenuButton>
         </header>
-        <CollectionPanel account={account} deckRules={deckRules} lastOpenedPack={lastOpenedPack} openingPackId={openingPackId} onOpenPack={onOpenPack} onBuyPack={onBuyPack} onBuyGameplayPack={onBuyGameplayPack} onBuyTimetwisters={onBuyTimetwisters} economyPending={economyPending} onSaveConstructedDeck={onSaveConstructedDeck} onDeckAction={onDeckAction} onOpenMatch={onOpenMatch} initialView={initialView} />
+        <CollectionPanel account={account} deckRules={deckRules} lastOpenedPack={lastOpenedPack} openingPackId={openingPackId} onOpenPack={onOpenPack} onBuyPack={onBuyPack} onBuyGameplayPack={onBuyGameplayPack} onBuyTimetwisters={onBuyTimetwisters} deckStore={deckStore} economyPending={economyPending} onSaveConstructedDeck={onSaveConstructedDeck} onDeckAction={onDeckAction} onOpenMatch={onOpenMatch} initialView={initialView} />
       </div>
     </div>
   );
@@ -2970,17 +2908,17 @@ function OnboardingPanel({ canPlayAsPlayer, onStartTutorial, onStartBasicAi, onE
   );
 }
 
-function CampaignScreen({ onBack, onStartChapter, onEnableGuest, canPlayAsPlayer, account, campaigns, audioEnabled, musicEnabled, musicVolume }) {
+function CampaignScreen({ manifest, onBack, onStartChapter, onEnableGuest, canPlayAsPlayer, account, campaigns, audioEnabled, musicEnabled, musicVolume }) {
   const campaignProgress = account?.progression?.campaign || {};
   const campaignEntries = Object.entries(campaigns || {});
   const [selectedFactionId, setSelectedFactionId] = useState(campaignEntries[0]?.[0] || "rumin");
   const [briefingChapterId, setBriefingChapterId] = useState("");
   const [activeFactionId, activeCampaign] = campaignEntries.find(([factionId]) => factionId === selectedFactionId) || campaignEntries[0] || [];
   const activeTheme = getFactionTheme(activeFactionId);
-  const completedChapters = Array.isArray(campaignProgress[activeFactionId]) ? campaignProgress[activeFactionId] : [];
+  const completedChapters = (activeCampaign?.chapters || []).filter(chapter => campaignProgress[activeFactionId]?.includes(chapter.id)).map(chapter => chapter.id);
   const nextChapterIndex = activeCampaign?.chapters?.findIndex((chapter) => !completedChapters.includes(chapter.id)) ?? -1;
   const nextChapter = nextChapterIndex >= 0 ? activeCampaign.chapters[nextChapterIndex] : null;
-  const nextDifficulty = nextChapter ? getCampaignDifficulty(activeFactionId, nextChapterIndex) : null;
+  const nextDifficulty = nextChapter ? encounterPresentation(nextChapter, manifest).difficulty : null;
   const briefingChapterIndex = activeCampaign?.chapters?.findIndex((chapter) => chapter.id === briefingChapterId) ?? -1;
   const briefingChapter = briefingChapterIndex >= 0 ? activeCampaign.chapters[briefingChapterIndex] : null;
   const briefingUnlocked = briefingChapterIndex === 0 || completedChapters.includes(activeCampaign?.chapters?.[briefingChapterIndex - 1]?.id);
@@ -3006,7 +2944,7 @@ function CampaignScreen({ onBack, onStartChapter, onEnableGuest, canPlayAsPlayer
           {campaignEntries.map(([factionId, campaign]) => {
             const selected = factionId === activeFactionId;
             const theme = getFactionTheme(factionId);
-            const factionClears = Array.isArray(campaignProgress[factionId]) ? campaignProgress[factionId].length : 0;
+            const factionClears = campaign.chapters.filter(chapter => campaignProgress[factionId]?.includes(chapter.id)).length;
             return (
               <button
                 key={factionId}
@@ -3032,8 +2970,8 @@ function CampaignScreen({ onBack, onStartChapter, onEnableGuest, canPlayAsPlayer
             theme={activeTheme}
             chapter={briefingChapter}
             chapterIndex={briefingChapterIndex}
-            difficulty={getCampaignDifficulty(activeFactionId, briefingChapterIndex)}
-            complexity={getCampaignComplexityPreview(activeFactionId, briefingChapterIndex, briefingChapter.opponentName)}
+            difficulty={encounterPresentation(briefingChapter, manifest).difficulty}
+            complexity={encounterPresentation(briefingChapter, manifest).complexity}
             unlocked={briefingUnlocked}
             completed={briefingCompleted}
             current={briefingChapterIndex === nextChapterIndex}
@@ -3086,7 +3024,7 @@ function CampaignScreen({ onBack, onStartChapter, onEnableGuest, canPlayAsPlayer
             </div>
             <div className="campaign-chapter-grid">
               {activeCampaign.chapters.map((chapter, index) => {
-                const difficulty = getCampaignDifficulty(activeFactionId, index);
+                const difficulty = encounterPresentation(chapter, manifest).difficulty;
                 const unlocked = index === 0 || completedChapters.includes(activeCampaign.chapters[index - 1]?.id);
                 const completed = completedChapters.includes(chapter.id);
                 return (
@@ -3101,7 +3039,7 @@ function CampaignScreen({ onBack, onStartChapter, onEnableGuest, canPlayAsPlayer
                     <p>{chapter.story}</p>
                     <div className="campaign-chapter-actions">
                       <button type="button" className="campaign-chapter-briefing-button" onClick={() => changeBriefing(chapter.id)}>View Briefing</button>
-                      <MenuButton onClick={() => onStartChapter(activeFactionId, chapter.id)} disabled={!canPlayAsPlayer || !unlocked}>{unlocked ? "Begin Battle" : `Clear Chapter ${index} First`}</MenuButton>
+                      <MenuButton onClick={() => onStartChapter(activeFactionId, chapter.id)} disabled={!canPlayAsPlayer || !unlocked || !chapter.setup}>{unlocked ? "Begin Battle" : `Clear Chapter ${index} First`}</MenuButton>
                     </div>
                   </article>
                 );
@@ -4765,7 +4703,7 @@ export default function App() {
     featuredArt: getDeckFeaturedArt(deck, account?.collection?.collectorCatalog || [])
   }));
   const hasSavedDeck = !!account?.stats?.savedConstructedDeck || !!account?.stats?.savedDraftDeck;
-  const canCustomizeConstructedDeck = ownedCardCount > 0;
+  const canCustomizeConstructedDeck = !!account;
   const nextCampaignStep = getNextCampaignChapter(gameContent?.campaigns || {}, account?.progression?.campaign || {}, "rumin");
   let journeyNextStep;
 
@@ -4981,7 +4919,7 @@ export default function App() {
 
   if (showCampaign) {
     return (
-      <CampaignScreen
+      <CampaignScreen manifest={gameContent}
         onBack={() => { playMenuCue("panelClose"); setShowCampaign(false); }}
         onStartChapter={startCampaignChapter}
         onEnableGuest={() => { setPlayAsGuest(true); playMenuCue("success"); }}
@@ -5007,6 +4945,7 @@ export default function App() {
         onBuyPack={buyBoosterPack}
         onBuyGameplayPack={buyGameplayPack}
         onBuyTimetwisters={buyTimetwisters}
+        deckStore={{ endpoint: SOCKET_URL, token: authToken, accountId: account?.id, onAccount: setAccount }}
         economyPending={economyPending}
         onSaveConstructedDeck={saveConstructedDeck}
         onDeckAction={updateDeck}
@@ -5357,7 +5296,7 @@ export default function App() {
                   <p>{activeConstructedDeck
                     ? "Refine your card choices, customize its look, and make it your own."
                     : canCustomizeConstructedDeck
-                      ? "Swap freely earned faction cards into matching values while keeping the standard deck structure."
+                      ? "Use all legal cards in ranked and constructed events. Choose earned-card access for casual and campaign decks."
                       : "Every player can use the standard deck immediately. Campaign rewards unlock optional faction-card replacements later."}</p>
                   <div className="build-deck-meta" aria-label="Deck summary">
                     <span><strong>52</strong> cards</span>
@@ -5416,7 +5355,7 @@ export default function App() {
                   <button key={viewId} type="button" role="tab" aria-selected={identityView === viewId} onClick={() => { if (identityView !== viewId) playMenuCue("tab"); setIdentityView(viewId); }}>{label}</button>
                 ))}
               </div>
-              {identityView === "economy" && <Suspense fallback={<p>Loading library…</p>}><EconomyConsole serverUrl={SOCKET_URL} authToken={authToken} /></Suspense>}
+              {identityView === "economy" && <Suspense fallback={<p>Loading library…</p>}><EconomyConsole serverUrl={SOCKET_URL} authToken={authToken} onAccountUpdated={setAccount} /></Suspense>}
               {identityView === "profile" && <>
               <MenuButton onClick={() => { setPlayView("para"); navigateHomeArea("play"); }}>Para membership, Prestige and event history</MenuButton>
               <IdentityDossierHero
@@ -5682,7 +5621,7 @@ export default function App() {
             options={{
               forceAccessible: !shouldUseProductionMatchRenderer(),
               audioEnabled: !accountSoundMuted,
-              cardBackAsset: resolveCardBackAsset(account?.progression?.cosmetics?.selectedCardBack),
+              cardBackAsset: game.players?.[player]?.profile?.equipment?.cardBack?.url || resolveCardBackAsset(game.players?.[player]?.profile?.cosmetics?.selectedCardBack),
               serverUrl: SOCKET_URL,
               onAudioEnabledChange: (enabled) => {
                 if (account?.id) setSignedInSoundMuted(!enabled);
@@ -6306,7 +6245,7 @@ export default function App() {
       : 0;
   const meerusFreeAttackApplies =
     activeAttackCard &&
-    me?.faction?.id === "rumin" &&
+    mechanicFamily(me?.faction) === "rumin" &&
     (me?.turnData?.attacksDeclaredThisTurn || 0) === 2 &&
     me?.turnData?.meerusFreeAttackAvailable &&
     getCardNumericValue(activeAttackCard) <= 3;

@@ -243,6 +243,55 @@ describe("queued battlefield playback", () => {
     jest.useRealTimers();
   });
 
+  test("hydrates a live snapshot immediately, then animates only new receipts", () => {
+    jest.useFakeTimers();
+    const presented = [];
+    const states = [];
+    const queue = new BattlefieldPlaybackQueue({
+      onPresent: (update, frame) => presented.push({ update, frame }),
+      onStateChange: (state) => states.push(state)
+    });
+    const restored = updateFor([{ id: "old-payment", type: "payment.discarded" }], {
+      source: "live", connected: true
+    });
+    queue.push(restored);
+    queue.push(restored); // Session subscription and connect can repeat a snapshot.
+    expect(presented.every(({ update, frame }) => update === restored && frame.event === null)).toBe(true);
+    expect(states.at(-1).catchingUp).toBe(false);
+    expect(jest.getTimerCount()).toBe(0);
+
+    queue.push(updateFor([{ id: "new-attack", type: "attack.declared" }], {
+      source: "live", connected: true, revision: 3
+    }));
+    expect(presented.at(-1).frame.event.id).toBe("new-attack");
+    expect(states.at(-1).catchingUp).toBe(true);
+    jest.runAllTimers();
+    expect(states.at(-1).catchingUp).toBe(false);
+    queue.dispose();
+    jest.useRealTimers();
+  });
+
+  test("reconnect discards pending visual frames and presents the restored live board", () => {
+    jest.useFakeTimers();
+    const presented = [];
+    const queue = new BattlefieldPlaybackQueue({ onPresent: (update) => presented.push(update) });
+    queue.push(updateFor([], { source: "live", connected: true }));
+    queue.push(updateFor([{ id: "interrupted", type: "attack.declared" }], {
+      source: "live", connected: true, revision: 3
+    }));
+    queue.push(updateFor([], { source: "live", connected: false, revision: 3 }));
+    const restored = updateFor([{ id: "missed-block", type: "block.declared" }], {
+      source: "live", connected: true, revision: 4
+    });
+    queue.push(restored);
+    expect(presented.at(-1)).toBe(restored);
+    expect(queue.activeFrame).toBeNull();
+    expect(queue.frames).toHaveLength(0);
+    expect(jest.getTimerCount()).toBe(0);
+    queue.dispose();
+    jest.useRealTimers();
+  });
+
   test("pauses and resumes the active presentation frame with nested capture leases", () => {
     jest.useFakeTimers();
     const presented = [];

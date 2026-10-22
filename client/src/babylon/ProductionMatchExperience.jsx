@@ -1234,9 +1234,9 @@ function CardInspection({ inspection, commands, viewModel, snapshot, docked = fa
         <h2>{inspection.label}</h2>
         <div className="production-card-type"><strong>{details.typeLabel}</strong><small>{details.combatLabel}</small></div>
         <strong>Printed value {inspection.value}</strong>
-        {inspection.valueBreakdown && <>
+        {details.combatCapable && inspection.valueBreakdown && <>
           <p className="ability-value-equation">{inspection.valueBreakdown.equation}</p>
-          <p>Attack/block: {inspection.valueBreakdown.total}. Printed value stays {inspection.valueBreakdown.printed}. Payment is calculated separately.</p>
+          <p>Attack/block: {inspection.valueBreakdown.total}</p>
           {inspection.valueBreakdown.modifiers.map(e => <p key={e.id}>{e.source.name}: {e.amount >= 0 ? '+' : ''}{e.amount} · {e.duration?.kind === 'combat' ? 'this combat' : 'until turn end'}</p>)}
           {inspection.valueBreakdown.notes?.length > 0 && <p>Sources: {inspection.valueBreakdown.notes.join('; ')}</p>}
         </>}
@@ -1279,8 +1279,8 @@ function CardPreview({ preview, viewModel, snapshot, onInspect, onPreview }) {
         </span>
         <strong>{details.name}</strong>
         <span className="production-card-type"><strong>{details.typeLabel}</strong><small>{details.combatLabel}</small></span>
-        {preview.value != null && <small>{details.rankAndSuit && `${details.rankAndSuit} · `}Printed {preview.printedValue ?? preview.value} · Attack/block {preview.valueBreakdown?.total ?? preview.value}</small>}
-        {preview.valueBreakdown?.modifiers?.length > 0 && <small>{preview.valueBreakdown.equation}</small>}
+        {preview.value != null && <small>{details.rankAndSuit && `${details.rankAndSuit} · `}Printed {preview.printedValue ?? preview.value}{details.combatCapable && ` · Attack/block ${preview.valueBreakdown?.total ?? preview.value}`}</small>}
+        {details.combatCapable && preview.valueBreakdown?.modifiers?.length > 0 && <small>{preview.valueBreakdown.equation}</small>}
         <CardAbilityDetails details={details} />
         {onInspect && <button type="button" className="production-preview-inspect" onClick={() => onInspect(preview.raw || preview)}>Inspect card</button>}
       </div>
@@ -2166,7 +2166,7 @@ export default function ProductionMatchExperience({
             graphicsQuality={graphicsQuality}
             battlefieldTheme={battlefieldFactionId}
             colorTheme={colorTheme}
-            cardBackAsset={options.cardBackAsset}
+            cardBackAsset={transportUpdate?.snapshot?.presentationAssets?.[options.cardBackAsset || "/assets/gauntlet/match/gauntlet-card-back-official.jpg"] || options.cardBackAsset}
             handRailPresentation={phoneHandActive ? handRailRef : null}
             interactionStatus={transportUpdate?.connected === false
               ? "Connection interrupted. The current table is preserved while reconnecting."

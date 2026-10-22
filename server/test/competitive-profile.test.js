@@ -110,7 +110,7 @@ test("builds a public competitive profile without private account data", () => {
   assert.equal(profile.campaignRecords.find((entry) => entry.factionId === "rumin").total, 12);
   assert.equal(profile.factionRecords[0].wins, 1);
   assert.equal(profile.featuredDecks[0].currentVersionId, "version-1");
-  assert.deepEqual(profile.featuredDecks[0].featuredArt, ["/assets/gauntlet/constructed/rumin/rumin-gilded-scale-legionary.webp"]);
+  assert.deepEqual(profile.featuredDecks[0].featuredArt, [require("../contentAssets").resolveAsset("/assets/gauntlet/constructed/rumin/rumin-gilded-scale-legionary.webp")]);
   assert.equal(profile.notableStats.largestAttack.value, 12);
   assert.equal(profile.recentMatches[0].perspective.outcome, "win");
   assert.equal(profile.recentMatches[0].perspective.player.faction.id, "rumin");

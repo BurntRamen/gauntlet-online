@@ -60,6 +60,7 @@ const MAJOR_EVENT_SCHEDULE = Object.freeze([
 ]);
 
 function eventAvailability(event, now = new Date()) {
+  if (event?.status && event.status !== "scheduled") return { state: event.status, label: ({ draft: "Not published for entry", paused: "Paused", cancelled: "Cancelled", archived: "Retired · existing runs retained" })[event.status] || "Unavailable", canEnter: false, canPlay: event.status === "archived" && eventAvailability({ ...event, status: "scheduled" }, now).canPlay, nextTransitionAt: null };
   if (!event?.schedule) return { state: "open", label: "Open now", canEnter: true, canPlay: true, nextTransitionAt: null };
   const nowMs = new Date(now).getTime();
   const startsAt = new Date(event.schedule.startsAt).getTime();
@@ -114,13 +115,16 @@ function createEventDefinitions(options = {}) {
 }
 
 const EVENT_DEFINITIONS = createEventDefinitions({ entryCredits: process.env.GAUNTLET_EVENT_ENTRY_CREDITS || 0 });
+let definitionProvider = () => [];
+function setEventProvider(provider) { definitionProvider = provider; }
+const definitions = () => [...EVENT_DEFINITIONS, ...definitionProvider()];
 
 function eventById(eventId) {
-  return EVENT_DEFINITIONS.find((event) => event.id === eventId) || null;
+  return definitions().find((event) => event.id === eventId) || null;
 }
 
 function listEventDefinitions(options = {}) {
-  return EVENT_DEFINITIONS.map((event) => ({ ...event, availability: eventAvailability(event, options.now) }));
+  return definitions().filter(event => event.status !== "draft").map((event) => ({ ...event, availability: eventAvailability(event, options.now) }));
 }
 
 function normalizeRun(run, eventId) {
@@ -129,6 +133,7 @@ function normalizeRun(run, eventId) {
   return {
     id: String(run.id || ""),
     eventId,
+    ...(run.definition ? { definition: structuredClone(run.definition) } : {}),
     status,
     wins: Math.max(0, Number(run.wins || 0)),
     losses: Math.max(0, Number(run.losses || 0)),
@@ -141,15 +146,16 @@ function normalizeRun(run, eventId) {
 function normalizeEventProgress(stats = {}) {
   const source = stats.events && typeof stats.events === "object" ? stats.events : {};
   const runs = {};
-  for (const event of EVENT_DEFINITIONS) {
-    const run = normalizeRun(source.runs?.[event.id], event.id);
-    if (run) runs[event.id] = run;
+  for (const eventId of new Set([...definitions().map(event => event.id), ...Object.keys(source.runs || {})])) {
+    const run = normalizeRun(source.runs?.[eventId], eventId);
+    if (run) runs[eventId] = run;
   }
   return {
     schemaVersion: 1,
     runs,
     entries: Math.max(0, Number(source.entries || 0)),
     totalWins: Math.max(0, Number(source.totalWins || 0)),
+    entryCounts: { ...(source.entryCounts || {}) },
     history: Array.isArray(source.history) ? source.history.slice(0, 20) : []
   };
 }
@@ -166,10 +172,12 @@ function startEventRun(stats, eventId, options = {}) {
   const progress = normalizeEventProgress(stats);
   const current = progress.runs[eventId];
   if (current?.status === "active") return { progress, run: current, created: false, event };
+  if (event.attemptLimit && Number(progress.entryCounts[eventId] || 0) >= event.attemptLimit) throw new Error("This event's entry limit has been reached.");
   const now = options.now || new Date().toISOString();
   const run = {
     id: options.runId || crypto.randomUUID(),
     eventId,
+    definition: structuredClone(event),
     status: "active",
     wins: 0,
     losses: 0,
@@ -179,14 +187,15 @@ function startEventRun(stats, eventId, options = {}) {
   };
   progress.runs[eventId] = run;
   progress.entries += 1;
+  progress.entryCounts[eventId] = Number(progress.entryCounts[eventId] || 0) + 1;
   return { progress, run, created: true, event };
 }
 
 function applyEventResult(stats, eventId, runId, result, options = {}) {
-  const event = eventById(eventId);
-  if (!event) throw new Error("Unknown event.");
   const progress = normalizeEventProgress(stats);
   const run = progress.runs[eventId];
+  const event = run?.definition || eventById(eventId);
+  if (!event) throw new Error("Unknown event.");
   if (!run || run.id !== runId || run.status !== "active") return { progress, run, rewards: [] };
   if (result === "draw") return { progress, run, rewards: [] };
   if (result === "win") {
@@ -220,6 +229,7 @@ function resignEventRun(stats, eventId, options = {}) {
 }
 
 module.exports = {
+  setEventProvider,
   EVENT_DEFINITIONS,
   MAJOR_EVENT_SCHEDULE,
   applyEventResult,

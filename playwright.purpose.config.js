@@ -1,0 +1,1 @@
+module.exports = { ...require("./playwright.assets.config"), projects: [{ name: "account-currency" }, { name: "finite-gold" }], testMatch: "admin-decks.spec.js", timeout: 240000, use: { ...require("./playwright.assets.config").use, actionTimeout: 20000 } };

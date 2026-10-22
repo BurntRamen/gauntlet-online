@@ -1,0 +1,1 @@
+module.exports = { ...require("./playwright.assets.config"), testMatch: ["admin-printings.spec.js", "admin-immutable-assets.spec.js"], timeout: 240000, use: { ...require("./playwright.assets.config").use, actionTimeout: 15000 } };

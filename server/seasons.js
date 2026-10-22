@@ -29,8 +29,16 @@ function clone(value) {
 function publicSeasonDefinition(season = ACTIVE_SEASON) {
   return clone(season);
 }
+let definitionProvider = () => [];
+function setSeasonProvider(provider) { definitionProvider = provider; }
+function getCurrentSeason(now = new Date()) {
+  return definitionProvider().filter(row => row.status !== "draft" && row.startsAt && Date.parse(row.startsAt) <= new Date(now).getTime()).sort((a, b) => b.startsAt.localeCompare(a.startsAt))[0] || ACTIVE_SEASON;
+}
 
-function getActiveSeason(now = new Date(), season = ACTIVE_SEASON) {
+function getActiveSeason(now = new Date(), season) {
+  if (season === undefined) {
+    season = getCurrentSeason(now);
+  }
   if (!season || season.status !== "active") return null;
   const timestamp = now instanceof Date ? now.getTime() : new Date(now).getTime();
   if (Number.isFinite(timestamp)) {
@@ -52,7 +60,9 @@ function buildSeasonMatchIdentity(season = ACTIVE_SEASON, bestOf = 1) {
     seasonId: season.seasonId,
     seasonCode: season.seasonCode,
     displayName: season.displayName,
-    format
+    format,
+    scoring: clone(season.scoring),
+    ...(season.releaseId ? { releaseId: season.releaseId } : {})
   };
 }
 
@@ -126,7 +136,7 @@ function applySeasonResult(stats, result, context = {}, seasonDefinition = ACTIV
     if (standingsUnit.result === "win") season.seriesWins += 1;
     if (standingsUnit.result === "loss") season.seriesLosses += 1;
     if (standingsUnit.result === "draw") season.seriesDraws += 1;
-    pointsDelta = Number(seasonDefinition.scoring?.[standingsUnit.result] || 0);
+    pointsDelta = Number((seasonIdentity.scoring || seasonDefinition.scoring)?.[standingsUnit.result] || 0);
     season.points += pointsDelta;
   }
 
@@ -212,6 +222,8 @@ function buildSeasonProfile(stats = {}, standing = null, season = ACTIVE_SEASON)
 }
 
 module.exports = {
+  setSeasonProvider,
+  getCurrentSeason,
   ACTIVE_SEASON,
   SEASON_DEFINITION_VERSION,
   applySeasonResult,

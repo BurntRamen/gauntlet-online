@@ -1,5 +1,33 @@
 # Paid support validation evidence
 
+## Training opponent follow-up, 20 October 2026
+
+The follow-up on `codex/support-zones-followup`, based on main `046f3be`, adds paid support decisions and fixes illegal non-Servitor blocker selection. The focused AI suite passes **11 tests**, and the existing automated-opponent suite passes **14 tests**, including completion of every configured campaign encounter. The three original support browser cases pass, and the added training-opponent phone case passes after correcting its polling code to tolerate an absent support map before placement. Final release qualification is recorded in [PR #85](https://github.com/BurntRamen/gauntlet-online/pull/85).
+
+The local client build passes. The first browser launch exceeded the four-minute compilation startup limit under concurrent machine load; building separately and running the unchanged browser assertions against that build resolved startup. Before the inspection correction below, the localhost-configured build exceeded the player bundle budget by 16 bytes while GitHub's production-configured build passed. No budget was raised.
+
+Visual inspection of the new phone screenshot exposed an unrelated combat-value readout on Hospital despite its correct non-combat label. Support preview and inspection now omit combat values while retaining the printed value, card text and support contract. A component regression and the phone-browser assertion cover this correction; combat-card value displays retain their existing coverage.
+
+Release CI on `95a2e70` passed 435 server tests, 736 client tests, the production build/budget, 43 general browser cases (3 existing opt-in skips), all 4 support cases and all 6 draft cases. Workshop coverage found an obsolete expectation of 10 constructible factions after main added four Frontier factions. That assertion now checks the exact 14 allowed faction IDs, preserving the boundary check instead of accepting an arbitrary count. The remaining workshop cases passed. Final rerun evidence is in PR #85.
+
+The remaining local suites passed workshop (5), collector (1), usability (6) and performance (1). Admin qualification found that new main-branch character content gives two records the same Kaiser display name. The portrait test now selects the intended commander by its visible record ID and discards its isolated draft in `finally`; the former name-only failure left a draft and caused later assertions to fail. This changes test selection/cleanup, not authoring behavior or access controls. Final Admin and release rerun results are recorded in PR #85.
+
+The additional `test:qualification` run reports **48 passed, 3 failed**. The failures are unchanged main-branch voice-manifest inputs: two Frumo voice tests report `No voice mapping for Epilogue in last-tide`, and the faction-interaction test reports `Missing ElevenLabs voice for ingles`. The relevant scripts, shared content and game-content sources have no diff from `046f3be`. These unrelated voice-generation failures remain visible; no test was disabled and no voice generation or billing was performed.
+
+The new tests cover payment bonuses, tax adjustments, ongoing support, repeated one-shots, optional private choices, Ambush concealment, occupied/insufficient-payment exclusions, explicit Arm/Assembly choices, all registered support definitions, and legacy/Basic/FFA/campaign boundaries. Initial failures exposed two incomplete test fixtures and a policy tie that spent another useful instant before an equivalent payment card; the fixtures and payment tie-break were corrected. The final focused rerun passed without relaxing assertions.
+
+Example: with Harmony Ward (4), Think (3 with its printed +1 payment effect), and a reserved combat card, the training opponent submits `playSupport` for Ward using Think. The authoritative command discards Think, enters Ward in Support Zone 1, records a payment total of 4, and leaves Ward active. Its stable command ID, revision checks, persistence and replay follow the same server lifecycle as player commands.
+
+The policy is deterministic and bounded; it is not a strategic search. Campaign bosses keep their authored attack sequence. The initial-release limitations below describe the October 16 release; the training-strategy limitation is superseded for v12 faction training by this follow-up.
+
+### Main-branch reconciliation
+
+Candidate `61c85ea` passed the complete release workflow: **435 server tests, 736 client tests and 86 browser tests**, with 3 existing opt-in skips. Production compilation, bundle budgets, content checks and all 20 Admin/economy browser cases passed. Local Admin transport/timing failures passed on unchanged focused reruns; the clean CI run is authoritative for that candidate.
+
+PR #80 merged as `7b4fce1` while that workflow was finishing. GitHub rejected the merge of PR #85 because both branches updated the Admin portrait test. The follow-up merges that main revision, keeps its record-ID search and the isolated-draft cleanup, and preserves the newer support recovery, bounded authored mechanics, toolchain and release workflow. A new integration test covers paid AI placement of a captured authored support with exactly one on-play draw. The earlier voice-qualification failures are historical: main updated those manifests, and the additional qualification suite now passes **all 52 tests** on the reconciled tree. Final combined-tree results and deployment evidence are recorded in PR #85.
+
+## Initial release
+
 Run locally on Windows, Node 24.16.0, Chromium with software WebGL, 15–16 October 2026. No production services or deployment were used. Full local logs and screenshots are retained under `artifacts/paid-support/` (ignored generated files).
 
 Release follow-up after the user's live-publication authorization: fixed historical support-log wording, added the Field Rulebook's paid-support guidance and readable card-inspection instructions, and enabled the three paid-support browser cases in CI. The focused server suite now passes **39 tests**, including the new legacy-log regression; the complete client suite still passes **735 tests**. The updated production build passes at **175.8 KiB main**, **757.7 KiB player**, and **48.7 KiB aggregate Admin**. [PR #79](https://github.com/BurntRamen/gauntlet-online/pull/79) records the release branch's CI and deployment results. The table below preserves the original full local qualification.

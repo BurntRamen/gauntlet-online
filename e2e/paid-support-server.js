@@ -24,6 +24,14 @@ app.post("/__support/seed", (req, res) => {
     ...["frumo-abyssal-switchboard", "frumo-abyssal-switchboard", "frumo-deckhand-diver", "neutral-hospital"].map((id, i) => ({ ...getGameplayCardById(id), definitionId: id, id: `support-${i}`, rank: String(getGameplayCardById(id).value) })),
     ...[2, 5, 7, 7, 6, 1].map((value, i) => ({ id: `pay-${i}`, value, rank: String(value), suit: "hearts" }))
   ];
+  if (req.body?.trainingAi === true) {
+    room.lobby.players[2].isAI = true;
+    game.players[2].hand = [
+      { ...getGameplayCardById("neutral-hospital"), definitionId: "neutral-hospital", id: "ai-hospital" },
+      { id: "ai-reserve", value: 2, rank: "2", suit: "hearts" },
+      { id: "ai-payment", value: 6, rank: "6", suit: "spades" }
+    ];
+  }
   game.lastEvents = [];
   res.json({ roomCode: room.roomCode, matchId: game.matchId, tokens: { 1: room.lobby.players[1].reconnectToken, 2: room.lobby.players[2].reconnectToken } });
 });

@@ -35,7 +35,9 @@ function projectMatchDesign(input, currentSnapshot, draftSnapshot = null) {
     const effect = value.effect || record.contentDefinitions?.cards?.[id];
     if (effect && !captured.effect) captured.effect = clone(effect);
     const keys = [add("cards", id, value.name, Object.keys(captured).length ? captured : null)];
-    if (effect?.id) keys.push(add("card-effects", effect.id, null, effect));
+    // Different cards can have different compositions with the same interpreter
+    // ID. Keep their recorded definitions on their individual card references.
+    if (effect?.id && effect.id !== "composed-rumin-armament") keys.push(add("card-effects", effect.id, null, effect));
     if (value.variantId) keys.push(add("assets", value.variantId, null, value.presentation ? { presentation: value.presentation } : null));
     return keys.filter(Boolean);
   };

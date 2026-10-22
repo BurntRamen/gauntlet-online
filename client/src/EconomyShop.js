@@ -1,12 +1,14 @@
+import DeckProducts from "./DeckProducts";
 import CurrencyWallet from "./CurrencyWallet";
 
-export default function EconomyShop({ economy, pending, onBuyGameplayPack, onBuyTimetwisters }) {
+export default function EconomyShop({ economy, pending, onBuyGameplayPack, onBuyTimetwisters, deckStore }) {
   if (!economy) return <p className="economy-sign-in">Sign in to earn gold, complete daily quests, and use the shop.</p>;
-  if (["finite-gold-ledger", "legacy-event-settlement"].includes(economy.source)) return <div className="economy-shop"><CurrencyWallet economy={economy} /><h3>Gold & Library</h3><p>{economy.source === "legacy-event-settlement" ? "Finish or resign your existing event runs to open Gold & Library. Their earned Gold will join your opening balance." : "Open Identity → Gold & Library for finite awards, optional digital products and your purchases."} Existing cards and pack credits remain owned. Gem payments are inactive.</p></div>;
+  if (["finite-gold-ledger", "legacy-event-settlement"].includes(economy.source)) return <div className="economy-shop"><CurrencyWallet economy={economy} /><h3>Gold & Library</h3><p>{economy.source === "legacy-event-settlement" ? "Finish or resign your existing event runs to open Gold & Library. Their earned Gold will join your opening balance." : "Open Identity → Gold & Library for finite awards, optional digital products and your purchases."} Existing cards and pack credits remain owned. Gem payments are inactive.</p>{economy.source === "finite-gold-ledger" && deckStore && <DeckProducts {...deckStore} balance={economy} />}</div>;
   const quests = economy.daily?.quests || [];
   const prices = economy.gameplayPackPrices || { gold: 1000, timetwisters: 200 };
   return <div className="economy-shop">
     <CurrencyWallet economy={economy} />
+    {deckStore && <DeckProducts {...deckStore} balance={economy} />}
     <section className="daily-quests" aria-labelledby="daily-quests-title">
       <div className="collection-view-heading"><div><h3 id="daily-quests-title">Daily Quests</h3><p>Quests refresh each UTC day. Gold is awarded as soon as a quest is completed.</p></div><strong>{economy.daily?.date || "Today"}</strong></div>
       <div className="daily-quest-grid">

@@ -133,7 +133,12 @@ function createMatchPersistence({
         method: "POST",
         body: JSON.stringify({
           p_record: record,
-          p_events: record.auditEvents || [],
+          p_events: (record.auditEvents || []).map(event => ({
+            sequence: event.sequence, turn: event.turn, phase: event.phase,
+            actor_player_num: event.actorPlayerNum, event_type: event.eventType,
+            public_payload: event.publicPayload, server_timestamp: event.serverTimestamp,
+            state_checksum: event.stateChecksum
+          })),
           p_consequences: (record.completion.consequences || []).map((consequence) => ({
             accountId: consequence.accountId,
             playerNum: consequence.playerNum,

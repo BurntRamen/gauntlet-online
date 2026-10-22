@@ -16,6 +16,7 @@ test("Frumo manifest covers every scripted campaign speaker and line", () => {
   assert.equal(new Set(plan.map((line) => line.voiceKey)).size, 15);
   assert.equal(plan[0].fileName, "frumo-ch01-before-01-narrator.mp3");
   assert.equal(plan.at(-1).fileName, "frumo-ch12-after-07-lafayette.mp3");
+  assert.equal(plan.find(line => line.speaker === "Epilogue").voiceKey, "narrator");
 });
 
 test("Bizi manifest covers every scripted campaign speaker and line", () => {

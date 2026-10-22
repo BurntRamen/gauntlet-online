@@ -54,7 +54,7 @@ test("every new admin route rejects missing, player, tampered and expired operat
   fs.writeFileSync(process.env.ACCOUNT_DATA_FILE, JSON.stringify({ accounts: [account, player, burnt] }));
   const playerToken = __test.issueAccountSession(player).token;
   const burntToken = __test.issueAccountSession(burnt).token;
-  for (const route of ["catalog", "players", "matches", `matches/${record.matchId}`, "system"]) {
+  for (const route of ["catalog", "players", "matches", `matches/${record.matchId}`, "system", "modules", "home"]) {
     for (const token of [null, `${session}tampered`, `${session}.extra`, expired, __test.issueAccountSession({ id: "ffffffff-ffff-4fff-8fff-ffffffffffff", name: "Deleted", stats: {} }).token]) {
       const response = await get(route, token);
       assert.equal(response.status, 401, route);
@@ -87,8 +87,8 @@ test("catalog reflects the live playable registry and deterministic encounter ca
   const { body, status } = await get("catalog");
   assert.equal(status, 200);
   assert.equal(body.counts.cards, require("../gameContent").COLLECTION_CARDS.length);
-  assert.equal(body.counts.encounters, 188);
-  assert.equal(body.counts.factions, 16);
+  assert.equal(body.counts.encounters, Object.values(require("../gameContent").campaignChapters).flat().length);
+  assert.equal(body.counts.factions, Object.keys(require("../gameContent").factionsData).length);
   assert.match(body.domains.factions.find((f) => f.id === "xendra").definition.availability, /normal faction selection/);
   assert.match(body.domains.factions.find((f) => f.id === "voltari").definition.availability, /normal faction selection/);
   const encounter = body.domains.encounters[0];
@@ -149,10 +149,10 @@ test("corrupted local account storage fails closed without returning private con
   fs.writeFileSync(process.env.ACCOUNT_DATA_FILE, "private corrupt account value");
   try {
     const system = await get("system");
-    assert.equal(system.status, 401);
+    assert.equal(system.status, 503);
     const serialized = JSON.stringify(system.body);
     for (const secret of [root, process.env.OWNER_STATS_TOKEN, "private corrupt account value", process.env.ACCOUNT_AUTH_SECRET]) assert.equal(serialized.includes(secret), false);
-    assert.equal((await get("players")).status, 401);
+    assert.equal((await get("players")).status, 503);
   } finally { fs.writeFileSync(process.env.ACCOUNT_DATA_FILE, before); }
 });
 

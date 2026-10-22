@@ -1,0 +1,34 @@
+[
+  {
+    "id": "presentation:gauntlet-card-back-official.jpg",
+    "source": "/assets/gauntlet/match/gauntlet-card-back-official.jpg",
+    "path": "/assets/gauntlet/releases/869a53d2eff6a4070c0144ef9d8bf749a4da8812d206f68cfd29818fbab0ef04.jpg",
+    "sha256": "869a53d2eff6a4070c0144ef9d8bf749a4da8812d206f68cfd29818fbab0ef04",
+    "bytes": 108487,
+    "mediaType": "image/jpeg"
+  },
+  {
+    "id": "presentation:arena-circuit-v1.webp",
+    "source": "/assets/gauntlet/card-backs/arena-circuit-v1.webp",
+    "path": "/assets/gauntlet/releases/4d90f07814280c47e1d8db8d7d8c6ca8af316a9920d4d03c996383f5da0ec832.webp",
+    "sha256": "4d90f07814280c47e1d8db8d7d8c6ca8af316a9920d4d03c996383f5da0ec832",
+    "bytes": 294922,
+    "mediaType": "image/webp"
+  },
+  {
+    "id": "presentation:victor-gold-v1.webp",
+    "source": "/assets/gauntlet/card-backs/victor-gold-v1.webp",
+    "path": "/assets/gauntlet/releases/2fdf3a36a839e90532eda4e497930c29a12b79947ad2d7a78abf6b28ac0e18c9.webp",
+    "sha256": "2fdf3a36a839e90532eda4e497930c29a12b79947ad2d7a78abf6b28ac0e18c9",
+    "bytes": 281268,
+    "mediaType": "image/webp"
+  },
+  {
+    "id": "presentation:campaign-map-v1.webp",
+    "source": "/assets/gauntlet/card-backs/campaign-map-v1.webp",
+    "path": "/assets/gauntlet/releases/0796d4e6b32cb1681ab9dcea88166c9c8d0a78a53913682e5fd45f86de0a535b.webp",
+    "sha256": "0796d4e6b32cb1681ab9dcea88166c9c8d0a78a53913682e5fd45f86de0a535b",
+    "bytes": 230978,
+    "mediaType": "image/webp"
+  }
+]
