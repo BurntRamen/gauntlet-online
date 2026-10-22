@@ -1133,8 +1133,10 @@ test("Admin creates a set and new card, executes its mechanics, publishes and sa
   await runCard(8); await publish("Browser catalog two");
   await expect(page.getByRole("button", { name: "Restore Deployed source baseline", exact: true })).toBeDisabled();
   await page.getByRole("button", { name: "Restore Browser catalog one", exact: true }).click();
+  const rollback = page.waitForResponse(response => response.url().endsWith("/authoring/rollback") && response.request().method() === "POST");
   await page.getByRole("button", { name: "Confirm rollback", exact: true }).click();
-  await expect(page.getByText("Previous release restored for future games.", { exact: true })).toBeVisible();
+  expect((await rollback).ok()).toBeTruthy();
+  await expect(page.getByText("Previous release restored for future games.", { exact: true })).toBeVisible({ timeout: 15000 });
   const publicContent = await (await request.get(`${origin}/api/game-content`)).json();
   expect(publicContent.content.cards.find(c => c.id === card.id).effect.parameters.armBonus).toBe(2);
   await page.goto("/admin/gauntlet?workshop=cards&object=" + card.id);
