@@ -36,6 +36,17 @@ async function quickActions(playtest) {
 const waitForJson = (page, predicate) => page.waitForResponse(predicate).then(async response => ({
   ok: response.ok(), status: response.status(), body: await response.json()
 }));
+test.beforeEach(async ({ page }) => {
+  // The expanded card catalog makes authoring and isolated playtest responses
+  // larger than Chromium's default inspector cache. The application fetch can
+  // still consume them, but Playwright's response.json() otherwise loses the
+  // body before the assertion reads it.
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send("Network.enable", {
+    maxTotalBufferSize: 100 * 1024 * 1024,
+    maxResourceBufferSize: 25 * 1024 * 1024
+  });
+});
 async function signIn(page, request, name) {
   if (!loginSessions.has(name)) {
     // Keep unrelated operator flows independent of login throttling when a
