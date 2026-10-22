@@ -33,37 +33,30 @@ async function quickActions(playtest) {
   const summary = playtest.getByText("Quick actions", { exact: true });
   if (!(await summary.locator("..").evaluate(node => node.open))) await summary.click();
 }
-const jsonWaiters = new WeakMap();
 const waitForJson = (page, predicate) => new Promise((resolve, reject) => {
-  const waiters = jsonWaiters.get(page) || [];
-  waiters.push({ predicate, resolve, reject });
-  jsonWaiters.set(page, waiters);
-});
-test.beforeEach(async ({ page }) => {
-  jsonWaiters.set(page, []);
-  // The expanded card catalog exceeds Chromium's inspector response cache.
-  // Buffer authoring JSON through Playwright's request layer and then deliver
-  // those exact bytes to the application, so UI behavior remains unchanged.
-  await page.route("**/api/admin/authoring/**", async route => {
+  // The expanded catalog can exceed Chromium's inspector response cache. Only
+  // buffer the one response this assertion is waiting for; routing every Admin
+  // request changes timing and interferes with unrelated authoring journeys.
+  const pattern = "**/api/admin/authoring/**";
+  const handler = async route => {
     const request = route.request();
-    const response = await route.fetch();
-    const body = await response.body();
-    const visibleResponse = {
-      url: () => response.url(),
-      request: () => request,
-      ok: () => response.ok(),
-      status: () => response.status()
+    const candidate = {
+      url: () => request.url(),
+      request: () => request
     };
-    const waiters = jsonWaiters.get(page) || [];
-    const index = waiters.findIndex(waiter => waiter.predicate(visibleResponse));
-    await route.fulfill({ response, body });
-    if (index >= 0) {
-      const [waiter] = waiters.splice(index, 1);
-      try {
-        waiter.resolve({ ok: response.ok(), status: response.status(), body: JSON.parse(body.toString("utf8")) });
-      } catch (error) { waiter.reject(error); }
+    if (!predicate(candidate)) return route.continue();
+    try {
+      const response = await route.fetch();
+      const body = await response.body();
+      await route.fulfill({ response, body });
+      await page.unroute(pattern, handler);
+      resolve({ ok: response.ok(), status: response.status(), body: JSON.parse(body.toString("utf8")) });
+    } catch (error) {
+      await page.unroute(pattern, handler).catch(() => {});
+      reject(error);
     }
-  });
+  };
+  page.route(pattern, handler).catch(reject);
 });
 async function signIn(page, request, name) {
   if (!loginSessions.has(name)) {
