@@ -64,10 +64,22 @@ function createGitHubContentPublication({ baseline, draftStore = null, runtimeCa
     initial.releases[release.id] = release; initial.activeReleaseId = release.id;
   }
   const deployed = initial.releases[initial.activeReleaseId];
-  const deployedContent = resolveEngineContent(deployed.snapshot, deployed.id);
-  const active = () => resolveEngineContent(deployed.snapshot, deployed.id);
-  const cardIndex = new Map(deployedContent.manifest.cards.map(card => [card.id, card]));
-  const variantIndex = new Map(deployedContent.manifest.collectorVariants.map(variant => [variant.variantId, variant]));
+  // The deployed release cannot change until restart. Resolving its full asset
+  // catalog on every read blocks room entry, especially for populated decks.
+  // Delivery origin is set when the server starts listening, so include it in
+  // the cache identity and keep every lookup on the same resolved release.
+  let activeCache;
+  function resolvedActive() {
+    const origin = require("./contentAssets").getDeliveryOrigin();
+    if (!activeCache || activeCache.origin !== origin) {
+      const resolved = resolveEngineContent(deployed.snapshot, deployed.id);
+      activeCache = { origin, resolved,
+        cards: new Map(resolved.manifest.cards.map(card => [card.id, card])),
+        variants: new Map(resolved.manifest.collectorVariants.map(variant => [variant.variantId, variant])) };
+    }
+    return activeCache;
+  }
+  const active = () => clone(resolvedActive().resolved);
   const core = (state) => createContentPublication({ baseline, runtimeCapabilities, economyCapabilities, memory: true, initialState: state });
   async function mainHead() { return (await client.request("git/ref/heads/main")).object.sha; }
   async function load() {
@@ -227,8 +239,8 @@ function createGitHubContentPublication({ baseline, draftStore = null, runtimeCa
       return { mediaType: row.mediaType, sha256: row.sha256, body: imageAssets.verifiedBytes(row, packaged.assetPackage.blobs) };
     },
     status: async () => project((await load()).state, await hasPrivateStorage()),
-    lookupCard: id => clone(cardIndex.get(id) || null), lookupVariant: id => clone(variantIndex.get(id) || null),
-    lookupSet: id => clone(deployedContent.manifest.draftSets.find(set => set.id === id) || null),
+    lookupCard: id => clone(resolvedActive().cards.get(id) || null), lookupVariant: id => clone(resolvedActive().variants.get(id) || null),
+    lookupSet: id => clone(resolvedActive().resolved.manifest.draftSets.find(set => set.id === id) || null),
     paraDraft: (args, actor) => operate("paraDraft", args, actor),
     competitionDraft: (args, actor) => operate("competitionDraft", args, actor),
     studioDraft: (args, actor) => operate("studioDraft", args, actor),

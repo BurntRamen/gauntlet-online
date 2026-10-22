@@ -41,6 +41,35 @@ function repository() {
   const store = (extra = {}) => createGitHubContentPublication({ baseline, token: "test-only-token", client, deployedCommit: original, releaseFile: "missing-test-release.json", ...extra });
   return { client, store, refs, trees, pulls };
 }
+test("live content reads reuse the deployed catalog and isolate callers across delivery origins", t => {
+  const assets = require("../contentAssets");
+  const originalOrigin = assets.getDeliveryOrigin();
+  t.after(() => assets.setDeliveryOrigin(originalOrigin));
+  const reads = t.mock.method(require("../gameContent"), "getPublicGameContent");
+  const store = repository().store();
+  const first = store.active();
+  const expected = clone(first);
+  const readCount = reads.mock.callCount();
+  first.manifest.cards[0].name = "Caller mutation";
+  first.factions.bizi.commander.name = "Caller mutation";
+  for (let i = 0; i < 10; i++) {
+    assert.deepEqual(store.active(), expected);
+    const card = store.lookupCard(expected.manifest.cards[0].id);
+    card.name = "Lookup mutation";
+    assert.deepEqual(store.lookupCard(card.id), expected.manifest.cards[0]);
+    assert.deepEqual(store.lookupVariant(expected.manifest.collectorVariants[0].variantId), expected.manifest.collectorVariants[0]);
+    assert.deepEqual(store.lookupSet(expected.manifest.draftSets[0].id), expected.manifest.draftSets[0]);
+  }
+  assert.equal(reads.mock.callCount(), readCount, "live reads must not rebuild the authored catalog");
+  assets.setDeliveryOrigin("http://127.0.0.1:4999");
+  store.active();
+  assert.ok(reads.mock.callCount() > readCount, "listening origin invalidates resolved asset URLs");
+  const refreshedCount = reads.mock.callCount();
+  store.active();
+  store.lookupCard(expected.manifest.cards[0].id);
+  assert.equal(reads.mock.callCount(), refreshedCount);
+});
+
 test("private deck notes require a private repository and never enter a release package", async () => {
   const repo = repository(), store = repo.store();
   repo.client.private = false;
