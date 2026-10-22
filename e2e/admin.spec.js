@@ -33,18 +33,36 @@ async function quickActions(playtest) {
   const summary = playtest.getByText("Quick actions", { exact: true });
   if (!(await summary.locator("..").evaluate(node => node.open))) await summary.click();
 }
-const waitForJson = (page, predicate) => page.waitForResponse(predicate).then(async response => ({
-  ok: response.ok(), status: response.status(), body: await response.json()
-}));
+const jsonWaiters = new WeakMap();
+const waitForJson = (page, predicate) => new Promise((resolve, reject) => {
+  const waiters = jsonWaiters.get(page) || [];
+  waiters.push({ predicate, resolve, reject });
+  jsonWaiters.set(page, waiters);
+});
 test.beforeEach(async ({ page }) => {
-  // The expanded card catalog makes authoring and isolated playtest responses
-  // larger than Chromium's default inspector cache. The application fetch can
-  // still consume them, but Playwright's response.json() otherwise loses the
-  // body before the assertion reads it.
-  const cdp = await page.context().newCDPSession(page);
-  await cdp.send("Network.enable", {
-    maxTotalBufferSize: 100 * 1024 * 1024,
-    maxResourceBufferSize: 25 * 1024 * 1024
+  jsonWaiters.set(page, []);
+  // The expanded card catalog exceeds Chromium's inspector response cache.
+  // Buffer authoring JSON through Playwright's request layer and then deliver
+  // those exact bytes to the application, so UI behavior remains unchanged.
+  await page.route("**/api/admin/authoring/**", async route => {
+    const request = route.request();
+    const response = await route.fetch();
+    const body = await response.body();
+    const visibleResponse = {
+      url: () => response.url(),
+      request: () => request,
+      ok: () => response.ok(),
+      status: () => response.status()
+    };
+    const waiters = jsonWaiters.get(page) || [];
+    const index = waiters.findIndex(waiter => waiter.predicate(visibleResponse));
+    await route.fulfill({ response, body });
+    if (index >= 0) {
+      const [waiter] = waiters.splice(index, 1);
+      try {
+        waiter.resolve({ ok: response.ok(), status: response.status(), body: JSON.parse(body.toString("utf8")) });
+      } catch (error) { waiter.reject(error); }
+    }
   });
 });
 async function signIn(page, request, name) {

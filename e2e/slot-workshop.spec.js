@@ -152,7 +152,7 @@ test("52-card workshop saves exact swaps and boxes; packs reveal sequentially on
   await dialog.getByRole("button", { name: "Pause", exact: true }).click();
   await expect(dialog.getByRole("status")).toHaveText(/Breaking the seal/);
   await dialog.getByRole("button", { name: "Next card", exact: true }).click();
-  await expect(dialog.getByRole("status")).toContainText("uncommon");
+  await expect(dialog.getByRole("status")).toContainText(openedCards[0].rarity);
   await dialog.screenshot({ path: path.join(out, "pack-opening-mobile.png") });
   await page.setViewportSize({ width: 1366, height: 900 });
   await dialog.screenshot({ path: path.join(out, "pack-opening-desktop.png") });
