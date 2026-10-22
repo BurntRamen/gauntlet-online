@@ -1246,8 +1246,10 @@ test("Admin composes abilities through guided blocks and proves two releases wit
   await expect(page.getByRole("region", { name: "Generated mechanics explanation" })).toContainText("Printed wording differs");
   await runCard(2, 42); await publish("Browser composed R2");
   await page.getByRole("button", { name: "Restore Browser composed R1", exact: true }).click();
+  const rollback = page.waitForResponse(response => response.url().endsWith("/authoring/rollback") && response.request().method() === "POST");
   await page.getByRole("button", { name: "Confirm rollback", exact: true }).click();
-  await expect(page.getByText("Previous release restored for future games.", { exact: true })).toBeVisible();
+  expect((await rollback).ok()).toBeTruthy();
+  await expect(page.getByText("Previous release restored for future games.", { exact: true })).toBeVisible({ timeout: 15000 });
   const publicContent = (await (await request.get(`${origin}/api/game-content`)).json()).content;
   expect(publicContent.cards.find(c => c.id === card.id).effect.abilities[0].condition).toEqual({ kind: "overpay", amount: 2 });
   expect(publicContent.contentBinding.compositionVersion).toBe("gauntlet.composition.armament.v1");
