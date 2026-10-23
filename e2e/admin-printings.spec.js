@@ -1,4 +1,5 @@
 const { test, expect } = require("./admin-release-test");
+const { waitForBufferedAdminResponse } = require("./buffered-admin-response");
 const fs = require("node:fs"), path = require("node:path"), { spawn } = require("node:child_process"), sharp = require("sharp");
 const serverUrl = `http://127.0.0.1:${process.env.GAUNTLET_ADMIN_FIXTURE_PORT || 4117}`, cardId = "rumin-vault-shield-bearer", artifactRoot = path.resolve(__dirname, "../artifacts/printings/browser");
 let child, root;
@@ -28,7 +29,7 @@ test("create, upload, organize, publish, own, save, play, revise and recover a p
   await open(page); await page.getByRole("button", { name: "Duplicate selected printing" }).click();
   await page.getByLabel("New content name").fill("Rumin Sentry alternate");
   await page.getByLabel("New printing edition").selectOption(edition); await page.getByLabel("New collector identifier").fill("002");
-  const created = page.waitForResponse(r => r.url().endsWith("/authoring/create")); await page.getByRole("button", { name: "Save new printing to draft" }).click();
+  const created = waitForBufferedAdminResponse(page, r => r.url().endsWith("/authoring/create")); await page.getByRole("button", { name: "Save new printing to draft" }).click();
   const result = await (await created).json(), p2 = result.draft.snapshot.domains.assets.at(-1).id; expect(p2).not.toBe(p1);
   await expect(page.getByRole("heading", { name: "Editing printing: Rumin Sentry alternate", exact: true })).toBeVisible();
   const upload = async color => {
@@ -36,7 +37,7 @@ test("create, upload, organize, publish, own, save, play, revise and recover a p
     await expect(picker.getByText(/Upload capacity/)).toBeVisible(); await picker.getByText("Upload artwork", { exact: true }).click();
     await picker.getByLabel("Artwork title", { exact: true }).fill("Alternate printing art");
     await picker.getByLabel("Image file").setInputFiles({ name: "printing.png", mimeType: "image/png", buffer: await sharp({ create: { width: 240, height: 320, channels: 3, background: color } }).png().toBuffer() });
-    const response = page.waitForResponse(r => r.url().endsWith("/assets/upload")); await picker.getByRole("button", { name: "Upload new artwork", exact: true }).click(); const uploaded = (await (await response).json()).uploaded;
+    const response = waitForBufferedAdminResponse(page, r => r.url().endsWith("/assets/upload")); await picker.getByRole("button", { name: "Upload new artwork", exact: true }).click(); const uploaded = (await (await response).json()).uploaded;
     await picker.getByRole("button", { name: "Use selected artwork", exact: true }).click(); const saved = page.waitForResponse(r => r.url().endsWith("/authoring/draft")); await page.getByRole("button", { name: "Save artwork reference to draft", exact: true }).click(); expect((await saved).ok()).toBeTruthy(); await expect(page.getByRole("button", { name: "Save artwork reference to draft", exact: true })).toBeDisabled(); return uploaded;
   };
   const b = await upload("#265ed8"); await open(page); await selected(page, p2);
@@ -48,7 +49,7 @@ test("create, upload, organize, publish, own, save, play, revise and recover a p
   const publish = async (label, testRequired = false) => {
     if (testRequired) {
       await section(page, "Test"); const harness = page.getByRole("region", { name: "Real engine playtest" }); await harness.getByRole("button", { name: "Configure custom starting state" }).click();
-      const started = page.waitForResponse(r => r.url().endsWith("/authoring/playtest")); await harness.getByRole("button", { name: "Start draft duel playtest", exact: true }).click(); const session = (await (await started).json()).playtest;
+      const started = waitForBufferedAdminResponse(page, r => r.url().endsWith("/authoring/playtest")); await harness.getByRole("button", { name: "Start draft duel playtest", exact: true }).click(); const session = (await (await started).json()).playtest;
       expect(session.subject.printingId).toBe(p2); expect(session.game.players[1].hand[0].presentation.printingId).toBe(p2);
       const pass = session.legalActions.find(action => action.type === "passPriority"); await harness.getByRole("combobox", { name: /^Action/ }).selectOption(pass.id);
       const executed = page.waitForResponse(r => r.url().endsWith("/playtest/command")); await harness.getByRole("button", { name: "Execute selected action" }).click(); expect((await executed).ok()).toBeTruthy();

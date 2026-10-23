@@ -2572,6 +2572,7 @@ function getPublicGameContent() {
       pitch: CAMPAIGN_METADATA[factionId].pitch,
       coverImage: CAMPAIGN_METADATA[factionId].coverImage || null,
       homeworld: CAMPAIGN_METADATA[factionId].homeworld || factionsData[factionId].homeworld || null,
+      origin: CAMPAIGN_METADATA[factionId].origin || factionsData[factionId].origin || FACTION_HOMEWORLDS[factionId]?.origin || null,
       arrivalOnReath: CAMPAIGN_METADATA[factionId].arrivalOnReath || factionsData[factionId].reathArrival || null,
       transitModel: CAMPAIGN_METADATA[factionId].transitModel || null,
       characters: CAMPAIGN_CHARACTER_DESCRIPTIONS[factionId] || {},

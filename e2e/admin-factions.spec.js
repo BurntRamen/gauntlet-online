@@ -1,4 +1,5 @@
 const { test, expect } = require("./admin-release-test");
+const { waitForBufferedAdminResponse } = require("./buffered-admin-response");
 const fs = require("node:fs"), path = require("node:path");
 test("operator creates and configures a new faction, publishes it and plays its campaign", async ({ page }) => {
   test.setTimeout(180000);
@@ -6,7 +7,7 @@ test("operator creates and configures a new faction, publishes it and plays its 
   await page.goto("/admin/gauntlet"); await page.evaluate(token => localStorage.setItem("gauntlet_auth_token", token), token); await page.goto("/admin/gauntlet?workshop=factions");
   await page.getByRole("button", { name: "Create faction", exact: true }).click(); await page.getByLabel("New content name").fill("Glass Dynasty");
   await expect(page.getByRole("combobox", { name: "Rules family" })).toHaveValue("rumin");
-  let pending = page.waitForResponse(r => r.url().endsWith("/authoring/create")); await page.getByRole("button", { name: "Save new faction to draft", exact: true }).click();
+  let pending = waitForBufferedAdminResponse(page, r => r.url().endsWith("/authoring/create")); await page.getByRole("button", { name: "Save new faction to draft", exact: true }).click();
   const result = await (await pending).json(), faction = result.draft.snapshot.domains.factions.at(-1), encounter = result.draft.snapshot.domains.encounters.at(-1);
   await page.getByLabel("Parameters Fourth Attack Bonus", { exact: true }).fill("6");
   pending = page.waitForResponse(r => r.url().endsWith("/authoring/draft") && r.request().method() === "PATCH"); await page.getByRole("button", { name: "Save faction mechanics to draft", exact: true }).click(); expect((await pending).status()).toBe(200);
@@ -14,7 +15,7 @@ test("operator creates and configures a new faction, publishes it and plays its 
   pending = page.waitForResponse(r => r.url().endsWith("/authoring/draft") && r.request().method() === "PATCH"); await page.getByRole("button", { name: "Save name to draft", exact: true }).click(); expect((await pending).status()).toBe(200);
   await page.goto("/admin/gauntlet?workshop=encounters&object=" + encounter.id + "&section=test");
   const harness = page.getByRole("region", { name: "Real engine playtest" }); await harness.getByRole("combobox", { name: "Test content", exact: true }).selectOption("draft");
-  page.once("dialog", d => d.accept()); pending = page.waitForResponse(r => r.url().endsWith("/authoring/playtest")); await harness.getByRole("button", { name: "Start " + encounter.title + " playtest", exact: true }).click();
+  page.once("dialog", d => d.accept()); pending = waitForBufferedAdminResponse(page, r => r.url().endsWith("/authoring/playtest")); await harness.getByRole("button", { name: "Start " + encounter.title + " playtest", exact: true }).click();
   const session = (await (await pending).json()).playtest; expect(session.game.players[1].faction.id).toBe(faction.id); expect(session.game.players[1].faction.commander.name).toBe("Glass Marshal");
   expect(session.game.players[1].faction.mechanics.parameters.fourthAttackBonus).toBe(6);
   await harness.getByRole("combobox", { name: "Action", exact: true }).selectOption(session.legalActions.find(a => a.type === "passPriority").id);

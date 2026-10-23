@@ -48,6 +48,7 @@ import { PlayMenu, PlayModeCard } from "./PlayMenu";
 import JourneyIntroduction, { JOURNEY_ART, TUTORIAL_ART } from "./JourneyMenu";
 import { fetchGameContent } from "./loadGameContent";
 import CurrencyWallet from "./CurrencyWallet";
+import FactionLoreScreen from "./FactionLoreScreen";
 import { canUsePrinting } from "@gauntlet/duel-rules/printings";
 
 const DraftScreen = lazy(() => import("./DraftScreen"));
@@ -3127,6 +3128,7 @@ export default function App() {
   });
   const [showTutorial, setShowTutorial] = useState(false);
   const [showCampaign, setShowCampaign] = useState(false);
+  const [showFactionLore, setShowFactionLore] = useState(false);
   const [showCollection, setShowCollection] = useState(false);
   const [homeArea, setHomeArea] = useState(INITIAL_HOME_AREA);
   const [ownerAuthorized, setOwnerAuthorized] = useAdminAccess(SOCKET_URL, authToken);
@@ -4933,6 +4935,14 @@ export default function App() {
     );
   }
 
+  if (showFactionLore) {
+    return <FactionLoreScreen
+      manifest={gameContent}
+      onBack={() => { playMenuCue("panelClose"); setShowFactionLore(false); }}
+      onOpenCampaign={() => { playMenuCue("panelOpen"); setShowFactionLore(false); setShowCampaign(true); }}
+    />;
+  }
+
   if (showCollection) {
     return (
       <CollectionScreen
@@ -5251,7 +5261,10 @@ export default function App() {
                     <strong>{completedCampaignChapters}</strong>
                     <small>chapters cleared</small>
                   </div>
-                  <MenuButton onClick={() => { playMenuCue("panelOpen"); setShowCampaign(true); }}>{completedCampaignChapters > 0 ? "Continue Campaign" : "Choose a Faction"}</MenuButton>
+                  <div className="journey-panel-actions">
+                    <MenuButton onClick={() => { playMenuCue("panelOpen"); setShowCampaign(true); }}>{completedCampaignChapters > 0 ? "Continue Campaign" : "Choose a Faction"}</MenuButton>
+                    <MenuButton variant="secondary" onClick={() => { playMenuCue("panelOpen"); setShowFactionLore(true); }}>Explore Faction Lore</MenuButton>
+                  </div>
                 </section>
               </div>
               <Suspense fallback={<p>Loading Legacies…</p>}>

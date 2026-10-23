@@ -1,4 +1,5 @@
 const { test, expect } = require("./admin-release-test");
+const { waitForBufferedAdminResponse } = require("./buffered-admin-response");
 const { origin } = require("./admin-urls"), { area } = require("./admin-navigation");
 const fs = require("node:fs"), path = require("node:path"), AxeBuilder = require("@axe-core/playwright").default;
 async function cardSection(page, name) { const select = page.getByRole("combobox", { name: "Card Workshop section", exact: true }); if (await select.isVisible()) await select.selectOption({ label: name }); else await page.getByRole("navigation", { name: "Card Workshop sections", exact: true }).getByRole("button", { name, exact: true }).click(); }
@@ -18,12 +19,12 @@ test("authored support preview and execution share v12 payment and exactly-once 
   await harness.getByRole("button", { name: "Configure custom starting state", exact: true }).click(); const setup = harness.getByRole("region", { name: "Custom starting state", exact: true });
   await setup.getByLabel("Player 1 hand 1 card", { exact: true }).selectOption(card.id); await setup.getByLabel("Player 1 hand 1 suit", { exact: true }).selectOption(card.suit);
   await setup.getByRole("button", { name: "Add to player 1 hand", exact: true }).click(); await setup.getByLabel("Player 1 hand 2 value", { exact: true }).fill("14");
-  page.once("dialog", d => d.accept()); let pending = page.waitForResponse(r => r.url().endsWith("/authoring/playtest")); await harness.getByRole("button", { name: "Start draft duel playtest", exact: true }).click();
+  page.once("dialog", d => d.accept()); let pending = waitForBufferedAdminResponse(page, r => r.url().endsWith("/authoring/playtest")); await harness.getByRole("button", { name: "Start draft duel playtest", exact: true }).click();
   const session = (await (await pending).json()).playtest, action = session.legalActions.find(a => a.type === "playSupport" && a.laneIndex === 0);
   expect(action).toBeTruthy(); await harness.getByRole("combobox", { name: "Action", exact: true }).selectOption(action.id); await harness.getByRole("group", { name: /^Payment cards/ }).getByRole("checkbox", { name: /Ace|A of|14/ }).check();
-  pending = page.waitForResponse(r => r.url().endsWith("/playtest/preview-command")); await harness.getByRole("button", { name: "Calculate command preview", exact: true }).click();
+  pending = waitForBufferedAdminResponse(page, r => r.url().endsWith("/playtest/preview-command")); await harness.getByRole("button", { name: "Calculate command preview", exact: true }).click();
   const preview = (await (await pending).json()).preview; expect(preview.accepted).toBe(true); expect(preview.payment.required).toBe(card.value);
-  pending = page.waitForResponse(r => r.url().endsWith("/playtest/command")); await harness.getByRole("button", { name: "Execute selected action", exact: true }).click();
+  pending = waitForBufferedAdminResponse(page, r => r.url().endsWith("/playtest/command")); await harness.getByRole("button", { name: "Execute selected action", exact: true }).click();
   const executed = (await (await pending).json()).playtest;
   expect(executed.game.lanes[0].support[1].effect.mechanicId).toBe(mechanic.id); expect(executed.lastCommand.events.filter(e => e.type === "cards.drawn")).toHaveLength(1);
   expect(executed.lastCommand.changes).toEqual(preview.changes); await page.screenshot({ path: "artifacts/phase2-paid-authored-support.png", fullPage: true });
@@ -43,7 +44,7 @@ test("operator composes a reusable mechanic, creates a card, executes it and pub
   await page.getByLabel("Ability 1 effect 1", { exact: true }).selectOption("attackBonus"); await page.getByLabel("Effect 1.1 amount", { exact: true }).fill("2");
   await page.getByRole("button", { name: "Add effect to ability 1", exact: true }).click();
   await expect(page.getByRole("region", { name: "Executable mechanics preview" })).toContainText("then Gain life");
-  let pending = page.waitForResponse(r => r.url().endsWith("/studio-draft") && r.request().method() === "POST");
+  let pending = waitForBufferedAdminResponse(page, r => r.url().endsWith("/studio-draft") && r.request().method() === "POST");
   await page.getByRole("button", { name: "Save mechanic to draft", exact: true }).click();
   const saved = await (await pending).json(), mechanic = saved.draft.snapshot.studio.mechanics.find(m => m.name === "Browser composed strike"); expect(mechanic).toBeTruthy();
   await page.getByRole("button", { name: /Browser composed strike.*active/ }).click();
@@ -51,7 +52,7 @@ test("operator composes a reusable mechanic, creates a card, executes it and pub
   await page.setViewportSize({ width: 390, height: 844 }); expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true); expect((await new AxeBuilder({ page }).include(".mechanic-studio").analyze()).violations).toEqual([]); await page.screenshot({ path: "artifacts/phase2-mechanic-mobile.png", fullPage: true }); await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/admin/gauntlet?workshop=sets"); await page.getByRole("button", { name: "Create set", exact: true }).click(); await page.getByLabel("New content name").fill("Browser Studio set"); await page.getByRole("button", { name: "Save new set to draft", exact: true }).click();
   await page.getByRole("button", { name: "Create card", exact: true }).click(); await page.getByLabel("New content name").fill("Browser Studio guard"); await page.getByLabel("Mechanical effect", { exact: true }).selectOption(mechanic.id);
-  pending = page.waitForResponse(r => r.url().endsWith("/authoring/create") && r.request().method() === "POST"); await page.getByRole("button", { name: "Save new card to draft", exact: true }).click();
+  pending = waitForBufferedAdminResponse(page, r => r.url().endsWith("/authoring/create") && r.request().method() === "POST"); await page.getByRole("button", { name: "Save new card to draft", exact: true }).click();
   const created = await (await pending).json(), card = created.draft.snapshot.domains.cards.at(-1); expect(card.effect.mechanicId).toBe(mechanic.id);
   await cardSection(page, "Mechanics"); await page.getByRole("button", { name: "Open Mechanics Studio", exact: true }).click(); await expect(page.getByLabel("Mechanic name", { exact: true })).toHaveValue(mechanic.name);
   await page.getByRole("button", { name: "Test Browser Studio guard in engine", exact: true }).click();
@@ -59,11 +60,11 @@ test("operator composes a reusable mechanic, creates a card, executes it and pub
   await harness.getByRole("button", { name: "Configure custom starting state", exact: true }).click(); const setup = harness.getByRole("region", { name: "Custom starting state", exact: true });
   await setup.getByLabel("Player 1 hand 1 card", { exact: true }).selectOption(card.id); await setup.getByLabel("Player 1 hand 1 suit", { exact: true }).selectOption(card.suit);
   await setup.getByRole("button", { name: "Add to player 1 hand", exact: true }).click(); await setup.getByLabel("Player 1 hand 2 value", { exact: true }).fill("14");
-  page.once("dialog", d => d.accept()); pending = page.waitForResponse(r => r.url().endsWith("/authoring/playtest")); await harness.getByRole("button", { name: "Start draft duel playtest", exact: true }).click();
+  page.once("dialog", d => d.accept()); pending = waitForBufferedAdminResponse(page, r => r.url().endsWith("/authoring/playtest")); await harness.getByRole("button", { name: "Start draft duel playtest", exact: true }).click();
   const session = (await (await pending).json()).playtest; expect(session).toBeTruthy(); const life = session.game.players[1].life;
   const action = session.legalActions.find(a => a.type === "declareHandAttack" && a.confirmationPayload.fixed.cardId === session.game.players[1].hand[0].id);
   await harness.getByRole("combobox", { name: "Action", exact: true }).selectOption(action.id); await harness.getByRole("group", { name: /^Payment cards/ }).getByRole("checkbox", { name: /Ace|A of|14/ }).check();
-  pending = page.waitForResponse(r => r.url().endsWith("/playtest/command")); await harness.getByRole("button", { name: "Execute selected action", exact: true }).click(); const result = await (await pending).json();
+  pending = waitForBufferedAdminResponse(page, r => r.url().endsWith("/playtest/command")); await harness.getByRole("button", { name: "Execute selected action", exact: true }).click(); const result = await (await pending).json();
   expect(result.playtest.game.handAttacks[0].effectiveValue).toBe(card.value + 2); expect(result.playtest.game.players[1].life).toBe(life + 1);
   await page.screenshot({ path: "artifacts/phase2-mechanic-engine.png", fullPage: true });
   await page.getByRole("button", { name: "Preview saved draft", exact: true }).click(); await page.getByRole("button", { name: "Review release", exact: true }).click(); await page.getByLabel("Release name").fill("Browser Studio verified"); await page.getByRole("button", { name: "Publish release", exact: true }).click(); await page.getByRole("button", { name: "Confirm publish", exact: true }).click(); await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible();

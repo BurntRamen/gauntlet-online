@@ -1,4 +1,5 @@
 const { test, expect } = require("./admin-release-test");
+const { waitForBufferedAdminResponse } = require("./buffered-admin-response");
 const fs = require("node:fs"), path = require("node:path"), crypto = require("node:crypto"), { spawn } = require("node:child_process"), sharp = require("sharp");
 const serverUrl = `http://127.0.0.1:${process.env.GAUNTLET_ADMIN_FIXTURE_PORT || 4117}`, cardId = "rumin-vault-shield-bearer";
 const artifactRoot = path.resolve(__dirname, "../artifacts/immutable-assets");
@@ -37,7 +38,7 @@ test("Admin uploads A/B, publishes, renders pinned matches, rolls back, restarts
     await picker.getByLabel("Attribution / source notes", { exact: true }).fill("Private fixture notes");
     const data = await sharp({ create: { width: 240, height: 320, channels: 3, background: color } }).png().toBuffer();
     await picker.getByLabel("Image file").setInputFiles({ name: "original.png", mimeType: "image/png", buffer: data });
-    const pending = page.waitForResponse(r => r.url().endsWith("/assets/upload"));
+    const pending = waitForBufferedAdminResponse(page, r => r.url().endsWith("/assets/upload"));
     await picker.getByRole("button", { name: replacement ? "Upload new version" : "Upload new artwork", exact: true }).click();
     const response = await pending; expect(response.ok()).toBeTruthy(); const result = await response.json(), version = result.uploaded;
     expect(version.originalSha256).toBe(hash(data));
@@ -69,7 +70,7 @@ test("Admin uploads A/B, publishes, renders pinned matches, rolls back, restarts
   await section(page, "Test");
   const harness = page.getByRole("region", { name: "Real engine playtest" });
   await harness.getByRole("button", { name: "Configure custom starting state" }).click();
-  const pending = page.waitForResponse(r => r.url().endsWith("/authoring/playtest"));
+  const pending = waitForBufferedAdminResponse(page, r => r.url().endsWith("/authoring/playtest"));
   await harness.getByRole("button", { name: "Start draft duel playtest", exact: true }).click();
   const draftSession = (await (await pending).json()).playtest;
   expect(draftSession.game.players[1].hand[0].presentation.illustrationAssetId).toBe(a.id);
