@@ -17,7 +17,20 @@ test("create, upload, organize, publish, own, save, play, revise and recover a p
   await page.addInitScript(token => localStorage.setItem("gauntlet_auth_token", token), token);
   const open = async p => { await p.goto(`/admin/gauntlet?workshop=cards&object=${cardId}`); await section(p, "Artwork"); };
   const selected = async (p, id) => { await p.getByLabel("Collector version", { exact: true }).selectOption(id); };
-  const status = async () => (await (await request.get(serverUrl + "/api/admin/authoring", { headers })).json());
+  const status = async () => {
+    let lastError;
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      try {
+        const response = await fetch(serverUrl + "/api/admin/authoring", { headers });
+        if (!response.ok) throw new Error(`Authoring status failed with ${response.status}`);
+        return await response.json();
+      } catch (error) {
+        lastError = error;
+        await new Promise(resolve => setTimeout(resolve, 250 * (attempt + 1)));
+      }
+    }
+    throw lastError;
+  };
   const capture = async () => { const response = await request.post(serverUrl + "/api/admin/fixture/capture-printing-match", { headers }); expect(response.ok()).toBeTruthy(); return (await response.json()).game; };
   await open(page); const source = await status(), p1 = `${cardId}:standard`;
   await expect(page.locator(".admin-card-preview img").first()).toBeVisible();
