@@ -1,5 +1,6 @@
 import { mechanicFamily } from "@gauntlet/duel-rules/factionFamilyContract";
 import { encounterPresentation } from "@gauntlet/duel-rules/encounterContract";
+import { resolveCampaignFactionCards } from "@gauntlet/duel-rules/campaignDeckPlan";
 import "./AppLayouts.css";
 import { lazy, startTransition, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
@@ -2973,6 +2974,7 @@ function CampaignScreen({ manifest, onBack, onStartChapter, onEnableGuest, canPl
             chapterIndex={briefingChapterIndex}
             difficulty={encounterPresentation(briefingChapter, manifest).difficulty}
             complexity={encounterPresentation(briefingChapter, manifest).complexity}
+            factionCards={resolveCampaignFactionCards({ cards: manifest.cards, factionId: activeFactionId, chapterIndex: briefingChapterIndex, chapterCount: activeCampaign.chapters.length, explicitIds: briefingChapter.setup?.playerAdditions || [] })}
             unlocked={briefingUnlocked}
             completed={briefingCompleted}
             current={briefingChapterIndex === nextChapterIndex}

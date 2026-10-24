@@ -1,6 +1,7 @@
 const { handSize: configuredHandSize, SUITS: PLAYING_SUITS, VALUES: PLAYING_VALUES } = require("../shared/duel-rules/gameConfig");
 const encounterDefaults = require("./encounterDefinitions.json");
 const { campaignDifficulty } = require("../shared/duel-rules/encounterContract");
+const { resolveCampaignFactionCards } = require("../shared/duel-rules/campaignDeckPlan");
 const { cardEffect, hasCardEffect, cardParameter, factionMechanicId, factionParameter } = require("../shared/duel-rules/effectRegistry");
 const { resolvePrinting, canUsePrinting } = require("../shared/duel-rules/printings");
 const { resolveComposition, compositionPayload } = require("../shared/duel-rules/deckContract");
@@ -4916,8 +4917,10 @@ function getCampaignDifficulty(factionId, chapterId, setup) {
 function getCampaignDeckAdditions(factionId, chapterIndex, side = "player", setup, manifest = getPublicGameContent()) {
   const chapterId = manifest.campaigns[factionId]?.chapters[chapterIndex]?.id;
   const resolvedSetup = setup || getCampaignEncounterSetup(factionId, chapterId);
-  return (resolvedSetup?.[side === "player" ? "playerAdditions" : "bossAdditions"] || [])
-    .map((cardId) => manifest.cards.find(card => card.id === cardId)).filter(card => contentAvailable(card, "encounters"))
+  const chapters = manifest.campaigns[factionId]?.chapters || [];
+  const explicitIds = resolvedSetup?.[side === "player" ? "playerAdditions" : "bossAdditions"] || [];
+  return resolveCampaignFactionCards({ cards: manifest.cards, factionId, chapterIndex, chapterCount: chapters.length, explicitIds })
+    .filter(card => contentAvailable(card, "encounters"))
     .map((card) => getPlayableCollectionCard(card, { suit: card.suit, replacementSuit: card.suit }, manifest));
 }
 

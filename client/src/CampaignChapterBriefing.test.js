@@ -42,6 +42,10 @@ function renderBriefing(overrides = {}) {
     chapterIndex: 1,
     difficulty,
     complexity: ["Marcell adds a Senate pressure modifier."],
+    factionCards: [
+      { id: "rumin-scout", name: "Rumin Scout", value: 2, suit: "hearts" },
+      { id: "rumin-spear", name: "Dividend Yield Blade", value: 11, suit: "spades" }
+    ],
     unlocked: false,
     completed: false,
     current: false,
@@ -67,6 +71,10 @@ test("shows the complete source-grounded briefing while keeping a locked battle 
   expect(within(scene).getByText("The Senate Reformers")).toBeVisible();
   expect(screen.getByText("The Senate gathers.")).toBeVisible();
   expect(screen.getByText("Marcell adds a Senate pressure modifier.")).toBeVisible();
+  const factionCards = screen.getByRole("region", { name: "Faction cards in this battle" });
+  expect(within(factionCards).getByText("Rumin Scout")).toBeVisible();
+  expect(within(factionCards).getByText("J ♠")).toBeVisible();
+  expect(screen.getByText("2 in your deck")).toBeVisible();
   expect(screen.getByText("Clear Chapter 1 to unlock this battle.")).toBeVisible();
   expect(screen.getByText("Clear this chapter to unlock its outcome and closing dialogue.")).toBeVisible();
 
