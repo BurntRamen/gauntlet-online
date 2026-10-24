@@ -268,6 +268,22 @@ test("validates the authoritative versioned game content registry", () => {
   }
 });
 
+test("every campaign deploys faction cards and expands its arsenal across chapters", () => {
+  const content = getPublicGameContent();
+  for (const [factionId, campaign] of Object.entries(content.campaigns)) {
+    const first = __test.getCampaignDeckAdditions(factionId, 0, "player", campaign.chapters[0].setup, content);
+    const finalIndex = campaign.chapters.length - 1;
+    const final = __test.getCampaignDeckAdditions(factionId, finalIndex, "player", campaign.chapters[finalIndex].setup, content);
+    const boss = __test.getCampaignDeckAdditions(factionId, 0, "boss", campaign.chapters[0].setup, content);
+    assert.equal(first.length, 4, `${factionId}: opening player faction cards`);
+    assert.equal(boss.length, 4, `${factionId}: opening boss faction cards`);
+    assert.equal(final.length, 12, `${factionId}: final player faction cards`);
+    assert.equal(first.every((card) => card.factionId === factionId), true, `${factionId}: player card identity`);
+    assert.equal(boss.every((card) => card.factionId === factionId), true, `${factionId}: boss card identity`);
+    assert.equal(new Set(final.map((card) => `${card.suit}:${card.value}`)).size, final.length, `${factionId}: unique replacement slots`);
+  }
+});
+
 test("gives every playable faction a complete standard 52-card deck", () => {
   const factions = getPublicGameContent().factions;
   for (const faction of factions) {

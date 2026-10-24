@@ -42,6 +42,7 @@ export default function CampaignChapterBriefing({
   chapterIndex,
   difficulty,
   complexity = [],
+  factionCards = [],
   unlocked,
   completed,
   current,
@@ -135,8 +136,14 @@ export default function CampaignChapterBriefing({
             <div><dt>Boss life</dt><dd>{difficulty.bossLife}</dd></div>
             <div><dt>Attack tempo</dt><dd>{difficulty.attacksPerTurn} per turn</dd></div>
             <div><dt>Attack values</dt><dd>{difficulty.minAttackValue}–{difficulty.maxAttackValue}</dd></div>
+            <div><dt>Faction cards</dt><dd>{factionCards.length} in your deck</dd></div>
             <div><dt>First-clear reward</dt><dd>Faction pack credit</dd></div>
           </dl>
+          {factionCards.length > 0 && <section className="campaign-briefing-card-plan" aria-label="Faction cards in this battle">
+            <strong>Faction cards in this battle</strong>
+            <p>These replace matching cards in the standard 52-card deck. Later chapters add more of the faction’s arsenal.</p>
+            <ul>{factionCards.map((card) => <li key={card.id}><span>{card.name}</span><small>{card.value === 14 ? "A" : card.value === 13 ? "K" : card.value === 12 ? "Q" : card.value === 11 ? "J" : card.value} {({ spades: "♠", hearts: "♥", clubs: "♣", diamonds: "♦" })[card.suit] || card.suit}</small></li>)}</ul>
+          </section>}
           <div className="campaign-briefing-notes">
             <strong>Encounter notes</strong>
             {complexity.length > 0 ? complexity.map((note) => <p key={note}>{note}</p>) : <p>Core campaign rules; no additional advanced modifier is previewed for this chapter.</p>}
