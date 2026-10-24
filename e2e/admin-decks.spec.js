@@ -1,4 +1,5 @@
 const { test, expect } = require("./admin-release-test");
+const { waitForBufferedAdminResponse } = require("./buffered-admin-response");
 const fs = require("node:fs"), path = require("node:path"), { spawn } = require("node:child_process");
 const endpoint = `http://127.0.0.1:${process.env.GAUNTLET_ADMIN_FIXTURE_PORT || 4117}`, artifacts = path.resolve(__dirname, "../artifacts/purpose/browser");
 let root, child, finiteGold;
@@ -31,7 +32,7 @@ test("author, reopen, test, publish and buy a deck product; retain it across res
   await page.setViewportSize({ width: 390, height: 844 }); expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390); await page.screenshot({ path: path.join(artifacts, "deck-mobile.png") }); await page.setViewportSize({ width: 1440, height: 1000 });
   const testDeck = async () => {
     const harness = page.getByRole("region", { name: "Real engine playtest" }); await harness.getByLabel("Test content").selectOption("draft");
-    const started = page.waitForResponse(r => r.url().endsWith("/authoring/playtest")); await harness.getByRole("button", { name: "Start draft duel playtest" }).click(); const session = (await (await started).json()).playtest;
+    const started = waitForBufferedAdminResponse(page, r => r.url().endsWith("/authoring/playtest")); await harness.getByRole("button", { name: "Start draft duel playtest" }).click(); const session = (await (await started).json()).playtest;
     expect(session.subject.kind).toBe("deck"); expect(session.context.template.id).toBe(id);
     const pass = session.legalActions.find(action => action.type === "passPriority"); await harness.getByRole("combobox", { name: /^Action/ }).selectOption(pass.id);
     const executed = page.waitForResponse(r => r.url().endsWith("/playtest/command")); await harness.getByRole("button", { name: "Execute selected action" }).click(); expect((await executed).ok()).toBeTruthy();

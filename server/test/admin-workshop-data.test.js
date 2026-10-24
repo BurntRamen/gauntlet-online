@@ -12,7 +12,7 @@ test("workshop guidance mirrors deployed contracts and cannot be rewritten by dr
   const store = createContentPublication({ baseline, memory: true });
   const first = workshopMetadata(selectWorkshopSnapshot(store.status()));
   assert.deepEqual(first.cardEffects.map(row => row.id).sort(), baseline.domains.cards.map(row => row.effect.id).sort());
-  assert.equal(first.factionEffects.length, 14);
+  assert.equal(first.factionEffects.length, 16);
   assert.equal(first.bossAbilities.length, 6);
   assert.equal(first.gameConfig.startingLife, 42);
   assert.equal(first.gameConfig.handSize, 8);

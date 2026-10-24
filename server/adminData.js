@@ -100,7 +100,7 @@ function buildCatalog(runtime, resolved = null) {
       abilities: { factionCommands: duel.FACTION_ABILITY_INTENTS, constructedChoices: duel.CONSTRUCTED_CHOICE_INTENTS },
       abilitySource: "shared/duel-rules/index.js; passive effects dispatch through the finite effect registry. This list describes explicit choices, not every passive effect.",
       engineBoundary: "Socket.IO validates identity and commands in server/index.js. Shared duel rules apply supported two-player commands. Campaign scripts, automated turns, free-for-all, room creation and completion remain server-owned. The browser renders perspective projections; local practice also uses shared duel rules.",
-      enablement: "The registry has no global draft/published or enabled/disabled fields. XenDra is campaignOnly and excluded from normal faction selection; the other four factions are selectable. Campaign chapters unlock from account progression. Individual card behavior is implemented in code.",
+      enablement: "The registry has no global draft/published or enabled/disabled fields. All sixteen registered factions are available for normal faction selection and campaigns. Campaign chapters unlock from account progression. Individual card behavior is implemented in code.",
       season: runtime.season()
     },
     publishing: {

@@ -21,7 +21,8 @@ function resolveAssetFields(value, field = "", versions = [], releaseId = "") {
 }
 function cardPresentation(card, variant, sourceCard, sourceVariant, releaseId, versions = []) {
   const illustration = resolveAsset(variant?.art || manifest.illustrations[card.id], versions, releaseId);
-  const baked = card.name === sourceCard?.name && card.text === sourceCard?.text
+  const bakedFaces = ["spades", "hearts", "diamonds", "clubs"].map((suit) => manifest.faces[`${card.id}:${suit}`]);
+  const baked = bakedFaces.every(Boolean) && card.name === sourceCard?.name && card.text === sourceCard?.text
     && resolveAsset(variant?.art, versions, releaseId) === resolveAsset(sourceVariant?.art);
   const faces = Object.fromEntries(["spades", "hearts", "diamonds", "clubs"].map((suit) => [suit, baked ? resolveAsset(manifest.faces[`${card.id}:${suit}`]) : null]));
   return { releaseId, assetManifestVersion: manifest.version, illustration, faces, composed: !baked,

@@ -76,6 +76,14 @@ const crypto = require("crypto");
 const cors = require("cors");
 const { Server } = require("socket.io");
 const {
+  buildPasswordResetUrl,
+  createPasswordReset,
+  isValidEmail,
+  normalizeEmail,
+  passwordResetMatches,
+  sendPasswordResetEmail
+} = require("./accountRecovery");
+const {
   CARD_CONTENT_VERSION: DUEL_CARD_CONTENT_VERSION,
   COMMAND_SCHEMA_VERSION: DUEL_COMMAND_SCHEMA_VERSION,
   EVENT_SCHEMA_VERSION: DUEL_EVENT_SCHEMA_VERSION,
@@ -202,6 +210,11 @@ const COLLECTOR_ENTITLEMENT_SECRET = process.env.COLLECTOR_ENTITLEMENT_SECRET
   || crypto.createHmac("sha256", ACCOUNT_AUTH_SECRET).update("gauntlet.collector-entitlement.v1 signing key").digest("hex");
 const PUBLIC_CLIENT_URL = process.env.PUBLIC_CLIENT_URL
   || (CLIENT_URL.startsWith("https://") ? CLIENT_URL : "https://gauntlet-online.vercel.app");
+const RESEND_API_KEY = process.env.RESEND_API_KEY || "";
+const PASSWORD_RESET_FROM_EMAIL = process.env.PASSWORD_RESET_FROM_EMAIL || "";
+const FACE_CARD_VALUES = new Set([11, 12, 13, 14]);
+const FACE_CARD_ODDS = Object.freeze({ jack: 55, queen: 20, king: 20, ace: 5 });
+let passwordResetMailer = sendPasswordResetEmail;
 
 const localMatchStore = createLocalMatchStore(MATCH_DATA_FILE);
 const matchArchive = createMatchArchive({
@@ -320,6 +333,7 @@ function createAuthRateLimiter({ event, windowMs, maxAttempts }) {
 
 const registerRateLimit = createAuthRateLimiter({ event: "register_rejected", windowMs: 15 * 60 * 1000, maxAttempts: 5 });
 const loginRateLimit = createAuthRateLimiter({ event: "login_rejected", windowMs: 15 * 60 * 1000, maxAttempts: 10 });
+const passwordResetRateLimit = createAuthRateLimiter({ event: "password_reset_rejected", windowMs: 15 * 60 * 1000, maxAttempts: 5 });
 
 app.get("/", (_req, res) => {
   res.send("Gauntlet server is running.");
@@ -346,6 +360,7 @@ app.get("/api/storage-status", async (_req, res) => {
       matchArchive: archiveStorage,
       paraLeague: { enabled: !!paraRuntime?.enabled },
       goldEconomy: { enabled: !!goldEconomy?.enabled, openingBalancePolicy: process.env.GAUNTLET_GOLD_MIGRATION === "legacy-opening-v1" ? "legacy-opening-v1" : "disabled" },
+      passwordResetEmailConfigured: Boolean(RESEND_API_KEY && PASSWORD_RESET_FROM_EMAIL),
       supabaseConfigured: !!(SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY)
     });
   } catch (error) {
@@ -506,11 +521,12 @@ const BOOSTER_PRODUCTS = {
     setName: "Initiative",
     productType: "earned-gameplay-pack",
     pool: "all-factions",
-    cardCount: 12,
+    cardCount: 17,
     artPath: "/assets/gauntlet/packs/initiative-set-1-suits.png",
     guaranteedFactionIds: [...new Set(COLLECTION_CARDS.filter((card) => card.factionId !== NEUTRAL_FACTION_ID).map((card) => card.factionId))],
-    slots: ["common", "common", "common", "common", "common", "common", "uncommon", "uncommon", "uncommon", "rare", "rare", "wild"],
-    description: "A 12-card free-play reward with at least one gameplay card from every faction that has a constructed catalog."
+    slots: [...Array(16).fill("common"), "face"],
+    faceCardOdds: FACE_CARD_ODDS,
+    description: "A 17-card free-play reward with every catalog faction represented and one guaranteed face card (J, Q, K, or A)."
   },
   "rumin-foundation": {
     id: "rumin-foundation",
@@ -521,8 +537,9 @@ const BOOSTER_PRODUCTS = {
     setName: "Initiative",
     factionId: "rumin",
     cardCount: 8,
-    slots: ["common", "common", "common", "common", "uncommon", "uncommon", "rare", "wild"],
-    description: "A free-play reward containing gameplay unlocks. Earn credits through first-time campaign clears."
+    slots: ["common", "common", "common", "uncommon", "uncommon", "rare", "wild", "face"],
+    faceCardOdds: FACE_CARD_ODDS,
+    description: "A free-play reward with one guaranteed face card. Earn credits through first-time campaign clears."
   },
   "sheen-foundation": {
     id: "sheen-foundation",
@@ -533,8 +550,9 @@ const BOOSTER_PRODUCTS = {
     setName: "Initiative",
     factionId: "sheen",
     cardCount: 8,
-    slots: ["common", "common", "common", "common", "uncommon", "uncommon", "rare", "wild"],
-    description: "A free-play reward containing gameplay unlocks. Earn credits through first-time campaign clears."
+    slots: ["common", "common", "common", "uncommon", "uncommon", "rare", "wild", "face"],
+    faceCardOdds: FACE_CARD_ODDS,
+    description: "A free-play reward with one guaranteed face card. Earn credits through first-time campaign clears."
   },
   "frumo-foundation": {
     id: "frumo-foundation",
@@ -545,8 +563,9 @@ const BOOSTER_PRODUCTS = {
     setName: "Initiative",
     factionId: "frumo",
     cardCount: 8,
-    slots: ["common", "common", "common", "common", "uncommon", "uncommon", "rare", "wild"],
-    description: "A free-play reward containing gameplay unlocks. Earn credits through first-time campaign clears."
+    slots: ["common", "common", "common", "uncommon", "uncommon", "rare", "wild", "face"],
+    faceCardOdds: FACE_CARD_ODDS,
+    description: "A free-play reward with one guaranteed face card. Earn credits through first-time campaign clears."
   },
   "bizi-foundation": {
     id: "bizi-foundation",
@@ -557,8 +576,9 @@ const BOOSTER_PRODUCTS = {
     setName: "Initiative",
     factionId: "bizi",
     cardCount: 8,
-    slots: ["common", "common", "common", "common", "uncommon", "uncommon", "rare", "wild"],
-    description: "A free-play reward containing gameplay unlocks. Earn credits through first-time campaign clears."
+    slots: ["common", "common", "common", "uncommon", "uncommon", "rare", "wild", "face"],
+    faceCardOdds: FACE_CARD_ODDS,
+    description: "A free-play reward with one guaranteed face card. Earn credits through first-time campaign clears."
   },
   "zynarth-foundation": {
     id: "zynarth-foundation",
@@ -569,8 +589,9 @@ const BOOSTER_PRODUCTS = {
     setName: "Reath Beyond",
     factionId: "zynarth",
     cardCount: 8,
-    slots: ["common", "common", "common", "common", "uncommon", "uncommon", "rare", "wild"],
-    description: "A seeded Zynarth reward containing gameplay unlocks. Earn credits through first-time campaign clears."
+    slots: ["common", "common", "common", "uncommon", "uncommon", "rare", "wild", "face"],
+    faceCardOdds: FACE_CARD_ODDS,
+    description: "A seeded Zynarth reward with one guaranteed face card. Earn credits through first-time campaign clears."
   },
   "astral-vanguard-foundation": {
     id: "astral-vanguard-foundation",
@@ -581,8 +602,9 @@ const BOOSTER_PRODUCTS = {
     setName: "Reath Beyond",
     factionId: "astral-vanguard",
     cardCount: 8,
-    slots: ["common", "common", "common", "common", "uncommon", "uncommon", "rare", "wild"],
-    description: "A seeded Astral Vanguard reward containing gameplay unlocks. Earn credits through first-time campaign clears."
+    slots: ["common", "common", "common", "uncommon", "uncommon", "rare", "wild", "face"],
+    faceCardOdds: FACE_CARD_ODDS,
+    description: "A seeded Astral Vanguard reward with one guaranteed face card. Earn credits through first-time campaign clears."
   },
   "indela-foundation": {
     id: "indela-foundation",
@@ -593,10 +615,33 @@ const BOOSTER_PRODUCTS = {
     setName: "Legacies",
     factionId: "indela",
     cardCount: 8,
-    slots: ["common", "common", "common", "common", "uncommon", "uncommon", "rare", "wild"],
-    description: "A seeded Indela reward containing gameplay unlocks. Earn credits through first-time campaign clears."
+    slots: ["common", "common", "common", "uncommon", "uncommon", "rare", "wild", "face"],
+    faceCardOdds: FACE_CARD_ODDS,
+    description: "A seeded Indela reward with one guaranteed face card. Earn credits through first-time campaign clears."
   }
 };
+
+// Every playable faction has a seeded earned pack. Existing named packs retain
+// their release metadata; newly completed catalogs inherit the set that owns
+// the faction, including the playable Voltari and XenDra Convergence set.
+for (const faction of listFactions()) {
+  const packId = `${faction.id}-foundation`;
+  if (BOOSTER_PRODUCTS[packId]) continue;
+  const set = DRAFT_SETS.find((entry) => entry.factionIds.includes(faction.id));
+  BOOSTER_PRODUCTS[packId] = {
+    id: packId,
+    name: `${faction.name} Foundation Pack`,
+    productType: "earned-gameplay-pack",
+    setId: set?.id || "convergence",
+    setNumber: set?.number || 5,
+    setName: set?.name || "Convergence",
+    factionId: faction.id,
+    cardCount: 8,
+    slots: ["common", "common", "common", "uncommon", "uncommon", "rare", "wild", "face"],
+    faceCardOdds: FACE_CARD_ODDS,
+    description: `A seeded ${faction.name} reward with one guaranteed face card. Earn credits through first-time campaign clears.`
+  };
+}
 
 const FACTION_COLLECTOR_PACK_PRODUCTS = Object.fromEntries(Object.values(BOOSTER_PRODUCTS).filter((pack) => pack.factionId).map((pack) => {
   const id = `${pack.factionId}-collector`;
@@ -1759,6 +1804,7 @@ function publicAccountProfile(account) {
 
 function publicAccountStats(stats = {}) {
   if (!stats || typeof stats !== "object") return {};
+  const { privateIdentity: _privateIdentity, ...publicStats } = stats;
   const profile = stats.profile && typeof stats.profile === "object" ? { ...stats.profile } : null;
   const economy = normalizeEconomy(stats);
   delete economy.purchaseReceipts;
@@ -1766,8 +1812,17 @@ function publicAccountStats(stats = {}) {
     const { inlineData: _privatePortraitBytes, ...avatar } = profile.avatar;
     profile.avatar = avatar;
   }
-  const { _accountRevision, operatorAudit: _privateOperatorAudit, ledgerProjection: _privateLedgerProjection, accountCommerce: _privateCommerce, equipment: _privateEquipment, ...visible } = stats;
+  const { _accountRevision, operatorAudit: _privateOperatorAudit, ledgerProjection: _privateLedgerProjection, accountCommerce: _privateCommerce, equipment: _privateEquipment, ...visible } = publicStats;
   return profile ? { ...visible, profile, economy } : { ...visible, economy };
+}
+
+function normalizePrivateIdentity(stats = {}) {
+  const stored = stats.privateIdentity && typeof stats.privateIdentity === "object" ? stats.privateIdentity : {};
+  return {
+    ...stored,
+    email: isValidEmail(stored.email) ? normalizeEmail(stored.email) : "",
+    authVersion: Math.max(1, Number(stored.authVersion) || 1)
+  };
 }
 
 function economySummary(stats = {}) {
@@ -1793,6 +1848,7 @@ function publicAccount(account) {
     name: account.name,
     createdAt: account.createdAt,
     lastLoginAt: account.lastLoginAt || null,
+    identity: { recoveryEmailConfigured: Boolean(normalizePrivateIdentity(stats).email) },
     profile,
     stats: { ...visible, economy },
     economy,
@@ -1824,15 +1880,52 @@ function publicFriendMessage(message) {
 }
 
 function issueAccountSession(account, now = Date.now()) {
+  const authVersion = normalizePrivateIdentity(account.stats || {}).authVersion;
   return {
-    token: signAuthPayload({ id: account.id, name: account.name, iat: now, exp: now + ACCOUNT_SESSION_TTL_MS }),
+    token: signAuthPayload({ id: account.id, name: account.name, av: authVersion, iat: now, exp: now + ACCOUNT_SESSION_TTL_MS }),
     account: publicAccount(account)
   };
+}
+
+function isAccountSessionCurrent(account, payload) {
+  return normalizePrivateIdentity(account?.stats || {}).authVersion === Math.max(1, Number(payload?.av) || 1);
 }
 
 function findAccountByName(store, name) {
   const key = accountNameKey(name);
   return store.accounts.find((account) => account.nameKey === key) || null;
+}
+
+function findAccountByEmail(accounts, email) {
+  const key = normalizeEmail(email);
+  return accounts.find((account) => normalizePrivateIdentity(account.stats || {}).email === key) || null;
+}
+
+async function listAccountRecords() {
+  if (useSupabaseStore()) {
+    return (await supabaseRequest("gauntlet_accounts?select=*")).map(accountFromSupabaseRow);
+  }
+  return loadAccountStore().accounts;
+}
+
+async function persistAccountIdentity(account) {
+  if (useSupabaseStore()) {
+    await patchSupabaseAccount(account.id, {
+      stats: account.stats,
+      password_salt: account.passwordSalt,
+      password_hash: account.passwordHash,
+      last_seen_at: new Date().toISOString()
+    });
+    return;
+  }
+  const store = loadAccountStore();
+  const stored = store.accounts.find((entry) => entry.id === account.id);
+  if (!stored) throw new Error("Account not found.");
+  stored.stats = account.stats;
+  stored.passwordSalt = account.passwordSalt;
+  stored.passwordHash = account.passwordHash;
+  stored.lastSeenAt = new Date().toISOString();
+  saveAccountStore(store);
 }
 
 function useSupabaseStore() {
@@ -2474,21 +2567,28 @@ async function patchSupabaseAccount(id, patch) {
 async function getAccountFromToken(token) {
   const payload = verifyAuthToken(token);
   if (!payload) return null;
-  if (useSupabaseStore()) return publicAccount(await findSupabaseAccountById(payload.id));
+  if (useSupabaseStore()) {
+    const account = await findSupabaseAccountById(payload.id);
+    return account && isAccountSessionCurrent(account, payload) ? publicAccount(account) : null;
+  }
 
   const store = loadAccountStore();
   const account = store.accounts.find((entry) => entry.id === payload.id);
-  if (!account) return null;
+  if (!account || !isAccountSessionCurrent(account, payload)) return null;
   return publicAccount(account);
 }
 
 async function getAccountRecordFromToken(token) {
   const payload = verifyAuthToken(token);
   if (!payload) return null;
-  if (useSupabaseStore()) return findSupabaseAccountById(payload.id);
+  if (useSupabaseStore()) {
+    const account = await findSupabaseAccountById(payload.id);
+    return account && isAccountSessionCurrent(account, payload) ? account : null;
+  }
 
   const store = loadAccountStore();
-  return store.accounts.find((entry) => entry.id === payload.id) || null;
+  const account = store.accounts.find((entry) => entry.id === payload.id) || null;
+  return account && isAccountSessionCurrent(account, payload) ? account : null;
 }
 
 async function getAccountStatsById(accountId) {
@@ -2509,7 +2609,7 @@ async function requireAccountRecord(req, res) {
 
   if (useSupabaseStore()) {
     const account = await findSupabaseAccountById(payload.id);
-    if (!account) {
+    if (!account || !isAccountSessionCurrent(account, payload)) {
       res.status(401).json({ error: "Not signed in." });
       return null;
     }
@@ -2518,7 +2618,7 @@ async function requireAccountRecord(req, res) {
 
   const store = loadAccountStore();
   const account = store.accounts.find((entry) => entry.id === payload.id);
-  if (!account) {
+  if (!account || !isAccountSessionCurrent(account, payload)) {
     res.status(401).json({ error: "Not signed in." });
     return null;
   }
@@ -3171,6 +3271,7 @@ function getDraftLeagueProfile(account) {
 }
 
 function pickCollectionCard(factionId, rarity, manifest = getPublicGameContent(), channel = "earnedPacks", setId = null) {
+  manifest ||= getPublicGameContent();
   const cardPool = cardsFor(manifest, channel, { factionId, rarity, setId });
   if (cardPool.length === 0) return null;
   return getPlayableCollectionCard(cardPool[crypto.randomInt(cardPool.length)], {}, manifest);
@@ -3181,6 +3282,34 @@ function pickCollectionCardFromPool(rarity) {
   const cardPool = cardsFor(manifest, "earnedPacks", { rarity }).filter((card) => card.factionId !== NEUTRAL_FACTION_ID);
   if (cardPool.length === 0) return null;
   return getPlayableCollectionCard(cardPool[crypto.randomInt(cardPool.length)], {}, manifest);
+}
+
+function resolveFaceCardValue(randomInt = crypto.randomInt) {
+  const roll = randomInt(100);
+  if (roll < FACE_CARD_ODDS.jack) return 11;
+  if (roll < FACE_CARD_ODDS.jack + FACE_CARD_ODDS.queen) return 12;
+  if (roll < FACE_CARD_ODDS.jack + FACE_CARD_ODDS.queen + FACE_CARD_ODDS.king) return 13;
+  return 14;
+}
+
+function pickFaceCard(factionId = null, manifest = null, randomInt = crypto.randomInt) {
+  manifest ||= getPublicGameContent();
+  const value = resolveFaceCardValue(randomInt);
+  const cardPool = COLLECTION_CARDS.filter((card) => (
+    card.factionId !== NEUTRAL_FACTION_ID
+    && (!factionId || card.factionId === factionId)
+    && FACE_CARD_VALUES.has(Number(card.value))
+    && card.value === value
+  ));
+  if (cardPool.length === 0) return null;
+  return getPlayableCollectionCard(cardPool[randomInt(cardPool.length)], {}, manifest);
+}
+
+function pickBoosterCard(factionId, slot, manifest = null) {
+  if (slot === "face") return pickFaceCard(factionId, manifest);
+  return factionId
+    ? pickCollectionCard(factionId, resolveBoosterSlot(slot), manifest)
+    : pickCollectionCardFromPool(resolveBoosterSlot(slot));
 }
 
 function resolveBoosterSlot(slot) {
@@ -3204,11 +3333,11 @@ function openCollectionBooster(stats, packId) {
       .filter(Boolean);
     const remainingSlots = pack.slots.slice(guaranteedFactions.length);
     openedCards = guaranteedCards.concat(remainingSlots
-      .map((slot) => pickCollectionCardFromPool(resolveBoosterSlot(slot)))
+      .map((slot) => pickBoosterCard(null, slot))
       .filter(Boolean));
   } else {
     openedCards = pack.slots
-      .map((slot) => pickCollectionCard(pack.factionId, resolveBoosterSlot(slot)))
+      .map((slot) => pickBoosterCard(pack.factionId, slot))
       .filter(Boolean);
   }
 
@@ -3664,6 +3793,7 @@ app.get("/api/profiles/:accountId/avatar", async (req, res) => {
 app.post("/api/auth/register", registerRateLimit, async (req, res) => {
   const name = normalizeAccountName(req.body?.name);
   const password = String(req.body?.password || "");
+  const email = normalizeEmail(req.body?.email);
 
   if (!isValidAccountName(name)) {
     logAuthFailure("register_rejected", req, { accountName: name, reason: "invalid_name" });
@@ -3673,6 +3803,11 @@ app.post("/api/auth/register", registerRateLimit, async (req, res) => {
   if (password.length < 8) {
     logAuthFailure("register_rejected", req, { accountName: name, reason: "invalid_password_length" });
     res.status(400).json({ error: "Password must be at least 8 characters." });
+    return;
+  }
+  if (email && !isValidEmail(email)) {
+    logAuthFailure("register_rejected", req, { accountName: name, reason: "invalid_email" });
+    res.status(400).json({ error: "Enter a valid recovery email address." });
     return;
   }
 
@@ -3689,7 +3824,14 @@ app.post("/api/auth/register", registerRateLimit, async (req, res) => {
     lastSeenAt: now,
     friends: [],
     messages: [],
-    stats: { gamesCreated: 0, gamesJoined: 0, gamesSpectated: 0, progression: emptyProgression(), collection: emptyCollection() }
+    stats: {
+      gamesCreated: 0,
+      gamesJoined: 0,
+      gamesSpectated: 0,
+      progression: emptyProgression(),
+      collection: emptyCollection(),
+      ...(email ? { privateIdentity: { email, authVersion: 1, emailUpdatedAt: now } } : {})
+    }
   };
 
   try {
@@ -3697,6 +3839,11 @@ app.post("/api/auth/register", registerRateLimit, async (req, res) => {
       if (await findSupabaseAccountByName(name)) {
         logAuthFailure("register_rejected", req, { accountName: name, reason: "name_taken" });
         res.status(409).json({ error: "That account name is already taken." });
+        return;
+      }
+      if (email && findAccountByEmail(await listAccountRecords(), email)) {
+        logAuthFailure("register_rejected", req, { accountName: name, reason: "email_taken" });
+        res.status(409).json({ error: "That recovery email is already attached to an account." });
         return;
       }
       await supabaseRequest("gauntlet_accounts", {
@@ -3721,6 +3868,11 @@ app.post("/api/auth/register", registerRateLimit, async (req, res) => {
         res.status(409).json({ error: "That account name is already taken." });
         return;
       }
+      if (email && findAccountByEmail(store.accounts, email)) {
+        logAuthFailure("register_rejected", req, { accountName: name, reason: "email_taken" });
+        res.status(409).json({ error: "That recovery email is already attached to an account." });
+        return;
+      }
       store.accounts.push(account);
       saveAccountStore(store);
     }
@@ -3730,6 +3882,78 @@ app.post("/api/auth/register", registerRateLimit, async (req, res) => {
     logAuthFailure("register_failed", req, { accountName: name, reason: "storage_error" });
     console.error("[Accounts] Register failed", error);
     res.status(500).json({ error: "Could not create account." });
+  }
+});
+
+app.post("/api/auth/password-reset/request", passwordResetRateLimit, async (req, res) => {
+  const email = normalizeEmail(req.body?.email);
+  const genericResponse = { message: "If that email is attached to a Gauntlet account, a recovery link is on its way." };
+  if (!isValidEmail(email)) {
+    res.json(genericResponse);
+    return;
+  }
+
+  try {
+    const account = findAccountByEmail(await listAccountRecords(), email);
+    if (!account) {
+      res.json(genericResponse);
+      return;
+    }
+    const reset = createPasswordReset();
+    const identity = normalizePrivateIdentity(account.stats || {});
+    account.stats = account.stats || {};
+    account.stats.privateIdentity = {
+      ...identity,
+      passwordResetTokenHash: reset.tokenHash,
+      passwordResetRequestedAt: reset.requestedAt,
+      passwordResetExpiresAt: reset.expiresAt
+    };
+    await persistAccountIdentity(account);
+    await passwordResetMailer({
+      apiKey: RESEND_API_KEY,
+      fromEmail: PASSWORD_RESET_FROM_EMAIL,
+      toEmail: identity.email,
+      accountName: account.name,
+      resetUrl: buildPasswordResetUrl(PUBLIC_CLIENT_URL, reset.token)
+    });
+  } catch (error) {
+    console.error("[Accounts] Password reset request could not be delivered", { message: error.message });
+  }
+  res.json(genericResponse);
+});
+
+app.post("/api/auth/password-reset/confirm", passwordResetRateLimit, async (req, res) => {
+  const token = String(req.body?.token || "");
+  const password = String(req.body?.password || "");
+  if (password.length < 8) {
+    res.status(400).json({ error: "Password must be at least 8 characters." });
+    return;
+  }
+
+  try {
+    const accounts = await listAccountRecords();
+    const account = accounts.find((entry) => passwordResetMatches(normalizePrivateIdentity(entry.stats || {}), token));
+    if (!account) {
+      res.status(400).json({ error: "That password-reset link is invalid or has expired." });
+      return;
+    }
+    const passwordResult = hashPassword(password);
+    const identity = normalizePrivateIdentity(account.stats || {});
+    const now = new Date().toISOString();
+    account.passwordSalt = passwordResult.salt;
+    account.passwordHash = passwordResult.hash;
+    account.stats = account.stats || {};
+    account.stats.privateIdentity = {
+      email: identity.email,
+      authVersion: identity.authVersion + 1,
+      emailUpdatedAt: identity.emailUpdatedAt || now,
+      passwordChangedAt: now
+    };
+    await persistAccountIdentity(account);
+    res.json({ message: "Password updated. You can sign in with your new password." });
+  } catch (error) {
+    console.error("[Accounts] Password reset failed", { message: error.message });
+    res.status(503).json({ error: "Password reset is temporarily unavailable." });
   }
 });
 
@@ -3778,6 +4002,38 @@ app.get("/api/auth/me", async (req, res) => {
     return;
   }
   res.json({ account });
+});
+
+app.patch("/api/account/recovery-email", passwordResetRateLimit, async (req, res) => {
+  const context = await requireAccountRecord(req, res);
+  if (!context) return;
+  const email = normalizeEmail(req.body?.email);
+  if (!isValidEmail(email)) {
+    res.status(400).json({ error: "Enter a valid recovery email address." });
+    return;
+  }
+  try {
+    const existing = findAccountByEmail(await listAccountRecords(), email);
+    if (existing && existing.id !== context.account.id) {
+      res.status(409).json({ error: "That recovery email is already attached to an account." });
+      return;
+    }
+    const identity = normalizePrivateIdentity(context.account.stats || {});
+    context.account.stats = context.account.stats || {};
+    context.account.stats.privateIdentity = {
+      ...identity,
+      email,
+      emailUpdatedAt: new Date().toISOString(),
+      passwordResetTokenHash: undefined,
+      passwordResetRequestedAt: undefined,
+      passwordResetExpiresAt: undefined
+    };
+    await persistAccountIdentity(context.account);
+    res.json({ account: publicAccount(context.account), message: "Recovery email saved." });
+  } catch (error) {
+    console.error("[Accounts] Recovery email update failed", { accountId: context.account.id, message: error.message });
+    res.status(503).json({ error: "Recovery email could not be saved." });
+  }
 });
 
 app.get("/api/events", (_req, res) => {

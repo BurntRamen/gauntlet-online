@@ -90,7 +90,9 @@ async function main() {
   const directory = path.join(publicRoot, "assets/gauntlet/constructed/faces");
   fs.mkdirSync(directory, { recursive: true });
   const catalog = [];
-  const selected = process.argv[2] === "--faction"
+  const selected = process.argv[2] === "--face-cards"
+    ? COLLECTION_CARDS.filter((card) => Number(card.value) >= 11)
+    : process.argv[2] === "--faction"
     ? COLLECTION_CARDS.filter((card) => card.factionId === process.argv[3])
     : process.argv[2] ? COLLECTION_CARDS.filter((card) => card.id === process.argv[2]) : COLLECTION_CARDS;
   if (!selected.length) throw new Error("Unknown card ID or faction");

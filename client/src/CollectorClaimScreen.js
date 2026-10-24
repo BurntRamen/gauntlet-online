@@ -109,6 +109,13 @@ export default function CollectorClaimScreen({
                 placeholder="Account name"
                 autoComplete="username"
               />
+              {authMode === "register" && <input
+                value={authForm.email}
+                onChange={(event) => onAuthFormChange({ ...authForm, email: event.target.value })}
+                placeholder="Recovery email (optional)"
+                type="email"
+                autoComplete="email"
+              />}
               <input
                 value={authForm.password}
                 onChange={(event) => onAuthFormChange({ ...authForm, password: event.target.value })}

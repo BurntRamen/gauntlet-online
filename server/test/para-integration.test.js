@@ -95,8 +95,8 @@ test("official faction decks use the equal published pool; forged cards and dupl
   const b = (await api("/api/para/enroll", { eventId: event.id, acceptedRules: state.activeReleaseId, eligibilityConfirmed: true }, 3)).data;
   const pool = (await api("/api/para/pool", { eventId: event.id }, 2)).data.cards;
   const card = pool.find((c) => c.factionId === "rumin");
-  const campaignOnly = await new Promise((r) => sockets[0].emit("joinParaQueue", { authToken: tokens[2], attemptId: a.id, factionId: "xendra", cards: [] }, r));
-  assert.match(campaignOnly.error, /legal faction/);
+  const unknownFaction = await new Promise((r) => sockets[0].emit("joinParaQueue", { authToken: tokens[2], attemptId: a.id, factionId: "unknown", cards: [] }, r));
+  assert.match(unknownFaction.error, /legal faction/);
   const join = (socket, token, attemptId, cards) => new Promise((r) => socket.emit("joinParaQueue", { authToken: token, attemptId, factionId: "rumin", cards }, r));
   assert.match((await join(sockets[0], tokens[2], a.id, [{ id: "forged", suit: "hearts" }])).error, /equal official pool/);
   const cards = [{ id: card.id, suit: "hearts" }];

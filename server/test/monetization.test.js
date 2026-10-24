@@ -2,6 +2,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 
 const { getLegalActions } = require("../../shared/duel-rules");
+const { cardEffectDefinitions, defaultCardEffect } = require("../../shared/duel-rules/effectRegistry");
 const {
   COLLECTOR_VARIANT_MECHANICAL_FIELDS,
   COLLECTOR_VARIANTS,
@@ -97,7 +98,7 @@ function makeSemanticGame(card) {
 }
 
 test("every competitive gameplay definition has a free acquisition path and free default presentation", () => {
-  assert.equal(COLLECTION_CARDS.length, 144);
+  assert.equal(COLLECTION_CARDS.length, 644);
   for (const card of COLLECTION_CARDS) {
     assert.equal(card.gameplayCardId, card.id);
     assert.equal(card.freeAcquisition, FREE_GAMEPLAY_ACQUISITION);
@@ -112,6 +113,23 @@ test("every competitive gameplay definition has a free acquisition path and free
     && variant.motionProfile === "living-foil-v1"
     && typeof variant.animationStyle === "string"
   )), true);
+});
+
+test("every catalog faction covers 2 through ace with the shared face-card rarity ladder", () => {
+  const expectedValues = Array.from({ length: 13 }, (_, index) => index + 2);
+  const expectedFaceRarities = { 11: "uncommon", 12: "rare", 13: "rare", 14: "mythic" };
+  const effectDefinitions = new Map(cardEffectDefinitions().map((entry) => [entry.id, entry]));
+  for (const factionId of [...new Set(COLLECTION_CARDS.map((card) => card.factionId))]) {
+    const factionCards = COLLECTION_CARDS.filter((card) => card.factionId === factionId);
+    assert.deepEqual([...new Set(factionCards.map((card) => card.value))].sort((a, b) => a - b), expectedValues);
+    for (const [value, rarity] of Object.entries(expectedFaceRarities)) {
+      const faceCard = factionCards.find((card) => card.value === Number(value));
+      assert.equal(faceCard.rarity, rarity, `${factionId} ${value} rarity`);
+      const effect = defaultCardEffect(faceCard.id);
+      assert.equal(effectDefinitions.get(effect.id).handler, "printed-value-only", `${faceCard.id} effect contract`);
+      assert.deepEqual(effect.parameters, {}, `${faceCard.id} has no unimplemented parameters`);
+    }
+  }
 });
 
 test("collector variants cannot contain mechanical overrides or unknown gameplay references", () => {
@@ -275,6 +293,7 @@ test("earned gameplay packs change free entitlement while collector grants do no
   assert.equal(opened.length, 8);
   assert.equal(Object.values(earnedCollection.gameplayEntitlements).reduce((sum, count) => sum + count, 0), 8 + NEUTRAL_COLLECTION_CARDS.length);
   assert.equal(opened.every((card) => card.acquisition === FREE_GAMEPLAY_ACQUISITION), true);
+  assert.equal(opened.filter((card) => card.value >= 11).length >= 1, true);
   assert.equal(earnedCollection.packCredits, 0);
   assert.equal(earnedCollection.openedGameplayPacks, 1);
 
@@ -289,19 +308,21 @@ test("earned gameplay packs change free entitlement while collector grants do no
   assert.equal(collectorStats.collection.openedGameplayPacks, 0);
 });
 
-test("Initiative packs include every catalog faction and keep faction packs seeded", () => {
+test("all-faction packs include every playable faction and keep faction packs seeded", () => {
   const initiativeStats = { collection: { packCredits: 1 } };
   const initiativeCards = openCollectionBooster(initiativeStats, "initiative-all-factions");
-  assert.equal(initiativeCards.length, 12);
+  assert.equal(initiativeCards.length, 17);
+  assert.equal(initiativeCards.filter((card) => card.value >= 11).length >= 1, true);
   assert.deepEqual(
     [...new Set(initiativeCards.map((card) => card.factionId))].sort(),
-    ["astral-vanguard", "bizi", "frumo", "indela", "rumin", "sheen", "zynarth"]
+    ["astral-vanguard", "bizi", "frumo", "gracus", "indela", "ingles", "jali", "mekan", "mercaw", "mtano", "rumin", "russo", "sheen", "voltari", "xendra", "zynarth"]
   );
 
   const zynarthStats = { collection: { packCredits: 1 } };
   const zynarthCards = openCollectionBooster(zynarthStats, "zynarth-foundation");
   assert.equal(zynarthCards.length, 8);
   assert.equal(zynarthCards.every((card) => card.factionId === "zynarth"), true);
+  assert.equal(zynarthCards.some((card) => card.value >= 11), true);
 
   const astralStats = { collection: { packCredits: 1 } };
   const astralCards = openCollectionBooster(astralStats, "astral-vanguard-foundation");
@@ -312,6 +333,14 @@ test("Initiative packs include every catalog faction and keep faction packs seed
   const indelaCards = openCollectionBooster(indelaStats, "indela-foundation");
   assert.equal(indelaCards.length, 8);
   assert.equal(indelaCards.every((card) => card.factionId === "indela"), true);
+
+  for (const factionId of ["mekan", "jali", "gracus", "voltari", "xendra", "ingles", "mercaw", "mtano", "russo"]) {
+    const stats = { collection: { packCredits: 1 } };
+    const cards = openCollectionBooster(stats, `${factionId}-foundation`);
+    assert.equal(cards.length, 8, factionId);
+    assert.equal(cards.every((card) => card.factionId === factionId), true, factionId);
+    assert.equal(cards.some((card) => card.value >= 11), true, `${factionId}: guaranteed face`);
+  }
 });
 
 test("a physical collector entitlement changes presentation provenance but no competitive capability", () => {

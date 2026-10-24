@@ -6,7 +6,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const crypto = require("node:crypto");
 const sharp = require("sharp");
-const { COLLECTION_CARDS, COLLECTOR_VARIANTS } = require("../server/gameContent");
+const { COLLECTION_CARDS, COLLECTOR_VARIANTS, FULL_FACTION_COLLECTIONS } = require("../server/gameContent");
 const { buildConstructedCardArtInventory } = require("./report-constructed-card-art");
 
 test("constructed-card art inventory follows the collector variant contract", () => {
@@ -23,20 +23,28 @@ test("constructed-card art inventory follows the collector variant contract", ()
   }
 
   const biziCards = inventory.cards.filter((card) => card.faction === "bizi");
-  assert.equal(biziCards.length, 18);
+  assert.equal(biziCards.length, 22);
   assert.equal(biziCards.every((card) => (
     card.currentArt.standard?.startsWith("/assets/gauntlet/constructed/bizi/")
     && card.currentArt.standard === card.currentArt.collector
   )), true);
 });
 
-test("every custom card has a unique illustration and four distinct full-art suit faces", async () => {
+test("established cards retain unique baked art while complete catalogs use valid composed faces", async () => {
   const hashes = new Set();
   const faceHashes = new Set();
+  const composedIds = new Set(Object.values(FULL_FACTION_COLLECTIONS).flat().map((card) => card.id));
   const publicRoot = path.resolve(__dirname, "../client/public");
   for (const card of COLLECTION_CARDS) {
     const variant = COLLECTOR_VARIANTS.find((entry) => entry.gameplayCardId === card.id && !entry.paid);
-    assert.ok(variant.art, `${card.id} has dedicated artwork`);
+    assert.ok(variant.art, `${card.id} has artwork`);
+    assert.ok(fs.existsSync(path.join(publicRoot, variant.art)), `${card.id} art exists`);
+    if (composedIds.has(card.id)) {
+      for (const suit of ["spades", "hearts", "diamonds", "clubs"]) {
+        assert.equal(fs.existsSync(path.join(publicRoot, `assets/gauntlet/constructed/faces/${card.id}-${suit}.webp`)), false, `${card.id}: ${suit} composes at runtime`);
+      }
+      continue;
+    }
     const digest = crypto.createHash("sha256").update(fs.readFileSync(path.join(publicRoot, variant.art))).digest("hex");
     assert.ok(!hashes.has(digest), `${card.id} must not reuse another card's illustration`);
     hashes.add(digest);

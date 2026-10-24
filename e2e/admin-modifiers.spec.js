@@ -1,4 +1,5 @@
 const { test, expect } = require("./admin-release-test");
+const { waitForBufferedAdminResponse } = require("./buffered-admin-response");
 const fs = require("node:fs"), path = require("node:path"), { origin } = require("./admin-urls");
 test("operator creates, tests, assigns and publishes a reusable campaign modifier", async ({ page, request }) => {
   test.setTimeout(180000);
@@ -10,17 +11,17 @@ test("operator creates, tests, assigns and publishes a reusable campaign modifie
   await page.getByLabel("Modifier name", { exact: true }).fill("Browser campaign challenge");
   await page.getByLabel("Player starting life", { exact: true }).fill("25"); await page.getByLabel("Opponent starting life", { exact: true }).fill("61");
   await page.getByLabel("Starting and refill hand size", { exact: true }).fill("5");
-  let pending = page.waitForResponse(r => r.url().endsWith("/studio-draft")); await page.getByRole("button", { name: "Save modifier to draft", exact: true }).click();
+  let pending = waitForBufferedAdminResponse(page, r => r.url().endsWith("/studio-draft")); await page.getByRole("button", { name: "Save modifier to draft", exact: true }).click();
   const saved = await (await pending).json(), modifier = saved.draft.snapshot.studio.modifiers.find(m => m.name === "Browser campaign challenge"); expect(modifier).toBeTruthy();
   const encounter = saved.draft.snapshot.domains.encounters.find(e => e.factionId === "rumin");
   await page.goto("/admin/gauntlet?workshop=encounters&object=" + encounter.id + "&section=setup");
   await page.getByRole("combobox", { name: "Draft starting-state rule modifier", exact: true }).selectOption(modifier.id);
-  pending = page.waitForResponse(r => r.url().endsWith("/authoring/draft") && r.request().method() === "PATCH");
+  pending = waitForBufferedAdminResponse(page, r => r.url().endsWith("/authoring/draft") && r.request().method() === "PATCH");
   await page.getByRole("button", { name: "Save starting-state rule modifier to draft", exact: true }).click();
   const assigned = await (await pending).json(); expect(assigned.draft.snapshot.domains.encounters.find(e => e.id === encounter.id).ruleModifierId).toBe(modifier.id);
   await page.goto("/admin/gauntlet?workshop=rule-modifiers&object=" + modifier.id);
   const harness = page.getByRole("region", { name: "Real engine playtest" }); await harness.getByRole("combobox", { name: "Test content", exact: true }).selectOption("draft");
-  page.once("dialog", d => d.accept()); pending = page.waitForResponse(r => r.url().endsWith("/authoring/playtest")); await harness.getByRole("button", { name: "Start draft duel playtest", exact: true }).click();
+  page.once("dialog", d => d.accept()); pending = waitForBufferedAdminResponse(page, r => r.url().endsWith("/authoring/playtest")); await harness.getByRole("button", { name: "Start draft duel playtest", exact: true }).click();
   const session = (await (await pending).json()).playtest;
   expect(session.game.players[1].life).toBe(25); expect(session.game.players[2].life).toBe(61); expect(session.game.players[1].hand).toHaveLength(5);
   const pass = session.legalActions.find(a => a.type === "passPriority"); await harness.getByRole("combobox", { name: "Action", exact: true }).selectOption(pass.id);

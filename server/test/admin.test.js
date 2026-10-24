@@ -83,14 +83,14 @@ test("every new admin route rejects missing, player, tampered and expired operat
   fs.writeFileSync(process.env.ACCOUNT_DATA_FILE, before);
 });
 
-test("catalog reflects the live registry, campaign-only content and deterministic encounter calculations", async () => {
+test("catalog reflects the live playable registry and deterministic encounter calculations", async () => {
   const { body, status } = await get("catalog");
   assert.equal(status, 200);
   assert.equal(body.counts.cards, require("../gameContent").COLLECTION_CARDS.length);
   assert.equal(body.counts.encounters, Object.values(require("../gameContent").campaignChapters).flat().length);
   assert.equal(body.counts.factions, Object.keys(require("../gameContent").factionsData).length);
-  assert.match(body.domains.factions.find((f) => f.id === "xendra").definition.availability, /campaign only/);
-  assert.match(body.domains.factions.find((f) => f.id === "voltari").definition.availability, /campaign only/);
+  assert.match(body.domains.factions.find((f) => f.id === "xendra").definition.availability, /normal faction selection/);
+  assert.match(body.domains.factions.find((f) => f.id === "voltari").definition.availability, /normal faction selection/);
   const encounter = body.domains.encounters[0];
   assert.deepEqual(encounter.definition.runtime.difficulty, __test.getCampaignDifficulty(encounter.definition.factionId, encounter.id));
   assert.equal(body.validation.valid, true);

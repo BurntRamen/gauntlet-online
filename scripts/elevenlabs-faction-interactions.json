@@ -6,7 +6,24 @@
   "publicDirectory": "client/public/assets/gauntlet/voices",
   "provenanceDirectory": "docs/generated-assets/elevenlabs-faction-interactions",
   "contentRegistry": "server/factionInteractionVoiceAssets.json",
-  "factionIds": ["rumin", "sheen", "frumo", "bizi", "mekan", "jali", "gracus", "indela", "zynarth", "astral-vanguard"],
+  "factionIds": [
+    "rumin",
+    "sheen",
+    "frumo",
+    "bizi",
+    "mekan",
+    "jali",
+    "gracus",
+    "indela",
+    "ingles",
+    "mercaw",
+    "mtano",
+    "russo",
+    "zynarth",
+    "astral-vanguard",
+    "voltari",
+    "xendra"
+  ],
   "voiceIds": {
     "rumin": "pxGtQ67D2H6Y2HH7NOYQ",
     "sheen": "7AqMHGzXXp8ntX5raY0P",
@@ -17,6 +34,12 @@
     "gracus": "pqHfZKP75CvOlQylNhV4",
     "indela": "EXAVITQu4vr4xnSDxMaL",
     "zynarth": "F4AXgTwG8nWPB9dcXaTh",
-    "astral-vanguard": "Xb7hH8MSUJpSbSDYk0k2"
+    "astral-vanguard": "Xb7hH8MSUJpSbSDYk0k2",
+    "ingles": "Xb7hH8MSUJpSbSDYk0k2",
+    "mercaw": "eF8rxTIzEAXZlDMEZwK0",
+    "mtano": "F4AXgTwG8nWPB9dcXaTh",
+    "russo": "CwhRBWXzGAHq8TQ4Fs17",
+    "voltari": "SakKzhiHCBYiZmEvHirf",
+    "xendra": "F4AXgTwG8nWPB9dcXaTh"
   }
 }

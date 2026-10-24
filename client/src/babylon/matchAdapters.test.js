@@ -139,6 +139,19 @@ test("local adapter immediately exposes a production match update", () => {
   adapter.dispose();
 });
 
+test("production view announces defeat pending while play can still continue", () => {
+  const adapter = createLocalDuelAdapter({ seed: "adapter-defeat-pending" });
+  adapter.game.players[2].life = 0;
+  adapter.game.phase = "priority";
+
+  const update = latestUpdate(adapter);
+
+  expect(update.viewModel.defeatPending).toMatchObject({ active: true });
+  expect(update.viewModel.defeatPending.message).toMatch(/still attack, block, activate abilities, and regain life/i);
+  expect(update.viewModel.phase).toBe("priority");
+  adapter.dispose();
+});
+
 test("an underpaid attack stays staged and explains why confirmation was rejected", () => {
   const adapter = createLocalDuelAdapter({ seed: "adapter-rejected-attack" });
   const before = adapter.game.actionHistory.length;

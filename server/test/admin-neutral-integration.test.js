@@ -39,7 +39,8 @@ test("neutral support cards respect production slot types and printed-value inve
     const result = applyScenario(game, resolved, scenario(support ? "support" : "combat"), "neutral-test");
     assert.equal(result.game.lanes[0][support ? "support" : "facedown"][1].definitionId, card.id);
     assert.throws(() => applyScenario(game, resolved, scenario(support ? "combat" : "support"), "invalid"), { status: 422 });
-    assert.throws(() => applyScenario(game, resolved, { version: 1, players: { 1: { hand: [{ ...slot, value: 14 }] } } }, "invalid"), { status: 422 });
+    const invalidValue = card.value === 14 ? 2 : 14;
+    assert.throws(() => applyScenario(game, resolved, { version: 1, players: { 1: { hand: [{ ...slot, value: invalidValue }] } } }, "invalid"), { status: 422 });
   }
 });
 test("neutral content does not create a broken editable faction reference", () => {

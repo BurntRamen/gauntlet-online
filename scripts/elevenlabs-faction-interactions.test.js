@@ -6,9 +6,9 @@ const { buildPlan, parseArgs } = require("./elevenlabs-faction-interactions");
 
 test("faction interaction manifest covers every event in its explicitly approved roster", () => {
   const plan = buildPlan(manifest);
-  assert.equal(Object.keys(manifest.voiceIds).length, 10);
+  assert.equal(Object.keys(manifest.voiceIds).length, 16);
   assert.deepEqual([...manifest.factionIds].sort(), Object.keys(manifest.voiceIds).sort());
-  assert.equal(plan.length, 60);
+  assert.equal(plan.length, 96);
   for (const factionId of Object.keys(manifest.voiceIds)) {
     const lines = plan.filter((line) => line.factionId === factionId);
     assert.deepEqual(lines.map((line) => `${line.role}:${line.event}`).sort(), [
@@ -23,10 +23,10 @@ test("faction interaction manifest covers every event in its explicitly approved
 });
 
 test("voice plans reject missing mappings, duplicate selections and unknown factions", () => {
-  assert.throws(() => buildPlan({ ...manifest, factionIds: ["ingles"] }), /Missing ElevenLabs voice/);
+  assert.throws(() => buildPlan({ ...manifest, voiceIds: { ...manifest.voiceIds, ingles: undefined }, factionIds: ["ingles"] }), /Missing ElevenLabs voice/);
   assert.throws(() => buildPlan({ ...manifest, factionIds: ["rumin", "rumin"] }), /distinct/);
   assert.throws(() => buildPlan({ ...manifest, factionIds: ["unknown"] }), /Unknown playable/);
-  assert.throws(() => buildPlan({ ...manifest, factionIds: undefined }), /Missing ElevenLabs voice/);
+  assert.throws(() => buildPlan({ ...manifest, voiceIds: { ...manifest.voiceIds, xendra: undefined }, factionIds: undefined }), /Missing ElevenLabs voice/);
 });
 
 test("faction interaction CLI defaults to a non-billing plan", () => {

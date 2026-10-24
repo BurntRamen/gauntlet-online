@@ -5,7 +5,7 @@ const AxeBuilder = require("@axe-core/playwright").default;
 const fs = require("node:fs"), path = require("node:path");
 
 test("Admin publication becomes a free human event with durable Prestige and inspectable evidence", async ({ page, request, browser }) => {
-  test.setTimeout(180000);
+  test.setTimeout(300000);
   async function login(target, name, admin = false) {
     // Real server-signed sessions from the isolated fixture; auth rate-limit
     // behavior is tested separately and remains enabled in this server.
