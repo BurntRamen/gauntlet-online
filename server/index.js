@@ -511,23 +511,29 @@ function getPlayableCollectionCard(card, overrides = {}, manifest = null) {
   };
 }
 
+const EARNED_GAMEPLAY_PACK_CARD_COUNT = 13;
+const EARNED_GAMEPLAY_PACK_SLOTS = Object.freeze([
+  "common", "common", "common", "common", "common", "common", "common",
+  "uncommon", "uncommon", "uncommon", "rare", "wild", "face"
+]);
+
 const BOOSTER_PRODUCTS = {
   "initiative-all-factions": {
     id: "initiative-all-factions",
     name: "Initiative All-Faction Pack",
     displayName: "Initiative",
-    subtitle: "Every Faction. One Pack.",
+    subtitle: "Every Suit. Many Factions.",
     setId: "initiative",
     setNumber: 1,
     setName: "Initiative",
     productType: "earned-gameplay-pack",
     pool: "all-factions",
-    cardCount: 17,
+    cardCount: EARNED_GAMEPLAY_PACK_CARD_COUNT,
     artPath: "/assets/gauntlet/packs/initiative-set-1-suits.png",
-    guaranteedFactionIds: [...new Set(COLLECTION_CARDS.filter((card) => card.factionId !== NEUTRAL_FACTION_ID).map((card) => card.factionId))],
-    slots: [...Array(16).fill("common"), "face"],
+    guaranteedSuits: [...DRAFT_CARD_SUITS],
+    slots: [...EARNED_GAMEPLAY_PACK_SLOTS],
     faceCardOdds: FACE_CARD_ODDS,
-    description: "A 17-card free-play reward with every catalog faction represented and one guaranteed face card (J, Q, K, or A)."
+    description: "A 13-card all-faction reward with every suit represented and one guaranteed face card (J, Q, K, or A)."
   },
   "rumin-foundation": {
     id: "rumin-foundation",
@@ -537,8 +543,8 @@ const BOOSTER_PRODUCTS = {
     setNumber: 1,
     setName: "Initiative",
     factionId: "rumin",
-    cardCount: 8,
-    slots: ["common", "common", "common", "uncommon", "uncommon", "rare", "wild", "face"],
+    cardCount: EARNED_GAMEPLAY_PACK_CARD_COUNT,
+    slots: [...EARNED_GAMEPLAY_PACK_SLOTS],
     faceCardOdds: FACE_CARD_ODDS,
     description: "A free-play reward with one guaranteed face card. Earn credits through first-time campaign clears."
   },
@@ -550,8 +556,8 @@ const BOOSTER_PRODUCTS = {
     setNumber: 1,
     setName: "Initiative",
     factionId: "sheen",
-    cardCount: 8,
-    slots: ["common", "common", "common", "uncommon", "uncommon", "rare", "wild", "face"],
+    cardCount: EARNED_GAMEPLAY_PACK_CARD_COUNT,
+    slots: [...EARNED_GAMEPLAY_PACK_SLOTS],
     faceCardOdds: FACE_CARD_ODDS,
     description: "A free-play reward with one guaranteed face card. Earn credits through first-time campaign clears."
   },
@@ -563,8 +569,8 @@ const BOOSTER_PRODUCTS = {
     setNumber: 1,
     setName: "Initiative",
     factionId: "frumo",
-    cardCount: 8,
-    slots: ["common", "common", "common", "uncommon", "uncommon", "rare", "wild", "face"],
+    cardCount: EARNED_GAMEPLAY_PACK_CARD_COUNT,
+    slots: [...EARNED_GAMEPLAY_PACK_SLOTS],
     faceCardOdds: FACE_CARD_ODDS,
     description: "A free-play reward with one guaranteed face card. Earn credits through first-time campaign clears."
   },
@@ -576,8 +582,8 @@ const BOOSTER_PRODUCTS = {
     setNumber: 1,
     setName: "Initiative",
     factionId: "bizi",
-    cardCount: 8,
-    slots: ["common", "common", "common", "uncommon", "uncommon", "rare", "wild", "face"],
+    cardCount: EARNED_GAMEPLAY_PACK_CARD_COUNT,
+    slots: [...EARNED_GAMEPLAY_PACK_SLOTS],
     faceCardOdds: FACE_CARD_ODDS,
     description: "A free-play reward with one guaranteed face card. Earn credits through first-time campaign clears."
   },
@@ -589,8 +595,8 @@ const BOOSTER_PRODUCTS = {
     setNumber: 4,
     setName: "Reath Beyond",
     factionId: "zynarth",
-    cardCount: 8,
-    slots: ["common", "common", "common", "uncommon", "uncommon", "rare", "wild", "face"],
+    cardCount: EARNED_GAMEPLAY_PACK_CARD_COUNT,
+    slots: [...EARNED_GAMEPLAY_PACK_SLOTS],
     faceCardOdds: FACE_CARD_ODDS,
     description: "A seeded Zynarth reward with one guaranteed face card. Earn credits through first-time campaign clears."
   },
@@ -602,8 +608,8 @@ const BOOSTER_PRODUCTS = {
     setNumber: 4,
     setName: "Reath Beyond",
     factionId: "astral-vanguard",
-    cardCount: 8,
-    slots: ["common", "common", "common", "uncommon", "uncommon", "rare", "wild", "face"],
+    cardCount: EARNED_GAMEPLAY_PACK_CARD_COUNT,
+    slots: [...EARNED_GAMEPLAY_PACK_SLOTS],
     faceCardOdds: FACE_CARD_ODDS,
     description: "A seeded Astral Vanguard reward with one guaranteed face card. Earn credits through first-time campaign clears."
   },
@@ -615,8 +621,8 @@ const BOOSTER_PRODUCTS = {
     setNumber: 2,
     setName: "Legacies",
     factionId: "indela",
-    cardCount: 8,
-    slots: ["common", "common", "common", "uncommon", "uncommon", "rare", "wild", "face"],
+    cardCount: EARNED_GAMEPLAY_PACK_CARD_COUNT,
+    slots: [...EARNED_GAMEPLAY_PACK_SLOTS],
     faceCardOdds: FACE_CARD_ODDS,
     description: "A seeded Indela reward with one guaranteed face card. Earn credits through first-time campaign clears."
   }
@@ -637,11 +643,19 @@ for (const faction of listFactions()) {
     setNumber: set?.number || 5,
     setName: set?.name || "Convergence",
     factionId: faction.id,
-    cardCount: 8,
-    slots: ["common", "common", "common", "uncommon", "uncommon", "rare", "wild", "face"],
+    cardCount: EARNED_GAMEPLAY_PACK_CARD_COUNT,
+    slots: [...EARNED_GAMEPLAY_PACK_SLOTS],
     faceCardOdds: FACE_CARD_ODDS,
     description: `A seeded ${faction.name} reward with one guaranteed face card. Earn credits through first-time campaign clears.`
   };
+}
+
+// Earned gameplay packs share one predictable physical footprint. The first
+// four slots are reserved for suit coverage when the pack is opened.
+for (const pack of Object.values(BOOSTER_PRODUCTS)) {
+  pack.cardCount = EARNED_GAMEPLAY_PACK_CARD_COUNT;
+  pack.guaranteedSuits = [...DRAFT_CARD_SUITS];
+  pack.slots = [...EARNED_GAMEPLAY_PACK_SLOTS];
 }
 
 const FACTION_COLLECTOR_PACK_PRODUCTS = Object.fromEntries(Object.values(BOOSTER_PRODUCTS).filter((pack) => pack.factionId).map((pack) => {
@@ -657,7 +671,7 @@ const FACTION_COLLECTOR_PACK_PRODUCTS = Object.fromEntries(Object.values(BOOSTER
     setName: pack.setName,
     factionId: pack.factionId,
     factionIds: [pack.factionId],
-    variantCount: pack.cardCount,
+    variantCount: 8,
     priceUsd: 1,
     description: "Animated collector variants only. Does not unlock gameplay cards, deck copies, abilities, or competitive actions."
   }];
@@ -3285,6 +3299,19 @@ function pickCollectionCardFromPool(rarity) {
   return getPlayableCollectionCard(cardPool[crypto.randomInt(cardPool.length)], {}, manifest);
 }
 
+function pickCollectionCardForSuit(factionId, suit, rarity = "common", manifest = null) {
+  manifest ||= getPublicGameContent();
+  const eligible = cardsFor(manifest, "earnedPacks", factionId ? { factionId, rarity } : { rarity }).filter((card) => (
+    card.factionId !== NEUTRAL_FACTION_ID && card.suit === suit
+  ));
+  const fallback = cardsFor(manifest, "earnedPacks", factionId ? { factionId } : {}).filter((card) => (
+    card.factionId !== NEUTRAL_FACTION_ID && card.suit === suit
+  ));
+  const pool = eligible.length > 0 ? eligible : fallback;
+  if (pool.length === 0) return null;
+  return getPlayableCollectionCard(pool[crypto.randomInt(pool.length)], {}, manifest);
+}
+
 function resolveFaceCardValue(randomInt = crypto.randomInt) {
   const roll = randomInt(100);
   if (roll < FACE_CARD_ODDS.jack) return 11;
@@ -3326,20 +3353,19 @@ function openCollectionBooster(stats, packId) {
   if (collection.packCredits <= 0) {
     throw new Error("You need an earned gameplay-pack credit. Clear a new campaign chapter to earn one.");
   }
-  let openedCards;
-  if (pack.pool === "all-factions") {
-    const guaranteedFactions = pack.guaranteedFactionIds || [];
-    const guaranteedCards = guaranteedFactions
-      .map((factionId) => pickCollectionCard(factionId, "common"))
-      .filter(Boolean);
-    const remainingSlots = pack.slots.slice(guaranteedFactions.length);
-    openedCards = guaranteedCards.concat(remainingSlots
-      .map((slot) => pickBoosterCard(null, slot))
-      .filter(Boolean));
-  } else {
-    openedCards = pack.slots
-      .map((slot) => pickBoosterCard(pack.factionId, slot))
-      .filter(Boolean);
+  const guaranteedSuits = pack.guaranteedSuits || DRAFT_CARD_SUITS;
+  const guaranteedCards = guaranteedSuits
+    .map((suit) => pickCollectionCardForSuit(pack.factionId || null, suit, "common"))
+    .filter(Boolean);
+  if (guaranteedCards.length !== guaranteedSuits.length) {
+    throw new Error(`${pack.name} cannot guarantee one card from every suit.`);
+  }
+  const remainingSlots = pack.slots.slice(guaranteedSuits.length);
+  const openedCards = guaranteedCards.concat(remainingSlots
+    .map((slot) => pickBoosterCard(pack.pool === "all-factions" ? null : pack.factionId, slot))
+    .filter(Boolean));
+  if (openedCards.length !== pack.cardCount) {
+    throw new Error(`${pack.name} produced ${openedCards.length} cards instead of ${pack.cardCount}.`);
   }
 
   openedCards.forEach((card) => {

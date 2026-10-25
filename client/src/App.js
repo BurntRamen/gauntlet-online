@@ -1443,7 +1443,7 @@ function CardArtInspector({ card, collectorCatalog, selectedVariantId = "", owne
   );
 }
 
-const INITIATIVE_PACK_THEME = { name: "Initiative", subtitle: "Every Faction. One Pack.", accent: "#f6c453", glow: "rgba(246,196,83,.36)", background: "linear-gradient(145deg, #020617, #111827 48%, #172554 100%)", art: "radial-gradient(circle at 50% 20%, rgba(246,196,83,.22), transparent 32%)" };
+const INITIATIVE_PACK_THEME = { name: "Initiative", subtitle: "Every Suit. Many Factions.", accent: "#f6c453", glow: "rgba(246,196,83,.36)", background: "linear-gradient(145deg, #020617, #111827 48%, #172554 100%)", art: "radial-gradient(circle at 50% 20%, rgba(246,196,83,.22), transparent 32%)" };
 
 const PACK_THEMES = {
   rumin: { name: "Rumin", subtitle: "Imperial Arsenal", accent: "#f59e0b", glow: "rgba(245,158,11,0.34)", background: "linear-gradient(145deg, #3b1305, #9a3412 35%, #14532d 76%, #111827)", art: "linear-gradient(135deg, rgba(251,191,36,0.9), rgba(21,128,61,0.72)), radial-gradient(circle at 70% 30%, rgba(254,243,199,0.7), transparent 34%)" },
@@ -1557,7 +1557,7 @@ function BoosterPackTile({ booster, collectorPack, opening, canOpen, onOpen, onB
       <span className={`booster-pack-art ${booster.artPath ? "booster-pack-art-featured" : ""}`} style={{ backgroundImage: `linear-gradient(180deg, rgba(2,6,23,0.02), rgba(2,6,23,0.28)), url(${factionArt})` }}>
         {!booster.artPath && <span className="booster-pack-sigil">{theme.name.slice(0, 1)}</span>}
       </span>
-      <span className="booster-pack-count">{booster.cardCount || booster.slots?.length || 8} free-play gameplay unlocks</span>
+      <span className="booster-pack-count">{booster.cardCount || booster.slots?.length || 13} free-play gameplay unlocks</span>
       <span className="booster-pack-slots">
         {Object.entries(rarityCounts).map(([rarity, count]) => (
           <span key={rarity}>{count} {rarity === "face" ? "Face card (J-A)" : (RARITY_STYLES[rarity]?.label || rarity)}</span>
