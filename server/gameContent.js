@@ -4,6 +4,7 @@ const RULES_VERSION = "gauntlet-rules-v6";
 const CONTENT_VERSION = "gauntlet-content-v27";
 const NEUTRAL_FACTION_ID = "neutral";
 const { getCardWording } = require("./cardWording");
+const { catalogIdentity } = require("../shared/duel-rules/catalogFactionIdentity");
 const { LEGACIES } = require("./legaciesContent");
 const {
   ADDITIONAL_CAMPAIGNS,
@@ -850,6 +851,7 @@ const FULL_FACTION_COLLECTIONS = Object.freeze(Object.fromEntries(Object.entries
   CATALOG_SUITS.flatMap((suit) => CATALOG_VALUES.map((value, index) => {
     const rank = CATALOG_RANK_SLUG[value] || String(value);
     const name = `${profile.aspects[suit]} ${profile.ranks[index]}`;
+    const identity = catalogIdentity(factionId, suit);
     return {
       id: `${factionId}-${suit}-${rank}`,
       factionId,
@@ -859,7 +861,7 @@ const FULL_FACTION_COLLECTIONS = Object.freeze(Object.fromEntries(Object.entries
       value,
       suit,
       art: profile.art,
-      text: `This card has no additional ability beyond the normal rules for its card type and printed value. ${name} carries the ${profile.aspects[suit].toLowerCase()} tradition into the convergence.`
+      text: `${identity.name} — ${identity.text} ${name} carries the ${profile.aspects[suit].toLowerCase()} tradition into the convergence.`
     };
   }))
 ])));

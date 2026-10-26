@@ -373,7 +373,10 @@ test("maps every catalog constructed card into the shared deterministic rules", 
   const definitions = new Map(effectRegistry.cardEffectDefinitions().map((entry) => [entry.id, entry]));
   const missing = COLLECTION_CARDS
     .map((card) => effectRegistry.defaultCardEffect(card.id)?.id)
-    .filter((effectId) => !effectId || (definitions.get(effectId)?.handler !== "printed-value-only" && !sharedRulesSource.includes(`"${effectId}"`)));
+    .filter((effectId) => {
+      const handler = definitions.get(effectId)?.handler;
+      return !effectId || (handler !== "printed-value-only" && !sharedRulesSource.includes(`"${handler}"`));
+    });
 
   assert.equal(COLLECTION_CARDS.length, 644);
   assert.deepEqual(missing, []);
@@ -420,6 +423,8 @@ test("gives every newly cataloged faction a complete 52-card rank-and-suit deck"
     assert.equal(new Set(cards.map((card) => `${card.value}:${card.suit}`)).size, 52, `${factionId}: unique slots`);
     assert.deepEqual([...new Set(cards.map((card) => card.value))].sort((a, b) => a - b), expectedValues, `${factionId}: ranks`);
     for (const suit of ["spades", "hearts", "diamonds", "clubs"]) assert.equal(cards.filter((card) => card.suit === suit).length, 13, `${factionId}: ${suit}`);
+    assert.equal(cards.every((card) => !/no additional ability/i.test(card.text)), true, `${factionId}: rules text`);
+    assert.equal(new Set(cards.map((card) => card.text.split(" — ")[0])).size, 4, `${factionId}: four suit identities`);
     assert.deepEqual(cards.filter((card) => card.value >= 11).map((card) => card.rarity), ["uncommon", "rare", "rare", "mythic", "uncommon", "rare", "rare", "mythic", "uncommon", "rare", "rare", "mythic", "uncommon", "rare", "rare", "mythic"]);
   }
 });
@@ -434,7 +439,8 @@ test("requires card-specific constructed behavior coverage for the full catalog"
   const missing = COLLECTION_CARDS
     .filter((card) => {
       const effectId = effectRegistry.defaultCardEffect(card.id)?.id;
-      return definitions.get(effectId)?.handler !== "printed-value-only" && !behaviorSources.includes(`"${card.id}"`);
+      const handler = definitions.get(effectId)?.handler;
+      return handler !== "printed-value-only" && !behaviorSources.includes(`"${handler}"`);
     })
     .map((card) => card.id);
 
@@ -452,9 +458,9 @@ test("keeps an explicit deterministic rules test for every constructed card", ()
   const missing = COLLECTION_CARDS
     .filter((card) => {
       const effectId = require("../../shared/duel-rules/effectRegistry").defaultCardEffect(card.id)?.id;
-      return effectDefinitions.get(effectId)?.handler === "printed-value-only"
-        ? !behaviorTests.includes('"printed-value-only"')
-        : !behaviorTests.includes(`"${card.id}"`);
+      const handler = effectDefinitions.get(effectId)?.handler;
+      const behaviorNeedle = handler === "catalog-faction-identity" || handler === "printed-value-only" ? handler : card.id;
+      return !behaviorTests.includes(`"${behaviorNeedle}"`);
     })
     .map((card) => card.id);
 
@@ -484,7 +490,7 @@ test("draft projection keeps a player's pack private and never publishes bot pic
     roomCode: "PRIVATE",
     lobby: { players: { 1: { accountName: "Drafter", connected: true } }, spectators: [] },
     draft: {
-      status: "drafting", league: false, botDraft: true, maxPlayers: 8, packsPerPlayer: 3, packSize: 8,
+      status: "drafting", league: false, botDraft: true, maxPlayers: 8, packsPerPlayer: 3, packSize: 13,
       activePlayers: [1], round: 1, pickNumber: 1, direction: "left", baseDeck: { cardCount: 52 },
       currentPacks: { 1: { cards: [{ ...card, draftCopyId: "private-card" }] } },
       draftedPools: { 1: [] }, deckAdditions: { 1: [] }, botPickLog: ["Bot picked a mythic card."]
@@ -506,8 +512,12 @@ test("draft sets publish their factions and packs stay inside the selected set",
   const beyond = DRAFT_SETS.find((set) => set.id === "reath-beyond");
   for (let run = 0; run < 20; run += 1) {
     const initiativePack = __test.createDraftPack(1, initiative.factionIds);
+    assert.equal(initiativePack.cards.length, 13);
+    assert.deepEqual([...new Set(initiativePack.cards.map((card) => card.suit))].sort(), ["clubs", "diamonds", "hearts", "spades"]);
     assert.equal(initiativePack.cards.every((card) => card.factionId === "neutral" || initiative.factionIds.includes(card.factionId)), true);
     const beyondPack = __test.createDraftPack(1, beyond.factionIds);
+    assert.equal(beyondPack.cards.length, 13);
+    assert.deepEqual([...new Set(beyondPack.cards.map((card) => card.suit))].sort(), ["clubs", "diamonds", "hearts", "spades"]);
     assert.equal(beyondPack.cards.every((card) => card.factionId === "neutral" || beyond.factionIds.includes(card.factionId)), true);
   }
 
@@ -525,7 +535,7 @@ test("draft sets publish their factions and packs stay inside the selected set",
   const sealedSpectator = __test.sanitizeDraftForViewer(sealedRoom, null);
   assert.equal(sealedView.sealed, true);
   assert.equal(sealedView.status, "building");
-  assert.equal(sealedView.myPool.length, 48);
+  assert.equal(sealedView.myPool.length, 78);
   assert.equal(sealedView.myPool.every((card) => card.factionId === "neutral" || beyond.factionIds.includes(card.factionId)), true);
   assert.equal(sealedSpectator.myPool.length, 0);
   for (const set of DRAFT_SETS) {

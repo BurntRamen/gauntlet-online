@@ -895,6 +895,27 @@ function calculateConstructedAttackBonus(game, playerNumber, card, source, comma
   const attackNumber = Number(player.turnData.attacksDeclaredThisTurn || 0) + 1;
   const baseValue = cardValue(card);
 
+  if (hasCardEffect(card, "catalog-faction-identity")) {
+    const trigger = cardParameter(card, "trigger");
+    const amount = cardParameter(card, "bonus");
+    const previousAttackSuit = player.turnData.previousAttackSuit;
+    const previousPlayedValue = player.turnData.previousPlayedValue;
+    const active = (
+      (trigger === 1 && attackNumber === 1)
+      || (trigger === 2 && source === "lane")
+      || (trigger === 3 && source === "hand")
+      || (trigger === 4 && attackNumber > 1 && previousAttackSuit && !suitsMatch(previousAttackSuit, card.suit))
+      || (trigger === 5 && attackNumber > 1 && previousAttackSuit && suitsMatch(previousAttackSuit, card.suit))
+      || (trigger === 6 && previousPlayedValue != null && baseValue > Number(previousPlayedValue))
+      || (trigger === 7 && attackNumber >= 3)
+      || (trigger === 8 && player.turnData.damageTakenThisTurn)
+    );
+    if (active) {
+      bonus += amount;
+      notes.push(`${card.name || "Faction identity"} +${amount}`);
+    }
+  }
+
   if (hasCardEffect(card, "neutral-soldier") && attackNumber === 1) { bonus += 1; notes.push("Soldier +1"); }
   if (hasCardEffect(card, "neutral-lieutenant") && player.turnData.previousPlayedValue != null && player.turnData.previousPlayedValue < baseValue) { bonus += 1; notes.push("Lieutenant +1"); }
   if (hasCardEffect(card, "neutral-officer")) { bonus += 1; notes.push("Officer +1"); }
@@ -1274,6 +1295,24 @@ function calculateConstructedBlockBonus(game, playerNumber, card, context, comma
   let bonus = 0;
   let preventDamage = 0;
   const blockNumber = Number(player.turnData.blocksDeclaredThisTurn || 0) + 1;
+  if (hasCardEffect(card, "catalog-faction-identity")) {
+    const trigger = cardParameter(card, "trigger");
+    const amount = cardParameter(card, "bonus");
+    const attacker = context.attack?.card;
+    const active = (
+      (trigger === 9 && blockNumber === 1)
+      || (trigger === 10 && context.laneBlock)
+      || (trigger === 11 && context.attack?.source === "hand")
+      || (trigger === 12 && blockNumber >= 2)
+      || (trigger === 13 && cardValue(attacker) > cardValue(card))
+      || (trigger === 14 && suitsMatch(attacker?.suit, card.suit))
+      || (trigger === 15 && attacker?.suit && !suitsMatch(attacker.suit, card.suit))
+    );
+    if (active) {
+      bonus += amount;
+      notes.push(`${card.name || "Faction identity"} +${amount}`);
+    }
+  }
   if (hasCardEffect(card, "neutral-sergeant") && blockNumber === 1) { bonus += 1; notes.push("Sergeant +1"); }
   if (hasCardEffect(card, "neutral-bodyguard") && context.laneBlock) { bonus += 2; notes.push("Bodyguard +2"); }
   if (hasCardEffect(card, "neutral-wrestler") && cardValue(context.attack?.card) > cardValue(card)) { bonus += 2; notes.push("Wrestler +2"); }

@@ -50,7 +50,7 @@ export default function DraftScreen({ presentation, onCancelDraft, draft, lobby,
   const isBotDraft = !!draft?.botDraft;
   const isSealed = !!draft?.sealed;
   const busy = !!draftPending || !draftConnected;
-  const totalPicks = (draft?.packsPerPlayer || 3) * (draft?.packSize || 8);
+  const totalPicks = (draft?.packsPerPlayer || 3) * (draft?.packSize || 13);
 
   return (
     <div style={MENU_THEME.page}>
