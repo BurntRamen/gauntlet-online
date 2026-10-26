@@ -2983,6 +2983,12 @@ textarea:focus-visible {
 .campaign-briefing-notes { margin-top: 15px; padding: 12px; border-radius: 5px; background: rgba(3, 9, 15, .48); }
 .campaign-briefing-notes strong { color: #e7c96e; font-size: 11px; text-transform: uppercase; }
 .campaign-briefing-notes p { margin: 7px 0 0; color: #c7d7dc; font-size: 12px; line-height: 1.45; }
+.campaign-briefing-card-plan { margin-top: 15px; padding: 12px; border: 1px solid rgba(231, 201, 110, .22); border-radius: 5px; background: rgba(3, 9, 15, .58); }
+.campaign-briefing-card-plan > strong { color: #e7c96e; font-size: 11px; text-transform: uppercase; }
+.campaign-briefing-card-plan > p { margin: 7px 0 10px; color: #c7d7dc; font-size: 12px; line-height: 1.45; }
+.campaign-briefing-card-plan ul { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.campaign-briefing-card-plan li { display: flex; justify-content: space-between; gap: 10px; padding: 7px 8px; border-radius: 4px; background: rgba(255, 255, 255, .045); color: #edf4f5; font-size: 12px; }
+.campaign-briefing-card-plan li small { color: #e7c96e; font-weight: 800; white-space: nowrap; }
 .campaign-briefing-lock-note { margin: 12px 0 0; color: #f1b6b6; font-size: 12px; line-height: 1.4; }
 
 .campaign-briefing-start {

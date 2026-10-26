@@ -290,10 +290,11 @@ test("earned gameplay packs change free entitlement while collector grants do no
   const earnedStats = { collection: { packCredits: 1 } };
   const opened = openCollectionBooster(earnedStats, "rumin-foundation");
   const earnedCollection = normalizeCollection(earnedStats);
-  assert.equal(opened.length, 8);
-  assert.equal(Object.values(earnedCollection.gameplayEntitlements).reduce((sum, count) => sum + count, 0), 8 + NEUTRAL_COLLECTION_CARDS.length);
+  assert.equal(opened.length, 13);
+  assert.equal(Object.values(earnedCollection.gameplayEntitlements).reduce((sum, count) => sum + count, 0), 13 + NEUTRAL_COLLECTION_CARDS.length);
   assert.equal(opened.every((card) => card.acquisition === FREE_GAMEPLAY_ACQUISITION), true);
   assert.equal(opened.filter((card) => card.value >= 11).length >= 1, true);
+  assert.deepEqual([...new Set(opened.map((card) => card.suit))].sort(), ["clubs", "diamonds", "hearts", "spades"]);
   assert.equal(earnedCollection.packCredits, 0);
   assert.equal(earnedCollection.openedGameplayPacks, 1);
 
@@ -308,38 +309,37 @@ test("earned gameplay packs change free entitlement while collector grants do no
   assert.equal(collectorStats.collection.openedGameplayPacks, 0);
 });
 
-test("all-faction packs include every playable faction and keep faction packs seeded", () => {
+test("all earned gameplay packs contain 13 cards, cover every suit, and keep faction packs seeded", () => {
   const initiativeStats = { collection: { packCredits: 1 } };
   const initiativeCards = openCollectionBooster(initiativeStats, "initiative-all-factions");
-  assert.equal(initiativeCards.length, 17);
+  assert.equal(initiativeCards.length, 13);
   assert.equal(initiativeCards.filter((card) => card.value >= 11).length >= 1, true);
-  assert.deepEqual(
-    [...new Set(initiativeCards.map((card) => card.factionId))].sort(),
-    ["astral-vanguard", "bizi", "frumo", "gracus", "indela", "ingles", "jali", "mekan", "mercaw", "mtano", "rumin", "russo", "sheen", "voltari", "xendra", "zynarth"]
-  );
+  assert.deepEqual([...new Set(initiativeCards.map((card) => card.suit))].sort(), ["clubs", "diamonds", "hearts", "spades"]);
 
   const zynarthStats = { collection: { packCredits: 1 } };
   const zynarthCards = openCollectionBooster(zynarthStats, "zynarth-foundation");
-  assert.equal(zynarthCards.length, 8);
+  assert.equal(zynarthCards.length, 13);
   assert.equal(zynarthCards.every((card) => card.factionId === "zynarth"), true);
   assert.equal(zynarthCards.some((card) => card.value >= 11), true);
+  assert.deepEqual([...new Set(zynarthCards.map((card) => card.suit))].sort(), ["clubs", "diamonds", "hearts", "spades"]);
 
   const astralStats = { collection: { packCredits: 1 } };
   const astralCards = openCollectionBooster(astralStats, "astral-vanguard-foundation");
-  assert.equal(astralCards.length, 8);
+  assert.equal(astralCards.length, 13);
   assert.equal(astralCards.every((card) => card.factionId === "astral-vanguard"), true);
 
   const indelaStats = { collection: { packCredits: 1 } };
   const indelaCards = openCollectionBooster(indelaStats, "indela-foundation");
-  assert.equal(indelaCards.length, 8);
+  assert.equal(indelaCards.length, 13);
   assert.equal(indelaCards.every((card) => card.factionId === "indela"), true);
 
   for (const factionId of ["mekan", "jali", "gracus", "voltari", "xendra", "ingles", "mercaw", "mtano", "russo"]) {
     const stats = { collection: { packCredits: 1 } };
     const cards = openCollectionBooster(stats, `${factionId}-foundation`);
-    assert.equal(cards.length, 8, factionId);
+    assert.equal(cards.length, 13, factionId);
     assert.equal(cards.every((card) => card.factionId === factionId), true, factionId);
     assert.equal(cards.some((card) => card.value >= 11), true, `${factionId}: guaranteed face`);
+    assert.deepEqual([...new Set(cards.map((card) => card.suit))].sort(), ["clubs", "diamonds", "hearts", "spades"], `${factionId}: suit coverage`);
   }
 });
 
