@@ -163,7 +163,7 @@ test("live draft joins from Draft, reconnects a waiting player, and blocks late 
     await expect(page.getByText("Pick locked in. Waiting for the other players before the next pack.")).toBeVisible();
     await guest.reload();
     await guest.getByRole("button").filter({ has: guest.locator("span", { hasText: /^Pick$/ }) }).first().click();
-    await expect(page.getByRole("heading", { name: "Current Pack (7 cards)" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Current Pack (12 cards)" })).toBeVisible();
     await enterDraftMenu(late, baseURL, "Late Player");
     await late.getByRole("tab", { name: "Tables", exact: true }).click();
     await late.getByLabel("Room code").fill(roomCode);
