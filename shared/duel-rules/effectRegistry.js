@@ -3,20 +3,27 @@
 // This is a deployed, finite catalogue of engine handlers. Authors configure
 // these definitions; they never supply handler names or executable code.
 const baseDefinitions = require("./effectDefinitions.json");
-const completeCatalogFactions = ["mekan", "jali", "gracus", "voltari", "xendra", "ingles", "mercaw", "mtano", "russo"];
+const { CATALOG_FACTION_IDENTITIES } = require("./catalogFactionIdentity");
+const completeCatalogFactions = Object.keys(CATALOG_FACTION_IDENTITIES);
 const completeCatalogSuits = ["spades", "hearts", "diamonds", "clubs"];
 const completeCatalogRanks = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "jack", "queen", "king", "ace"];
 const definitions = [
   ...baseDefinitions,
-  ...completeCatalogFactions.flatMap((factionId) => completeCatalogSuits.flatMap((suit) => completeCatalogRanks.map((rank) => ({
-    id: `catalog-${factionId}-${suit}-${rank}`,
-    version: 1,
-    legacyCardId: `${factionId}-${suit}-${rank}`,
-    factionId,
-    cardType: "servitor",
-    handler: "printed-value-only",
-    parameters: {}
-  }))))
+  ...completeCatalogFactions.flatMap((factionId) => completeCatalogSuits.flatMap((suit) => {
+    const trigger = CATALOG_FACTION_IDENTITIES[factionId][suit][0];
+    return completeCatalogRanks.map((rank) => ({
+      id: `catalog-${factionId}-${suit}-${rank}`,
+      version: 1,
+      legacyCardId: `${factionId}-${suit}-${rank}`,
+      factionId,
+      cardType: "servitor",
+      handler: "catalog-faction-identity",
+      parameters: {
+        trigger: { min: trigger, max: trigger, default: trigger },
+        bonus: { min: 1, max: 1, default: 1 }
+      }
+    }));
+  }))
 ];
 const composition = require("./compositionContract");
 const CARD_EFFECT_CONTRACT_VERSION = "gauntlet.card-effects.v1";
@@ -47,7 +54,10 @@ function cardEffect(card) {
   const effect = card && Object.hasOwn(card, "effect") ? card.effect : defaultCardEffect(card?.definitionId || card?.catalogId || card?.gameplayCardId || card?.id);
   return validateCardEffect(effect) ? effect : null;
 }
-function hasCardEffect(card, handler) { return cardEffect(card)?.id === handler; }
+function hasCardEffect(card, handler) {
+  const effect = cardEffect(card);
+  return effect?.id === handler || entries[effect?.id]?.handler === handler;
+}
 function cardParameter(card, key) { return cardEffect(card)?.parameters[key] ?? 0; }
 const factionDefinitions = Object.freeze({
   ...Object.fromEntries(["mekan", "jali", "gracus", "indela", "ingles", "mercaw", "mtano", "russo", "zynarth", "astral-vanguard", "voltari", "xendra"].map(id => [id, { id: `engine-${id}`, version: 1, factionId: id, parameters: {} }])),

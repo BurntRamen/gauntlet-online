@@ -967,7 +967,7 @@ function collectionSummary(stats = {}) {
 
 const DRAFT_PACKS_PER_PLAYER = 3;
 const SEALED_PACKS_PER_PLAYER = 6;
-const DRAFT_PACK_SLOTS = ["common", "common", "common", "common", "uncommon", "uncommon", "rare", "wild"];
+const DRAFT_PACK_SLOTS = [...EARNED_GAMEPLAY_PACK_SLOTS];
 const DRAFT_BOT_NAMES = [
   "Atlas Surveyor",
   "Copperline Drafter",
@@ -1012,15 +1012,36 @@ function createDraftPack(ownerPlayer, factionIds, manifest = getPublicGameConten
     .filter((factionId) => pool.some((card) => card.factionId === factionId));
   if (!availableFactionIds.includes(NEUTRAL_FACTION_ID) && pool.some(card => card.factionId === NEUTRAL_FACTION_ID)) availableFactionIds.push(NEUTRAL_FACTION_ID);
   if (availableFactionIds.length === 0) throw new Error("The selected set does not have a draft card catalog yet.");
+  const eligiblePool = pool.filter((card) => availableFactionIds.includes(card.factionId));
+  const pickDraftCard = (slot, suit = null) => {
+    const rarity = slot === "face" ? null : resolveBoosterSlot(slot);
+    const exact = eligiblePool.filter((card) => (
+      (!suit || card.suit === suit)
+      && (slot === "face" ? FACE_CARD_VALUES.has(Number(card.value)) : card.rarity === rarity)
+    ));
+    const suitFallback = suit ? eligiblePool.filter((card) => card.suit === suit) : [];
+    const candidates = exact.length ? exact : suitFallback;
+    if (!candidates.length) return null;
+    return getPlayableCollectionCard(candidates[crypto.randomInt(candidates.length)], {}, manifest);
+  };
+  const guaranteedSuitCards = DRAFT_CARD_SUITS.map((suit) => pickDraftCard("common", suit));
+  if (guaranteedSuitCards.some((card) => !card)) {
+    throw new Error("That draft set cannot guarantee one card from every suit.");
+  }
+  const remainingCards = DRAFT_PACK_SLOTS.slice(DRAFT_CARD_SUITS.length).map((slot) => pickDraftCard(slot));
+  const cards = [...guaranteedSuitCards, ...remainingCards].filter(Boolean).map((card) => ({
+    ...card,
+    suit: card.suit,
+    replacementSuit: card.suit,
+    draftCopyId: crypto.randomUUID()
+  }));
+  if (cards.length !== DRAFT_PACK_SLOTS.length) {
+    throw new Error(`Draft pack produced ${cards.length} cards instead of ${DRAFT_PACK_SLOTS.length}.`);
+  }
   return {
     id: crypto.randomUUID(),
     ownerPlayer,
-    cards: DRAFT_PACK_SLOTS.map((slot) => {
-      const factionId = availableFactionIds[crypto.randomInt(availableFactionIds.length)];
-      const rarity = resolveBoosterSlot(slot);
-      const card = pickCollectionCard(factionId, rarity, manifest, format, setId);
-      return card ? { ...card, suit: card.suit, replacementSuit: card.suit, draftCopyId: crypto.randomUUID() } : null;
-    }).filter(Boolean)
+    cards
   };
 }
 

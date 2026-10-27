@@ -8,6 +8,7 @@ const {
   COLLECTOR_VARIANTS,
   COLLECTION_CARDS,
   FREE_GAMEPLAY_ACQUISITION,
+  FULL_FACTION_COLLECTIONS,
   NEUTRAL_COLLECTION_CARDS,
   PAID_COLLECTOR_ACQUISITION,
   getCollectorVariantById,
@@ -126,8 +127,14 @@ test("every catalog faction covers 2 through ace with the shared face-card rarit
       const faceCard = factionCards.find((card) => card.value === Number(value));
       assert.equal(faceCard.rarity, rarity, `${factionId} ${value} rarity`);
       const effect = defaultCardEffect(faceCard.id);
-      assert.equal(effectDefinitions.get(effect.id).handler, "printed-value-only", `${faceCard.id} effect contract`);
-      assert.deepEqual(effect.parameters, {}, `${faceCard.id} has no unimplemented parameters`);
+      const isFullCatalogFaction = Object.hasOwn(FULL_FACTION_COLLECTIONS, factionId);
+      assert.equal(effectDefinitions.get(effect.id).handler, isFullCatalogFaction ? "catalog-faction-identity" : "printed-value-only", `${faceCard.id} effect contract`);
+      if (isFullCatalogFaction) {
+        assert.equal(Number.isInteger(effect.parameters.trigger), true, `${faceCard.id} has a deterministic faction trigger`);
+        assert.equal(effect.parameters.bonus, 1, `${faceCard.id} has the shared balanced identity bonus`);
+      } else {
+        assert.deepEqual(effect.parameters, {}, `${faceCard.id} has no unimplemented parameters`);
+      }
     }
   }
 });

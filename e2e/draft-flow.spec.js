@@ -53,16 +53,16 @@ test("entry failures are visible and Sealed can be retried", async ({ page, base
   await expect(page.getByText("That set is temporarily unavailable.")).toBeVisible();
   await page.getByRole("button", { name: /Open a Sealed pool/ }).click();
   await expect(page.getByRole("heading", { name: "Gauntlet Sealed", exact: true })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Your Sealed Pool (48)", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Your Sealed Pool (78)", exact: true })).toBeVisible();
 });
 
-test("bot draft opens, survives reload, and completes all 24 picks", async ({ page, baseURL }) => {
+test("bot draft opens, survives reload, and completes all 39 picks", async ({ page, baseURL }) => {
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await enterDraftMenu(page, baseURL);
   await page.getByRole("button", { name: /Solo Table/i }).click();
   await expect(page.getByRole("heading", { name: "Gauntlet Bot Draft" })).toBeVisible();
-  for (let pick = 0; pick < 24; pick++) {
+  for (let pick = 0; pick < 39; pick++) {
     await expect(page.getByRole("heading", { name: `Your Draft Pool (${pick})`, exact: true })).toBeVisible();
     await page.getByRole("button").filter({ has: page.locator("span", { hasText: /^Pick$/ }) }).first().click();
     if (pick === 2) {
@@ -111,7 +111,7 @@ test("draft entry shows loading, saves an account deck, and opens the correct mo
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await page.screenshot({ path: path.join(__dirname, "../artifacts/draft-review/mobile.png"), fullPage: true });
   await page.setViewportSize({ width: 1366, height: 768 });
-  for (let pick = 0; pick < 24; pick++) {
+  for (let pick = 0; pick < 39; pick++) {
     await expect(page.getByRole("heading", { name: `Your Draft Pool (${pick})`, exact: true })).toBeVisible();
     await page.getByRole("button").filter({ has: page.locator("span", { hasText: /^Pick$/ }) }).first().click();
   }
@@ -163,7 +163,7 @@ test("live draft joins from Draft, reconnects a waiting player, and blocks late 
     await expect(page.getByText("Pick locked in. Waiting for the other players before the next pack.")).toBeVisible();
     await guest.reload();
     await guest.getByRole("button").filter({ has: guest.locator("span", { hasText: /^Pick$/ }) }).first().click();
-    await expect(page.getByRole("heading", { name: "Current Pack (7 cards)" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Current Pack (12 cards)" })).toBeVisible();
     await enterDraftMenu(late, baseURL, "Late Player");
     await late.getByRole("tab", { name: "Tables", exact: true }).click();
     await late.getByLabel("Room code").fill(roomCode);
