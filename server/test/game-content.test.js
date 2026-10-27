@@ -35,6 +35,12 @@ test("validates the authoritative versioned game content registry", () => {
     assert.ok(content.campaigns[faction.id]?.origin, `${faction.id}: public lore origin`);
     assert.ok(content.campaigns[faction.id]?.homeworld, `${faction.id}: public lore homeworld`);
     assert.ok(content.campaigns[faction.id]?.arrivalOnReath, `${faction.id}: public lore Reath arrival`);
+    const characters = Object.values(content.campaigns[faction.id]?.characters || {});
+    assert.ok(characters.length >= 4, `${faction.id}: major-character archive`);
+    for (const character of characters) {
+      const description = typeof character === "string" ? character : character.description;
+      assert.ok(description?.length >= 70, `${faction.id}: expanded major-character description`);
+    }
   }
 
   assert.equal(content.schemaVersion, 2);

@@ -25,21 +25,28 @@
 .faction-lore-hero dl div { padding: 10px 12px; border-left: 2px solid #d3b17b; background: #071014c7; }
 .faction-lore-hero dt { color: #94aaaf; font-size: 9px; text-transform: uppercase; letter-spacing: .11em; }
 .faction-lore-hero dd { margin: 3px 0 0; font-weight: 800; }
-.faction-lore-prose, .faction-lore-doctrine, .faction-lore-figures, .faction-lore-chronicle { margin: 0 26px; padding: 28px 8px; border-bottom: 1px solid #9eb4bc24; }
+.faction-lore-prose, .faction-lore-doctrine, .faction-lore-arc, .faction-lore-figures, .faction-lore-chronicle { margin: 0 26px; padding: 28px 8px; border-bottom: 1px solid #9eb4bc24; }
 .faction-lore-record h3 { margin: 5px 0 12px; font: 400 28px var(--font-display); color: #fff1d1; }
 .faction-lore-prose p, .faction-lore-doctrine p { margin: 0; color: #cbd8db; line-height: 1.75; }
 .faction-lore-doctrine { display: grid; grid-template-columns: minmax(180px, .65fr) 1.35fr; gap: 20px; }
 .faction-lore-doctrine blockquote { grid-row: span 2; margin: 0; padding: 22px; border-left: 3px solid #d3b17b; color: #f2e4c8; background: #14242b; font: 400 20px/1.5 var(--font-display); }
 .faction-lore-section-heading { margin-bottom: 16px; }
+.faction-lore-section-heading > p { max-width: 720px; margin: 4px 0 0; color: #95aaaf; line-height: 1.55; }
+.faction-lore-arc-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.faction-lore-arc-grid article { padding: 18px; border: 1px solid #d3b17b35; border-radius: 5px; background: linear-gradient(145deg, #16262d, #0b171c); }
+.faction-lore-arc-grid article > span { color: #d5b878; font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: .11em; }
+.faction-lore-arc-grid h4 { margin: 7px 0 9px; color: #f4ead6; font-size: 15px; }
+.faction-lore-arc-grid p { margin: 0; color: #b9c8cc; font-size: 13px; line-height: 1.6; }
 .faction-lore-figure-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
 .faction-lore-figure-grid article { padding: 16px; border: 1px solid #9eb4bc24; border-radius: 5px; background: #101e24; }
 .faction-lore-figure-grid article span { color: #d5b878; font-size: 9px; text-transform: uppercase; letter-spacing: .09em; }
 .faction-lore-figure-grid h4 { margin: 6px 0 8px; color: #f4ead6; font-size: 17px; }
 .faction-lore-figure-grid p, .faction-lore-chronicle p { margin: 0; color: #b9c8cc; font-size: 13px; line-height: 1.55; }
+.faction-lore-figure-grid small { display: block; margin-top: 12px; padding-top: 10px; border-top: 1px solid #9eb4bc20; color: #8fa8ae; font-size: 10px; line-height: 1.5; }
 .faction-lore-chronicle ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; counter-reset: chapter; }
 .faction-lore-chronicle li { counter-increment: chapter; padding: 15px; border: 1px solid #9eb4bc24; border-radius: 5px; background: #081318; }
 .faction-lore-chronicle li::before { content: "Chapter " counter(chapter); display: block; margin-bottom: 5px; color: #d5b878; font-size: 9px; font-weight: 900; letter-spacing: .09em; text-transform: uppercase; }
 .faction-lore-chronicle li > span { display: block; margin-bottom: 7px; color: #f4ead6; font-weight: 800; }
 .faction-lore-actions { display: flex; justify-content: end; padding: 24px 34px; }
-@media (max-width: 820px) { .faction-lore-page { padding: 10px; } .faction-lore-header, .faction-lore-hero { align-items: stretch; flex-direction: column; padding: 24px; } .faction-lore-layout { grid-template-columns: 1fr; } .faction-lore-index { position: static; } .faction-lore-index [role="list"] { grid-template-columns: repeat(2, minmax(0, 1fr)); max-height: none; } .faction-lore-doctrine { grid-template-columns: 1fr; } }
-@media (max-width: 480px) { .faction-lore-index [role="list"] { grid-template-columns: 1fr; } .faction-lore-prose, .faction-lore-doctrine, .faction-lore-figures, .faction-lore-chronicle { margin: 0 14px; } }
+@media (max-width: 820px) { .faction-lore-page { padding: 10px; } .faction-lore-header, .faction-lore-hero { align-items: stretch; flex-direction: column; padding: 24px; } .faction-lore-layout { grid-template-columns: 1fr; } .faction-lore-index { position: static; } .faction-lore-index [role="list"] { grid-template-columns: repeat(2, minmax(0, 1fr)); max-height: none; } .faction-lore-doctrine { grid-template-columns: 1fr; } .faction-lore-arc-grid { grid-template-columns: 1fr; } }
+@media (max-width: 480px) { .faction-lore-index [role="list"] { grid-template-columns: 1fr; } .faction-lore-prose, .faction-lore-doctrine, .faction-lore-arc, .faction-lore-figures, .faction-lore-chronicle { margin: 0 14px; } }

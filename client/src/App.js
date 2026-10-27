@@ -1177,7 +1177,7 @@ function HotkeyWindow({ visible, onClose }) {
   );
 }
 
-function AccountPanel({ account, mode, form, error, notice, onModeChange, onFormChange, onSubmit, onSignOut, onRecoveryEmail }) {
+export function AccountPanel({ account, mode, form, error, notice, onModeChange, onFormChange, onSubmit, onSignOut, onRecoveryEmail }) {
   if (account) {
     return (
       <MenuCard title="Account">
