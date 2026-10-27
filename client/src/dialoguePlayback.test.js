@@ -1,5 +1,5 @@
 import { createDialoguePlayer, dialogueEntries, dossierMusicSource } from "./dialoguePlayback";
-import { resolveCharacterVoice } from "./characterVoices";
+import { FACTION_VOICE_PROFILES, resolveCharacterVoice } from "./characterVoices";
 
 let clips;
 let players;
@@ -234,4 +234,11 @@ test("voice profiles remain deterministic while distinguishing speakers and fact
   expect(resolveCharacterVoice({ factionId: "astral-vanguard", speaker: "Alden", voices })).toEqual(alden);
   expect(resolveCharacterVoice({ factionId: "astral-vanguard", speaker: "Myra Cross", voices }).rate).not.toBe(alden.rate);
   expect(resolveCharacterVoice({ factionId: "xendra", speaker: "The Voice", voices }).abstract).toBe(true);
+});
+
+test("every playable campaign and ranked faction has a voice identity", () => {
+  expect(Object.keys(FACTION_VOICE_PROFILES).sort()).toEqual([
+    "astral-vanguard", "bizi", "default", "frumo", "gracus", "indela", "ingles", "jali",
+    "mekan", "mercaw", "mtano", "rumin", "russo", "sheen", "voltari", "xendra", "zynarth"
+  ]);
 });
