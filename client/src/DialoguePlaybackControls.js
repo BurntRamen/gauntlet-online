@@ -2,7 +2,7 @@ import "./DialoguePlaybackControls.css";
 
 export function DialogueVoiceButton({ playback, index, enabled, style }) {
   const entry = playback.entries[index];
-  if (!entry.source) return null;
+  if (!playback.hasAudio) return null;
   const active = playback.playingIndex === index;
   return <button type="button" style={style} disabled={!enabled} aria-pressed={active}
     aria-label={`${active ? "Stop" : "Play"} ${entry.speaker} voice`}
@@ -24,7 +24,7 @@ export default function DialoguePlaybackControls({ playback, enabled = true }) {
         </>}
       </div>
       <p className="dialogue-playback-status" role="status">
-        {!playback.hasAudio ? "Recorded voice is not available for this chapter." : !enabled ? "Enable sound to hear dialogue." : playback.status || "Play the exchange or choose a voice."}
+        {!playback.hasAudio ? "Voice playback is not available in this browser." : !enabled ? "Enable sound to hear dialogue." : playback.status || "Play the exchange or choose a voice."}
       </p>
     </div>
   );

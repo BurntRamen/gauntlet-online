@@ -20,6 +20,7 @@ import "./CollectionWorkshop.css";
 import SpecialCardFace, { getCardIllustration } from "./SpecialCardFace";
 import CollectorCardPresentation from "./CollectorCardPresentation";
 import { useDialogueActivity } from "./dialoguePlayback";
+import { resolveCharacterVoice } from "./characterVoices";
 import CampaignChapterBriefing from "./CampaignChapterBriefing";
 import { DeckVisual, FactionArtwork, FACTION_VISUALS, resolveVisualAsset } from "./GauntletVisuals";
 import FactionLoadoutPicker from "./FactionLoadoutPicker";
@@ -3858,7 +3859,7 @@ export default function App() {
     setActionLog((prev) => (prev[0]?.text === game.message ? prev : [{ text: game.message, turn: game.turn || 1, phase: game.phase || "game" }, ...prev].slice(0, 50)));
   }, [game?.eventLog, game?.message, game?.phase, game?.turn]);
 
-  const speakFactionQuote = useCallback((voiceClip, quote = "", voiceProfile = [0.94, 0.9], voiceHints = []) => {
+  const speakFactionQuote = useCallback((voiceClip, quote = "", factionId = "default", speaker = "Commander", voiceProfile = [0.94, 0.9], voiceHints = []) => {
     if (voiceAudioRef.current) {
       voiceAudioRef.current.pause();
       voiceAudioRef.current = null;
@@ -3868,11 +3869,11 @@ export default function App() {
     const synthesize = () => {
       if (!quote || !window.speechSynthesis || !window.SpeechSynthesisUtterance) return;
       const utterance = new window.SpeechSynthesisUtterance(quote);
-      utterance.rate = Number(voiceProfile?.[0]) || 0.94;
-      utterance.pitch = Number(voiceProfile?.[1]) || 0.9;
       const voices = window.speechSynthesis.getVoices?.() || [];
-      const normalizedHints = (voiceHints || []).map((hint) => String(hint).toLowerCase());
-      utterance.voice = voices.find((voice) => normalizedHints.some((hint) => voice.name.toLowerCase().includes(hint))) || voices[0] || null;
+      const profile = resolveCharacterVoice({ factionId, speaker, voices, voiceProfile, voiceHints });
+      utterance.rate = profile.rate;
+      utterance.pitch = profile.pitch;
+      utterance.voice = profile.voice;
       window.speechSynthesis.speak(utterance);
     };
     if (!voiceClip || !window.Audio) return synthesize();
@@ -3889,7 +3890,7 @@ export default function App() {
       : gameContent?.factions?.find((entry) => entry.id === factionId);
     const quote = faction?.commander?.announcements?.[event] || "Stand ready.";
     setFactionVoice({ quote, detail, speaker: commanderName, kind: event });
-    speakFactionQuote(faction?.commander?.announcementAudio?.[event], quote, faction?.commander?.voiceProfile, faction?.commander?.voiceHints);
+    speakFactionQuote(faction?.commander?.announcementAudio?.[event], quote, factionId, commanderName, faction?.commander?.voiceProfile, faction?.commander?.voiceHints);
   }, [gameContent?.factions, speakFactionQuote]);
 
   const announceFactionFeatureClick = useCallback((featureRole) => {
@@ -3908,10 +3909,10 @@ export default function App() {
     if (featureRole === "general") {
       const quote = feature.clickedAnnouncement || "The general is ready.";
       setFactionVoice({ quote, detail: "General selected", speaker: feature.name || "General", kind: "clicked" });
-      speakFactionQuote(feature.clickedAudio, feature.clickedAnnouncement, currentPlayer.faction.commander?.voiceProfile, currentPlayer.faction.commander?.voiceHints);
+      speakFactionQuote(feature.clickedAudio, feature.clickedAnnouncement, currentPlayer.faction.id, feature.name || "General", currentPlayer.faction.commander?.voiceProfile, currentPlayer.faction.commander?.voiceHints);
       return;
     }
-    if (featureRole === "city" && feature.clickedSound) speakFactionQuote(feature.clickedSound);
+    if (featureRole === "city" && feature.clickedSound) speakFactionQuote(feature.clickedSound, "", currentPlayer.faction.id, feature.name || "City");
   }, [announceCommander, game, player, role, speakFactionQuote]);
 
   useEffect(() => {
@@ -5749,6 +5750,7 @@ export default function App() {
             {game.campaign?.cinematic ? (
               <CampaignCinematic
                 cinematic={game.campaign.cinematic}
+                factionId={game.campaign.factionId}
                 audioEnabled={!accountSoundMuted}
                 lines={campaignEndDialogue}
                 audio={game.campaign.endDialogueAudio}
@@ -5757,6 +5759,7 @@ export default function App() {
             ) : (
               <CampaignDialogueBlock
                 title="Ending Dialogue"
+                factionId={game.campaign?.factionId}
                 audioEnabled={!accountSoundMuted}
                 lines={campaignEndDialogue}
                 audio={game.campaign?.endDialogueAudio}
@@ -8868,6 +8871,7 @@ export default function App() {
       <HotkeyWindow visible={showHotkeys} onClose={() => setShowHotkeys(false)} />
       {game.campaign && (
         <Suspense fallback={null}><CampaignDialogueBlock
+          factionId={game.campaign.factionId}
           lines={game.campaign.startDialogue || game.campaign.dialogue}
           audio={game.campaign.startDialogueAudio || game.campaign.dialogueAudio}
           audioEnabled={!accountSoundMuted}
@@ -9137,7 +9141,7 @@ export default function App() {
               {matchDrawer === "chapter" && game.campaign && (
                 <div className="focus-drawer-scroll focus-chapter-drawer">
                   <p>{game.campaign.story}</p>
-                  <Suspense fallback={null}><CampaignDialogueBlock audioEnabled={!accountSoundMuted} title="Voices from the chapter" lines={game.campaign.startDialogue || game.campaign.dialogue} audio={game.campaign.startDialogueAudio || game.campaign.dialogueAudio} compact /></Suspense>
+                  <Suspense fallback={null}><CampaignDialogueBlock factionId={game.campaign.factionId} audioEnabled={!accountSoundMuted} title="Voices from the chapter" lines={game.campaign.startDialogue || game.campaign.dialogue} audio={game.campaign.startDialogueAudio || game.campaign.dialogueAudio} compact /></Suspense>
                 </div>
               )}
 

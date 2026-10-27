@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { resolveCharacterVoice } from "./characterVoices";
 
 let activePlayer = null;
 const listeners = new Set();
@@ -51,9 +52,17 @@ export function dossierMusicSource(factionId) {
 
 const idleState = () => ({ playingIndex: null, mode: null, paused: false, status: "" });
 
-export function createDialoguePlayer({ entries, onChange, AudioCtor = typeof window !== "undefined" ? window.Audio : null }) {
+export function createDialoguePlayer({
+  entries,
+  onChange,
+  factionId = "default",
+  AudioCtor = typeof window !== "undefined" ? window.Audio : null,
+  SpeechCtor = typeof window !== "undefined" ? window.SpeechSynthesisUtterance : null,
+  speechSynthesis = typeof window !== "undefined" ? window.speechSynthesis : null
+}) {
   let state = idleState();
   let voice = null;
+  let utterance = null;
   let bed = null;
   let generation = 0;
   let skipped = 0;
@@ -85,6 +94,8 @@ export function createDialoguePlayer({ entries, onChange, AudioCtor = typeof win
     generation += 1;
     release(voice);
     voice = null;
+    if (utterance) speechSynthesis?.cancel?.();
+    utterance = null;
     stopBed();
     if (activePlayer === player) {
       activePlayer = null;
@@ -98,6 +109,7 @@ export function createDialoguePlayer({ entries, onChange, AudioCtor = typeof win
       return;
     }
     if (!bed) {
+      if (!AudioCtor) return;
       bed = new AudioCtor(assetUrl(settings.musicSource));
       bed.loop = true;
       bed.volume = Math.min(0.15, Math.max(0, settings.musicVolume * 0.5));
@@ -114,27 +126,62 @@ export function createDialoguePlayer({ entries, onChange, AudioCtor = typeof win
   const play = (startIndex = 0, sequence = true) => {
     stop("");
     if (!settings.enabled) { publish({ status: "Enable sound to hear dialogue." }); return; }
-    if (!AudioCtor) { publish({ status: "Audio unavailable." }); return; }
-    if (!entries.some((entry, index) => index >= startIndex && entry.source && (sequence || index === startIndex))) {
-      publish({ status: "No recording available." });
+    const canSpeak = Boolean(SpeechCtor && speechSynthesis?.speak);
+    if (!AudioCtor && !canSpeak) { publish({ status: "Voice playback unavailable." }); return; }
+    if (!entries.some((entry, index) => index >= startIndex && (entry.source || canSpeak) && (sequence || index === startIndex))) {
+      publish({ status: "No voice available." });
       return;
     }
     activePlayer?.stop("Another dialogue is playing.");
     activePlayer = player;
     notifyActivity();
     const run = generation;
-    skipped = sequence ? entries.filter((entry) => !entry.source).length : 0;
+    skipped = 0;
     publish({ mode: sequence ? "exchange" : "line" });
     syncBed();
 
     const playIndex = (index) => {
       if (run !== generation) return;
-      const next = entries.findIndex((entry, candidate) => candidate >= index && entry.source);
+      const next = entries.findIndex((entry, candidate) => candidate >= index && (entry.source || canSpeak));
       if (next < 0) {
         stop(skipped ? `Exchange finished. ${skipped} unavailable recording${skipped === 1 ? " was" : "s were"} skipped.` : "Dialogue finished.");
         return;
       }
+      if (next > index) skipped += next - index;
       release(voice);
+      voice = null;
+      utterance = null;
+      const finishLine = () => {
+        if (run !== generation) return;
+        if (sequence) playIndex(next + 1);
+        else stop("Dialogue finished.");
+      };
+      const speakLine = () => {
+        if (!canSpeak || run !== generation) return false;
+        const spoken = new SpeechCtor(entries[next].text || entries[next].line);
+        const profile = resolveCharacterVoice({ factionId, speaker: entries[next].speaker, voices: speechSynthesis.getVoices?.() || [] });
+        spoken.rate = profile.rate;
+        spoken.pitch = profile.pitch;
+        spoken.voice = profile.voice;
+        utterance = spoken;
+        spoken.onend = () => { if (utterance === spoken) finishLine(); };
+        spoken.onerror = (event) => {
+          if (utterance !== spoken || event?.error === "canceled") return;
+          if (sequence) { skipped += 1; playIndex(next + 1); }
+          else stop("Voice unavailable.");
+        };
+        publish({ playingIndex: next, paused: false, status: `Playing ${entries[next].speaker}.` });
+        speechSynthesis.speak(spoken);
+        return true;
+      };
+      if (!entries[next].source || !AudioCtor) {
+        if (!speakLine()) {
+          skipped += 1;
+          if (sequence) playIndex(next + 1);
+          else stop("Voice unavailable.");
+        }
+        return;
+      }
       const clip = new AudioCtor(assetUrl(entries[next].source));
       voice = clip;
       clip.volume = 1;
@@ -143,6 +190,9 @@ export function createDialoguePlayer({ entries, onChange, AudioCtor = typeof win
         if (!isCurrent() || interruptedByPause(error)) return;
         if (error?.name === "NotAllowedError") {
           stop("Playback was blocked. Try Play again.");
+        } else if (speakLine()) {
+          release(clip);
+          voice = null;
         } else if (sequence) {
           skipped += 1;
           playIndex(next + 1);
@@ -152,8 +202,7 @@ export function createDialoguePlayer({ entries, onChange, AudioCtor = typeof win
       };
       clip.onended = () => {
         if (!isCurrent()) return;
-        if (sequence) playIndex(next + 1);
-        else stop("Dialogue finished.");
+        finishLine();
       };
       clip.onerror = failed;
       publish({ playingIndex: next, paused: false, status: `Playing ${entries[next].speaker}.` });
@@ -167,15 +216,21 @@ export function createDialoguePlayer({ entries, onChange, AudioCtor = typeof win
   };
 
   const togglePause = () => {
-    if (!voice) return;
+    if (!voice && !utterance) return;
     if (!state.paused) {
-      voice.pause();
+      voice?.pause();
+      if (utterance) speechSynthesis?.pause?.();
       bed?.pause();
       publish({ paused: true, status: "Dialogue paused." });
       return;
     }
     const current = voice;
     publish({ paused: false, status: `Playing ${entries[state.playingIndex].speaker}.` });
+    if (utterance) {
+      speechSynthesis?.resume?.();
+      playBed();
+      return;
+    }
     try {
       Promise.resolve(current.play()).catch((error) => {
         if (voice === current && !interruptedByPause(error)) stop("Playback was blocked. Try Play again.");
@@ -198,7 +253,7 @@ export function createDialoguePlayer({ entries, onChange, AudioCtor = typeof win
   return player;
 }
 
-export function useDialoguePlayback({ lines, audio, scopeKey = "", enabled = true, musicSource = null, musicEnabled = true, musicVolume = 0.18 }) {
+export function useDialoguePlayback({ lines, audio, factionId = "default", scopeKey = "", enabled = true, musicSource = null, musicEnabled = true, musicVolume = 0.18 }) {
   // Compare content, so fresh arrays from a live snapshot do not restart playback.
   const contentKey = JSON.stringify([scopeKey, lines, audio]);
   const entries = useMemo(() => {
@@ -206,10 +261,11 @@ export function useDialoguePlayback({ lines, audio, scopeKey = "", enabled = tru
     return dialogueEntries(transcript, recordings);
   }, [contentKey]);
   const [state, setState] = useState(idleState);
-  const player = useMemo(() => createDialoguePlayer({ entries, onChange: setState }), [entries]);
+  const player = useMemo(() => createDialoguePlayer({ entries, factionId, onChange: setState }), [entries, factionId]);
   useEffect(() => () => player.stop(""), [player]);
   useEffect(() => {
     player.configure({ enabled, musicSource, musicEnabled, musicVolume });
   }, [player, enabled, musicSource, musicEnabled, musicVolume]);
-  return { ...state, entries, hasAudio: entries.some((entry) => entry.source), ...player };
+  const synthesisAvailable = typeof window !== "undefined" && Boolean(window.speechSynthesis && window.SpeechSynthesisUtterance);
+  return { ...state, entries, hasAudio: entries.some((entry) => entry.source) || synthesisAvailable, ...player };
 }

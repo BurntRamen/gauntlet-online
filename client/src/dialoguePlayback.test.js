@@ -1,4 +1,5 @@
 import { createDialoguePlayer, dialogueEntries, dossierMusicSource } from "./dialoguePlayback";
+import { resolveCharacterVoice } from "./characterVoices";
 
 let clips;
 let players;
@@ -170,4 +171,67 @@ test("missing accompaniment leaves the exchange playable, and unscored factions 
   expect(player.state().mode).toBe("exchange");
   clips[1].onended();
   expect(clips[2].src).toBe("/b.mp3");
+});
+
+test("synthesizes every missing campaign line with stable character-specific voices", () => {
+  const utterances = [];
+  class FakeUtterance {
+    constructor(text) { this.text = text; }
+  }
+  const synth = {
+    speak: jest.fn((utterance) => utterances.push(utterance)),
+    cancel: jest.fn(),
+    pause: jest.fn(),
+    resume: jest.fn(),
+    getVoices: () => [
+      { name: "David", lang: "en-US" },
+      { name: "Samantha", lang: "en-US" }
+    ]
+  };
+  const onChange = jest.fn();
+  const player = createDialoguePlayer({
+    entries: dialogueEntries(["Alden: Hold the line.", "Myra Cross: Move."], []),
+    factionId: "astral-vanguard",
+    AudioCtor: FakeAudio,
+    SpeechCtor: FakeUtterance,
+    speechSynthesis: synth,
+    onChange
+  });
+  players.push(player);
+  player.play();
+  expect(utterances[0].text).toBe("Hold the line.");
+  expect(onChange.mock.calls.at(-1)[0]).toMatchObject({ playingIndex: 0, status: "Playing Alden." });
+  utterances[0].onend();
+  expect(utterances[1].text).toBe("Move.");
+  expect(utterances[0].rate).not.toBe(utterances[1].rate);
+  utterances[1].onend();
+  expect(onChange.mock.calls.at(-1)[0].status).toBe("Dialogue finished.");
+});
+
+test("falls back to synthesis when a recorded line fails", () => {
+  const utterances = [];
+  class FakeUtterance { constructor(text) { this.text = text; } }
+  const synth = { speak: (utterance) => utterances.push(utterance), cancel: jest.fn(), getVoices: () => [] };
+  const onChange = jest.fn();
+  const player = createDialoguePlayer({
+    entries: dialogueEntries(["Xen'Dra: The angle remembers."], ["/missing.mp3"]),
+    factionId: "xendra",
+    AudioCtor: FakeAudio,
+    SpeechCtor: FakeUtterance,
+    speechSynthesis: synth,
+    onChange
+  });
+  players.push(player);
+  player.play();
+  clips[0].onerror();
+  expect(utterances[0].text).toBe("The angle remembers.");
+  expect(utterances[0].rate).toBeLessThan(0.75);
+});
+
+test("voice profiles remain deterministic while distinguishing speakers and factions", () => {
+  const voices = [{ name: "David", lang: "en-US" }, { name: "Samantha", lang: "en-US" }];
+  const alden = resolveCharacterVoice({ factionId: "astral-vanguard", speaker: "Alden", voices });
+  expect(resolveCharacterVoice({ factionId: "astral-vanguard", speaker: "Alden", voices })).toEqual(alden);
+  expect(resolveCharacterVoice({ factionId: "astral-vanguard", speaker: "Myra Cross", voices }).rate).not.toBe(alden.rate);
+  expect(resolveCharacterVoice({ factionId: "xendra", speaker: "The Voice", voices }).abstract).toBe(true);
 });
