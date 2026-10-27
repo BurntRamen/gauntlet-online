@@ -60,18 +60,18 @@ test("all draft and sealed packs share one content snapshot instead of cloning t
   room.lobby.players[1].connected = true;
   __test.startDraft(room);
   assert.equal(reads, 1);
-  assert.equal(Object.values(room.draft.currentPacks).flatMap(pack => pack.cards).length, 64);
-  assert.equal(Object.values(room.draft.unopenedPacks).flatMap(packs => packs.flatMap(pack => pack.cards)).length, 128);
+  assert.equal(Object.values(room.draft.currentPacks).flatMap(pack => pack.cards).length, 104);
+  assert.equal(Object.values(room.draft.unopenedPacks).flatMap(packs => packs.flatMap(pack => pack.cards)).length, 208);
   reads = 0;
   const sealed = __test.createDraftRoom({ sealed: true });
   __test.openSealedPool(sealed);
   assert.equal(reads, 1);
-  assert.equal(sealed.draft.draftedPools[1].length, 48);
+  assert.equal(sealed.draft.draftedPools[1].length, 78);
   __test.rooms.delete(room.roomCode);
   __test.rooms.delete(sealed.roomCode);
 });
 
-test("bot draft completes 24 real picks, restores its pool, preserves fixed slots, saves, and enters its league", async () => {
+test("bot draft completes 39 real picks, restores its pool, preserves fixed slots, saves, and enters its league", async () => {
   const registration = await fetch(`${url}/api/auth/register`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: "DraftAccount", password: "Draft-Test-Password-42" }) });
   assert.equal(registration.status, 200);
   const { token } = await registration.json();
@@ -82,9 +82,9 @@ test("bot draft completes 24 real picks, restores its pool, preserves fixed slot
   const seat = await assigned;
   let draft = await first;
   assert.equal(draft.activePlayers.length, 8);
-  assert.equal(draft.myCurrentPack.cards.length, 8);
+  assert.equal(draft.myCurrentPack.cards.length, 13);
   assert.equal((await request(socket, "draftPick", { cardCopyId: "not-a-card" })).ok, false);
-  for (let pick = 0; pick < 24; pick++) {
+  for (let pick = 0; pick < 39; pick++) {
     const updated = event(socket, "draftState", (state) => state.myPool.length === pick + 1);
     const card = draft.myCurrentPack.cards[0];
     assert.ok(card.id && card.factionId && card.name);
@@ -102,8 +102,8 @@ test("bot draft completes 24 real picks, restores its pool, preserves fixed slot
     }
   }
   assert.equal(draft.status, "building");
-  assert.equal(draft.myPool.length, 24);
-  assert.equal(new Set(draft.myPool.map((card) => card.draftCopyId)).size, 24);
+  assert.equal(draft.myPool.length, 39);
+  assert.equal(new Set(draft.myPool.map((card) => card.draftCopyId)).size, 39);
   assert.equal(draft.myCurrentPack, null);
   assert.equal((await request(socket, "draftPick", { cardCopyId: draft.myPool[0].draftCopyId })).ok, false);
   assert.equal((await request(socket, "saveDraftDeck")).ok, false);
@@ -157,6 +157,6 @@ test("live draft requires connected seats, rejects late entrants, hides packs fr
   assert.equal((await request(guest, "draftPick", { cardCopyId: firstGuest.myCurrentPack.cards[0].draftCopyId })).ok, true);
   const next = await passed;
   assert.equal(next.myCurrentPack.id, firstGuest.myCurrentPack.id);
-  assert.equal(next.myCurrentPack.cards.length, 7);
+  assert.equal(next.myCurrentPack.cards.length, 12);
   assert.equal(next.myCurrentPack.pickedThisPass, false);
 });

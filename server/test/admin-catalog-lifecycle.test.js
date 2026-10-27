@@ -86,7 +86,7 @@ test("new set/card lifecycle uses real consumers, exact-draft actions, pinned ma
   assert.ok(cardsFor(manifest, "earnedPacks").some(c => c.id === card.id));
   for (const format of ["draft", "sealed"]) {
     const pack = __test.createDraftPack(1, ["rumin"], manifest, set.id, format);
-    assert.equal(pack.cards.length, 8); assert.ok(pack.cards.every(c => members.includes(c.id))); assert.ok(pack.cards.some(c => c.id === card.id));
+    assert.equal(pack.cards.length, 13); assert.ok(pack.cards.every(c => members.includes(c.id))); assert.ok(pack.cards.some(c => c.id === card.id));
   }
   const draftRoom = __test.createDraftRoom({ setId: set.id, sealed: true }); assert.equal(draftRoom.draft.setId, set.id); __test.rooms.delete(draftRoom.roomCode);
   const stats = { collection: { packCredits: 1 } };
