@@ -1,5 +1,7 @@
 "use strict";
 
+const { catalogIdentity } = require("../shared/duel-rules/catalogFactionIdentity");
+
 // Presentation only. Full rules and the duel engine remain authoritative.
 const WORDING_VERSION = "card-wording-v1";
 const CONVENTIONS = [
@@ -193,7 +195,13 @@ for (const factionId of ["mekan", "jali", "gracus", "voltari", "xendra", "ingles
 CONVENTIONS.push("New suit means a different suit from your previous attack this turn. Your first attack has no previous suit, so it cannot qualify. ‘Empty lane’ means an empty lane you control.");
 
 function getCardWording(card) {
-  return CARD_WORDING[card.gameplayCardId || card.definitionId || card.id] || card.displayText || card.text || card.rulesText || "";
+  const identity = catalogIdentity(card.factionId, card.suit);
+  if (identity) return `${identity.name}: ${identity.text}`;
+  const wording = CARD_WORDING[card.gameplayCardId || card.definitionId || card.id];
+  if (wording === "No additional ability." && card.role) {
+    return `${card.role.charAt(0).toUpperCase()}${card.role.slice(1)}. No additional ability beyond printed value.`;
+  }
+  return wording || card.displayText || card.text || card.rulesText || "";
 }
 
 module.exports = { WORDING_VERSION, CONVENTIONS, KEYWORDS, CARD_WORDING, getCardWording };

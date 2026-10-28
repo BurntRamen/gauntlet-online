@@ -1,7 +1,7 @@
 "use strict";
 
 const RULES_VERSION = "gauntlet-rules-v6";
-const CONTENT_VERSION = "gauntlet-content-v27";
+const CONTENT_VERSION = "gauntlet-content-v28";
 const NEUTRAL_FACTION_ID = "neutral";
 const { getCardWording } = require("./cardWording");
 const { catalogIdentity } = require("../shared/duel-rules/catalogFactionIdentity");
@@ -846,6 +846,62 @@ const CATALOG_SUITS = Object.freeze(["spades", "hearts", "diamonds", "clubs"]);
 const CATALOG_VALUES = Object.freeze([2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]);
 const CATALOG_RANK_SLUG = Object.freeze({ 11: "jack", 12: "queen", 13: "king", 14: "ace" });
 const CATALOG_RARITY = Object.freeze({ 2: "common", 3: "common", 4: "common", 5: "common", 6: "uncommon", 7: "uncommon", 8: "uncommon", 9: "rare", 10: "rare", 11: "uncommon", 12: "rare", 13: "rare", 14: "mythic" });
+
+// These summaries are part of the public card contract. They tell a player why
+// a faction wants a card before the player has memorized every rules phrase.
+// The tactical role below stays descriptive: executable behavior continues to
+// come from the card's rules text and registered effect.
+const FACTION_CARD_THEMES = Object.freeze({
+  rumin: "Invest resources, overpay deliberately, and arm decisive attacks.",
+  sheen: "Absorb pressure through repeated blocks, then turn defense into life and counterattacks.",
+  frumo: "Hide information, reposition lane cards, and strike from an unexpected angle.",
+  bizi: "Build acceleration through efficient payments, then convert stored momentum into explosive value.",
+  mekan: "Sequence a procession around Guests, shared suits, and remembered values.",
+  jali: "Reveal disciplined formations and turn defeat into Revenants, memory, and renewed strength.",
+  gracus: "Control the arena with measured value increases, resilient blocks, and punishing challenges.",
+  indela: "Read the omen, balancing odd-fire aggression against even-ice defense.",
+  voltari: "Optimize suit sequences and conduit positions while preserving independent agency.",
+  zynarth: "Grow expendable Underlings, recycle biomass, and overwhelm through adaptive ecology.",
+  "astral-vanguard": "Stage flexible deployments and combine contradictory tactics into one coordinated operation.",
+  xendra: "Change aspects through suit echoes, mirrored blocks, and attacks that destabilize certainty.",
+  ingles: "Establish precedent through opening actions, then defend the common charter together.",
+  mercaw: "Launch from hand and lane in a mobile federation whose first commitments set the course.",
+  mtano: "Carry memory forward through rising attacks, recurring suits, and layered communal defense.",
+  russo: "Endure the first assault, hold prepared positions, and counterattack after hardship.",
+  neutral: "Supply adaptable tools that reinforce many faction plans without replacing their identity."
+});
+
+const VALUE_ROLE_TIERS = Object.freeze({
+  2: "setup", 3: "setup", 4: "setup", 5: "bridge", 6: "engine", 7: "engine",
+  8: "engine", 9: "payoff", 10: "payoff", 11: "specialist", 12: "anchor",
+  13: "leader", 14: "finisher"
+});
+
+function inferCardRole(card) {
+  const identity = catalogIdentity(card.factionId, card.suit);
+  if (identity) return `${identity.name} ${VALUE_ROLE_TIERS[card.value]}`;
+
+  const text = String(card.text || "").toLowerCase();
+  const tier = VALUE_ROLE_TIERS[card.value] || "tool";
+  const signatureRoles = {
+    armament: "attack amplifier",
+    shelter: "defensive engine",
+    ambush: "information and tempo trick",
+    contraption: "acceleration engine",
+    biomorph: "brood support engine",
+    operation: "deployment support",
+    arcana: "omen support",
+    spell: "tactical spell",
+    weaponry: "combat equipment"
+  };
+  if (signatureRoles[card.type]) return `${signatureRoles[card.type]} · ${tier}`;
+  if (/pay|overpay|cost/.test(text)) return `resource enabler · ${tier}`;
+  if (/gain \d+ life|prevent \d+ damage/.test(text)) return `sustain defender · ${tier}`;
+  if (/block/.test(text) && /attack/.test(text)) return `flexible combatant · ${tier}`;
+  if (/block/.test(text)) return `defensive specialist · ${tier}`;
+  if (/attack/.test(text)) return `attack specialist · ${tier}`;
+  return `printed-value ${tier}`;
+}
 const FULL_FACTION_COLLECTIONS = Object.freeze(Object.fromEntries(Object.entries(FULL_CATALOG_FACTIONS).map(([factionId, profile]) => [
   factionId,
   CATALOG_SUITS.flatMap((suit) => CATALOG_VALUES.map((value, index) => {
@@ -1067,6 +1123,8 @@ for (const card of COLLECTION_CARDS) {
   if (SUPPORT_RULES_TEXT[card.id]) card.text = SUPPORT_RULES_TEXT[card.id];
   card.suit = FIXED_CARD_SUITS[card.id] || card.suit;
   card.replacementSuit = card.suit;
+  card.theme = FACTION_CARD_THEMES[card.factionId];
+  card.role = inferCardRole(card);
   card.displayText = getCardWording(card);
   card.gameplayCardId = card.id;
   card.freeAcquisition = FREE_GAMEPLAY_ACQUISITION;
@@ -2517,6 +2575,8 @@ function validateGameContent() {
     requireText(card.name, `cards.${card.id}.name`);
     requireText(card.type, `cards.${card.id}.type`);
     requireText(card.text, `cards.${card.id}.text`);
+    requireText(card.theme, `cards.${card.id}.theme`);
+    requireText(card.role, `cards.${card.id}.role`);
     if (cardIds.has(card.id)) throw new Error(`Invalid game content: duplicate card ID ${card.id}.`);
     if (card.factionId !== NEUTRAL_FACTION_ID && !factionsData[card.factionId]) throw new Error(`Invalid game content: card ${card.id} has an unknown faction.`);
     if (!rarities.has(card.rarity)) throw new Error(`Invalid game content: card ${card.id} has an invalid rarity.`);

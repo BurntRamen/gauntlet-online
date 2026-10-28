@@ -24,6 +24,7 @@ const {
 } = require("../gameContent");
 const { FACTIONS } = require("../game/factions");
 const { createMatch } = require("../../shared/duel-rules");
+const { catalogIdentity } = require("../../shared/duel-rules/catalogFactionIdentity");
 const { server, __test } = require("../index");
 
 test.after(() => server.close());
@@ -470,6 +471,37 @@ test("keeps an explicit deterministic rules test for every constructed card", ()
 test("does not publish constructed effects that require illegal multi-card blocks", () => {
   for (const card of COLLECTION_CARDS) {
     assert.doesNotMatch(card.text, /block with two or more cards/i, card.id);
+  }
+});
+
+test("every faction card publishes a clear faction theme and tactical role", () => {
+  const factionThemes = new Map();
+  for (const card of COLLECTION_CARDS) {
+    assert.match(card.theme, /\S+/, `${card.id} theme`);
+    assert.match(card.role, /\S+/, `${card.id} role`);
+    if (card.factionId !== "neutral") {
+      const knownTheme = factionThemes.get(card.factionId);
+      if (knownTheme) assert.equal(card.theme, knownTheme, `${card.factionId} shared theme`);
+      else factionThemes.set(card.factionId, card.theme);
+    }
+  }
+  assert.equal(new Set(factionThemes.values()).size, factionThemes.size, "faction themes remain distinct");
+});
+
+test("full-catalog roles expose both the suit identity and rank-level job", () => {
+  const roleTiers = {
+    2: "setup", 3: "setup", 4: "setup", 5: "bridge", 6: "engine", 7: "engine",
+    8: "engine", 9: "payoff", 10: "payoff", 11: "specialist", 12: "anchor",
+    13: "leader", 14: "finisher"
+  };
+  for (const [factionId, cards] of Object.entries(FULL_FACTION_COLLECTIONS)) {
+    for (const card of cards) {
+      const identity = catalogIdentity(factionId, card.suit);
+      assert.match(card.role, new RegExp(`^${identity.name} `), card.id);
+      assert.equal(card.role.endsWith(roleTiers[card.value]), true, card.id);
+      assert.match(card.displayText, new RegExp(`^${identity.name}: `), `${card.id} visible identity`);
+      assert.doesNotMatch(card.displayText, /no additional ability/i, `${card.id} visible mechanic`);
+    }
   }
 });
 

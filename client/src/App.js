@@ -630,6 +630,7 @@ function CardRulesDetails({ card }) {
   if (!card.text && !card.rulesText) return null;
   return <details className="card-rules-details">
     <summary>Full rules &amp; keywords</summary>
+    {card.role && <p><strong>{card.role}</strong> — {card.theme}</p>}
     <p>{card.text || card.rulesText}</p>
     <a href={`/card-keywords.html#${card.gameplayCardId || card.definitionId || card.id}`} target="_blank" rel="noreferrer">Read keyword guide ↗</a>
   </details>;

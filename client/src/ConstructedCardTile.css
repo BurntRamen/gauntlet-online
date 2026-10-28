@@ -134,6 +134,24 @@
   line-height: 1.4;
 }
 
+.constructed-card-identity {
+  display: grid;
+  gap: 3px;
+  margin: 8px 0 0;
+  padding: 7px 8px;
+  border-left: 2px solid var(--rarity-color, #d0a863);
+  background: rgba(122, 158, 169, 0.08);
+  color: #adc1c8;
+  font-size: 10px;
+  line-height: 1.3;
+}
+
+.constructed-card-identity strong {
+  color: #f4dfaa;
+  font-size: 11px;
+  text-transform: capitalize;
+}
+
 .constructed-card-usage {
   display: flex;
   justify-content: space-between;

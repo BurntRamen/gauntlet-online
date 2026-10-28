@@ -43,6 +43,7 @@ export default function CardZoom({ card, presentation, factionName, renderRules,
       </div></div>
       <div className="deck-card-zoom-copy">{card.id && <><span className="deck-card-faction">{factionName}</span>{card.factionId === "neutral" && <span className="deck-neutral-hint">Usable in any faction</span>}</>}<span className="deck-card-zoom-rarity">{card.rarity || "Standard playing card"}</span>
         <h2 id="deck-card-zoom-title">{name}</h2><span className="deck-card-zoom-slot">{slotLabel(card)}</span>
+        {card.id && card.role && <div className="deck-card-zoom-identity"><strong>{card.role}</strong><span>{card.theme}</span></div>}
         {card.id && <><p>{card.displayText || card.text}</p>{renderRules?.(card)}</>}
         {presentation && <small className="deck-card-zoom-finish">{presentation.name || presentation.finish}</small>}
       </div>
