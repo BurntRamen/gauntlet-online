@@ -9,9 +9,9 @@ function assetUrl(source) {
   return `${process.env.PUBLIC_URL || ""}${source.startsWith("/") ? source : `/${source}`}`;
 }
 
-export default function CampaignCinematic({ cinematic, lines = [], audio = [], audioEnabled = true, autoPlayKey = "" }) {
+export default function CampaignCinematic({ cinematic, lines = [], audio = [], factionId = "default", audioEnabled = true, autoPlayKey = "" }) {
   const entries = useMemo(() => dialogueEntries(lines, audio), [lines, audio]);
-  const playback = useDialoguePlayback({ lines, audio, scopeKey: autoPlayKey, enabled: audioEnabled });
+  const playback = useDialoguePlayback({ lines, audio, factionId, scopeKey: autoPlayKey, enabled: audioEnabled });
   const [manualIndex, setManualIndex] = useState(0);
   const [silentPlaying, setSilentPlaying] = useState(false);
   const autoPlayed = useRef("");

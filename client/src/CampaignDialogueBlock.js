@@ -58,8 +58,8 @@ export function getCampaignSpeakerImage(speaker) {
   return "/assets/gauntlet/rumin-card.webp";
 }
 
-export default function CampaignDialogueBlock({ title = "Dialogue", lines = [], audio = [], compact = false, light = false, autoPlayKey = "", audioOnly = false, audioEnabled = true }) {
-  const playback = useDialoguePlayback({ lines, audio, scopeKey: autoPlayKey, enabled: audioEnabled });
+export default function CampaignDialogueBlock({ title = "Dialogue", lines = [], audio = [], factionId = "default", compact = false, light = false, autoPlayKey = "", audioOnly = false, audioEnabled = true }) {
+  const playback = useDialoguePlayback({ lines, audio, factionId, scopeKey: autoPlayKey, enabled: audioEnabled });
   const { play, hasAudio } = playback;
   const autoPlayedRef = useRef("");
   useEffect(() => {

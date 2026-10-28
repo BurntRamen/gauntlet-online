@@ -154,7 +154,7 @@ describe("dialogue preview playback", () => {
   test("keeps a clear disabled exchange control for unrecorded or muted passages", () => {
     const { rerender } = render(<CampaignBriefingDialogue title="Opening" lines={["A: Hello."]} />);
     expect(screen.getByRole("button", { name: "Play exchange" })).toBeDisabled();
-    expect(screen.getByRole("status")).toHaveTextContent("Recorded voice is not available");
+    expect(screen.getByRole("status")).toHaveTextContent("Voice playback is not available");
     rerender(<CampaignBriefingDialogue title="Opening" lines={["A: Hello."]} audio={["/a.mp3"]} audioEnabled={false} />);
     expect(screen.getByRole("button", { name: "Play exchange" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Play A voice" })).toBeDisabled();

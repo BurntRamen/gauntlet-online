@@ -3,7 +3,7 @@ import { dossierMusicSource, useDialoguePlayback } from "./dialoguePlayback";
 import DialoguePlaybackControls, { DialogueVoiceButton } from "./DialoguePlaybackControls";
 
 export function CampaignBriefingDialogue({ title, lines = [], audio = [], factionId, scopeKey, audioEnabled = true, musicEnabled = true, musicVolume = 0.18 }) {
-  const playback = useDialoguePlayback({ lines, audio, scopeKey, enabled: audioEnabled, musicSource: dossierMusicSource(factionId), musicEnabled, musicVolume });
+  const playback = useDialoguePlayback({ lines, audio, factionId, scopeKey, enabled: audioEnabled, musicSource: dossierMusicSource(factionId), musicEnabled, musicVolume });
   if (playback.entries.length === 0) return null;
 
   return (
