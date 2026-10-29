@@ -432,6 +432,6 @@ test('blocked browser storage keeps the whole app usable and guest layout surviv
   await expect(page.getByText('Table Command', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Main Menu', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Ready to play?', exact: true })).toBeVisible();
-  expect((await layoutOrder(page))[0]).toBe('ranked');
+  await expect.poll(async () => (await layoutOrder(page))[0]).toBe('ranked');
   expect(errors).toEqual([]);
 });

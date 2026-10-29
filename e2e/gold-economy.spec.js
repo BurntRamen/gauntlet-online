@@ -45,7 +45,7 @@ test("Admin authors and publishes a usable Gold product; player earns, buys, rea
   const context = await browser.newContext({ baseURL: clientOrigin }); const player = await context.newPage();
   try {
     await login(player, false); await navigatePlayer(player, "profile", "library");
-    const library = player.getByRole("region", { name: "Gold & Library", exact: true });
+    const library = player.locator(".cd-setup-content").getByRole("region", { name: "Gold & Library", exact: true });
     await library.getByRole("button", { name: "Claim Welcome to Gold · 700 Gold", exact: true }).click(); await expect(library).toContainText("700 Gold · Published");
     await library.getByRole("button", { name: "Claim Verified training · 300 Gold", exact: true }).click(); await expect(library).toContainText("1000 Gold · Published");
     await expect(library.getByRole("button", { name: /^Claim / })).toHaveCount(0);
