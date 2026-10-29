@@ -1,10 +1,21 @@
 import React, { createContext, useContext, useEffect, useId, useRef, useState } from 'react';
-import { getPageLayout } from './layoutPreferences';
+import { emptyLayoutPreferences, getPageLayout } from './layoutPreferences';
 import { getLayoutModuleIds, isCustomizablePage, LAYOUT_PAGE_LABELS, registerCampaignLayoutModules } from './layoutRegistry';
 import { useLayoutPreferences } from './useLayoutPreferences';
 import './PlayerLayoutStudio.css';
 
 const LayoutContext = createContext(null);
+const staticLayout = {
+  customizationEnabled: false, preferences: emptyLayoutPreferences(), editing: false,
+  canEdit: false, setEditing: () => {}, resetPage: () => {}, resetAll: () => {},
+};
+
+// This path intentionally never mounts useLayoutPreferences: saved guest/account
+// layouts cannot reorder the released menus or trigger a persistence request.
+export function StaticLayoutProvider({ children, factionIds }) {
+  if (factionIds) registerCampaignLayoutModules(factionIds);
+  return <LayoutContext.Provider value={staticLayout}>{children}</LayoutContext.Provider>;
+}
 
 export function usePlayerLayout() {
   const value = useContext(LayoutContext);
@@ -65,7 +76,7 @@ export function PlayerLayoutProvider({ children, account, authToken, serverUrl, 
   };
   const needsRecovery = ['save-error', 'load-error', 'conflict'].includes(layout.saveState);
   return (
-    <LayoutContext.Provider value={{ ...layout, editing, setEditing, resetPage, resetAll }}>
+    <LayoutContext.Provider value={{ ...layout, customizationEnabled: true, editing, setEditing, resetPage, resetAll }}>
       {layout.guestChoice && <section className="layout-choice" aria-label="Choose page layouts">
         <div><strong>Choose your page layouts</strong><p>This browser has guest layouts. Use them for this account, or keep the saved account layouts.</p></div>
         <button type="button" onClick={() => layout.chooseGuestLayout(false)}>Use account layouts</button>
@@ -173,6 +184,7 @@ export function LayoutGrid({ pageId, items = [], className = '' }) {
 
 export function PageLayoutSettings() {
   const layout = usePlayerLayout();
+  if (!layout.customizationEnabled) return null;
   return <section className="page-layout-settings" aria-labelledby="page-layout-settings-title">
     <h2 id="page-layout-settings-title">Page Layouts</h2>
     <p>Reorder or hide optional shortcuts on Play, Campaign, Decks & Cards, Compete, Matches, Community, Learn & Rules, and Profile.</p>

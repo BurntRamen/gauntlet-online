@@ -13,6 +13,6 @@ module.exports = {
       MATCH_DATA_FILE: path.join(data, "matches.json"), ROOM_STATE_DATA_FILE: path.join(data, "rooms.json"),
       ACCOUNT_STORAGE_PROVIDER: "local", MATCH_STORAGE_PROVIDER: "local", SUPABASE_URL: "", SUPABASE_SERVICE_ROLE_KEY: ""
     } },
-    { ...base.webServer[1], reuseExistingServer: false, url: "http://127.0.0.1:3110", env: { ...base.webServer[1].env, PORT: "3110", REACT_APP_SOCKET_URL: "http://127.0.0.1:4110" } }
+    { ...base.webServer[1], reuseExistingServer: false, url: "http://127.0.0.1:3110", env: { ...base.webServer[1].env, PORT: "3110", REACT_APP_SOCKET_URL: "http://127.0.0.1:4110", REACT_APP_MENU_LAYOUT_CUSTOMIZATION: "true" } }
   ]
 };

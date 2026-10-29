@@ -50,7 +50,8 @@ test("Play exposes all eight actions with concise labels and accurate click outc
   for (const [id, title, outcome, expected] of cases) {
     const tile = getTile(id);
     expect(tile).toHaveTextContent(title);
-    expect(tile).toHaveTextContent(outcome);
+    expect(tile).toHaveAttribute("aria-description", outcome);
+    expect(tile.querySelector(".cd-action-outcome")).toBeNull();
     expect(tile.querySelector(".cd-action-description")).toBeNull();
     expect(tile.querySelector(".cd-action-icon svg")).toBeInTheDocument();
     fireEvent.click(tile);
@@ -219,7 +220,7 @@ test("Campaign shortcuts derive from actual content and continuing uses the exac
   const { props } = renderMenus({ route: { page: "campaign", view: "" }, content: { campaigns }, account: { id: "account", name: "River", progression: { campaign: { newly_published: ["intro"] } } }, state: { completedChapters: 1, nextCampaign: { factionId: "newly_published", chapter: { id: "crossing", title: "The Crossing" } } } });
   const faction = getTile("faction-newly_published");
   expect(faction).toHaveTextContent("Tideward");
-  expect(faction).toHaveTextContent("Chapters · 1 of 2 cleared");
+  expect(faction).toHaveAttribute("aria-description", "Chapters · 1 of 2 cleared");
   fireEvent.click(faction);
   expect(props.actions.campaign).toHaveBeenCalledWith("newly_published");
   fireEvent.click(screen.getByRole("button", { name: "Continue next chapter" }));
@@ -290,15 +291,15 @@ test("decks, match records, replays and Community retain direct, distinct destin
 
 test("guest collection shortcuts explain the sign-in step before opening it", () => {
   const guest = renderMenus({ route: { page: "decks", view: "" } });
-  expect(getTile("editor")).toHaveTextContent("Sign in to build");
-  expect(getTile("collection")).toHaveTextContent("Sign in to browse");
-  expect(getTile("packs")).toHaveTextContent("Sign in to open");
+  expect(getTile("editor")).toHaveAttribute("aria-description", "Sign in to build");
+  expect(getTile("collection")).toHaveAttribute("aria-description", "Sign in to browse");
+  expect(getTile("packs")).toHaveAttribute("aria-description", "Sign in to open");
   fireEvent.click(getTile("collection"));
   expect(guest.props.actions.collection).toHaveBeenCalledWith("catalog");
   guest.unmount();
   renderMenus({ route: { page: "decks", view: "" }, account: { id: "one", name: "River" } });
-  expect(getTile("collection")).toHaveTextContent("Open card catalog");
-  expect(getTile("packs")).toHaveTextContent("Open packs");
+  expect(getTile("collection")).toHaveAttribute("aria-description", "Open card catalog");
+  expect(getTile("packs")).toHaveAttribute("aria-description", "Open packs");
 });
 
 test("published practice prose reaches the focused player surface without changing action names", () => {

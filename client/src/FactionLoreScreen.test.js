@@ -56,3 +56,14 @@ test("archive searches character and chapter records and jump links target this 
   fireEvent.change(search, { target: { value: "does not exist" } });
   expect(screen.getByText("No archive records match that search.")).toBeInTheDocument();
 });
+
+test("missing faction artwork stays neutral even when published placeholder references borrow another faction", () => {
+  const content = {
+    factions: [{ id: "xendra", name: "XenDra", cardImage: "/assets/gauntlet/bizi-card.webp", city: { image: "/assets/gauntlet/frumo-card.webp" }, commander: { name: "XenDra leader", image: "/assets/gauntlet/rumin-card.webp" } }],
+    campaigns: { xendra: { pitch: "Published XenDra story.", chapters: [{ id: "one", title: "First chapter", image: "/assets/gauntlet/sheen-card.webp" }] } }
+  };
+  const { container } = render(<FactionLoreScreen manifest={content} onBack={jest.fn()} onOpenCampaign={jest.fn()} />);
+  expect(container.querySelector(".faction-lore-hero")).toHaveClass("is-neutral");
+  expect(container.querySelectorAll("img")).toHaveLength(0);
+  expect(screen.getByRole("button", { name: "Open XenDra campaign" })).toBeInTheDocument();
+});

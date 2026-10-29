@@ -57,7 +57,7 @@ export function CampaignArchiveCard({ factionId, entry, completed }) {
         <strong>{entry.factionName}</strong>
         <p>{entry.title || `${entry.factionName} campaign`}</p>
         <span className="identity-progress-label">{completed}/{total} chapters · {percent}% complete</span>
-        <span className="identity-progress-track" aria-label={`${entry.factionName}: ${percent}% complete`}><i style={{ width: `${percent}%` }} /></span>
+        <span className="identity-progress-track" role="progressbar" aria-label={`${entry.factionName}: ${percent}% complete`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent}><i style={{ width: `${percent}%` }} /></span>
       </div>
     </article>
   );

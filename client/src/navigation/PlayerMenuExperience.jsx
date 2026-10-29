@@ -1,10 +1,12 @@
 import PlayerMenus from './PlayerMenus';
-import { PlayerLayoutProvider } from './PlayerLayoutStudio';
+import { PlayerLayoutProvider, StaticLayoutProvider } from './PlayerLayoutStudio';
+import { MENU_LAYOUT_CUSTOMIZATION_ENABLED } from './menuFeatures';
 
 // Keep menu customization out of the live-game/Admin bootstrap. App owns the
 // existing gameplay callbacks; this boundary owns only player presentation.
 export default function PlayerMenuExperience({ authToken, serverUrl, factionIds, ...menuProps }) {
-  return <PlayerLayoutProvider account={menuProps.account} authToken={authToken} serverUrl={serverUrl} factionIds={factionIds}>
+  const Provider = MENU_LAYOUT_CUSTOMIZATION_ENABLED ? PlayerLayoutProvider : StaticLayoutProvider;
+  return <Provider account={menuProps.account} authToken={authToken} serverUrl={serverUrl} factionIds={factionIds}>
     <PlayerMenus {...menuProps} />
-  </PlayerLayoutProvider>;
+  </Provider>;
 }

@@ -99,11 +99,11 @@ test("Admin only appears with explicit authorization, never from account names",
   expect(onAdmin).toHaveBeenCalledTimes(1);
 });
 
-test("action tiles expose explanations and outcomes without hovering and setup preserves a return action", () => {
+test("action tiles use only their title and expose their outcome to assistive technology and setup preserves a return action", () => {
   const onClick = jest.fn();
   const onBack = jest.fn();
   render(<><ActionTile id="basic" title="Basic vs AI" description="Play the core game solo." outcome="Starts a game immediately" onClick={onClick} /><SetupFrame title="Ranked Match" description="Choose a format before joining the queue." onBack={onBack}>Format selection</SetupFrame></>);
-  const tile = screen.getByRole("button", { name: /Basic vs AI Starts a game immediately/ });
+  const tile = screen.getByRole("button", { name: "Basic vs AI", exact: true });
   fireEvent.click(tile);
   expect(onClick).toHaveBeenCalledTimes(1);
   expect(screen.getByRole("region", { name: "Ranked Match" })).toHaveTextContent("Format selection");

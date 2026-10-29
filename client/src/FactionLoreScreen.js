@@ -1,5 +1,5 @@
 import { useId, useMemo, useState } from "react";
-import { FACTION_VISUALS, resolveVisualAsset } from "./GauntletVisuals";
+import { FACTION_VISUALS, getFactionArtwork, getFactionAsset, resolveVisualAsset } from "./GauntletVisuals";
 import "./FactionLoreScreen.css";
 
 const SET_NAMES = {
@@ -76,7 +76,7 @@ export default function FactionLoreScreen({ manifest, onBack, onOpenCampaign, em
   }, [campaigns, factions, query]);
   const faction = filtered.find((entry) => entry.id === selectedId) || filtered[0] || factions.find((entry) => entry.id === selectedId) || factions[0];
   const campaign = campaigns[faction?.id] || {};
-  const artwork = resolveVisualAsset(campaign.coverImage || faction?.city?.image || FACTION_VISUALS[faction?.id]?.art || faction?.cardImage);
+  const artwork = resolveVisualAsset(getFactionArtwork(faction?.id, campaign.coverImage, faction?.city?.image, faction?.cardImage));
   const leaders = leaderEntries(faction, campaign);
   const acts = storyActs(campaign);
   const setName = manifest?.draftSets?.find((set) => set.factionIds?.includes(faction?.id))?.name || SET_NAMES[faction?.setId] || "Gauntlet";
@@ -99,19 +99,22 @@ export default function FactionLoreScreen({ manifest, onBack, onOpenCampaign, em
             <input id="faction-lore-search" type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Faction, world, or subject" />
             <p className="faction-lore-count" role="status">{filtered.length} {filtered.length === 1 ? "faction" : "factions"}</p>
             <div className="faction-lore-index-list">
-              {filtered.map((entry) => (
+              {filtered.map((entry) => {
+                const thumbnail = getFactionArtwork(entry.id, campaigns[entry.id]?.coverImage, entry.cardImage);
+                return (
                 <button key={entry.id} type="button" className={entry.id === faction?.id ? "is-active" : ""} aria-current={entry.id === faction?.id ? "page" : undefined} onClick={() => setSelectedId(entry.id)}>
-                  <img src={resolveVisualAsset(campaigns[entry.id]?.coverImage || FACTION_VISUALS[entry.id]?.art || entry.cardImage)} alt="" loading="lazy" draggable={false} />
+                  {thumbnail ? <img src={resolveVisualAsset(thumbnail)} alt="" loading="lazy" draggable={false} /> : <span className="faction-lore-neutral-mark" aria-hidden="true">{entry.name?.slice(0, 1) || "G"}</span>}
                   <span><strong>{entry.name}</strong><small>{campaigns[entry.id]?.homeworld || "Origin unconfirmed"}</small></span>
                 </button>
-              ))}
+              );})}
               {filtered.length === 0 && <p className="faction-lore-empty">No archive records match that search.</p>}
             </div>
           </aside>
 
           {faction && <article className="faction-lore-record">
-            <section className="faction-lore-hero">
+            <section className={`faction-lore-hero${artwork ? "" : " is-neutral"}`}>
               {artwork && <img className="faction-lore-hero-art" src={artwork} alt="" decoding="async" draggable={false} />}
+              {!artwork && <span className="faction-lore-neutral-crest" aria-hidden="true">{faction.name?.slice(0, 1) || "G"}</span>}
               <div className="faction-lore-hero-copy">
                 <span>{setName} faction</span>
                 <FactionHeading>{faction.name}</FactionHeading>
@@ -161,7 +164,7 @@ export default function FactionLoreScreen({ manifest, onBack, onOpenCampaign, em
               <div className="faction-lore-section-heading"><span>People and presences</span><SectionHeading id={`${headingId}-figures`}>Major characters</SectionHeading><p>Each record follows the character's place in the campaign.</p></div>
               <div className="faction-lore-figure-grid">
                 {leaders.map((leader, index) => {
-                  const portrait = leader.image || [faction.commander, faction.general].find((entry) => entry?.name === leader.name)?.image;
+                  const portrait = getFactionAsset(faction.id, leader.image || [faction.commander, faction.general].find((entry) => entry?.name === leader.name)?.image);
                   return <article key={`${leader.name}-${index}`}>
                     {portrait && <img className="faction-lore-portrait" src={resolveVisualAsset(portrait)} alt="" loading="lazy" draggable={false} />}
                     <div><span>{leader.role || "Archive subject"}</span><FigureHeading>{leader.name}</FigureHeading><p>{leader.description || "This figure's complete record remains contested."}</p>
@@ -174,7 +177,7 @@ export default function FactionLoreScreen({ manifest, onBack, onOpenCampaign, em
             {campaign.chapters?.length > 0 && <section className="faction-lore-chronicle" aria-labelledby={`${headingId}-chronicle`}>
               <div className="faction-lore-section-heading"><span>Historical sequence</span><SectionHeading id={`${headingId}-chronicle`}>Campaign chronicle</SectionHeading></div>
               <ol>{campaign.chapters.map((chapter, index) => <li key={chapter.id}>
-                {chapter.image && <img src={resolveVisualAsset(chapter.image)} alt="" loading="lazy" draggable={false} />}
+                {getFactionAsset(faction.id, chapter.image) && <img src={resolveVisualAsset(chapter.image)} alt="" loading="lazy" draggable={false} />}
                 <div><small>Chapter {String(index + 1).padStart(2, "0")}</small><span>{chapter.title}</span><p>{chapter.story}</p></div>
               </li>)}</ol>
             </section>}

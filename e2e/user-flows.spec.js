@@ -171,8 +171,8 @@ test("active deck leads Decks & Cards and Profile keeps picture editing availabl
     await navigatePlayer(page, "profile");
     await settleMenu();
     await expect(page.getByRole("heading", { name: "Your Profile", exact: true })).toBeVisible();
-    await page.getByText("Customize menu layouts", { exact: true }).click();
-    await expect(page.getByRole("switch", { name: "Customize Mode" })).toBeVisible();
+    await expect(page.getByText("Customize menu layouts", { exact: true })).toHaveCount(0);
+    await expect(page.getByRole("switch", { name: "Customize Mode" })).toHaveCount(0);
     await page.getByText("Portrait, featured decks & campaign achievements", { exact: true }).click();
     const hero = page.locator(".identity-dossier-hero");
     await expect(hero.getByRole("img", { name: `${credentials.account.name} portrait` })).toBeVisible();

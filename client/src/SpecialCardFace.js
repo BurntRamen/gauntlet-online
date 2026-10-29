@@ -1,6 +1,6 @@
 import { useState } from "react";
 import CollectorCardPresentation from "./CollectorCardPresentation";
-import { FACTION_VISUALS, resolveVisualAsset } from "./GauntletVisuals";
+import { getFactionArtwork, resolveVisualAsset } from "./GauntletVisuals";
 import { getCustomCardArtDefinition, getCustomCardFacePath, getPlayingCardRankSlug, normalizeCardDisplayText } from "./cardArt";
 import "./SpecialCardFace.css";
 
@@ -8,7 +8,7 @@ export function getCardIllustration(card, art = "") {
   card = card || {};
   if (card.presentation) return card.presentation.illustration || card.presentation.face || "";
   return art || card.collector?.art || getCustomCardArtDefinition(card)?.illustration || card.image
-    || FACTION_VISUALS[card.factionId]?.art || "/assets/gauntlet/rumin-card.webp";
+    || getFactionArtwork(card.factionId) || "/assets/gauntlet/ui/faction-art-unavailable.svg";
 }
 
 export default function SpecialCardFace({ card, art = "", presentation = null }) {

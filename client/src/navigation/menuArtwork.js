@@ -6,9 +6,9 @@ export const STANDARD_DECK_ART = ["basic-10-spades", "basic-k-diamonds", "basic-
 
 // Focal points preserve recognizable subjects within the compact tile crops.
 export const ACTION_ART_POSITIONS = {
-  "basic-ai": "76% 67%", "faction-ai": "50% 25%", ranked: "50% 55%",
-  campaign: "72% 60%", tutorial: "76% 67%", lore: "72% 60%",
-  packs: "50% 42%", collection: "50% 28%",
+  "basic-ai": "76% 67%", "faction-ai": "50% 50%", ranked: "50% 55%",
+  campaign: "72% 60%", tutorial: "50% 50%", lore: "50% 50%",
+  packs: "50% 42%", collection: "50% 50%",
 };
 
 const DUEL = "/assets/gauntlet/menus/command-duel-v1.webp";
@@ -29,15 +29,15 @@ export const MENU_SCENES = {
 
 export const ACTION_ART = {
   "basic-ai": TUTORIAL_ART,
-  "faction-ai": "/assets/gauntlet/kaiser-gauntlet.webp",
-  "private-duel": DUEL, "join-table": ARCHIVE,
-  ranked: DUEL,
-  draft: DRAFT, campaign: JOURNEY_ART, competition: TOURNAMENT,
-  events: TOURNAMENT, para: IDENTITY, standings: ARCHIVE,
-  editor: WORKSHOP, collection: "/assets/gauntlet/rumin-card.webp",
-  packs: VAULT, "draft-library": DRAFT,
-  recent: ARCHIVE, replays: ARENA, record: ARCHIVE,
-  friends: IDENTITY, challenges: DUEL, messages: IDENTITY,
-  tutorial: TUTORIAL_ART, rulebook: JOURNEY_ART, practice: TUTORIAL_ART,
-  formats: WORKSHOP, lore: JOURNEY_ART, library: VAULT,
+  "faction-ai": "/assets/gauntlet/menus/action-faction-practice-v1.webp",
+  "private-duel": DUEL, "join-table": "/assets/gauntlet/menus/action-join-table-v1.webp",
+  ranked: "/assets/gauntlet/menus/action-ranked-v1.webp",
+  draft: DRAFT, campaign: JOURNEY_ART, competition: "/assets/gauntlet/menus/action-competition-v1.webp",
+  events: TOURNAMENT, para: IDENTITY, standings: ARENA,
+  editor: WORKSHOP, collection: "/assets/gauntlet/menus/action-collection-v1.webp",
+  packs: "/assets/gauntlet/menus/action-packs-v1.webp", "draft-library": "/assets/gauntlet/menus/action-draft-library-v1.webp",
+  recent: ARCHIVE, replays: "/assets/gauntlet/menus/action-replays-v1.webp", record: "/assets/gauntlet/menus/action-record-v1.webp",
+  friends: "/assets/gauntlet/menus/action-friends-v1.webp", challenges: "/assets/gauntlet/menus/action-challenges-v1.webp", messages: "/assets/gauntlet/menus/action-messages-v1.webp",
+  tutorial: "/assets/gauntlet/menus/action-tutorial-v1.webp", rulebook: "/assets/gauntlet/menus/action-rulebook-v1.webp", practice: "/assets/gauntlet/menus/action-practice-v1.webp",
+  formats: "/assets/gauntlet/menus/action-formats-v1.webp", lore: "/assets/gauntlet/menus/action-lore-v1.webp", library: VAULT,
 };

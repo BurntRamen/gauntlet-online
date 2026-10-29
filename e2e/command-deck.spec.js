@@ -75,7 +75,8 @@ test('all eight core actions fit above the fold at both target desktop sizes', a
       const imageBounds = await tile.locator('.cd-action-art').boundingBox();
       expect(Math.abs(imageBounds.width - bounds.width)).toBeLessThanOrEqual(2);
       expect(Math.abs(imageBounds.height - bounds.height)).toBeLessThanOrEqual(2);
-      await expect(tile.locator('.cd-action-outcome')).not.toHaveText('');
+      await expect(tile.locator('.cd-action-outcome')).toHaveCount(0);
+      await expect(tile).toHaveAttribute('aria-description', /\S/);
       expect(await tile.locator('.cd-action-art img').evaluate(async (image) => {
         await image.decode().catch(() => {});
         return image.naturalWidth > 0;

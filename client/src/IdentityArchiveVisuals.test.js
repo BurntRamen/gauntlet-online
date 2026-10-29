@@ -27,6 +27,9 @@ test("uses faction and campaign art for earned honors", () => {
 test("renders campaign archives as image-backed progress cards", () => {
   const { container } = render(<CampaignArchiveCard factionId="bizi" entry={campaigns.bizi} completed={1} />);
   expect(screen.getByText("The Clockwork Concord")).toBeInTheDocument();
-  expect(screen.getByLabelText("Bizi: 50% complete")).toBeInTheDocument();
+  const progress = screen.getByRole("progressbar", { name: "Bizi: 50% complete" });
+  expect(progress).toHaveAttribute("aria-valuemin", "0");
+  expect(progress).toHaveAttribute("aria-valuemax", "100");
+  expect(progress).toHaveAttribute("aria-valuenow", "50");
   expect(container.querySelector(".identity-campaign-art")).toHaveStyle({ backgroundImage: `url(${campaigns.bizi.coverImage})` });
 });

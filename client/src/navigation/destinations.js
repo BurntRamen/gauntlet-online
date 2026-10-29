@@ -8,7 +8,7 @@ export const DESTINATIONS = Object.freeze({
   matches: { id: "matches", label: "Matches", title: "Matches", description: "Find your match records and watch available replays.", outcome: "Open match history and replays", route: "matches", requiresAuthentication: false },
   community: { id: "community", label: "Community", title: "Community", description: "Find friends, send challenges, and keep the conversation going.", outcome: "Open friends and messages", route: "community", requiresAuthentication: false },
   learn: { id: "learn", label: "Learn & Rules", title: "Learn & Rules", description: "Learn the basics, practice a format, or look up a rule.", outcome: "Open tutorials and rules", route: "learn", requiresAuthentication: false },
-  profile: { id: "profile", label: "Profile", title: "Your Profile", description: "Your account, competitive record, rewards, and personal page layouts.", outcome: "Open your account and page layouts", route: "profile", requiresAuthentication: false },
+  profile: { id: "profile", label: "Profile", title: "Your Profile", description: "Your account, competitive record, rewards, and personal style.", outcome: "Open your account and personal style", route: "profile", requiresAuthentication: false },
   settings: { id: "settings", label: "Settings", title: "Settings", description: "Make Gauntlet comfortable with audio, display, and accessibility preferences.", outcome: "Open sound and display preferences", route: "settings", requiresAuthentication: false },
 });
 

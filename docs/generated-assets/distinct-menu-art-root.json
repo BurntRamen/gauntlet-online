@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-29",
+  "tool": "Built-in image_gen.imagegen",
+  "scope": "Neutral interface illustrations, not named faction or canonical game assets.",
+  "assets": [
+    {
+      "id": "rulebook",
+      "prompt": "Production candidate menu illustration for Gauntlet Online. Premium painted tactical card-game concept art. Graphite composite, blackened steel, restrained worn brass and bone enamel, small amber and teal lights. Bright readable subject; no dark overlay baked in. Landscape3:2 composition, central60percent safe subject for square/wide crops. No readable text, numerals, logos, watermarks, invented named lore, factions, rewards or game mechanics. An open practical rules handbook on a graphite card-game table, thick ivory pages with subtle blank diagram boxes and no readable writing, a brass straightedge and a single dark card tucked beside it. Close three-quarter view, unmistakably a reference book, no map or landscape.",
+      "source": "C:\\Users\\gjoep\\.codex\\generated_images\\01a1854d-b85c-7d70-aeaa-6922088f3b70\\exec-8484e332-fb82-4ba6-8d31-6e405f06f5f2.png",
+      "asset": "client/public/assets/gauntlet/menus/action-rulebook-v1.webp",
+      "editPrompt": "Edit this menu illustration. Preserve the book, lighting, materials and camera angle. Remove ALL humanoid, creature, armor, shield and weapon drawings from BOTH pages. Replace them with simple abstract diagrams of plain rectangular cards, circles and arrows only, with no legible writing or numbers. No characters, creatures, faction emblems or invented lore. This must clearly read as a neutral card-game rulebook, not a bestiary. Keep other scene details unchanged.",
+      "rejectedSource": "C:\\Users\\gjoep\\.codex\\generated_images\\01a1854d-b85c-7d70-aeaa-6922088f3b70\\exec-9d840ef2-c568-4c81-9d8d-a45a4f8992d6.png",
+      "reason": "Removed invented character diagrams; neutral card diagrams only."
+    },
+    {
+      "id": "lore",
+      "prompt": "Production candidate menu illustration for Gauntlet Online. Premium painted tactical card-game concept art. Graphite composite, blackened steel, restrained worn brass and bone enamel, small amber and teal lights. Bright readable subject; no dark overlay baked in. Landscape3:2 composition, central60percent safe subject for square/wide crops. No readable text, numerals, logos, watermarks, invented named lore, factions, rewards or game mechanics. A circular archival chamber with several illuminated glass cylinders containing abstract ancient stone fragments, a central charcoal archive console and warm light from high windows. Story archive and history, no book, map, people, humanoid statue or faction emblem.",
+      "source": "C:\\Users\\gjoep\\.codex\\generated_images\\01a1854d-b85c-7d70-aeaa-6922088f3b70\\exec-e2ddd351-c1df-43b9-8034-9858b1067939.png",
+      "asset": "client/public/assets/gauntlet/menus/action-lore-v1.webp"
+    },
+    {
+      "id": "faction-practice",
+      "prompt": "Production candidate menu illustration for Gauntlet Online. Premium painted tactical card-game concept art. Graphite composite, blackened steel, restrained worn brass and bone enamel, small amber and teal lights. Bright readable subject; no dark overlay baked in. Landscape3:2 composition, central60percent safe subject for square/wide crops. No readable text, numerals, logos, watermarks, invented named lore, factions, rewards or game mechanics. A tactical training console with three distinct blank geometric training tokens arranged around a holographic practice grid, amber task light and teal indicators, deliberately no characters, portraits, actual faction logos, or symbols from a known culture. Clear subject in middle of frame.",
+      "source": "C:\\Users\\gjoep\\.codex\\generated_images\\01a1854d-b85c-7d70-aeaa-6922088f3b70\\exec-e02fcfd6-bbbc-4bd3-89ad-d97002ecdfa9.png",
+      "asset": "client/public/assets/gauntlet/menus/action-faction-practice-v1.webp"
+    },
+    {
+      "id": "ranked",
+      "prompt": "Production candidate menu illustration for Gauntlet Online. Premium painted tactical card-game concept art. Graphite composite, blackened steel, restrained worn brass and bone enamel, small amber and teal lights. Bright readable subject; no dark overlay baked in. Landscape3:2 composition, central60percent safe subject for square/wide crops. No readable text, numerals, logos, watermarks, invented named lore, factions, rewards or game mechanics. A close view of a graphite competitive rating tower consisting of five ascending metal steps, each topped with a glowing amber light, surrounded by soft-focus arena infrastructure. Rank progression and competition; no trophy, card racks, victory crown, characters or readable text.",
+      "source": "C:\\Users\\gjoep\\.codex\\generated_images\\01a1854d-b85c-7d70-aeaa-6922088f3b70\\exec-8899ed24-c497-4d1a-9486-e7026f4efb92.png",
+      "asset": "client/public/assets/gauntlet/menus/action-ranked-v1.webp"
+    }
+  ]
+}

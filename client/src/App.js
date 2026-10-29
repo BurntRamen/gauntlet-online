@@ -11,6 +11,7 @@ import browserStorage from "./navigation/browserStorage";
 import usePlayerNavigation from "./navigation/usePlayerNavigation";
 import SetupFrame from "./navigation/SetupFrame";
 import { getModePresentation } from "./navigation/modePresentation";
+import { MENU_LAYOUT_CUSTOMIZATION_ENABLED } from "./navigation/menuFeatures";
 import useDraftRequest from "./useDraftRequest";
 import DraftProgress from "./DraftProgress";
 import useAdminAccess from "./useAdminAccess";
@@ -24,7 +25,7 @@ import CollectorCardPresentation from "./CollectorCardPresentation";
 import { useDialogueActivity } from "./dialoguePlayback";
 import { resolveCharacterVoice } from "./characterVoices";
 import CampaignChapterBriefing from "./CampaignChapterBriefing";
-import { DeckVisual, FactionArtwork, FACTION_VISUALS, resolveVisualAsset } from "./GauntletVisuals";
+import { DeckVisual, FactionArtwork, FACTION_VISUALS, getFactionArtwork, getFactionAsset, resolveVisualAsset } from "./GauntletVisuals";
 import FactionLoadoutPicker from "./FactionLoadoutPicker";
 import { AchievementHonorCard, CampaignArchiveCard } from "./IdentityArchiveVisuals";
 import { findCollectorVariant, getCurrentDeckVersion, getDeckFeaturedArt, getNextCampaignChapter } from "./contentArt";
@@ -2446,12 +2447,13 @@ function ShareGameQrCard() {
   );
 }
 
-function FactionFeature({ title, feature, theme }) {
+function FactionFeature({ title, feature, theme, factionId }) {
   if (!feature) return null;
+  const image = getFactionAsset(factionId, feature.image);
   return (
     <div className="faction-feature" style={{ borderColor: theme.border }}>
-      {feature?.image ? (
-        <img src={resolveAssetPath(feature.image)} alt="" className="faction-feature-image" style={{ borderColor: theme.border }} />
+      {image ? (
+        <img src={resolveAssetPath(image)} alt="" className="faction-feature-image" style={{ borderColor: theme.border }} />
       ) : (
         <div className="faction-feature-image" style={{ borderColor: theme.border, background: theme.light }} />
       )}
@@ -2635,7 +2637,7 @@ function getGamePlayerName(game, playerNum) {
 
 function FactionChoiceCard({ faction, selected, onSelect }) {
   const theme = getFactionTheme(faction.id);
-  const factionArt = resolveAssetPath(faction.cardImage || `/assets/gauntlet/${faction.id}-card.webp`);
+  const factionArt = resolveAssetPath(getFactionArtwork(faction.id, faction.cardImage) || "/assets/gauntlet/ui/faction-art-unavailable.svg");
 
   return (
     <div className={`faction-choice-card faction-${faction.id}${selected ? " is-selected" : ""}`} style={{ borderColor: selected ? theme.primary : theme.border, "--faction-accent": theme.primary }}>
@@ -2647,9 +2649,9 @@ function FactionChoiceCard({ faction, selected, onSelect }) {
         {selected && <strong className="faction-selected-mark">Selected</strong>}
       </div>
       <div className="faction-feature-grid">
-        <FactionFeature title="Commander" feature={faction.commander} theme={theme} />
-        <FactionFeature title="City" feature={faction.city} theme={theme} />
-        <FactionFeature title="General" feature={faction.general} theme={theme} />
+        <FactionFeature title="Commander" feature={faction.commander} theme={theme} factionId={faction.id} />
+        <FactionFeature title="City" feature={faction.city} theme={theme} factionId={faction.id} />
+        <FactionFeature title="General" feature={faction.general} theme={theme} factionId={faction.id} />
       </div>
       <button className="faction-choice-action" onClick={() => onSelect(faction.id)}>{selected ? "Faction Selected" : `Choose ${faction.name}`}</button>
     </div>
@@ -2872,7 +2874,7 @@ function CampaignScreen({ embedded = false, initialFactionId, initialChapterId =
                 aria-selected={selected}
                 className={`campaign-faction-tab${selected ? " is-active" : ""}`}
                 onClick={() => { setSelectedFactionId(factionId); changeBriefing(""); }}
-                style={{ "--faction-accent": theme.primary, backgroundImage: `linear-gradient(90deg, rgba(4,8,13,0.24), rgba(4,8,13,0.76)), url(${resolveVisualAsset(campaign.coverImage || FACTION_VISUALS[factionId]?.art || JOURNEY_ART)})` }}
+                style={{ "--faction-accent": theme.primary, backgroundImage: `linear-gradient(90deg, rgba(4,8,13,0.24), rgba(4,8,13,0.76)), url(${resolveVisualAsset(getFactionArtwork(factionId, campaign.coverImage) || "/assets/gauntlet/ui/faction-art-unavailable.svg")})` }}
               >
                 <span>{campaign.factionName}</span>
                 <strong>{factionClears}/{campaign.chapters.length}</strong>
@@ -4799,7 +4801,7 @@ export default function App() {
             <section className="cd-panel"><h2>Display & Accessibility</h2><label className="cd-toggle-row"><input type="checkbox" checked={showHelperLabels} onChange={(event) => setShowHelperLabels(event.target.checked)} /> Show extra helper labels in gameplay</label>
               <p>Menus always explain each action. Keyboard focus is visible; motion follows your device’s reduced-motion setting. Browser zoom is supported.</p>
               <button onClick={() => { setShowHotkeys(true); }}>Gameplay keyboard shortcuts</button><HotkeyWindow visible={showHotkeys} onClose={() => setShowHotkeys(false)} />
-            </section><section className="cd-panel"><h2>Page Layouts</h2><p>Arrange optional shortcuts from Profile or More on any supported landing page.</p><button onClick={() => navigateHomeArea("profile")}>Open Page Layout Preferences</button></section>
+            </section>{MENU_LAYOUT_CUSTOMIZATION_ENABLED && <section className="cd-panel"><h2>Page Layouts</h2><p>Arrange optional shortcuts from Profile or More on any supported landing page.</p><button onClick={() => navigateHomeArea("profile")}>Open Page Layout Preferences</button></section>}
             <section className="cd-panel"><h2>Support</h2><DonateButton onUnavailable={() => setSupportMessage("Support link coming soon.")} />{supportMessage && <p role="status">{supportMessage}</p>}</section>
           </div>
         }} />
@@ -4896,7 +4898,7 @@ export default function App() {
                         onClick={() => setLobbyFactionPreviewId(faction.id)}
                         style={{ "--faction-accent": factionTheme.primary }}
                       >
-                        <span className="lobby-faction-thumb" style={{ backgroundImage: `url(${resolveAssetPath(faction.cardImage)})` }} />
+                        <span className="lobby-faction-thumb" style={{ backgroundImage: `url(${resolveAssetPath(getFactionArtwork(faction.id, faction.cardImage) || "/assets/gauntlet/ui/faction-art-unavailable.svg")})` }} />
                         <span><strong>{faction.name}</strong><small>{selected ? "Selected" : previewed ? "Viewing" : "Inspect"}</small></span>
                       </button>
                     );

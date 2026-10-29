@@ -1,6 +1,11 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import SpecialCardFace from "./SpecialCardFace";
 
+test("a faction with no verified artwork uses a neutral face without borrowing Rumin art", () => {
+  render(<SpecialCardFace card={{ name: "Unillustrated card", factionId: "xendra", value: 3, suit: "clubs" }} />);
+  expect(screen.getByRole("img")).toHaveAttribute("src", "/assets/gauntlet/ui/faction-art-unavailable.svg");
+});
+
 test("a failed face keeps that card's unique artwork and the full-art fallback", () => {
   const { container, rerender } = render(<SpecialCardFace card={{ id: "sheen-raincall-mender", name: "Raincall Mender", factionId: "sheen", value: 4, suit: "clubs" }} />);
   fireEvent.error(screen.getByRole("img"));
