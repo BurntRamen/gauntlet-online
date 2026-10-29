@@ -88,9 +88,34 @@ test("special payment and legacy actions belong to their actual source roles", (
   expect(factionAbilityRole("mekan:monti:card-1")).toBe("general");
   expect(factionAbilityRole("jali:katana:card-1")).toBe("city");
   expect(factionAbilityRole("gracus:epicura:block")).toBe("commander");
+  expect(factionAbilityRole("zynarth:hatch:0:soldier")).toBe("commander");
+  expect(factionAbilityRole("zynarth:klar:0:1")).toBe("general");
+  expect(factionAbilityRole("astral:deploy:2")).toBe("commander");
+  expect(factionAbilityRole("astral:stage:card-1")).toBe("general");
   expect(factionAbilityRole("constructed:arm:card-1")).toBeNull();
   expect(factionBoardCards({ id: "basic" })).toEqual([]);
   expect(factionBoardCards({ id: "mekan", general: { id: "ahu", name: "Ahu" } })[0]).toMatchObject({ name: "Ahu", activated: true });
+});
+
+test("Zynarth and Astral Vanguard actions appear on the character who owns them", () => {
+  const zynarth = factionBoardCards({
+    id: "zynarth", commander: { name: "Zalara" }, city: { name: "Brood Nest" }, general: { name: "K'Lar" }
+  }, [
+    { id: "zynarth:hatch:0:worker", label: "Hatch", available: true },
+    { id: "zynarth:klar", label: "Sacrifice", available: false }
+  ]);
+  expect(zynarth.find((card) => card.role === "commander")).toMatchObject({ activated: true, abilities: [{ id: "zynarth:hatch:0:worker" }] });
+  expect(zynarth.find((card) => card.role === "general")).toMatchObject({ activated: true, abilities: [{ id: "zynarth:klar" }] });
+  expect(zynarth.find((card) => card.role === "city")).toMatchObject({ activated: false, abilities: [] });
+
+  const astral = factionBoardCards({
+    id: "astral-vanguard", commander: { name: "Alden" }, city: { name: "Outpost" }, general: { name: "Myra" }
+  }, [
+    { id: "astral:deploy", label: "Deploy", available: false },
+    { id: "astral:stage:card-1", label: "Stage", available: true }
+  ]);
+  expect(astral.find((card) => card.role === "commander")).toMatchObject({ activated: true, abilities: [{ id: "astral:deploy" }] });
+  expect(astral.find((card) => card.role === "general")).toMatchObject({ activated: true, abilities: [{ id: "astral:stage:card-1" }] });
 });
 
 test.each(["desktop", "ultrawide"])("%s faction cards stay clear of all gameplay modules", (id) => {

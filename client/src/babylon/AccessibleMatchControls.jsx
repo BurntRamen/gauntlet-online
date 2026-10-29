@@ -52,16 +52,22 @@ export default function AccessibleMatchControls({
             {!!viewModel.interactions.abilities?.length && (
               <div className="babylon-accessible-control-row" role="group" aria-label="Faction abilities">
                 {viewModel.interactions.abilities.map((ability) => (
-                  <button
-                    type="button"
-                    key={ability.id}
-                    data-match-zone="abilities"
-                    aria-pressed={ability.active}
-                    disabled={interactionLocked || ability.available === false}
-                    onClick={() => commands.activateAbility?.(ability.id)}
-                  >
-                    {ability.label}
-                  </button>
+                  <span className="babylon-accessible-ability-control" key={ability.id}>
+                    <button
+                      type="button"
+                      data-match-zone="abilities"
+                      aria-pressed={ability.active}
+                      aria-describedby={`ability-help-${ability.id.replace(/[^a-z0-9_-]/gi, "-")}`}
+                      title={ability.available === false ? ability.reason : ability.intent}
+                      disabled={interactionLocked || ability.available === false}
+                      onClick={() => commands.activateAbility?.(ability.id)}
+                    >
+                      {ability.label}
+                    </button>
+                    <small id={`ability-help-${ability.id.replace(/[^a-z0-9_-]/gi, "-")}`}>
+                      {interactionLocked ? "Actions are temporarily locked." : ability.available === false ? ability.reason : ability.intent}
+                    </small>
+                  </span>
                 ))}
               </div>
             )}

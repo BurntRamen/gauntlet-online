@@ -92,7 +92,19 @@ const FACTION_ABILITY_INTENTS = Object.freeze({
   "polea-buff": "Give one card you control +1 value until end of turn.",
   "lafayette-swap": "Swap one card in your hand with one lane card you control.",
   "focus-buff": "Once per turn, spend one acceleration counter to give one card you control +1 value until end of turn.",
-  "hera-payment": "Once per turn, optionally make one matching-suit payment card provide +2 additional value."
+  "hera-payment": "Once per turn, optionally make one matching-suit payment card provide +2 additional value.",
+  "jali:watane": "Spend one Revenant to give a hand or lane card +2 value until end of turn.",
+  "jali:katana": "After creating a Revenant this turn, prepare one card with printed value 8 or less for +2 value.",
+  "jali:basho": "Reveal your complete three-lane formation to create one Revenant.",
+  "gracus:epicura": "Once per turn, create a 4-value Minotaur attacker, or use it to block an unblocked attack.",
+  "mekan:encore": "After paying a non-Guest card, mark it as a Guest instead of losing it from the celebration.",
+  "mekan:remember": "After a non-Guest is defeated, San Mikal remembers it as a Guest.",
+  "mekan:invite": "Return one uninvited Guest from your discard pile to your hand.",
+  "mekan:monti": "After paying at least two cards this turn, give one hand or lane card +1 value.",
+  "zynarth:hatch": "Once per turn, hatch one Egg into a Worker, Soldier, or Guard; Brood Nest also hatches a second Egg into a Worker.",
+  "zynarth:klar": "Sacrifice two hatched Underlings to draw one card.",
+  "astral:stage": "Put one hand card on top of your deck; your next payment this turn gets +2 value.",
+  "astral:deploy": "Deploy the top card of your deck to an empty lane if it is a Servitor with printed value 3 or less."
 });
 const CONSTRUCTED_CHOICE_INTENTS = Object.freeze({
   "forum-ledger-payment": "Choose one payment card to provide +1 on this first attack.",
@@ -3627,6 +3639,48 @@ function unavailableAbilityReason(game, playerNumber, abilityId) {
   if (abilityId === "mekan:encore") return actor.turnData.mekanEncore ? "Encore has been used this turn." : "Pay a non-Guest card this turn first.";
   if (abilityId === "mekan:remember") return actor.turnData.mekanCityGuest ? "San Mikal has been used this turn." : "A non-Guest card must be defeated this turn first.";
   if (abilityId === "mekan:invite") return "No uninvited Guest is in your discard pile.";
+  if (abilityId === "zynarth:hatch") {
+    if (actor.turnData.zynarthHatched) return "Zalara has hatched an Egg this turn.";
+    return game.lanes.some((lane) => lane.facedown[playerNumber]?.zynarthEgg)
+      ? "Choose an Egg and the Worker, Soldier, or Guard form it should hatch into."
+      : "Zalara needs an Egg in one of your lanes. She creates one in the first empty lane at the start of your turn.";
+  }
+  if (abilityId === "zynarth:klar") {
+    if (actor.turnData.zynarthKlarUsed) return "K'Lar has been used this turn.";
+    const hatched = game.lanes.filter((lane) => {
+      const card = lane.facedown[playerNumber];
+      return card?.zynarthUnderling && !card.zynarthEgg;
+    }).length;
+    return `K'Lar needs two hatched Underlings to sacrifice (${hatched}/2 ready).`;
+  }
+  if (abilityId === "astral:stage") {
+    if (actor.turnData.astralMyraUsed) return "Myra Cross has staged a card this turn.";
+    return actor.hand.length ? "Choose a hand card to stage on top of your deck." : "Myra Cross needs a card in your hand to stage.";
+  }
+  if (abilityId === "astral:deploy") {
+    if (actor.turnData.astralAldenUsed) return "High Marshal Alden has deployed a Servitor this turn.";
+    if (!game.lanes.some((lane) => !lane.facedown[playerNumber])) return "High Marshal Alden needs an empty lane.";
+    const top = actor.deck[actor.deck.length - 1];
+    if (!top) return "Your deck is empty.";
+    if (top.type !== "servitor") return "The top card of your deck is not a Servitor. Myra Cross can stage a qualifying card there.";
+    if (cardValue(top) > 3) return `The top Servitor has printed value ${cardValue(top)}; Alden can deploy value 3 or less.`;
+    return "Choose an empty lane for the top Servitor.";
+  }
+  if (abilityId === "polea-place") {
+    if (!actor.hand.length) return "Polea needs a card in your hand to place.";
+    return "Polea needs an empty legal lane or Support Zone for one of your hand cards.";
+  }
+  if (abilityId === "polea-swap") {
+    return game.lanes.some((lane) => lane.facedown[playerNumber])
+      ? "Polea needs an empty destination lane or a second occupied lane to switch."
+      : "Polea needs a card in one of your lanes to move or switch.";
+  }
+  if (abilityId === "polea-peek") return "Polea needs a face-down lane card controlled by either player to inspect.";
+  if (abilityId === "polea-buff") return "Polea needs a card in your hand or lanes to receive +1 value.";
+  if (abilityId === "lafayette-swap") {
+    if (!actor.hand.length) return "Lafayette needs a card in your hand.";
+    return "Lafayette needs a card in one of your lanes to exchange with your hand.";
+  }
   if (abilityId.startsWith("polea-") && actor.turnData.poleaUsed) {
     const sunkenOrderReady = !actor.turnData.poleaSunkenOrderUsed
       && playerControlsEffect(game, playerNumber, "poleas-sunken-order");
@@ -3638,6 +3692,7 @@ function unavailableAbilityReason(game, playerNumber, abilityId) {
   if (abilityId === "focus-buff") {
     if (actor.turnData.focusUsed) return "Focus has already been used this turn.";
     if (Number(actor.accelerationCounters || 0) < 1) return "Focus needs an acceleration counter.";
+    return "Focus needs a card in your hand or lanes to receive +1 value.";
   }
   return "No valid source and target combination is currently available.";
 }
