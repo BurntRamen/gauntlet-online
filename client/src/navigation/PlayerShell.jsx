@@ -1,7 +1,7 @@
 import React, { useEffect, useId, useRef, useState } from "react";
 import { getDestination, PRIMARY_DESTINATIONS, MOBILE_DESTINATIONS, MORE_DESTINATIONS } from "./destinations";
 import { resolveVisualAsset } from "../GauntletVisuals";
-import { MENU_SCENES } from "./menuArtwork";
+import { GAUNTLET_CREST, MENU_SCENES } from "./menuArtwork";
 import "./PlayerShell.css";
 
 const ICON_PATHS = {
@@ -134,7 +134,7 @@ export default function PlayerShell({ destination = "play", navigationKey = dest
       <div className="cd-shell-surface" inert={moreOpen ? true : undefined} aria-hidden={moreOpen ? true : undefined}>
         <a className="cd-skip-link" href={`#${mainId}`}>Skip to page content</a>
         <header className="cd-topbar">
-          <button className="cd-brand" type="button" onClick={() => onNavigate("play")} aria-label="Gauntlet Online — open Play"><span className="cd-brand-mark" aria-hidden="true">G</span><span>GAUNTLET <small>ONLINE</small></span></button>
+          <button className="cd-brand" type="button" onClick={() => onNavigate("play")} aria-label="Gauntlet Online — open Play"><img className="cd-brand-crest" src={resolveVisualAsset(GAUNTLET_CREST)} alt="" width="44" height="44" decoding="async" draggable={false} /><span>GAUNTLET <small>ONLINE</small></span></button>
           <span className="cd-topbar-caption">THE COMMAND DECK</span>
           <div className="cd-header-actions">
             {editing && <button type="button" className="cd-button cd-button-primary cd-done-editing" onClick={onDoneEditing}>Done Editing</button>}

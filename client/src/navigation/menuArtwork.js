@@ -1,6 +1,15 @@
 // Reuse the shipped menu scenes; artwork never supplies a label or click target.
 export const JOURNEY_ART = "/assets/gauntlet/menus/journey-expedition-v1.webp";
 export const TUTORIAL_ART = "/assets/gauntlet/menus/tutorial-table-v1.webp";
+export const GAUNTLET_CREST = "/assets/gauntlet/gauntlet-logo-transparent.png";
+export const STANDARD_DECK_ART = ["basic-10-spades", "basic-k-diamonds", "basic-10-clubs"].map((card) => `/assets/gauntlet/playing-cards/${card}.webp`);
+
+// Focal points preserve recognizable subjects within the compact tile crops.
+export const ACTION_ART_POSITIONS = {
+  "basic-ai": "76% 67%", "faction-ai": "50% 25%", ranked: "50% 42%",
+  campaign: "72% 60%", tutorial: "76% 67%", lore: "72% 60%",
+  packs: "50% 42%", collection: "50% 28%",
+};
 
 const ARENA = "/assets/gauntlet/backgrounds/gauntlet-menu-play-v1.jpg";
 const WORKSHOP = "/assets/gauntlet/backgrounds/gauntlet-menu-build-v1.jpg";

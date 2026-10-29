@@ -5,6 +5,9 @@ import SetupFrame from "./SetupFrame";
 import { LayoutGrid, PageLayoutSettings, usePlayerLayout } from "./PlayerLayoutStudio";
 import { getDestination } from "./destinations";
 import { getModePresentation } from "./modePresentation";
+import { resolveVisualAsset } from "../GauntletVisuals";
+import { getDeckFeaturedArt } from "../contentArt";
+import { JOURNEY_ART, MENU_SCENES, STANDARD_DECK_ART, TUTORIAL_ART } from "./menuArtwork";
 import "./PlayerMenus.css";
 
 function ActionDirectory({ title, items }) {
@@ -112,6 +115,12 @@ export default function PlayerMenus({ route, onNavigate, account, ownerAuthorize
   const customizable = !focused;
   const nav = (destination, nextView = "") => onNavigate(destination, nextView);
   const profile = () => nav("profile");
+  const continuingCampaign = !state.hasSavedRoom && !actions.roomCode && state.completedChapters > 0 && state.nextCampaign;
+  const nextActionArt = state.hasSavedRoom ? MENU_SCENES.play : actions.roomCode ? MENU_SCENES.matches
+    : continuingCampaign ? state.nextCampaign.chapter.image || state.nextCampaign.campaign?.coverImage || JOURNEY_ART : TUTORIAL_ART;
+  const deckCards = getDeckFeaturedArt(state.deck, account?.collection?.collectorCatalog || []);
+  const deckFaction = content.factions?.find((faction) => faction.id === state.deck?.factionId);
+  const deckArt = deckCards.length ? deckCards : deckFaction?.cardImage ? [deckFaction.cardImage] : STANDARD_DECK_ART;
   const draftPresentation = getModePresentation("draft", content.modeMetadata, getDestination("draft"));
   const action = (id, title, description, outcome, onClick, icon) => ({ id, title, description, outcome, onClick, icon });
   const playItems = [
@@ -132,14 +141,14 @@ export default function PlayerMenus({ route, onNavigate, account, ownerAuthorize
   </SetupFrame>;
   else if (page === "play" && view === "practice") body = <SetupFrame {...getModePresentation("practice", content.modeMetadata, { title: "Practice", description: "Start with core rules, or choose a faction in the AI lobby." })} onBack={() => nav("play")}><div className="cd-grid">{playItems.slice(0, 2).map((item) => <ActionTile key={item.id} {...item} />)}</div></SetupFrame>;
   else if (page === "play") body = <>
-    <section className="cd-context" aria-label="Suggested next action"><div><span className="cd-eyebrow">{state.hasSavedRoom ? "Your table is waiting" : actions.roomCode ? "Table invitation" : state.completedChapters > 0 && state.nextCampaign ? "Continue your story" : "Ready when you are"}</span>
+    <section className="cd-context has-context-art" aria-label="Suggested next action"><span className="cd-context-art" aria-hidden="true"><img src={resolveVisualAsset(nextActionArt)} alt="" decoding="async" draggable={false} /></span><div><span className="cd-eyebrow">{state.hasSavedRoom ? "Your table is waiting" : actions.roomCode ? "Table invitation" : state.completedChapters > 0 && state.nextCampaign ? "Continue your story" : "Ready when you are"}</span>
       <h2>{state.hasSavedRoom ? `Resume room ${state.savedRoomCode}` : actions.roomCode ? `Invitation to ${actions.roomCode}` : state.completedChapters > 0 && state.nextCampaign ? state.nextCampaign.chapter.title : "Your first match is one click away."}</h2>
       <p>{state.hasSavedRoom ? "Return to your saved player seat or spectator view." : actions.roomCode ? "Choose to join as a player or watch the table." : state.completedChapters > 0 && state.nextCampaign ? "Open your next chapter and its briefing." : "A standard 52-card deck. Learn the core game against AI."}</p></div>
       <button className="cd-button-primary" onClick={state.hasSavedRoom ? actions.resume : actions.roomCode ? () => nav("play", "tables") : state.completedChapters > 0 && state.nextCampaign ? () => actions.campaign(state.nextCampaign.factionId, state.nextCampaign.chapter.id) : actions.basicAi}>{state.hasSavedRoom ? "Resume Match" : actions.roomCode ? "Open Invitation" : state.completedChapters > 0 && state.nextCampaign ? "Continue Campaign" : "Start Basic vs AI"}</button>
     </section>
     <div className="cd-section-line"><h2>Choose your next game</h2><button type="button" onClick={() => nav("play", "tables")}>Private tables & Free-for-All →</button></div>
     <Tiles pageId="play" items={playItems} utilities={[
-      { id: "active-deck", label: "Active Deck", content: <section className="cd-utility"><div><span>Active deck</span><strong>{state.deck?.name || "Standard 52-card deck"}</strong><small>{state.deck ? `${state.deck.factionName || state.deck.factionId} · Constructed` : "Ready to play. Customization is optional."}</small></div><button onClick={() => actions.collection("decks")}>{state.deck ? "Edit Deck" : "Open Decks"}</button></section> },
+      { id: "active-deck", label: "Active Deck", content: <section className="cd-utility cd-active-deck"><span className="cd-deck-summary"><span className="cd-deck-fan" aria-hidden="true">{deckArt.map((art, index) => <img key={`${art}-${index}`} src={resolveVisualAsset(art)} alt="" loading="lazy" decoding="async" draggable={false} />)}</span><span className="cd-deck-copy"><span>Active deck</span><strong>{state.deck?.name || "Standard 52-card deck"}</strong><small>{state.deck ? `${state.deck.factionName || state.deck.factionId} · Constructed` : "Ready to play. Customization is optional."}</small></span></span><button onClick={() => actions.collection("decks")}>{state.deck ? "Edit Deck" : "Open Decks"}</button></section> },
       { id: "recent-matches", label: "Recent Matches", content: slots.recentMatch || <section className="cd-utility"><div><span>Match records</span><strong>Review your games</strong><small>Results and available replays, including device saves.</small></div><button onClick={() => nav("matches")}>Open Matches</button></section> },
     ]} />
   </>;
@@ -149,7 +158,8 @@ export default function PlayerMenus({ route, onNavigate, account, ownerAuthorize
     const items = Object.entries(content.campaigns || {}).map(([id, campaign]) => {
       const completed = account?.progression?.campaign?.[id] || [];
       const faction = content.factions?.find((entry) => entry.id === id);
-      return { ...action(`faction-${id}`, campaign.factionName || id, `${completed.length} of ${campaign.chapters.length} chapters cleared · ${campaign.commanderName}`, "Open chapter selection", () => actions.campaign(id), "campaign"), artwork: campaign.coverImage || faction?.commander?.image || faction?.cardImage };
+      const emblem = faction?.cardImage || faction?.commander?.image;
+      return { ...action(`faction-${id}`, campaign.factionName || id, `${completed.length} of ${campaign.chapters.length} chapters cleared · ${campaign.commanderName}`, "Open chapter selection", () => actions.campaign(id), emblem ? <img src={resolveVisualAsset(emblem)} alt="" loading="lazy" decoding="async" draggable={false} /> : "campaign"), artwork: campaign.coverImage || faction?.commander?.image || faction?.cardImage };
     });
     items.push(action("tutorial", "Tutorial", "Learn one complete turn.", "Open tutorial", actions.tutorial, "learn"), action("lore", "Faction Lore", "Meet the published commanders.", "Read faction stories", () => nav("campaign", "lore"), "campaign"), action("rulebook", "Rulebook", "The full rules reference.", "Read rules", () => nav("learn", "rulebook"), "learn"));
     body = <><section className="cd-context"><div>{campaignPresentation.eyebrow && <span className="cd-eyebrow">{campaignPresentation.eyebrow}</span>}<h2>{campaignPresentation.title}</h2><p>{campaignPresentation.description && <>{campaignPresentation.description} </>}{account ? `${state.completedChapters} chapters cleared. Progress and earned packs stay with your account.` : "Guests can play every published campaign. Sign in to retain chapter progress and rewards."}</p>{campaignPresentation.detail && <p className="cd-authored-detail">{campaignPresentation.detail}</p>}</div>{state.nextCampaign && <button className="cd-button-primary" onClick={() => actions.campaign(state.nextCampaign.factionId, state.nextCampaign.chapter.id)}>{state.completedChapters ? "Continue next chapter" : "Open first chapter"}</button>}</section>
