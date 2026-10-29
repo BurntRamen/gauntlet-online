@@ -103,6 +103,24 @@ test("Para conflicts retain the original revision until the operator explicitly 
 async function selectCard() { fireEvent.click(await screen.findByRole("button", { name: "Cards", exact: true }, { timeout: 5000 })); fireEvent.click(await screen.findByRole("button", { name: "Inspect First card" }, { timeout: 5000 })); await screen.findByLabelText("Draft name", {}, { timeout: 5000 }); }
 async function selectOther(tab) { fireEvent.click(await screen.findByRole("button", { name: tab, exact: true })); }
 
+test("browser Back reopens a preserved Content editor while another administration area is visible", async () => {
+  function HiddenWorkspace() {
+    const [visible, setVisible] = useState(true);
+    const initial = useRef({ name: "cards", id: "card-one", section: "identity" });
+    return <><button onClick={() => setVisible(false)}>Open Players</button><div hidden={!visible}><Authoring {...props()} area="Content" initialDomain={initial.current} onNavigate={() => setVisible(true)} /></div></>;
+  }
+  render(<HiddenWorkspace />);
+  await screen.findByLabelText("Draft name", {}, { timeout: 15000 });
+  const detailsIndex = window.history.state.gauntletWorkshop;
+  fireEvent.click(screen.getByRole("button", { name: "Artwork", exact: true }));
+  await waitFor(() => expect(window.history.state.gauntletWorkshop).toBe(detailsIndex + 1));
+  fireEvent.click(screen.getByRole("button", { name: "Open Players" }));
+  expect(document.querySelector('[aria-label="Card Workshop"]')).not.toBeVisible();
+  act(() => window.dispatchEvent(new PopStateEvent("popstate", { state: { gauntletWorkshop: detailsIndex } })));
+  await waitFor(() => expect(screen.getByRole("region", { name: "Card Workshop" })).toBeVisible());
+  expect(screen.getByLabelText("Draft name")).toBeVisible();
+}, 20000);
+
 test("discard of a newly created shared record retains local values and refuses a false successful departure", async () => {
   state.draft = { snapshot: clone(state.live), hash: "created-record" };
   state.draft.snapshot.domains.cards.push({ ...state.live.domains.cards[0], id: "draft-card", name: "New card" });

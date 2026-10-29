@@ -138,6 +138,7 @@ test("creation selects the new record and printing comparison retains the select
   await expect(page).toHaveURL(new RegExp("object=" + deck.id));
   await section(page, "Composition", "Deck Workshop");
   await expect(page.getByRole("region", { name: "Deck Workshop", exact: true })).toContainText("52");
+  await image(page, "deck-composition-1366");
   await page.getByRole("button", { name: "Duplicate deck", exact: true }).click();
   await page.getByLabel("New content name", { exact: true }).fill("Redesign copied deck");
   await page.getByRole("button", { name: "Save new deck to draft", exact: true }).click();
@@ -333,7 +334,7 @@ test("encounter setup earns exact-draft engine evidence and a later change inval
 });
 
 test("review screenshots and responsive workspace preserve usable content and keyboard access", async ({ page, request }) => {
-  test.setTimeout(180000);
+  test.setTimeout(240000);
   await page.goto("/admin/gauntlet");
   await expect(page.getByRole("heading", { name: "Needs attention", exact: true })).toBeVisible();
   await image(page, "home-1366");
@@ -358,6 +359,20 @@ test("review screenshots and responsive workspace preserve usable content and ke
       const navButton = page.getByRole("button", { name: "Navigation", exact: true });
       await navButton.click(); const drawer = page.getByRole("dialog", { name: "Workspace navigation" }); await expect(drawer).toBeVisible();
       await page.keyboard.press("Escape"); await expect(drawer).toHaveCount(0); await expect(navButton).toBeFocused();
+    }
+    if (name === "phone") {
+      const field = page.getByLabel("Draft name", { exact: true });
+      const mobileName = (await field.inputValue()) + " · mobile review";
+      await field.fill(mobileName);
+      await section(page, "Artwork"); await section(page, "Details");
+      await expect(page.getByRole("dialog", { name: "Unsaved local changes" })).toHaveCount(0);
+      await page.getByRole("button", { name: "Preview", exact: true }).click();
+      await expect(page.getByRole("region", { name: "Card Workshop preview and test" })).toBeVisible();
+      await page.getByRole("button", { name: "Editor", exact: true }).click();
+      await expect(field).toHaveValue(mobileName);
+      await save(page);
+      expect((await state(request)).draft.snapshot.domains.cards.find(row => row.id === cardId).name).toBe(mobileName);
+      await discard(request);
     }
     const a11y = await new AxeBuilder({ page }).include(".gauntlet-admin").analyze();
     // Collect every responsive view before reporting independent accessibility failures.

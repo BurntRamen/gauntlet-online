@@ -338,7 +338,7 @@
 .admin-workspace .design-header { padding-top:4px; }
 .admin-workspace .design-section-select { margin-top:0; }
 .admin-workspace .design-view-controls { margin-top:-4px; margin-bottom:10px; }
-@media(max-width:750px) { .admin-workspace .admin-drawer-trigger { font-size:11px; padding:6px 8px; }.admin-workspace .admin-drawer-trigger span { display:inline; }.admin-workspace .admin-location { display:none; } }
+@media(max-width:750px) { .admin-workspace .admin-drawer-trigger { font-size:11px; padding:6px 8px; }.admin-workspace .admin-drawer-trigger span { display:inline; }.admin-workspace .admin-location { display:flex; font-size:11px; } }
 .admin-workspace .admin-field .is-live { display:none; }
 .admin-workspace .admin-field-tools { display:block; }
 .admin-workspace .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }

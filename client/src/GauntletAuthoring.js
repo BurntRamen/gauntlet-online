@@ -88,7 +88,7 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
       if (target.domain !== domainChoice || target.id !== selected) { setCreation(null); setScenario(null); setScenarioDirty(false); }
       setDomainChoice(target.domain); setSelections(current => ({ ...current, [target.domain]: target.id }));
       const nextArea = target.domain === "offers" ? "Store & Economy" : "Content";
-      if (area !== nextArea && !(area === "Design" && nextArea === "Content")) onNavigate?.(nextArea, undefined, undefined, undefined, undefined, undefined, { internal: true });
+      onNavigate?.(nextArea, undefined, undefined, undefined, undefined, undefined, { internal: true });
     }
   });
   const query = context.context.query || "";

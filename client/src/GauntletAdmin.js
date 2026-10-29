@@ -145,7 +145,7 @@ function AdminWorkspace({ request, onClose, operations, exitGuard, environment }
     if (options?.workspace) setWorkspace(current => ({ ...current, [next]: options.workspace }));
     if (next !== area) areaScroll.current[area] = window.scrollY;
     if (["Content", "Publishing", "Competition", "Store & Economy"].includes(next)) setAuthoringArea(next === "Store & Economy" && nextWorkspace === "Gold & Rewards" ? "Economy" : next === "Competition" && nextWorkspace === "Ranked & Gauntlet" ? "Ranked & Gauntlet" : next);
-    if (domain || name === "Game" || next === "Store & Economy" && next !== area) setContentDomain({ name: domain || (next === "Store & Economy" ? "offers" : "game"), id, section, field });
+    if (domain || name === "Game" || !options?.internal && next === "Store & Economy" && next !== area) setContentDomain({ name: domain || (next === "Store & Economy" ? "offers" : "game"), id, section, field });
     if (name === "Matches") { setMatchesOpened(true); setWorkspace(current => ({ ...current, Operations: "Match evidence" })); }
     if (name === "System") setWorkspace(current => ({ ...current, Operations: "Health" }));
     setArea(next); setDrawer(false);

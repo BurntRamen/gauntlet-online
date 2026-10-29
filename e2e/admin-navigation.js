@@ -39,6 +39,7 @@ async function workspaceSection(page, workshop, label) {
   const select = page.getByRole("combobox", { name: `${workshop} section`, exact: true });
   if (await select.isVisible()) await select.selectOption({ label });
   else await page.getByRole("navigation", { name: `${workshop} sections`, exact: true }).getByRole("button", { name: label, exact: true }).click();
+  await workspaceView(page, "Editor");
 }
 async function saveRecord(page, recordName) {
   await page.getByRole("region", { name: "Save record changes", exact: true }).getByRole("button", { name: recordName ? `Save changes to ${recordName}` : /^Save changes/ }).click();
