@@ -88,3 +88,15 @@ test("constructed and draft decks expose rename; cancellation leaves their names
   expect(screen.queryByLabelText("New deck name")).not.toBeInTheDocument();
   expect(screen.getAllByRole("button", { name: "Rename" })).toHaveLength(2);
 });
+
+test("each limited source keeps its own truthful label and active deck", () => {
+  const decks = ["player", "bot", "sealed"].map((draftType) => ({
+    ...library.decks[1], id: `${draftType}-deck`, name: `${draftType} deck`, draftType,
+  }));
+  render(<DeckLibraryPanel library={{ decks, activeDraftDeckIds: { player: "player-deck", bot: "bot-deck", sealed: "sealed-deck" } }} />);
+  expect(screen.getByRole("button", { name: /player deck Sheen \/ Live Draft/ })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /bot deck Sheen \/ Bot Draft/ })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /sealed deck Sheen \/ Sealed/ })).toBeInTheDocument();
+  expect(screen.getAllByText("Active")).toHaveLength(3);
+  expect(screen.queryByRole("button", { name: "Make Active" })).not.toBeInTheDocument();
+});

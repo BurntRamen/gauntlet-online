@@ -22,15 +22,18 @@ function DeckRow({ deck, active, selected, collectorCatalog, catalog, onSelect, 
   const versionCount = deck.versions?.length || 1;
   const latestMatchId = record.recentMatchIds?.[0] || null;
   const factionId = deck.factionId || "basic";
+  const formatLabel = deck.format !== "draft" ? "Constructed"
+    : deck.draftType === "sealed" ? "Sealed"
+      : deck.draftType === "bot" ? "Bot Draft" : "Live Draft";
   return (
     <div
       className={`deck-library-row deck-${factionId} ${selected ? "selected" : ""} ${deck.archived ? "archived" : ""}`}
       style={{ "--deck-accent": DECK_ACCENTS[factionId] || DECK_ACCENTS.basic }}
     >
-      <button type="button" className="deck-library-main" aria-label={`${deck.name} ${deck.factionName || deck.factionId} / ${deck.format === "draft" ? `${deck.draftType === "bot" ? "Bot" : "Player"} Draft` : "Constructed"} / version ${versionCount} ${record.wins || 0} wins ${record.losses || 0} losses ${record.draws || 0} draws`} onClick={() => onSelect(deck)} disabled={deck.format !== "constructed" || deck.archived}>
+      <button type="button" className="deck-library-main" aria-label={`${deck.name} ${deck.factionName || deck.factionId} / ${formatLabel} / version ${versionCount} ${record.wins || 0} wins ${record.losses || 0} losses ${record.draws || 0} draws`} onClick={() => onSelect(deck)} disabled={deck.format !== "constructed" || deck.archived}>
         {deck.format === "constructed" ? <DeckShowcase deck={deck} cards={[...(catalog[factionId] || []), ...(catalog.neutral || [])]} collectorCatalog={collectorCatalog} compact /> : <DeckVisual deck={{ ...deck, name: "" }} art={getDeckFeaturedArt(deck, collectorCatalog)} decorative />}
         <span className="deck-library-copy">
-          <span className="deck-library-format">{deck.format === "draft" ? `${deck.draftType === "bot" ? "Bot" : "Player"} Draft` : "Constructed"}</span>
+          <span className="deck-library-format">{formatLabel}</span>
           <strong>{deck.name}</strong>
           <small>{deck.factionName || deck.factionId} · version {versionCount}</small>
           <span className="deck-record"><b>{record.wins || 0}</b> wins <b>{record.losses || 0}</b> losses <b>{record.draws || 0}</b> draws</span>
@@ -63,7 +66,8 @@ export default function DeckLibraryPanel({ library, selectedDeckId, collectorCat
   const activeIds = new Set([
     library?.activeConstructedDeckId,
     library?.activeDraftDeckIds?.player,
-    library?.activeDraftDeckIds?.bot
+    library?.activeDraftDeckIds?.bot,
+    library?.activeDraftDeckIds?.sealed
   ].filter(Boolean));
 
   return (

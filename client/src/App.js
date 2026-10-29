@@ -2,13 +2,15 @@ import { mechanicFamily } from "@gauntlet/duel-rules/factionFamilyContract";
 import { encounterPresentation } from "@gauntlet/duel-rules/encounterContract";
 import { resolveCampaignFactionCards } from "@gauntlet/duel-rules/campaignDeckPlan";
 import "./AppLayouts.css";
-import { lazy, startTransition, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { flushSync } from "react-dom";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import "./App.css";
 import "./BoardBackgrounds.css";
 import "./FocusedMatchScreen.css";
-import HomeNavigation, { useVaultRewardPreference, VaultCreditBadge } from "./HomeNavigation";
+import browserStorage from "./navigation/browserStorage";
+import usePlayerNavigation from "./navigation/usePlayerNavigation";
+import SetupFrame from "./navigation/SetupFrame";
+import { getModePresentation } from "./navigation/modePresentation";
 import useDraftRequest from "./useDraftRequest";
 import DraftProgress from "./DraftProgress";
 import useAdminAccess from "./useAdminAccess";
@@ -27,7 +29,7 @@ import FactionLoadoutPicker from "./FactionLoadoutPicker";
 import { AchievementHonorCard, CampaignArchiveCard } from "./IdentityArchiveVisuals";
 import { findCollectorVariant, getCurrentDeckVersion, getDeckFeaturedArt, getNextCampaignChapter } from "./contentArt";
 import CollectorClaimScreen from "./CollectorClaimScreen";
-import { ActiveSeasonMatches, SeasonQueueSummary } from "./SeasonZero";
+import { ActiveSeasonMatches, SeasonStandings } from "./SeasonZero";
 import { getPlayingCardArtPath, normalizeCardDisplayText } from "./cardArt";
 import { createLiveMatchSession } from "./match/LiveMatchSession";
 import MatchRendererBoundary from "./match/MatchRendererBoundary";
@@ -45,14 +47,13 @@ import {
   readMenuMusicTrack,
   useMenuAudio
 } from "./MenuAudio";
-import MenuBackdrop from "./MenuBackdrop";
-import { PlayMenu, PlayModeCard } from "./PlayMenu";
-import JourneyIntroduction, { JOURNEY_ART, TUTORIAL_ART } from "./JourneyMenu";
+import { JOURNEY_ART, TUTORIAL_ART } from "./navigation/menuArtwork";
 import { fetchGameContent } from "./loadGameContent";
 import CurrencyWallet from "./CurrencyWallet";
 import FactionLoreScreen from "./FactionLoreScreen";
 import { canUsePrinting } from "@gauntlet/duel-rules/printings";
 
+const PlayerMenuExperience = lazy(() => import(/* webpackChunkName: "gauntlet-command-deck", webpackPrefetch: true */ "./navigation/PlayerMenuExperience"));
 const DraftScreen = lazy(() => import("./DraftScreen"));
 const LiveBabylonMatchExperience = lazy(() => import("./babylon/LiveBabylonMatchExperience"));
 const CollectorSetPackTile = lazy(() => import("./CollectorSetPackTile"));
@@ -99,6 +100,7 @@ function loadCompetitiveIdentity() {
 }
 
 const LazyMatchesHub = lazy(loadMatchesHub);
+const RecentMatchShortcut = lazy(() => loadMatchesHub().then((module) => ({ default: module.RecentMatchShortcut })));
 const LazyStudio = lazy(loadStudio);
 const LazyCompetitiveIdentityPanel = lazy(() => loadCompetitiveIdentity().then((module) => ({ default: module.CompetitiveIdentityPanel })));
 const LazyMatchRecordScreen = lazy(() => loadCompetitiveIdentity().then((module) => ({ default: module.MatchRecordScreen })));
@@ -131,7 +133,7 @@ function PublicProfileScreen(props) {
 
 const HOME_AREA_PRELOADERS = {
   matches: loadMatchesHub,
-  identity: loadCompetitiveIdentity,
+  profile: loadCompetitiveIdentity,
   studio: loadStudio
 };
 
@@ -168,13 +170,6 @@ const INITIAL_PASSWORD_RESET_TOKEN =
   typeof window !== "undefined"
     ? new URLSearchParams(window.location.search).get("resetToken")?.trim() || ""
     : "";
-const INITIAL_HOME_AREA =
-  INITIAL_PASSWORD_RESET_TOKEN
-    ? "identity"
-    : typeof window !== "undefined" && (/^\/admin\/gauntlet(?:\/|$)/.test(window.location.pathname) || new URLSearchParams(window.location.search).get("studio") === "1" || new URLSearchParams(window.location.search).get("admin") === "1")
-    ? "studio"
-    : INITIAL_JOIN_ROOM_CODE ? "play" : "journey";
-
 function getPublicViewFromLocation() {
   if (typeof window === "undefined") return null;
   const params = new URLSearchParams(window.location.search);
@@ -368,15 +363,6 @@ const AREA_BACKGROUNDS = {
   studio: "/assets/gauntlet/backgrounds/gauntlet-menu-matches-v2.jpg"
 };
 
-const HOME_AREA_CONTEXT = {
-  play: { label: "Battle tables", code: "PLAY / 01" },
-  journey: { label: "Commander archives", code: "JOURNEY / 02" },
-  matches: { label: "Battle records", code: "MATCHES / 03" },
-  build: { label: "Card vault", code: "BUILD / 04" },
-  identity: { label: "Player dossier", code: "IDENTITY / 05" },
-  studio: { label: "Owner operations", code: "STUDIO / 06" }
-};
-
 const BOARD_BACKGROUNDS = {
   rumin: "var(--gauntlet-board-rumin)",
   sheen: "var(--gauntlet-board-sheen)",
@@ -410,16 +396,16 @@ function getBoardBackground(factionId) {
 }
 
 function saveReconnectInfo({ roomCode, reconnectToken, role }) {
-  if (roomCode) localStorage.setItem(STORAGE_KEYS.roomCode, roomCode);
-  if (reconnectToken) localStorage.setItem(STORAGE_KEYS.reconnectToken, reconnectToken);
-  else localStorage.removeItem(STORAGE_KEYS.reconnectToken);
-  if (role) localStorage.setItem(STORAGE_KEYS.role, role);
+  if (roomCode) browserStorage.setItem(STORAGE_KEYS.roomCode, roomCode);
+  if (reconnectToken) browserStorage.setItem(STORAGE_KEYS.reconnectToken, reconnectToken);
+  else browserStorage.removeItem(STORAGE_KEYS.reconnectToken);
+  if (role) browserStorage.setItem(STORAGE_KEYS.role, role);
 }
 
 function clearReconnectInfo() {
-  localStorage.removeItem(STORAGE_KEYS.roomCode);
-  localStorage.removeItem(STORAGE_KEYS.reconnectToken);
-  localStorage.removeItem(STORAGE_KEYS.role);
+  browserStorage.removeItem(STORAGE_KEYS.roomCode);
+  browserStorage.removeItem(STORAGE_KEYS.reconnectToken);
+  browserStorage.removeItem(STORAGE_KEYS.role);
 }
 
 function getSuitSymbol(suit) {
@@ -1053,9 +1039,10 @@ function MenuAudioControl({
   onSettingsChange,
   accountSoundMuted,
   onAccountSoundMutedChange,
-  playCue
+  playCue,
+  inline = false
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(inline);
   const track = MUSIC_TRACKS[trackKey] || MUSIC_TRACKS.menu;
   const muted = accountSoundMuted || settings.masterMuted;
 
@@ -1596,7 +1583,7 @@ function BoosterPackTile({ booster, collectorPack, opening, canOpen, onOpen, onB
   );
 }
 
-function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onBuyGameplayPack, onBuyTimetwisters, deckStore, economyPending, onSaveConstructedDeck, onDeckAction, onOpenMatch, initialView = "shop" }) {
+function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onBuyGameplayPack, onBuyTimetwisters, deckStore, economyPending, onSaveConstructedDeck, onDeckAction, onOpenMatch, onDirtyChange, initialView = "shop" }) {
   const PLAYING_DECK_VALUES = deckRules.playingDeckValues;
   const MAX_REPLACEMENTS_PER_VALUE = deckRules.maxReplacementsPerValue;
   const deckLibrary = account?.stats?.deckLibrary || { decks: [], activeDraftDeckIds: {} };
@@ -1663,6 +1650,17 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
   useEffect(() => {
     setConstructedDeckName(savedConstructedDeck?.name || `${savedConstructedDeck?.factionName || "Rumin"} Constructed Deck`);
   }, [account?.id, selectedConstructedDeckId, savedConstructedDeck?.versionId, savedConstructedDeck?.name, savedConstructedDeck?.factionName]);
+
+  const draftSnapshot = JSON.stringify([constructedDeckName, constructedFactionId, constructedGeneralId, constructedQuantities, constructedSuitChoices, constructedVariantSelections, constructedAccess, constructedBack, constructedBoxId, constructedFrontCardSlot]);
+  const savedSnapshot = JSON.stringify([savedConstructedDeck?.name || "Rumin Constructed Deck", savedConstructedDeck?.factionId || "rumin", savedConstructedDeck?.generalId || "monti", savedConstructedDeck?.gameplayCardQuantities || savedConstructedDeck?.cardQuantities || {}, savedConstructedDeck?.cardSuitChoices || {}, savedConstructedDeck?.collectorVariantSelections || {}, savedConstructedDeck?.accessMode || "competitive", savedConstructedDeck?.cardBackId || "", savedConstructedDeck?.deckBoxId || "classic", savedConstructedDeck?.frontCardSlot || null]);
+  const hasUnsavedDeck = !!account && draftSnapshot !== savedSnapshot;
+  useEffect(() => { onDirtyChange?.(hasUnsavedDeck); return () => onDirtyChange?.(false); }, [hasUnsavedDeck, onDirtyChange]);
+  useEffect(() => {
+    if (!hasUnsavedDeck) return undefined;
+    const warn = (event) => { event.preventDefault(); event.returnValue = ""; };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [hasUnsavedDeck]);
 
   if (!account) {
     return (
@@ -1842,6 +1840,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
           <div className="collection-summary-stat"><span>Credits ready</span><strong>{packCredits}</strong></div>
           <div className="collection-summary-note"><span>Fair-play split</span>Every account starts with three free animated collector styles. Campaign credits unlock gameplay; collector styles never change cards, copies, values, or abilities.</div>
         </div>}
+        {hasUnsavedDeck && <p className="cd-notice" role="status">Unsaved deck changes. Save in the Deck Editor before leaving this page.</p>}
         <div className="collection-view-tabs" role="tablist" aria-label="Collection views">
           {[["shop", "Shop"], ["packs", "Packs"], ["decks", "Decks"], ["catalog", "Cards"], ["collector", "Collector Styles"]].map(([viewId, label]) => (
             <button key={viewId} type="button" role="tab" aria-selected={collectionView === viewId} onClick={() => setCollectionView(viewId)}>{label}</button>
@@ -1849,13 +1848,6 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
         </div>
         {collectionView === "shop" && <Suspense fallback={<p className="economy-sign-in">Loading shop…</p>}><EconomyShop deckStore={deckStore} economy={account?.economy} pending={economyPending} onBuyGameplayPack={onBuyGameplayPack} onBuyTimetwisters={onBuyTimetwisters} /></Suspense>}
         {collectionView === "packs" && <>
-        <div className="collection-view-heading">
-          <div><h3>Buy Collector Packs</h3><p>Choose Set 1 or Set 2 for animated styles. Purchases never change ranked power.</p></div>
-          <strong style={{ color: checkoutConfigured ? "#86efac" : "#fca5a5" }}>{checkoutConfigured ? "Checkout connected" : "Checkout pending"}</strong>
-        </div>
-        {collectorSetPacks.length > 0 && <Suspense fallback={null}><div className="booster-pack-grid">
-          {collectorSetPacks.map((product) => <CollectorSetPackTile key={product.id} product={product} checkoutConfigured={checkoutConfigured} onBuyPack={onBuyPack} />)}
-        </div></Suspense>}
         <div className="collection-view-heading">
           <div><h3>Earned Gameplay Packs</h3><p>Spend campaign credits on all-faction or seeded faction packs. These are the packs that unlock playable cards.</p></div>
           <strong className="app-layout-54">{packCredits} credit{packCredits === 1 ? "" : "s"} ready</strong>
@@ -1876,6 +1868,15 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
             ))}
           </div>
         )}
+        <details className="cd-collector-store"><summary>Browse optional collector packs</summary>
+        <div className="collection-view-heading">
+          <div><h3>Buy Collector Packs</h3><p>Choose Set 1 or Set 2 for animated styles. Purchases never change ranked power.</p></div>
+          <strong style={{ color: checkoutConfigured ? "#86efac" : "#fca5a5" }}>{checkoutConfigured ? "Checkout connected" : "Checkout pending"}</strong>
+        </div>
+        {collectorSetPacks.length > 0 && <Suspense fallback={null}><div className="booster-pack-grid">
+          {collectorSetPacks.map((product) => <CollectorSetPackTile key={product.id} product={product} checkoutConfigured={checkoutConfigured} onBuyPack={onBuyPack} />)}
+        </div></Suspense>}
+        </details>
         </>}
         {lastOpenedPack?.length > 0 && <PackOpening cards={lastOpenedPack} pacing={packPacing} autoPlay={lastOpenedPack !== initialOpenedPack.current} visible={collectionView === "packs"} />}
         {collectionView === "decks" && <>
@@ -2029,24 +2030,6 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
   );
 }
 
-function CollectionScreen({ account, deckRules, lastOpenedPack, openingPackId, onOpenPack, onBuyPack, onBuyGameplayPack, onBuyTimetwisters, deckStore, economyPending, onSaveConstructedDeck, onDeckAction, onOpenMatch, onBack, initialView }) {
-  return (
-    <div className="collection-page menu-page area-build" style={{ ...MENU_THEME.page, "--area-image": `url(${resolveAssetPath(AREA_BACKGROUNDS.build)})` }}>
-      <div className="collection-frame menu-frame" style={MENU_THEME.frame}>
-        <header className="collection-header">
-          <div>
-            <div className="collection-kicker">Vault Terminal</div>
-            <h1>Build</h1>
-            <p>Open rewards, survey your collection, and shape decks for the table.</p>
-          </div>
-          <MenuButton variant="secondary" onClick={onBack}>Main Menu</MenuButton>
-        </header>
-        <CollectionPanel account={account} deckRules={deckRules} lastOpenedPack={lastOpenedPack} openingPackId={openingPackId} onOpenPack={onOpenPack} onBuyPack={onBuyPack} onBuyGameplayPack={onBuyGameplayPack} onBuyTimetwisters={onBuyTimetwisters} deckStore={deckStore} economyPending={economyPending} onSaveConstructedDeck={onSaveConstructedDeck} onDeckAction={onDeckAction} onOpenMatch={onOpenMatch} initialView={initialView} />
-      </div>
-    </div>
-  );
-}
-
 export function DraftCardTile({ card, selected = false, disabled = false, onClick, onInspect, actionLabel = "Pick" }) {
   const rarity = RARITY_STYLES[card.rarity] || RARITY_STYLES.common;
   const theme = PACK_THEMES[card.factionId] || PACK_THEMES.rumin;
@@ -2083,38 +2066,6 @@ function limitedDeckSourceLabel(draftType) {
   return draftType === "bot" ? "Bot Draft" : "Live Draft";
 }
 
-function MatchmakingPanel({
-  account,
-  status,
-  onJoin,
-  onLeave,
-  title = "Matchmaking",
-  description = "Find an account opponent with a similar win/loss ratio.",
-  joinLabel = "Find Match",
-  cancelLabel = "Cancel Search",
-  signedOutText = "Sign in to use ranked matchmaking.",
-  extraActions = null
-}) {
-  return (
-    <MenuCard title={title}>
-      <p className="app-layout-68">{description}</p>
-      {status.message && <div style={{ color: status.inQueue ? "#fde68a" : "#bfdbfe", fontSize: 13, marginBottom: 10 }}>{status.message}</div>}
-      {status.inQueue ? (
-        <>
-          <p className="app-layout-46">Keep this page open while searching. You can cancel at any time, and no bot will be substituted for a ranked opponent.</p>
-          <MenuButton variant="secondary" onClick={onLeave}>{cancelLabel}</MenuButton>
-        </>
-      ) : (
-        <div className="app-layout-34">
-          <MenuButton onClick={onJoin} disabled={!account}>{joinLabel}</MenuButton>
-          {extraActions}
-        </div>
-      )}
-      {!account && <p className="app-layout-62">{signedOutText}</p>}
-    </MenuCard>
-  );
-}
-
 function FriendsPanel({
   account,
   friendsData,
@@ -2133,12 +2084,21 @@ function FriendsPanel({
   onUpdateChallenge,
   onRefresh,
   unreadCounts = {},
-  unreadTotal = 0
+  unreadTotal = 0,
+  view = "all"
 }) {
+  const selectedView = view || "friends";
+  const showAll = selectedView === "all";
+  const showAdd = showAll || selectedView === "friends";
+  const showMessages = showAll || selectedView === "messages";
+  const showOutgoing = showAll || selectedView === "challenges";
+  const showRoster = selectedView !== "invitations";
+  const showChallenge = showAll || selectedView === "friends" || selectedView === "challenges";
+  const sectionTitle = ({ messages: "Messages", challenges: "Challenges", invitations: "Invitations" })[selectedView] || "Friends";
   if (!account) {
     return (
-      <MenuCard title="Friends">
-        <p className="app-layout-52">Sign in to add friends and send messages.</p>
+      <MenuCard title={sectionTitle}>
+        <p className="app-layout-52">Sign in to {selectedView === "invitations" ? "review invitations" : selectedView === "challenges" ? "challenge a friend" : selectedView === "messages" ? "read and send messages" : "add friends and keep in touch"}.</p>
       </MenuCard>
     );
   }
@@ -2154,9 +2114,9 @@ function FriendsPanel({
     : [];
 
   return (
-    <MenuCard className="friends-panel" title={unreadTotal > 0 ? `Friends (${unreadTotal} new)` : "Friends"}>
-      {error && <div className="app-layout-69">{error}</div>}
-      {incomingChallenges.map((challenge) => (
+    <MenuCard className="friends-panel" title={showMessages && unreadTotal > 0 ? `${sectionTitle} (${unreadTotal} unread)` : sectionTitle}>
+      {error && <div className="app-layout-69" role="alert">{error}</div>}
+      {showAll && incomingChallenges.map((challenge) => (
         <div key={challenge.id} className="friend-challenge-alert">
           <strong>{challenge.fromName} challenged you</strong>
           <div className="app-layout-70">Faction Duel · room {challenge.roomCode}</div>
@@ -2164,29 +2124,32 @@ function FriendsPanel({
           <MenuButton variant="secondary" onClick={() => onUpdateChallenge(challenge.id, "decline")}>Decline</MenuButton>
         </div>
       ))}
-      {outgoingChallenges.length > 0 && (
+      {selectedView === "invitations" && <p role="status">{incomingChallenges.length ? `${incomingChallenges.length} pending invitation${incomingChallenges.length === 1 ? "" : "s"}. Use the invitation controls above to join or decline.` : "You have no pending invitations."}</p>}
+      {showOutgoing && outgoingChallenges.length > 0 && (
         <div className="app-layout-71">
           Waiting on {outgoingChallenges.map((challenge) => challenge.toName).join(", ")}.
         </div>
       )}
-      <form
+      {selectedView === "challenges" && outgoingChallenges.length === 0 && <p>No outgoing challenges. Choose a friend to create a private duel and send an invitation.</p>}
+      {!showAdd && <MenuButton variant="secondary" onClick={onRefresh}>Refresh {sectionTitle}</MenuButton>}
+      {showAdd && <form
         className="friend-add-form"
         onSubmit={(event) => {
           event.preventDefault();
           if (friendName.trim()) onAddFriend();
         }}
       >
-        <input value={friendName} onChange={(e) => onFriendNameChange(e.target.value)} placeholder="Friend account name" style={{ ...MENU_THEME.input, flex: "1 1 190px" }} />
-        <MenuButton type="submit" disabled={!friendName.trim()}>Add</MenuButton>
-        <MenuButton variant="secondary" onClick={onRefresh}>Refresh</MenuButton>
-      </form>
-      {friends.length === 0 ? (
+        <input value={friendName} onChange={(e) => onFriendNameChange(e.target.value)} aria-label="Friend account name" placeholder="Friend account name" style={{ ...MENU_THEME.input, flex: "1 1 190px" }} />
+        <MenuButton type="submit" disabled={!friendName.trim()}>Add Friend</MenuButton>
+        <MenuButton variant="secondary" onClick={onRefresh}>Refresh Friends</MenuButton>
+      </form>}
+      {showRoster && (friends.length === 0 ? (
         <div className="friends-empty-state">
           <strong>Your table is quiet.</strong>
-          <span>Add a player by account name to start a conversation or challenge.</span>
+          <span>{showAdd ? "Add a player by account name to start a conversation or challenge." : "Open Friends to add a player, then return here."}</span>
         </div>
       ) : (
-        <div className="friends-workspace">
+        <div className={`friends-workspace${showMessages ? "" : " is-actions-only"}`}>
           <nav className="friend-contact-list" aria-label="Friends">
             {friends.map((friend) => {
               const selected = selectedFriend?.id === friend.id;
@@ -2197,26 +2160,27 @@ function FriendsPanel({
                   type="button"
                   className={selected ? "is-selected" : ""}
                   aria-current={selected ? "true" : undefined}
-                  onClick={() => onSelectFriend(friend.id)}
+                  onClick={() => onSelectFriend(friend.id, { markRead: showMessages })}
                 >
                   <PlayerAvatar subject={friend} name={friend.name} serverUrl={SOCKET_URL} size="small" decorative className="friend-avatar" />
-                  <span className="friend-contact-copy"><strong>{friend.name}</strong><small>{selected ? "Conversation open" : "View conversation"}</small></span>
+                  <span className="friend-contact-copy"><strong>{friend.name}</strong><small>{showMessages ? (selected ? "Conversation open" : "Open messages") : selectedView === "challenges" ? (selected ? "Selected for a duel" : "Choose for a private duel") : (selected ? "Friend selected" : "View friend actions")}</small></span>
                   {unreadCount > 0 && <span className="friend-unread-count">{unreadCount}</span>}
                 </button>
               );
             })}
           </nav>
-          <section className="friend-conversation" aria-label={selectedFriend ? `Conversation with ${selectedFriend.name}` : "Friend conversation"}>
+          <section className={`friend-conversation${showMessages ? "" : " is-actions-only"}`} aria-label={selectedFriend ? `${showMessages ? "Conversation with" : "Actions for"} ${selectedFriend.name}` : "Choose a friend"}>
             {selectedFriend ? (
               <>
                 <div className="friend-conversation-header">
                   <div><span>At the table with</span><strong>{selectedFriend.name}</strong></div>
-                  <div className="friend-conversation-actions">
-                    <MenuButton onClick={() => onChallengeFriend(selectedFriend.id)}>Challenge</MenuButton>
-                    <button type="button" onClick={() => onRemoveFriend(selectedFriend.id)} className="friend-remove-button">Remove</button>
-                  </div>
+                  {(showChallenge || showAdd) && <div className="friend-conversation-actions">
+                    {showChallenge && <MenuButton onClick={() => onChallengeFriend(selectedFriend.id)}>Create Duel & Invite</MenuButton>}
+                    {showAdd && <button type="button" onClick={() => onRemoveFriend(selectedFriend.id)} className="friend-remove-button">Remove Friend</button>}
+                  </div>}
                 </div>
-                <div className="friend-message-history" aria-live="polite">
+                {showChallenge && <p className="friend-action-description">Create Duel & Invite opens a private two-player room and sends {selectedFriend.name} an invitation.</p>}
+                {showMessages && <><div className="friend-message-history" aria-live="polite">
                   {selectedMessages.length === 0 && <div className="friend-message-empty"><strong>No messages yet.</strong><span>Say hello or send a challenge to begin.</span></div>}
                   {selectedMessages.map((message) => {
                     const sentByMe = message.fromId === account.id;
@@ -2248,14 +2212,14 @@ function FriendsPanel({
                     style={MENU_THEME.input}
                   />
                   <MenuButton type="submit" disabled={!messageText.trim()}>Send</MenuButton>
-                </form>
+                </form></>}
               </>
             ) : (
-              <div className="friend-conversation-placeholder"><strong>Choose a friend</strong><span>Their messages and challenge controls will appear here.</span></div>
+              <div className="friend-conversation-placeholder"><strong>Choose a friend</strong><span>{showMessages ? "Read your conversation and send a message." : selectedView === "challenges" ? "Create a private duel and send them an invitation." : "Manage this friendship or create a private duel."}</span></div>
             )}
           </section>
         </div>
-      )}
+      ))}
     </MenuCard>
   );
 }
@@ -2468,6 +2432,7 @@ function ShareGameQrCard() {
       <div className="app-layout-82">
         <a href={gameUrl} target="_blank" rel="noreferrer" aria-label="Open Gauntlet Online">
           <img
+            loading="lazy"
             src={qrUrl}
             alt="QR code for Gauntlet Online"
             width="96"
@@ -2788,7 +2753,7 @@ function RulebookPanel() {
   );
 }
 
-function TutorialScreen({ onBack, onPlayBasicAi, onPlayFactionAi, canPlayAsPlayer }) {
+function TutorialScreen({ embedded = false, onBack, onPlayBasicAi, onPlayFactionAi, canPlayAsPlayer }) {
   const lessons = [
     {
       title: "1. Read Priority",
@@ -2821,8 +2786,8 @@ function TutorialScreen({ onBack, onPlayBasicAi, onPlayFactionAi, canPlayAsPlaye
   ];
 
   return (
-    <div className="tutorial-page menu-page area-journey" style={{ ...MENU_THEME.page, "--area-image": `url(${resolveAssetPath(AREA_BACKGROUNDS.journey)})` }}>
-      <div className="tutorial-frame menu-frame" style={MENU_THEME.frame}>
+    <div className={embedded ? "cd-tutorial-experience" : "tutorial-page menu-page area-journey"}>
+      <div className={embedded ? "tutorial-frame" : "tutorial-frame menu-frame"}>
         <header className="tutorial-header" style={{ "--journey-art": `url("${resolveVisualAsset(TUTORIAL_ART)}")` }}>
           <div>
             <div className="tutorial-kicker">Training Protocol</div>
@@ -2868,54 +2833,15 @@ function TutorialScreen({ onBack, onPlayBasicAi, onPlayFactionAi, canPlayAsPlaye
   );
 }
 
-function OnboardingPanel({ canPlayAsPlayer, onStartTutorial, onStartBasicAi, onEnableHints, onDismiss, onNavigate }) {
-  const steps = [
-    { label: "Start here", text: "Learn priority, payment, blocking, and lanes in the tutorial." },
-    { label: "Practice safely", text: "Play Basic vs AI before entering multiplayer or faction powers." },
-    { label: "Turn on hints", text: "Use helper labels when you want the interface to explain each option." }
-  ];
-
-  return (
-    <div className="app-layout-101">
-      <div className="app-layout-102">
-        <div>
-          <div className="app-layout-103">New Player Route</div>
-          <h2 className="app-layout-104">Learn the game in one guided match</h2>
-          <p className="app-layout-105">
-            Gauntlet is easiest to learn by playing a low-pressure Basic AI match first. You can still jump into campaign, draft, or multiplayer whenever you are ready.
-          </p>
-        </div>
-        <button type="button" onClick={onDismiss} className="app-layout-106">Dismiss</button>
-      </div>
-      <div className="app-layout-107">
-        {steps.map((step, index) => (
-          <div key={step.label} className="app-layout-108">
-            <strong className="app-layout-109">{index + 1}. {step.label}</strong>
-            <span className="app-layout-110">{step.text}</span>
-          </div>
-        ))}
-      </div>
-      <div role="navigation" aria-label="New player destinations" className="app-layout-111">
-        <MenuButton variant="secondary" onClick={() => onNavigate?.("play")}>Play a Match</MenuButton>
-        <MenuButton variant="secondary" onClick={() => onNavigate?.("journey")}>Campaign & Tutorial</MenuButton>
-        <MenuButton variant="secondary" onClick={() => onNavigate?.("build")}>Cards & Decks</MenuButton>
-        <MenuButton variant="secondary" onClick={() => onNavigate?.("rewards")}>Quests & Rewards</MenuButton>
-      </div>
-      <div className="app-layout-112">
-        <MenuButton onClick={onStartBasicAi}>Play Basic vs AI</MenuButton>
-        <MenuButton variant="secondary" onClick={onStartTutorial}>Open Tutorial</MenuButton>
-        <MenuButton variant="secondary" onClick={onEnableHints}>Turn On Hints</MenuButton>
-        {!canPlayAsPlayer && <span className="app-layout-62">This will use your guest name unless you sign in first.</span>}
-      </div>
-    </div>
-  );
-}
-
-function CampaignScreen({ manifest, onBack, onStartChapter, onEnableGuest, canPlayAsPlayer, account, campaigns, audioEnabled, musicEnabled, musicVolume }) {
+function CampaignScreen({ embedded = false, initialFactionId, initialChapterId = "", manifest, onBack, onStartChapter, onEnableGuest, canPlayAsPlayer, account, campaigns, audioEnabled, musicEnabled, musicVolume }) {
+  const campaignPresentation = getModePresentation("campaign", manifest.modeMetadata, {
+    title: "Faction Campaigns",
+    description: "Choose your commander. Explore their story, chapter by chapter, and earn faction cards along the way."
+  });
   const campaignProgress = account?.progression?.campaign || {};
   const campaignEntries = Object.entries(campaigns || {});
-  const [selectedFactionId, setSelectedFactionId] = useState(campaignEntries[0]?.[0] || "rumin");
-  const [briefingChapterId, setBriefingChapterId] = useState("");
+  const [selectedFactionId, setSelectedFactionId] = useState(initialFactionId || campaignEntries[0]?.[0] || "rumin");
+  const [briefingChapterId, setBriefingChapterId] = useState(initialChapterId);
   const [activeFactionId, activeCampaign] = campaignEntries.find(([factionId]) => factionId === selectedFactionId) || campaignEntries[0] || [];
   const activeTheme = getFactionTheme(activeFactionId);
   const completedChapters = (activeCampaign?.chapters || []).filter(chapter => campaignProgress[activeFactionId]?.includes(chapter.id)).map(chapter => chapter.id);
@@ -2928,17 +2854,18 @@ function CampaignScreen({ manifest, onBack, onStartChapter, onEnableGuest, canPl
   const briefingCompleted = briefingChapter ? completedChapters.includes(briefingChapter.id) : false;
   const changeBriefing = (chapterId = "") => {
     setBriefingChapterId(chapterId);
-    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
   };
 
   return (
-    <div className="campaign-page menu-page area-journey" style={{ ...MENU_THEME.page, "--area-image": `url(${resolveAssetPath(AREA_BACKGROUNDS.journey)})` }}>
-      <div className="campaign-frame menu-frame" style={MENU_THEME.frame}>
+    <div className={embedded ? "cd-campaign-experience" : "campaign-page menu-page area-journey"}>
+      <div className={embedded ? "campaign-frame" : "campaign-frame menu-frame"}>
         <div className="campaign-header" style={{ "--journey-art": `url("${resolveVisualAsset(JOURNEY_ART)}")` }}>
           <div className="campaign-heading">
-            <div className="campaign-kicker">Commander Archives</div>
-            <h1>Faction Campaigns</h1>
-            <p>Choose your commander. Explore their story, chapter by chapter, and earn faction cards along the way.</p>
+            <div className="campaign-kicker">{campaignPresentation.eyebrow || "Commander Archives"}</div>
+            <h1>{campaignPresentation.title}</h1>
+            <p>{campaignPresentation.description}</p>
+            {campaignPresentation.detail && <p className="cd-authored-detail">{campaignPresentation.detail}</p>}
           </div>
           <MenuButton variant="secondary" onClick={onBack}>Main Menu</MenuButton>
         </div>
@@ -3073,18 +3000,17 @@ export default function App() {
   const [actionLog, setActionLog] = useState([]);
   const [factionVoice, setFactionVoice] = useState(null);
   const [account, setAccount] = useState(null);
-  const [vaultRewardMinimized, setVaultRewardMinimized] = useVaultRewardPreference(account?.id);
-  const [authToken, setAuthToken] = useState(() => localStorage.getItem(STORAGE_KEYS.authToken) || "");
+  const [authToken, setAuthToken] = useState(() => browserStorage.getItem(STORAGE_KEYS.authToken) || "");
   const [authMode, setAuthMode] = useState(INITIAL_PASSWORD_RESET_TOKEN ? "reset" : "login");
   const [authForm, setAuthForm] = useState({ name: "", password: "", email: "", token: INITIAL_PASSWORD_RESET_TOKEN });
   const [authError, setAuthError] = useState("");
   const [authNotice, setAuthNotice] = useState("");
-  const [playAsGuest, setPlayAsGuest] = useState(false);
-  const [guestName, setGuestName] = useState(() => localStorage.getItem(STORAGE_KEYS.guestName) || "Guest");
+  const [playAsGuest, setPlayAsGuest] = useState(true);
+  const [guestName, setGuestName] = useState(() => browserStorage.getItem(STORAGE_KEYS.guestName) || "Guest");
   const [musicEnabled, setMusicEnabled] = useState(true);
   const [musicVolume, setMusicVolume] = useState(0.18);
-  const [menuMusicTrack, setMenuMusicTrack] = useState(() => readMenuMusicTrack(typeof window !== "undefined" ? window.localStorage : null));
-  const [menuAudioSettings, setMenuAudioSettings] = useState(() => readMenuAudioSettings(typeof window !== "undefined" ? window.localStorage : null));
+  const [menuMusicTrack, setMenuMusicTrack] = useState(() => readMenuMusicTrack(typeof window !== "undefined" ? browserStorage : null));
+  const [menuAudioSettings, setMenuAudioSettings] = useState(() => readMenuAudioSettings(typeof window !== "undefined" ? browserStorage : null));
   const [accountSoundMuted, setAccountSoundMuted] = useState(false);
   const [supportMessage, setSupportMessage] = useState("");
   const [copyNotice, setCopyNotice] = useState("");
@@ -3109,9 +3035,6 @@ export default function App() {
   const [openingPackId, setOpeningPackId] = useState("");
   const [economyPending, setEconomyPending] = useState(false);
   const [matchmakingStatus, setMatchmakingStatus] = useState({ inQueue: false, message: "" });
-  const [rankedGameMode, setRankedGameMode] = useState("factions");
-  const [rankedFactionId, setRankedFactionId] = useState("rumin");
-  const [rankedGeneralId, setRankedGeneralId] = useState(null);
   const [draftLeagueStatus, setDraftLeagueStatus] = useState({ inQueue: false, message: "" });
   const [draftSetId, setDraftSetId] = useState("initiative");
   const [rematchStatus, setRematchStatus] = useState({ requestedBy: null, message: "" });
@@ -3124,33 +3047,34 @@ export default function App() {
   const [friendsError, setFriendsError] = useState("");
   const [friendReadAt, setFriendReadAt] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEYS.friendReadAt) || "{}");
+      return JSON.parse(browserStorage.getItem(STORAGE_KEYS.friendReadAt) || "{}");
     } catch {
       return {};
     }
   });
   const [showTutorial, setShowTutorial] = useState(false);
   const [showCampaign, setShowCampaign] = useState(false);
-  const [showFactionLore, setShowFactionLore] = useState(false);
   const [showCollection, setShowCollection] = useState(false);
-  const [homeArea, setHomeArea] = useState(INITIAL_HOME_AREA);
+  const unsavedDeckRef = useRef(false);
+  const setDeckDirty = useCallback((dirty) => { unsavedDeckRef.current = dirty; }, []);
+  const confirmLeaveDeck = useCallback(() => !unsavedDeckRef.current || window.confirm("Discard unsaved deck changes and leave the editor?"), []);
+  const { route: playerRoute, navigate: navigatePlayer } = usePlayerNavigation({ beforeNavigate: confirmLeaveDeck });
+  const homeArea = playerRoute.page;
   const [ownerAuthorized, setOwnerAuthorized] = useAdminAccess(SOCKET_URL, authToken);
   const adminSignInRequested = useRef(false);
   const adminExitGuard = useRef(action => { action?.(); return true; });
-  const [playView, setPlayView] = useState(INITIAL_JOIN_ROOM_CODE ? "tables" : "practice");
   const [returnToDraftAfterAuth, setReturnToDraftAfterAuth] = useState(false);
-  const [identityView, setIdentityView] = useState("profile");
+  const identityView = playerRoute.view;
   const [lobbyFactionPreviewId, setLobbyFactionPreviewId] = useState("");
-  const [tutorialCompletions, setTutorialCompletions] = useState(() => {
+  const [, setTutorialCompletions] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEYS.tutorialCompletions) || "{}");
+      return JSON.parse(browserStorage.getItem(STORAGE_KEYS.tutorialCompletions) || "{}");
     } catch {
       return {};
     }
   });
   const [showHotkeys, setShowHotkeys] = useState(false);
   const [showHelperLabels, setShowHelperLabels] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(() => localStorage.getItem(STORAGE_KEYS.onboardingDismissed) !== "true");
   const [showOpponentAbilities, setShowOpponentAbilities] = useState(false);
   const [inspectedCard, setInspectedCard] = useState(null);
   const [previewedCard, setPreviewedCard] = useState(null);
@@ -3165,8 +3089,6 @@ export default function App() {
   const voiceAudioRef = useRef(null);
   const commanderHealthRef = useRef({ matchId: "", previousLife: null, wounded: false, critical: false });
   const commanderClickRef = useRef(0);
-  const homeAreaNavigationRef = useRef(0);
-  const homeAreaTransitionRef = useRef(null);
   const hotkeyActionsRef = useRef({});
   const liveMatchSessionRef = useRef(null);
   const completionAccountRefreshRef = useRef(null);
@@ -3197,43 +3119,11 @@ export default function App() {
   const updateMenuAudioSettings = useCallback((patch) => {
     setMenuAudioSettings((previous) => ({ ...previous, ...patch }));
   }, []);
-  const navigateHomeArea = useCallback((nextArea) => {
-    if (!nextArea) return;
-    if (nextArea === homeArea) {
-      homeAreaNavigationRef.current += 1;
-      return;
-    }
-    const requestId = ++homeAreaNavigationRef.current;
-    const commitNavigation = () => {
-      if (homeAreaNavigationRef.current !== requestId) return;
-      const prefersReducedMotion = typeof window !== "undefined"
-        && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-      if (typeof document !== "undefined" && document.startViewTransition && !prefersReducedMotion) {
-        homeAreaTransitionRef.current?.skipTransition();
-        document.documentElement.classList.add("is-menu-transition");
-        const transition = document.startViewTransition(() => {
-          if (homeAreaNavigationRef.current !== requestId) return;
-          flushSync(() => setHomeArea(nextArea));
-        });
-        homeAreaTransitionRef.current = transition;
-        const finish = () => {
-          if (homeAreaTransitionRef.current !== transition) return;
-          homeAreaTransitionRef.current = null;
-          document.documentElement.classList.remove("is-menu-transition");
-        };
-        // A skipped or timed-out animation can reject ready while navigation succeeds.
-        transition.ready.catch(() => {});
-        transition.finished.then(finish, finish);
-        return;
-      }
-      startTransition(() => setHomeArea(nextArea));
-    };
-    if (HOME_AREA_PRELOADERS[nextArea]) {
-      preloadHomeArea(nextArea).then(commitNavigation);
-      return;
-    }
-    commitNavigation();
-  }, [homeArea]);
+  const navigateHomeArea = useCallback((nextArea, view = "") => {
+    if (!confirmLeaveDeck()) return;
+    setShowCampaign(false); setShowCollection(false); setShowTutorial(false);
+    navigatePlayer(nextArea, view);
+  }, [navigatePlayer, confirmLeaveDeck]);
   const currentIdentityKey = account?.id
     ? `account:${account.id}`
     : playAsGuest && guestName.trim()
@@ -3381,7 +3271,7 @@ export default function App() {
       return;
     }
     try {
-      const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.accountSoundMuted) || "{}");
+      const saved = JSON.parse(browserStorage.getItem(STORAGE_KEYS.accountSoundMuted) || "{}");
       setAccountSoundMuted(!!saved[account.id]);
     } catch {
       setAccountSoundMuted(false);
@@ -3392,11 +3282,11 @@ export default function App() {
     if (!account?.id) return;
     setAccountSoundMuted(nextMuted);
     try {
-      const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.accountSoundMuted) || "{}");
+      const saved = JSON.parse(browserStorage.getItem(STORAGE_KEYS.accountSoundMuted) || "{}");
       saved[account.id] = nextMuted;
-      localStorage.setItem(STORAGE_KEYS.accountSoundMuted, JSON.stringify(saved));
+      browserStorage.setItem(STORAGE_KEYS.accountSoundMuted, JSON.stringify(saved));
     } catch {
-      localStorage.setItem(STORAGE_KEYS.accountSoundMuted, JSON.stringify({ [account.id]: nextMuted }));
+      browserStorage.setItem(STORAGE_KEYS.accountSoundMuted, JSON.stringify({ [account.id]: nextMuted }));
     }
   }
 
@@ -3416,7 +3306,7 @@ export default function App() {
           setAuthError(accountError.message || "Your account could not be loaded. Please try again.");
           return;
         }
-        localStorage.removeItem(STORAGE_KEYS.authToken);
+        browserStorage.removeItem(STORAGE_KEYS.authToken);
         setAuthToken("");
         setAccount(null);
       });
@@ -3509,7 +3399,7 @@ export default function App() {
     loadLeaderboard();
   }, [loadLeaderboard]);
 
-  const seasonDataVisible = homeArea === "matches" || (homeArea === "play" && playView === "ranked");
+  const seasonDataVisible = homeArea === "matches" || homeArea === "compete";
 
   useEffect(() => {
     if (!seasonDataVisible) return undefined;
@@ -3548,11 +3438,11 @@ export default function App() {
   }, [account?.id]);
 
   useEffect(() => {
-    if (homeArea === "identity" && identityView === "record") loadCompetitiveProfile();
+    if (homeArea === "profile" && identityView === "record") loadCompetitiveProfile();
   }, [homeArea, identityView, loadCompetitiveProfile]);
 
   useEffect(() => {
-    const handlePopState = () => setPublicView(getPublicViewFromLocation());
+    const handlePopState = (event) => { if (event.defaultPrevented) return; setPublicView(getPublicViewFromLocation()); setShowCampaign(false); setShowCollection(false); setShowTutorial(false); };
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
@@ -3602,9 +3492,9 @@ export default function App() {
         headers: { Authorization: `Bearer ${authToken}` }
       });
       const data = await response.json();
-      if (localStorage.getItem(STORAGE_KEYS.authToken) !== authToken) return;
+      if (browserStorage.getItem(STORAGE_KEYS.authToken) !== authToken) return;
       if (response.status === 401) {
-        localStorage.removeItem(STORAGE_KEYS.authToken);
+        browserStorage.removeItem(STORAGE_KEYS.authToken);
         setAuthToken("");
         setAccount(null);
       }
@@ -3614,7 +3504,7 @@ export default function App() {
       setSelectedFriendId((current) => data.friends?.some((friend) => friend.id === current) ? current : "");
       setFriendsError("");
     } catch (friendLoadError) {
-      if (localStorage.getItem(STORAGE_KEYS.authToken) !== authToken) return;
+      if (browserStorage.getItem(STORAGE_KEYS.authToken) !== authToken) return;
       setFriendsError(friendLoadError.message);
     }
   }, [authToken]);
@@ -3624,7 +3514,7 @@ export default function App() {
   }, [loadFriends]);
 
   useEffect(() => {
-    if (!authToken || homeArea !== "identity" || identityView !== "community") return undefined;
+    if (!authToken) return undefined;
     const refreshVisibleFriends = () => {
       if (document.visibilityState !== "hidden") loadFriends();
     };
@@ -3638,15 +3528,15 @@ export default function App() {
   }, [authToken, homeArea, identityView, loadFriends]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.friendReadAt, JSON.stringify(friendReadAt));
+    browserStorage.setItem(STORAGE_KEYS.friendReadAt, JSON.stringify(friendReadAt));
   }, [friendReadAt]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.menuAudioSettings, JSON.stringify(menuAudioSettings));
+    browserStorage.setItem(STORAGE_KEYS.menuAudioSettings, JSON.stringify(menuAudioSettings));
   }, [menuAudioSettings]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.menuMusicTrack, menuMusicTrack);
+    browserStorage.setItem(STORAGE_KEYS.menuMusicTrack, menuMusicTrack);
   }, [menuMusicTrack]);
 
   useEffect(() => {
@@ -3738,7 +3628,7 @@ export default function App() {
         setTutorialCompletions((previous) => {
           if (previous[currentIdentityKey]) return previous;
           const next = { ...previous, [currentIdentityKey]: new Date().toISOString() };
-          localStorage.setItem(STORAGE_KEYS.tutorialCompletions, JSON.stringify(next));
+          browserStorage.setItem(STORAGE_KEYS.tutorialCompletions, JSON.stringify(next));
           return next;
         });
       }
@@ -3788,10 +3678,10 @@ export default function App() {
     };
     const attemptReconnect = () => {
       resetSelections();
-      const reconnectToken = localStorage.getItem(STORAGE_KEYS.reconnectToken);
-      const roomCode = localStorage.getItem(STORAGE_KEYS.roomCode);
-      const savedRole = localStorage.getItem(STORAGE_KEYS.role);
-      const savedAuthToken = localStorage.getItem(STORAGE_KEYS.authToken);
+      const reconnectToken = browserStorage.getItem(STORAGE_KEYS.reconnectToken);
+      const roomCode = browserStorage.getItem(STORAGE_KEYS.roomCode);
+      const savedRole = browserStorage.getItem(STORAGE_KEYS.role);
+      const savedAuthToken = browserStorage.getItem(STORAGE_KEYS.authToken);
       if (roomCode && (reconnectToken || savedRole === "spectator")) {
         setMatchReconnectPending(true);
         liveMatchSessionRef.current.update({ connected: false });
@@ -4079,7 +3969,7 @@ export default function App() {
         playMenuCue("success");
         return;
       }
-      localStorage.setItem(STORAGE_KEYS.authToken, data.token);
+      browserStorage.setItem(STORAGE_KEYS.authToken, data.token);
       setAuthToken(data.token);
       setAccount(data.account);
       setAuthForm({ name: "", password: "", email: "", token: "" });
@@ -4088,11 +3978,9 @@ export default function App() {
         navigateHomeArea("studio");
       } else if (returnToDraftAfterAuth) {
         setReturnToDraftAfterAuth(false);
-        setPlayView("draft");
-        navigateHomeArea("play");
+        navigateHomeArea("draft");
       } else if (INITIAL_JOIN_ROOM_CODE && roomCodeInput) {
-        setPlayView("tables");
-        navigateHomeArea("play");
+        navigateHomeArea("play", "tables");
       }
       playMenuCue("success");
     } catch (authSubmitError) {
@@ -4270,8 +4158,8 @@ export default function App() {
     returnToMainMenu();
     socket.disconnect();
     liveMatchSessionRef.current.update({ game: null, player: null, role: null, connected: false, controlState: {} });
-    setPlayAsGuest(false);
-    localStorage.removeItem(STORAGE_KEYS.authToken);
+    setPlayAsGuest(true);
+    browserStorage.removeItem(STORAGE_KEYS.authToken);
     setAuthToken("");
     setAccount(null);
     setCompletionEnvelope(null);
@@ -4286,10 +4174,10 @@ export default function App() {
   }
 
   function playerIdentityPayload() {
-    const reconnectToken = localStorage.getItem(STORAGE_KEYS.reconnectToken) || "";
+    const reconnectToken = browserStorage.getItem(STORAGE_KEYS.reconnectToken) || "";
     if (authToken) return { authToken, reconnectToken };
     const normalizedGuestName = guestName.trim() || "Guest";
-    localStorage.setItem(STORAGE_KEYS.guestName, normalizedGuestName);
+    browserStorage.setItem(STORAGE_KEYS.guestName, normalizedGuestName);
     return { guestName: normalizedGuestName, reconnectToken };
   }
 
@@ -4410,9 +4298,9 @@ export default function App() {
   }
 
   function resumeSavedRoom() {
-    const reconnectToken = localStorage.getItem(STORAGE_KEYS.reconnectToken);
-    const roomCode = localStorage.getItem(STORAGE_KEYS.roomCode);
-    const savedRole = localStorage.getItem(STORAGE_KEYS.role);
+    const reconnectToken = browserStorage.getItem(STORAGE_KEYS.reconnectToken);
+    const roomCode = browserStorage.getItem(STORAGE_KEYS.roomCode);
+    const savedRole = browserStorage.getItem(STORAGE_KEYS.role);
     if (!roomCode) return;
     playMenuCue("commit");
     setError("");
@@ -4420,36 +4308,8 @@ export default function App() {
       roomCode,
       reconnectToken,
       role: savedRole,
-      authToken: localStorage.getItem(STORAGE_KEYS.authToken)
+      authToken: browserStorage.getItem(STORAGE_KEYS.authToken)
     });
-  }
-
-  function dismissOnboarding() {
-    localStorage.setItem(STORAGE_KEYS.onboardingDismissed, "true");
-    setShowOnboarding(false);
-  }
-
-  function reopenOnboardingTips() {
-    localStorage.removeItem(STORAGE_KEYS.onboardingDismissed);
-    setShowOnboarding(true);
-    setError("");
-  }
-
-  function startOnboardingBasicAi() {
-    if (!account) setPlayAsGuest(true);
-    dismissOnboarding();
-    startTutorialVsAi("basic");
-  }
-
-  function openOnboardingTutorial() {
-    playMenuCue("panelOpen");
-    dismissOnboarding();
-    setShowTutorial(true);
-  }
-
-  function enableOnboardingHints() {
-    setShowHelperLabels(true);
-    dismissOnboarding();
   }
 
   function startCampaignChapter(factionId, chapterId) {
@@ -4479,17 +4339,18 @@ export default function App() {
     enterRoom("joinRoom", { roomCode, asSpectator: true, authToken });
   }
 
-  function joinMatchmaking(bestOf = 1) {
+  function joinMatchmaking(bestOf = 1, preferences = { format: "factions", factionId: "rumin" }) {
     if (!authToken) {
       playMenuCue("denied");
       setMatchmakingStatus({ inQueue: false, message: "Sign in to use matchmaking." });
       return;
     }
     playMenuCue("commit");
+    if (draftLeagueStatus.inQueue) { socket.emit("leaveDraftLeague"); setDraftLeagueStatus({ inQueue: false, message: "" }); }
     socket.emit("joinMatchmaking", {
-      authToken, bestOf, gameMode: rankedGameMode,
-      factionId: rankedGameMode === "factions" ? rankedFactionId : null,
-      generalId: rankedGameMode === "factions" ? rankedGeneralId : null
+      authToken, bestOf, gameMode: preferences.format,
+      factionId: preferences.format === "factions" ? preferences.factionId : null,
+      generalId: preferences.format === "factions" ? preferences.generalId : null
     });
   }
 
@@ -4504,6 +4365,7 @@ export default function App() {
       return;
     }
     playMenuCue("commit");
+    if (matchmakingStatus.inQueue) { socket.emit("leaveMatchmaking"); setMatchmakingStatus({ inQueue: false, message: "" }); }
     socket.emit("joinDraftLeague", { authToken, draftType, bestOf });
   }
 
@@ -4669,9 +4531,9 @@ export default function App() {
     [friendUnreadCounts]
   );
 
-  function selectFriendWithReadReceipt(friendId) {
+  function selectFriendWithReadReceipt(friendId, { markRead = true } = {}) {
     setSelectedFriendId(friendId);
-    if (!friendId || !account?.id) return;
+    if (!markRead || !friendId || !account?.id) return;
     setFriendReadAt((prev) => ({
       ...prev,
       [account.id]: {
@@ -4682,17 +4544,13 @@ export default function App() {
   }
 
   const canPlayAsPlayer = !!account || playAsGuest;
-  const savedRoomCode = localStorage.getItem(STORAGE_KEYS.roomCode) || "";
-  const savedReconnectToken = localStorage.getItem(STORAGE_KEYS.reconnectToken) || "";
-  const savedRole = localStorage.getItem(STORAGE_KEYS.role) || "";
+  const savedRoomCode = browserStorage.getItem(STORAGE_KEYS.roomCode) || "";
+  const savedReconnectToken = browserStorage.getItem(STORAGE_KEYS.reconnectToken) || "";
+  const savedRole = browserStorage.getItem(STORAGE_KEYS.role) || "";
   const hasSavedRoom = !!savedRoomCode && (!!savedReconnectToken || savedRole === "spectator");
   const completedCampaignChapters = Object.values(account?.progression?.campaign || {})
     .reduce((total, chapters) => total + (Array.isArray(chapters) ? chapters.length : 0), 0);
-  const hasAccountMatchExperience = Number(account?.stats?.gamesPlayed || 0) > 0;
-  const tutorialComplete = !!tutorialCompletions[currentIdentityKey] || completedCampaignChapters > 0 || hasAccountMatchExperience;
   const packCredits = Number(account?.collection?.packCredits || 0);
-  const ownedCardCount = Object.values(account?.collection?.gameplayEntitlements || account?.collection?.cards || {}).reduce((total, count) => total + Number(count || 0), 0);
-  const openedPackCount = Number(account?.collection?.openedGameplayPacks ?? account?.collection?.openedPacks ?? 0);
   const deckLibrary = account?.stats?.deckLibrary || { decks: [] };
   const activeDecks = (deckLibrary.decks || []).filter((deck) => !deck.archived);
   const constructedDecks = activeDecks.filter((deck) => deck.format === "constructed");
@@ -4700,115 +4558,12 @@ export default function App() {
     || constructedDecks[0]
     || account?.stats?.savedConstructedDeck
     || null;
-  const buildDeckFactionId = activeConstructedDeck?.factionId || "rumin";
-  const activeConstructedVersion = getCurrentDeckVersion(activeConstructedDeck);
   const featuredDecks = activeDecks.filter((deck) => deck.featured);
   const enrichedFeaturedDecks = featuredDecks.map((deck) => ({
     ...deck,
     featuredArt: getDeckFeaturedArt(deck, account?.collection?.collectorCatalog || [])
   }));
-  const hasSavedDeck = !!account?.stats?.savedConstructedDeck || !!account?.stats?.savedDraftDeck;
-  const canCustomizeConstructedDeck = !!account;
   const nextCampaignStep = getNextCampaignChapter(gameContent?.campaigns || {}, account?.progression?.campaign || {}, "rumin");
-  let journeyNextStep;
-
-  if (hasSavedRoom) {
-    journeyNextStep = {
-      eyebrow: "Battle Net Active",
-      factionId: buildDeckFactionId,
-      title: `Resume room ${savedRoomCode}`,
-      description: "Return to your saved player seat or spectator view.",
-      actionLabel: "Resume Match",
-      onClick: resumeSavedRoom
-    };
-  } else if (INITIAL_JOIN_ROOM_CODE && roomCodeInput) {
-    journeyNextStep = {
-      eyebrow: "Table invitation", title: `Join table ${roomCodeInput}`,
-      description: "Choose your name below, then join your friends. You can also watch as a spectator.",
-      actionLabel: "Open invitation",
-      onClick: () => { setPlayView("tables"); navigateHomeArea("play"); }
-    };
-  } else if (!canPlayAsPlayer) {
-    journeyNextStep = {
-      eyebrow: "Start playing", title: "Learn one turn",
-      description: "Learn priority, payment, and blocking, then try a private practice match. No account needed.",
-      actionLabel: "Learn Gauntlet", onClick: openOnboardingTutorial
-    };
-  } else if (!tutorialComplete) {
-    journeyNextStep = {
-      eyebrow: "Training Route",
-      title: "Learn the core game",
-      description: "Start with Basic Gauntlet before adding faction powers.",
-      actionLabel: "Learn Gauntlet",
-      onClick: () => setShowTutorial(true)
-    };
-  } else if (completedCampaignChapters === 0) {
-    journeyNextStep = {
-      eyebrow: "Commander Archives",
-      factionId: nextCampaignStep?.factionId || buildDeckFactionId,
-      image: nextCampaignStep?.chapter?.image,
-      title: "Choose a faction",
-      description: "Choose a faction campaign and begin your first chapter.",
-      actionLabel: "Choose Campaign",
-      onClick: () => setShowCampaign(true)
-    };
-  } else if (packCredits > 0) {
-    journeyNextStep = {
-      eyebrow: "Vault Reward",
-      onMinimize: () => setVaultRewardMinimized(true),
-      factionId: buildDeckFactionId,
-      image: "/assets/gauntlet/ui/vault-pack-credits-v1.webp",
-      progress: `${packCredits} credit${packCredits === 1 ? "" : "s"} ready to claim`,
-      title: `Open ${packCredits} earned pack${packCredits === 1 ? "" : "s"}`,
-      description: "Claim faction cards earned from campaign victories.",
-      actionLabel: "Open Collection",
-      onClick: () => setShowCollection(true)
-    };
-  } else if (!hasSavedDeck) {
-    journeyNextStep = {
-      eyebrow: "Deck Workbench",
-      factionId: buildDeckFactionId,
-      title: "Personalize your 52-card deck",
-      description: "Replace ordinary playing cards with faction cards from your collection.",
-      actionLabel: "Build a Deck",
-      onClick: () => setShowCollection(true)
-    };
-  } else if (nextCampaignStep) {
-    journeyNextStep = {
-      eyebrow: "Continue Journey",
-      factionId: nextCampaignStep.factionId,
-      image: nextCampaignStep.chapter.image,
-      progress: `Chapter ${nextCampaignStep.chapterIndex + 1} of ${nextCampaignStep.campaign.chapters.length}`,
-      title: nextCampaignStep.chapter.title,
-      description: nextCampaignStep.chapter.story,
-      actionLabel: "Continue Campaign",
-      onClick: () => setShowCampaign(true)
-    };
-  } else {
-    journeyNextStep = {
-      eyebrow: "Ready for Battle",
-      factionId: buildDeckFactionId,
-      title: "Take your deck to the table",
-      description: "Create a room, invite another player, or enter matchmaking.",
-      actionLabel: "Find a Game",
-      onClick: () => navigateHomeArea("play")
-    };
-  }
-
-  if (vaultRewardMinimized && journeyNextStep?.onMinimize) journeyNextStep = null;
-
-  if (!hasSavedRoom && !(INITIAL_JOIN_ROOM_CODE && roomCodeInput)) {
-    if (homeArea === "matches" || homeArea === "identity") journeyNextStep = null;
-    else if (homeArea === "build") journeyNextStep = {
-      eyebrow: "From deck to table", title: "Ready to try your deck?",
-      description: "Create a faction table or find an opponent. Your standard deck is ready even without extra cards.",
-      actionLabel: "Play with friends", onClick: () => { setPlayView("tables"); navigateHomeArea("play"); }
-    };
-    else if (homeArea === "play" && playView !== "practice") journeyNextStep = null;
-  }
-
-  if (!hasSavedRoom && INITIAL_JOIN_ROOM_CODE && homeArea === "play" && playView === "tables") journeyNextStep = null;
-
   if (collectorClaimToken) {
     return (
       <CollectorClaimScreen
@@ -4888,7 +4643,7 @@ export default function App() {
             serverUrl={SOCKET_URL}
             exitGuard={adminExitGuard}
             authToken={authToken}
-            onSignIn={() => { adminSignInRequested.current = true; setIdentityView("profile"); navigateHomeArea("identity"); }}
+            onSignIn={() => { adminSignInRequested.current = true; navigateHomeArea("profile"); }}
             onAuthorizedChange={setOwnerAuthorized}
             onClose={() => navigateHomeArea("journey")}
             onOpenMatch={(matchId) => openPublicView("match", matchId)}
@@ -4919,63 +4674,6 @@ export default function App() {
           </div>
         </section>
       </main>
-    );
-  }
-
-  if (showCampaign) {
-    return (
-      <CampaignScreen manifest={gameContent}
-        onBack={() => { playMenuCue("panelClose"); setShowCampaign(false); }}
-        onStartChapter={startCampaignChapter}
-        onEnableGuest={() => { setPlayAsGuest(true); playMenuCue("success"); }}
-        canPlayAsPlayer={canPlayAsPlayer}
-        account={account}
-        campaigns={gameContent.campaigns}
-        audioEnabled={!accountSoundMuted && !menuAudioSettings.masterMuted}
-        musicEnabled={musicEnabled}
-        musicVolume={musicVolume}
-      />
-    );
-  }
-
-  if (showFactionLore) {
-    return <FactionLoreScreen
-      manifest={gameContent}
-      onBack={() => { playMenuCue("panelClose"); setShowFactionLore(false); }}
-      onOpenCampaign={() => { playMenuCue("panelOpen"); setShowFactionLore(false); setShowCampaign(true); }}
-    />;
-  }
-
-  if (showCollection) {
-    return (
-      <CollectionScreen
-        account={account}
-        initialView={showCollection === "decks" ? "decks" : "shop"}
-        deckRules={gameContent.deckRules}
-        lastOpenedPack={lastOpenedPack}
-        openingPackId={openingPackId}
-        onOpenPack={openBoosterPack}
-        onBuyPack={buyBoosterPack}
-        onBuyGameplayPack={buyGameplayPack}
-        onBuyTimetwisters={buyTimetwisters}
-        deckStore={{ endpoint: SOCKET_URL, token: authToken, accountId: account?.id, onAccount: setAccount }}
-        economyPending={economyPending}
-        onSaveConstructedDeck={saveConstructedDeck}
-        onDeckAction={updateDeck}
-        onOpenMatch={(matchId) => openPublicView("match", matchId)}
-        onBack={() => { playMenuCue("panelClose"); setShowCollection(false); }}
-      />
-    );
-  }
-
-  if (showTutorial) {
-    return (
-      <TutorialScreen
-        onBack={() => { playMenuCue("panelClose"); setShowTutorial(false); }}
-        onPlayBasicAi={() => startTutorialVsAi("basic")}
-        onPlayFactionAi={() => startTutorialVsAi("factions")}
-        canPlayAsPlayer={canPlayAsPlayer}
-      />
     );
   }
 
@@ -5013,460 +4711,101 @@ export default function App() {
   }
 
   if (!role && !lobby) {
-    return (
-      <main className={`menu-page area-${homeArea} has-layered-backdrop`} style={MENU_THEME.page}>
-        <MenuBackdrop activeArea={homeArea} backgrounds={AREA_BACKGROUNDS} />
-        <div className="menu-frame" style={MENU_THEME.frame}>
-        <div className="home-command-header">
-          <div className="home-brand">
-            <div className="home-brand-copy">
-              <h1 className="home-brand-lockup">
-                <img className="home-brand-logo" src={resolveAssetPath("/assets/gauntlet/gauntlet-logo-transparent.png")} alt="Gauntlet" width="1254" height="1254" fetchPriority="high" />
-                <span className="home-brand-edition">Online</span>
-              </h1>
-            </div>
+    const openCampaign = (factionId, chapterId = "") => {
+      playMenuCue("panelOpen");
+      setShowCampaign({ factionId, chapterId });
+    };
+    const openCollection = (view = "catalog") => { playMenuCue("panelOpen"); setShowCollection(view); };
+    const collectionView = showCollection === true ? "packs" : showCollection;
+    const savedDraftDecks = ["player", "bot", "sealed"].map((type) => activeDecks.find((deck) => deck.id === deckLibrary.activeDraftDeckIds?.[type]))
+      .filter(Boolean);
+    if (!savedDraftDecks.length && account?.stats?.savedDraftDeck) savedDraftDecks.push(account.stats.savedDraftDeck);
+    let workflow = null;
+    if (showCampaign) workflow = <CampaignScreen manifest={gameContent} onEnableGuest={() => setPlayAsGuest(true)} embedded key={showCampaign.factionId || "campaign"}
+      initialFactionId={showCampaign.factionId} initialChapterId={showCampaign.chapterId}
+      onBack={() => setShowCampaign(false)} onStartChapter={startCampaignChapter} canPlayAsPlayer={canPlayAsPlayer}
+      account={account} campaigns={gameContent.campaigns} audioEnabled={!accountSoundMuted && !menuAudioSettings.masterMuted}
+      musicEnabled={musicEnabled} musicVolume={musicVolume} />;
+    else if (showCollection) workflow = <SetupFrame title={collectionView === "decks" ? "Deck Editor" : collectionView === "catalog" ? "Card Collection" : "Earned Packs"}
+      description="Owned cards, saved deck versions, and legal format choices." onBack={() => { if (confirmLeaveDeck()) setShowCollection(false); }}
+      backLabel={playerRoute.view === "ranked" ? "Return to Ranked Setup" : playerRoute.page === "play" ? "Back to Play" : "Back to Decks & Cards"}>
+      <CollectionPanel key={collectionView} onDirtyChange={setDeckDirty} account={account} initialView={collectionView} deckRules={gameContent.deckRules}
+        lastOpenedPack={lastOpenedPack} openingPackId={openingPackId} onOpenPack={openBoosterPack} onBuyPack={buyBoosterPack}
+        onBuyGameplayPack={buyGameplayPack} onBuyTimetwisters={buyTimetwisters} economyPending={economyPending}
+        deckStore={{ endpoint: SOCKET_URL, token: authToken, accountId: account?.id, onAccount: setAccount }}
+        onSaveConstructedDeck={saveConstructedDeck} onDeckAction={updateDeck} onOpenMatch={(id) => openPublicView("match", id)} />
+      {!account && <MenuButton onClick={() => navigateHomeArea("profile")}>Sign in to save decks and open earned packs</MenuButton>}
+    </SetupFrame>;
+    else if (showTutorial) workflow = <TutorialScreen embedded onBack={() => setShowTutorial(false)}
+      onPlayBasicAi={() => startTutorialVsAi("basic")} onPlayFactionAi={() => startTutorialVsAi("factions")} canPlayAsPlayer={canPlayAsPlayer} />;
+    return <Suspense fallback={<SurfaceLoading label="Command Deck" />}>
+      <PlayerMenuExperience authToken={authToken} serverUrl={SOCKET_URL} factionIds={Object.keys(gameContent.campaigns || {})} route={playerRoute} onNavigate={navigateHomeArea} account={account} ownerAuthorized={ownerAuthorized}
+        content={gameContent} workflow={workflow}
+        actions={{
+          basicAi: () => startTutorialVsAi("basic"), factionAi: () => startTutorialVsAi("factions"),
+          createDuel: createRoom, createFreeForAll: createFreeForAllRoom, createDraft: createDraftRoom, createBotDraft: createBotDraftRoom, createSealed: createSealedRoom, setDraftSet: setDraftSetId,
+          roomCode: roomCodeInput, setRoomCode: setRoomCodeInput, joinRoom, pending: !!draftPending,
+          resume: resumeSavedRoom, campaign: openCampaign, tutorial: () => setShowTutorial(true), collection: openCollection,
+          signInForDraft: () => { setReturnToDraftAfterAuth(true); navigateHomeArea("profile"); },
+          joinRanked: joinMatchmaking, leaveRanked: leaveMatchmaking, joinDraftQueue: joinDraftLeague, leaveDraftQueue: leaveDraftLeague,
+          activateDeck: (id) => updateDeck(id, "activate"), joinChallenge: joinFriendChallenge, declineChallenge: (id) => updateFriendChallenge(id, "decline")
+        }}
+        state={{
+          hasSavedRoom, savedRoomCode, completedChapters: completedCampaignChapters, nextCampaign: nextCampaignStep,
+          packCredits, draftSetId, deck: activeConstructedDeck, constructedDecks: constructedDecks.map(deck => ({ ...deck, generalId: getCurrentDeckVersion(deck)?.generalId })), savedDraftDecks, ranked: matchmakingStatus, draftQueue: draftLeagueStatus,
+          season: activeSeason, error, unread: friendUnreadTotal,
+          invitations: (friendsData.challenges || []).filter((challenge) => challenge.toId === account?.id && challenge.status === "pending")
+        }}
+        slots={{
+          account: <><AccountPanel account={account} mode={authMode} form={authForm} error={authError} notice={authNotice} onRecoveryEmail={updateRecoveryEmail} onModeChange={setAuthMode}
+            onFormChange={setAuthForm} onSubmit={submitAuth} onSignOut={signOut} />
+            {!account && <div className="cd-panel"><label htmlFor="guest-name">Guest name</label><input id="guest-name" value={guestName} onChange={(event) => setGuestName(event.target.value)} maxLength={24} /><p>Guest play is ready from Play. Your progress stays in this session.</p></div>}</>,
+          profileExtras: <details className="cd-profile-extras"><summary>Portrait, featured decks & campaign achievements</summary>
+            <CurrencyWallet economy={account?.economy} compact /><IdentityDossierHero account={account} featuredDecks={enrichedFeaturedDecks} authToken={authToken} serverUrl={SOCKET_URL} onAccountUpdated={setAccount} />
+            <section className="cd-featured-decks" aria-labelledby="cd-featured-title"><div className="cd-section-line"><h2 id="cd-featured-title">Featured decks</h2><button disabled={!account} onClick={() => openCollection("decks")}>Manage Featured Decks</button></div>
+              {enrichedFeaturedDecks.length ? <div className="cd-featured-grid">{enrichedFeaturedDecks.map((deck) => <article key={deck.id} className="cd-panel">
+                {deck.format === "constructed" ? <DeckShowcase deck={deck} cards={[...(account?.collection?.catalog?.[deck.factionId] || []), ...(account?.collection?.catalog?.neutral || [])]} collectorCatalog={account?.collection?.collectorCatalog || []} compact /> : <DeckVisual deck={deck} decorative />}
+                <h3>{deck.name}</h3><p>{deck.factionName || deck.factionId} · {deck.format === "draft" ? limitedDeckSourceLabel(deck.draftType) : "Constructed"}</p><p>{deck.record?.wins || 0} wins · {deck.record?.losses || 0} losses · {deck.record?.draws || 0} draws</p>
+              </article>)}</div> : <p>Feature up to three decks from your Deck Library to display them here.</p>}
+            </section>
+            <ProgressionPanel account={account} campaigns={gameContent.campaigns} onSelectCosmetic={selectAccountCosmetic} />
+          </details>,
+          record: <Suspense fallback={<SurfaceLoading label="competitive record" />}><CompetitiveIdentityPanel profile={competitiveProfile} loading={competitiveProfileLoading} error={competitiveProfileError}
+            onOpenProfile={(id) => openPublicView("profile", id)} onOpenMatch={(id) => openPublicView("match", id)} onOpenReplay={openReplay} /></Suspense>,
+          economy: <Suspense fallback={<SurfaceLoading label="Gold and Library" />}><EconomyConsole serverUrl={SOCKET_URL} authToken={authToken} onAccountUpdated={setAccount} /></Suspense>,
+          events: <Suspense fallback={<SurfaceLoading label="official events" />}>{playerRoute.view === "para"
+            ? <ParaEventHub serverUrl={SOCKET_URL} authToken={authToken} socket={socket} onOpenMatch={(id) => openPublicView("match", id)} />
+            : <EventHub serverUrl={SOCKET_URL} socket={socket} authToken={authToken} account={account} factions={gameContent.factions} onAccountUpdated={setAccount} onError={setError} />}</Suspense>,
+          lore: <><FactionLoreScreen embedded manifest={gameContent} onBack={() => navigateHomeArea("campaign")} onOpenCampaign={(factionId) => openCampaign(factionId)} /><Suspense fallback={<p>Loading set reference…</p>}><LegaciesPanel set={gameContent.upcomingSets?.find((set) => set.id === "legacies")} /></Suspense></>,
+          standings: <SeasonStandings season={activeSeason} standings={leaderboard} playerStanding={playerSeasonStanding} lifetimeStandings={lifetimeLeaderboard} error={leaderboardError} onOpenProfile={(id) => openPublicView("profile", id)} />,
+          liveMatches: <ActiveSeasonMatches season={activeSeason} matches={activeSeasonMatches} error={activeSeasonMatchesError} onSpectate={spectateSeasonMatch} />,
+          recentMatch: <Suspense fallback={<section className="cd-utility"><div><strong>Match history</strong><small>Loading saved games…</small></div><button onClick={() => navigateHomeArea("matches")}>Open Matches</button></section>}><RecentMatchShortcut account={account} authToken={authToken} serverUrl={SOCKET_URL} onOpenReplay={openReplay} onOpenMatches={() => navigateHomeArea("matches")} /></Suspense>,
+          matches: <Suspense fallback={<SurfaceLoading label="match history" />}><MatchesHub account={account} authToken={authToken} serverUrl={SOCKET_URL}
+            view={playerRoute.view || "recent"} hideStandings season={activeSeason} standings={leaderboard} playerStanding={playerSeasonStanding} lifetimeStandings={lifetimeLeaderboard} seasonError={leaderboardError}
+            onOpenProfile={(id) => openPublicView("profile", id)} onOpenMatch={(id, record) => openPublicView("match", id, record || null)} onOpenReplay={openReplay}
+            onOpenRanked={() => navigateHomeArea("compete", "ranked")} /></Suspense>,
+          draftLibrary: <DeckLibraryPanel library={{ ...deckLibrary, decks: (deckLibrary.decks || []).filter((deck) => deck.format === "draft") }}
+            collectorCatalog={account?.collection?.collectorCatalog || []} catalog={account?.collection?.catalog || {}} onSelect={() => {}}
+            onNew={() => openCollection("decks")} onRename={(id, name) => updateDeck(id, "rename", { name })} onAction={(id, operation) => updateDeck(id, operation).catch((failure) => setError(failure.message))} onOpenMatch={(id) => openPublicView("match", id)} />,
+          community: <FriendsPanel account={account} friendsData={friendsData} selectedFriendId={selectedFriendId} friendName={friendNameInput}
+            messageText={friendMessageInput} error={friendsError} onSelectFriend={selectFriendWithReadReceipt} onFriendNameChange={setFriendNameInput}
+            onMessageTextChange={setFriendMessageInput} onAddFriend={submitFriendRequest} onRemoveFriend={removeFriend} onSendMessage={sendFriendMessage}
+            onChallengeFriend={challengeFriend} onJoinChallenge={joinFriendChallenge} onUpdateChallenge={updateFriendChallenge} onRefresh={loadFriends}
+            unreadCounts={friendUnreadCounts} unreadTotal={friendUnreadTotal} view={playerRoute.view} />,
+          rulebook: <RulebookPanel />,
+          settings: <div className="cd-settings">
+            <section className="cd-panel"><h2>Sound & Music</h2><p>Your existing music, interface, and ambience preferences.</p><MenuAudioControl inline trackKey={activeMusicTrack} onTrackChange={setMenuMusicTrack}
+              musicEnabled={musicEnabled} musicVolume={musicVolume} onMusicToggle={() => setMusicEnabled((value) => !value)} onMusicVolumeChange={setMusicVolume}
+              settings={menuAudioSettings} onSettingsChange={updateMenuAudioSettings} accountSoundMuted={accountSoundMuted}
+              onAccountSoundMutedChange={setSignedInSoundMuted} playCue={playMenuCue} /></section>
+            <section className="cd-panel"><h2>Display & Accessibility</h2><label className="cd-toggle-row"><input type="checkbox" checked={showHelperLabels} onChange={(event) => setShowHelperLabels(event.target.checked)} /> Show extra helper labels in gameplay</label>
+              <p>Menus always explain each action. Keyboard focus is visible; motion follows your device’s reduced-motion setting. Browser zoom is supported.</p>
+              <button onClick={() => { setShowHotkeys(true); }}>Gameplay keyboard shortcuts</button><HotkeyWindow visible={showHotkeys} onClose={() => setShowHotkeys(false)} />
+            </section><section className="cd-panel"><h2>Page Layouts</h2><p>Arrange optional shortcuts from Profile or More on any supported landing page.</p><button onClick={() => navigateHomeArea("profile")}>Open Page Layout Preferences</button></section>
+            <section className="cd-panel"><h2>Support</h2><DonateButton onUnavailable={() => setSupportMessage("Support link coming soon.")} />{supportMessage && <p role="status">{supportMessage}</p>}</section>
           </div>
-          <div className="home-current-context">
-            <span className="home-context-notch" aria-hidden="true" />
-            <span className="home-location-label">Current location</span>
-            <strong>{HOME_AREA_CONTEXT[homeArea]?.label || "Command area"}</strong>
-            <small>{HOME_AREA_CONTEXT[homeArea]?.code || "AREA / 00"}</small>
-          </div>
-
-          <div className="home-command-utilities">
-            <span className="home-context-player">
-              {(account || playAsGuest) && <PlayerAvatar subject={account} name={account?.name || guestName || "Guest"} serverUrl={SOCKET_URL} size="large" decorative />}
-              <span className="home-context-name">{account?.name || (playAsGuest ? (guestName || "Guest") + " · Guest" : "Not signed in")}</span>
-            </span>
-            <span className="home-utility-label">Utilities</span>
-            <div className="home-command-tools">
-              <HelperToggle enabled={showHelperLabels} onToggle={() => setShowHelperLabels((value) => !value)} light />
-              <MenuAudioControl
-                trackKey={activeMusicTrack}
-                onTrackChange={setMenuMusicTrack}
-                musicEnabled={musicEnabled}
-                musicVolume={musicVolume}
-                onMusicToggle={() => setMusicEnabled((value) => !value)}
-                onMusicVolumeChange={setMusicVolume}
-                settings={menuAudioSettings}
-                onSettingsChange={updateMenuAudioSettings}
-                accountSoundMuted={accountSoundMuted}
-                onAccountSoundMutedChange={setSignedInSoundMuted}
-                playCue={playMenuCue}
-              />
-              <DonateButton onUnavailable={() => setSupportMessage("Support link coming soon.")} />
-            </div>
-            {(account?.economy || (vaultRewardMinimized && packCredits > 0)) && <div className="home-command-balances">
-              {account?.economy && <CurrencyWallet economy={account.economy} compact />}
-              {vaultRewardMinimized && <VaultCreditBadge credits={packCredits} onRestore={() => { setVaultRewardMinimized(false); navigateHomeArea("journey"); playMenuCue("tab"); }} />}
-            </div>}
-          </div>
-        </div>
-        {supportMessage && <div className="app-layout-114">{supportMessage}</div>}
-        {error && <div className="app-layout-115"><strong>Error:</strong> {error}</div>}
-        <HomeNavigation activeArea={homeArea} onSelectArea={navigateHomeArea} onPreloadArea={preloadHomeArea} nextStep={journeyNextStep} showStudio={ownerAuthorized || homeArea === "studio"} onSound={playMenuCue}>
-          {showOnboarding && (
-            <OnboardingPanel
-              canPlayAsPlayer={canPlayAsPlayer}
-              onStartTutorial={openOnboardingTutorial}
-              onStartBasicAi={startOnboardingBasicAi}
-              onEnableHints={enableOnboardingHints}
-              onDismiss={dismissOnboarding}
-              onNavigate={navigateHomeArea}
-            />
-          )}
-          {homeArea === "play" && (
-            <PlayMenu modeMetadata={gameContent.modeMetadata} view={playView} onSelectView={(nextView) => { if (playView !== nextView) playMenuCue("tab"); setPlayView(nextView); }}>
-
-              {playView === "para" && <Suspense fallback={<p role="status">Loading Para League…</p>}><ParaEventHub serverUrl={SOCKET_URL} authToken={authToken} socket={socket} onOpenMatch={(id) => openPublicView("match", id)} /></Suspense>}
-              {playView === "practice" && (
-                <MenuCard className="play-focus-panel" title="Training Grounds">
-                  <div className="play-format-heading">
-                    <div><strong>{gameContent.modeMetadata?.practice?.name || "Practice privately"}</strong><span>{gameContent.modeMetadata?.practice?.description || "Choose core rules or the complete faction game."}</span></div>
-                    {!account && <small>Play immediately as a guest. Sign in to keep progression and rewards.</small>}
-                  </div>
-                  {!account && <label>Guest name <input aria-label="Practice guest name" value={guestName} onChange={(event) => setGuestName(event.target.value)} placeholder="Guest" style={MENU_THEME.input} /></label>}
-                  <div className="play-mode-grid">
-                    <PlayModeCard eyebrow="Core Game" title={gameContent.modeMetadata?.basic?.name || "Basic vs AI"} description={gameContent.modeMetadata?.basic?.description || "Priority, payment, blocking, and lanes."} image={TUTORIAL_ART} action="Enter training" onClick={() => startTutorialVsAi("basic")} />
-                    <PlayModeCard eyebrow="Full Game" title={gameContent.modeMetadata?.factions?.name || "Factions vs AI"} description={gameContent.modeMetadata?.factions?.description || "Commanders, cities, generals, and faction powers."} image="/assets/gauntlet/frumo-card.webp" accent="ice" action="Choose your faction" onClick={() => startTutorialVsAi("factions")} />
-                  </div>
-                </MenuCard>
-              )}
-
-              {playView === "tables" && (
-                <div className="play-table-grid">
-                  <MenuCard className="play-join-panel" title={INITIAL_JOIN_ROOM_CODE && roomCodeInput ? `Join table ${roomCodeInput}` : "Join Table"}>
-                    {!account && <label>Guest name <input aria-label="Table guest name" value={guestName} onChange={(event) => setGuestName(event.target.value)} placeholder="Guest" style={MENU_THEME.input} /></label>}
-                    <form
-                      className="play-join-form"
-                      onSubmit={(event) => {
-                        event.preventDefault();
-                        if (roomCodeInput.trim()) joinRoom(false);
-                      }}
-                    >
-                      <input value={roomCodeInput} onChange={(e) => setRoomCodeInput(e.target.value.toUpperCase())} placeholder="Enter room code" aria-label="Room code" style={MENU_THEME.input} />
-                      <MenuButton type="submit" disabled={!roomCodeInput.trim()}>Join as Player</MenuButton>
-                      <MenuButton variant="secondary" onClick={() => joinRoom(true)} disabled={!roomCodeInput.trim()}>Spectate</MenuButton>
-                    </form>
-                  </MenuCard>
-                  <MenuCard className="play-focus-panel" title="Create Table">
-                    <div className="play-mode-grid">
-                      <PlayModeCard eyebrow="Two Players" title="Duel" description="Create a private faction table." image="/assets/gauntlet/rumin-card.webp" action="Create a duel" accent="brass" onClick={createRoom} />
-                      <PlayModeCard eyebrow="Two to Four" title="Free-For-All" description="Open a multiplayer faction table." image="/assets/gauntlet/sheen-card.webp" action="Gather your rivals" accent="sage" onClick={createFreeForAllRoom} />
-                    </div>
-                    <HelperText enabled={showHelperLabels}>Duel seats 2. Free-For-All seats 2-4.</HelperText>
-                  </MenuCard>
-                  <div className="play-share-panel"><ShareGameQrCard /></div>
-                </div>
-              )}
-
-              {playView === "ranked" && (
-                <div className="play-ranked-grid">
-                  <div>
-                    <fieldset disabled={matchmakingStatus.inQueue} className="app-layout-116">
-                      <legend>Ranked format</legend>
-                      <label className="app-layout-117"><input type="radio" name="ranked-format" checked={rankedGameMode === "factions"} onChange={() => setRankedGameMode("factions")} /> Faction Ranked — faction powers and one chosen General.</label>
-                      <label className="app-layout-118"><input type="radio" name="ranked-format" checked={rankedGameMode === "basic"} onChange={() => setRankedGameMode("basic")} /> Classic Ranked — the base Gauntlet game, without factions or faction powers.</label>
-                    </fieldset>
-                    {rankedGameMode === "factions" && <>
-                      <FactionLoadoutPicker factions={gameContent.factions} factionId={rankedFactionId} generalId={rankedGeneralId} disabled={matchmakingStatus.inQueue}
-                        onChange={(factionId, generalId) => {
-                          const faction = gameContent.factions.find((entry) => entry.id === factionId);
-                          setRankedFactionId(factionId);
-                          setRankedGeneralId(generalId);
-                          announceCommander(faction || factionId, "selected", faction?.commander?.name || faction?.name || "Commander", "Ranked faction chosen");
-                        }} />
-                      <p>Choose your faction and General, find an opponent, then confirm in the lobby. An active constructed deck matching both choices supplies your card replacements; otherwise you use the standard 52-card faction deck.</p>
-                    </>}
-                    {rankedGameMode === "basic" && <p>Classic Ranked uses the original standard 52-card deck. Factions, Generals, and constructed faction replacements are disabled.</p>}
-                    {rankedGameMode === "factions" && account?.stats?.savedConstructedDeck && <MenuButton variant="secondary" disabled={matchmakingStatus.inQueue} onClick={() => {
-                      setRankedFactionId(account.stats.savedConstructedDeck.factionId);
-                      setRankedGeneralId(account.stats.savedConstructedDeck.generalId || null);
-                    }}>Use Active Deck</MenuButton>}
-                  </div>
-                  <SeasonQueueSummary season={activeSeason} bestOf={matchmakingStatus.bestOf || 1} />
-                  <MatchmakingPanel
-                    account={account}
-                    status={matchmakingStatus}
-                    onJoin={() => joinMatchmaking(1)}
-                    onLeave={leaveMatchmaking}
-                    title={`${activeSeason?.displayName || "Season"} ${rankedGameMode === "basic" ? "Classic" : "Faction"} Ranked Duel`}
-                    description={rankedGameMode === "basic" ? "Play the original faction-free Gauntlet game against another signed-in player. BO1 scores each match; BO3 scores the completed series." : "Play ranked faction matches against another signed-in player. Your faction and General carry into the lobby. BO1 scores each match; BO3 scores the completed series."}
-                    joinLabel={`Find ${rankedGameMode === "basic" ? "Classic" : "Faction"} Ranked Match`}
-                    extraActions={<MenuButton variant="secondary" onClick={() => joinMatchmaking(3)} disabled={!account}>Find {rankedGameMode === "basic" ? "Classic" : "Faction"} Ranked BO3</MenuButton>}
-                  />
-                  <ActiveSeasonMatches
-                    season={activeSeason}
-                    matches={activeSeasonMatches}
-                    error={activeSeasonMatchesError}
-                    onSpectate={spectateSeasonMatch}
-                  />
-                </div>
-              )}
-
-              {playView === "events" && (
-                <Suspense fallback={<div className="play-focus-panel">Loading events…</div>}>
-                  <EventHub
-                    serverUrl={SOCKET_URL}
-                    socket={socket}
-                    authToken={authToken}
-                    account={account}
-                    factions={gameContent.factions}
-                    onAccountUpdated={(updatedAccount) => { setAccount(updatedAccount); playMenuCue("success"); }}
-                    onError={(message) => { setError(message); playMenuCue("denied"); }}
-                  />
-                </Suspense>
-              )}
-
-              {playView === "draft" && (
-                <div className="play-draft-grid">
-                  <MenuCard className="play-focus-panel" title="Draft or Sealed">
-                    {!account && <p>Guest limited play is practice only: you cannot save the deck. <MenuButton variant="secondary" onClick={() => { setReturnToDraftAfterAuth(true); navigateHomeArea("identity"); }}>Sign in to save your deck</MenuButton></p>}
-                    <label className="app-layout-119">
-                      Limited set
-                      <select value={draftSetId} onChange={(event) => setDraftSetId(event.target.value)} className="app-layout-120">
-                        {(gameContent.draftSets || []).map((set) => (
-                          <option key={set.id} value={set.id} disabled={!set.draftAvailable}>
-                            Set {set.number}: {set.name}{set.draftAvailable ? "" : " — cards coming soon"}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    {(gameContent.draftSets || []).find((set) => set.id === draftSetId)?.factionIds?.length > 0 && (
-                      <p className="app-layout-62">Includes {(gameContent.draftSets || []).find((set) => set.id === draftSetId).factionIds.map((id) => PACK_THEMES[id]?.name || id).join(", ")} only.</p>
-                    )}
-                    <div className="play-mode-grid">
-                      <PlayModeCard eyebrow="2–8 Players" title="Draft with friends" description="Live Draft: choose cards together, then build your deck." image="/assets/gauntlet/backgrounds/gauntlet-menu-build-v1.jpg" action="Open a draft table" accent="sage" onClick={createDraftRoom} />
-                      <PlayModeCard eyebrow="Solo Table" title="Draft against bots" description="Bot Draft: choose cards with seven automated drafters." image="/assets/gauntlet/factions/bizi/constanti-technology-hub.webp" action="Start your draft" accent="ice" onClick={createBotDraftRoom} />
-                      <PlayModeCard eyebrow="6 Packs" title="Open a Sealed pool" description="Sealed: open a private pool from this set and build immediately." image="/assets/gauntlet/menus/journey-expedition-v1.webp" action="Build from your pool" accent="brass" onClick={createSealedRoom} />
-                    </div>
-                  </MenuCard>
-                  <MatchmakingPanel
-                    account={account}
-                    status={draftLeagueStatus}
-                    onJoin={() => joinDraftLeague("player", 1)}
-                    onLeave={leaveDraftLeague}
-                    title={gameContent.modeMetadata?.draftLeague?.name || "Limited League"}
-                    description={gameContent.modeMetadata?.draftLeague?.description || "Play a human opponent using a saved Draft or Sealed deck. Each limited format has its own queue."}
-                    joinLabel="Play saved live-draft deck"
-                    cancelLabel="Leave Draft Queue"
-                    signedOutText="Sign in and save a draft deck to enter Draft League."
-                    extraActions={(
-                      <>
-                        <MenuButton variant="secondary" onClick={() => joinDraftLeague("player", 3)} disabled={!account}>Live-draft deck · Best of 3</MenuButton>
-                        <MenuButton variant="secondary" onClick={() => joinDraftLeague("bot", 1)} disabled={!account}>Play saved bot-draft deck</MenuButton>
-                        <MenuButton variant="secondary" onClick={() => joinDraftLeague("bot", 3)} disabled={!account}>Bot-draft deck · Best of 3</MenuButton>
-                        <MenuButton variant="secondary" onClick={() => joinDraftLeague("sealed", 1)} disabled={!account}>Play saved sealed deck</MenuButton>
-                        <MenuButton variant="secondary" onClick={() => joinDraftLeague("sealed", 3)} disabled={!account}>Sealed deck · Best of 3</MenuButton>
-                      </>
-                    )}
-                  />
-                </div>
-              )}
-            </PlayMenu>
-          )}
-
-          {homeArea === "journey" && (
-            <div className="journey-hub">
-              <JourneyIntroduction copy={gameContent.modeMetadata?.campaign} campaigns={gameContent.campaigns} completedChapters={completedCampaignChapters} />
-              <div className="journey-route">
-                <section className="journey-learning-panel">
-                  <div className="journey-learning-art"><img src={resolveVisualAsset(TUTORIAL_ART)} alt="" loading="lazy" decoding="async" /></div>
-                  <div className="journey-panel-copy">
-                    <span>Phase One / The Table</span>
-                    <h3>Learn the rhythm of a turn</h3>
-                    <p>Priority moves the match. Learn when to attack, how to pay, when to defend, and how lanes close the turn.</p>
-                  </div>
-                  <div className="journey-turn-flow" aria-label="Core turn sequence">
-                    {["Priority", "Attack", "Defend", "Resolve", "Lanes", "Draw"].map((step, index) => (
-                      <span key={step}><small>{index + 1}</small>{step}</span>
-                    ))}
-                  </div>
-                  <div className="journey-panel-actions">
-                    <MenuButton onClick={() => { playMenuCue("panelOpen"); setShowTutorial(true); }}>Open Tutorial</MenuButton>
-                    <MenuButton variant="secondary" onClick={reopenOnboardingTips}>Show Learning Route</MenuButton>
-                  </div>
-                </section>
-                <section className="journey-campaign-panel">
-                  <div className="journey-faction-strip" role="group" aria-label="Campaign factions" style={{ "--faction-count": Object.keys(gameContent.campaigns).length }}>
-                    {Object.entries(gameContent.campaigns).map(([factionId, campaign]) => (
-                      <span key={factionId} style={{ backgroundImage: `url(${resolveVisualAsset(FACTION_VISUALS[factionId]?.art || campaign.coverImage || JOURNEY_ART)})` }}><small>{campaign.factionName || factionId}</small></span>
-                    ))}
-                  </div>
-                  <div className="journey-panel-copy">
-                    <span>Phase Two / Choose a Faction</span>
-                    <h3>{gameContent.modeMetadata?.campaign?.name || "Enter the commander archives"}</h3>
-                    <p>{gameContent.modeMetadata?.campaign?.description}</p>
-                    <p>{completedCampaignChapters > 0 ? `${completedCampaignChapters} chapter${completedCampaignChapters === 1 ? "" : "s"} cleared across your faction campaigns.` : "Choose a faction's story, meet its commanders, and clear chapters in order."}</p>
-                  </div>
-                  <div className="journey-campaign-progress">
-                    <span>Campaign progress</span>
-                    <strong>{completedCampaignChapters}</strong>
-                    <small>chapters cleared</small>
-                  </div>
-                  <div className="journey-panel-actions">
-                    <MenuButton onClick={() => { playMenuCue("panelOpen"); setShowCampaign(true); }}>{completedCampaignChapters > 0 ? "Continue Campaign" : "Choose a Faction"}</MenuButton>
-                    <MenuButton variant="secondary" onClick={() => { playMenuCue("panelOpen"); setShowFactionLore(true); }}>Explore Faction Lore</MenuButton>
-                  </div>
-                </section>
-              </div>
-              <Suspense fallback={<p>Loading Legacies…</p>}>
-                <LegaciesPanel set={gameContent.upcomingSets?.find((set) => set.id === "legacies")} />
-              </Suspense>
-              <details className="journey-rulebook">
-                <summary><span>Field Rulebook</span><small>Open the complete rules reference</small></summary>
-                <div className="journey-rulebook-content"><RulebookPanel /></div>
-              </details>
-            </div>
-          )}
-
-          {homeArea === "matches" && (
-            <Suspense fallback={<p className="app-layout-121">Loading match history…</p>}>
-              <MatchesHub
-                account={account}
-                authToken={authToken}
-                serverUrl={SOCKET_URL}
-                season={activeSeason}
-                standings={leaderboard}
-                playerStanding={playerSeasonStanding}
-                lifetimeStandings={lifetimeLeaderboard}
-                seasonError={leaderboardError}
-                onOpenProfile={(accountId) => openPublicView("profile", accountId)}
-                onOpenMatch={(matchId, record) => openPublicView("match", matchId, record || null)}
-                onOpenReplay={openReplay}
-                onOpenRanked={() => {
-                  setPlayView("ranked");
-                  navigateHomeArea("play");
-                }}
-              />
-            </Suspense>
-          )}
-
-          {homeArea === "build" && (
-            <div className="build-hub">
-              <section className="build-deck-entry" style={{ "--deck-accent": getFactionTheme(buildDeckFactionId).primary }}>
-                <div className="build-deck-display"><DeckShowcase deck={activeConstructedDeck || { factionId: buildDeckFactionId }} cards={[...(account?.collection?.catalog?.[buildDeckFactionId] || []), ...(account?.collection?.catalog?.neutral || [])]} collectorCatalog={account?.collection?.collectorCatalog || []} /></div>
-                <div className="build-deck-copy">
-                  <span>{activeConstructedDeck ? "Your active deck" : "Your next deck"}</span>
-                  <h3>{activeConstructedDeck?.name || (canCustomizeConstructedDeck ? "Build your first custom deck" : "Your 52-card deck is ready")}</h3>
-                  <p>{activeConstructedDeck
-                    ? "Refine your card choices, customize its look, and make it your own."
-                    : canCustomizeConstructedDeck
-                      ? "Use all legal cards in ranked and constructed events. Choose earned-card access for casual and campaign decks."
-                      : "Every player can use the standard deck immediately. Campaign rewards unlock optional faction-card replacements later."}</p>
-                  <div className="build-deck-meta" aria-label="Deck summary">
-                    <span><strong>52</strong> cards</span>
-                    <span><strong>{activeConstructedVersion?.replacementCount || activeConstructedVersion?.additionCount || 0}</strong> replacements</span>
-                    <span><strong>{constructedDecks.length}</strong> saved decks</span>
-                  </div>
-                  <MenuButton
-                    onClick={() => {
-                      if (activeConstructedDeck || canCustomizeConstructedDeck) {
-                        playMenuCue("panelOpen");
-                        setShowCollection("decks");
-                      } else {
-                        navigateHomeArea("journey");
-                        playMenuCue("area");
-                      }
-                    }}
-                    disabled={!account}
-                  >
-                    {activeConstructedDeck ? "Edit Active Deck" : canCustomizeConstructedDeck ? "Build Custom Deck" : "Earn Cards in Campaign"}
-                  </MenuButton>
-                </div>
-              </section>
-              <section className="build-vault-panel">
-                <div className="build-faction-strip" role="group" aria-label="Faction collections">
-                  {["rumin", "bizi", "sheen", "frumo"].map((factionId) => (
-                    <span key={factionId} style={{ backgroundImage: `url(${resolveAssetPath(`/assets/gauntlet/${factionId}-card.webp`)})` }} />
-                  ))}
-                </div>
-                <div className="build-panel-copy">
-                  <span>The Vault</span>
-                  <h3>Grow your collection</h3>
-                  <p>{account ? "Open earned packs, browse your cards, and choose collector artwork." : "Sign in to keep earned gameplay progression, collector variants, and saved decks."}</p>
-                </div>
-                <div className="build-vault-stats">
-                  <span><small>Gameplay earned</small><strong>{ownedCardCount}</strong></span>
-                  <span><small>Earned packs</small><strong>{openedPackCount}</strong></span>
-                  <span><small>Credits ready</small><strong>{packCredits}</strong></span>
-                </div>
-                <MenuButton variant="secondary" onClick={() => { playMenuCue("panelOpen"); setShowCollection(true); }} disabled={!account}>Open Collection Workshop</MenuButton>
-              </section>
-              <section className="build-draft-entry">
-                <div>
-                  <span>Draft Library</span>
-                  <h3>{account?.stats?.savedDraftDeck?.name || "No draft deck saved"}</h3>
-                  <p>{account?.stats?.savedDraftDeck ? `${account.stats.savedDraftDeck.replacementCount || account.stats.savedDraftDeck.cards?.length || 0} drafted replacements ready for league play.` : "Complete a live or bot draft to preserve its final deck."}</p>
-                </div>
-                <MenuButton variant="secondary" onClick={() => { setPlayView("draft"); navigateHomeArea("play"); playMenuCue("area"); }}>Open Draft Modes</MenuButton>
-              </section>
-            </div>
-          )}
-
-          {homeArea === "identity" && (
-            <div className="identity-hub">
-              <div className="identity-view-tabs" role="tablist" aria-label="Identity views">
-                {[["profile", "Profile"], ["community", friendUnreadTotal > 0 ? `Community (${friendUnreadTotal})` : "Community"], ["record", "Record"], ["economy", "Gold & Library"]].map(([viewId, label]) => (
-                  <button key={viewId} type="button" role="tab" aria-selected={identityView === viewId} onClick={() => { if (identityView !== viewId) playMenuCue("tab"); setIdentityView(viewId); }}>{label}</button>
-                ))}
-              </div>
-              {identityView === "economy" && <Suspense fallback={<p>Loading library…</p>}><EconomyConsole serverUrl={SOCKET_URL} authToken={authToken} onAccountUpdated={setAccount} /></Suspense>}
-              {identityView === "profile" && <>
-              <MenuButton onClick={() => { setPlayView("para"); navigateHomeArea("play"); }}>Para membership, Prestige and event history</MenuButton>
-              <IdentityDossierHero
-                account={account}
-                featuredDecks={enrichedFeaturedDecks}
-                authToken={authToken}
-                serverUrl={SOCKET_URL}
-                onAccountUpdated={(updatedAccount) => { setAccount(updatedAccount); playMenuCue("success"); }}
-              />
-              <div className={`identity-profile-layout${account ? "" : " is-guest"}`}>
-                <ProgressionPanel account={account} campaigns={gameContent.campaigns} onSelectCosmetic={selectAccountCosmetic} />
-                <section className="identity-admin-rail" aria-label="Identity administration">
-                  <AccountPanel
-                    account={account}
-                    mode={authMode}
-                    form={authForm}
-                    error={authError}
-                    notice={authNotice}
-                    onModeChange={setAuthMode}
-                    onFormChange={setAuthForm}
-                    onSubmit={submitAuth}
-                    onSignOut={signOut}
-                    onRecoveryEmail={updateRecoveryEmail}
-                  />
-                  {!account && <MenuCard title="Guest Identity">
-                    <label className="identity-guest-toggle">
-                      <input type="checkbox" checked={playAsGuest} onChange={(e) => setPlayAsGuest(e.target.checked)} disabled={!!account} />
-                      Play as guest
-                    </label>
-                    <input
-                      className="identity-guest-input"
-                      aria-label="Guest name"
-                      value={guestName}
-                      onChange={(e) => setGuestName(e.target.value)}
-                      placeholder="Guest name"
-                      disabled={!!account || !playAsGuest}
-                    />
-                  </MenuCard>}
-                </section>
-              </div>
-              </>}
-              {identityView === "record" && (
-              <Suspense fallback={<SurfaceLoading label="competitive record" />}>
-                <CompetitiveIdentityPanel
-                  profile={competitiveProfile}
-                  loading={competitiveProfileLoading}
-                  error={competitiveProfileError}
-                  onOpenProfile={(accountId) => openPublicView("profile", accountId)}
-                  onOpenMatch={(matchId) => openPublicView("match", matchId)}
-                  onOpenReplay={(matchId) => openReplay(matchId)}
-                />
-              </Suspense>
-              )}
-              {identityView === "profile" && (
-              <section className="identity-featured-decks" aria-labelledby="identity-featured-title">
-                <header className="identity-section-heading">
-                  <div><span>Chosen Arsenal</span><h3 id="identity-featured-title">Featured decks</h3></div>
-                  <MenuButton variant="secondary" onClick={() => { playMenuCue("panelOpen"); setShowCollection("decks"); }} disabled={!account}>Manage Decks</MenuButton>
-                </header>
-                {enrichedFeaturedDecks.length > 0 ? <div className="identity-featured-grid">{enrichedFeaturedDecks.map((deck) => (
-                  <article className="identity-featured-deck" key={deck.id} style={{ "--faction-accent": FACTION_VISUALS[deck.factionId]?.accent }}>
-                    {deck.format === "constructed" ? <DeckShowcase deck={deck} cards={[...(account?.collection?.catalog?.[deck.factionId] || []), ...(account?.collection?.catalog?.neutral || [])]} collectorCatalog={account?.collection?.collectorCatalog || []} compact /> : <DeckVisual deck={deck} decorative />}
-                    <div><span>{deck.factionName} · {deck.format === "draft" ? limitedDeckSourceLabel(deck.draftType) : "Constructed"}</span><h4>{deck.name}</h4><strong>{deck.record?.wins || 0}W {deck.record?.losses || 0}L {deck.record?.draws || 0}D</strong></div>
-                  </article>
-                ))}</div> : <p className="identity-empty-copy">Feature up to three decks from Build to make them part of your identity.</p>}
-              </section>
-              )}
-              {identityView === "community" && <div className="identity-community-grid">
-              <FriendsPanel
-                account={account}
-                friendsData={friendsData}
-                selectedFriendId={selectedFriendId}
-                friendName={friendNameInput}
-                messageText={friendMessageInput}
-                error={friendsError}
-                onSelectFriend={selectFriendWithReadReceipt}
-                onFriendNameChange={setFriendNameInput}
-                onMessageTextChange={setFriendMessageInput}
-                onAddFriend={submitFriendRequest}
-                onRemoveFriend={removeFriend}
-                onSendMessage={sendFriendMessage}
-                onChallengeFriend={challengeFriend}
-                onJoinChallenge={joinFriendChallenge}
-                onUpdateChallenge={updateFriendChallenge}
-                onRefresh={loadFriends}
-                unreadCounts={friendUnreadCounts}
-                unreadTotal={friendUnreadTotal}
-              />
-              </div>}
-            </div>
-          )}
-        </HomeNavigation>
-        </div>
-      </main>
-    );
+        }} />
+    </Suspense>;
   }
 
   if (!game) {
@@ -5516,6 +4855,7 @@ export default function App() {
           </div>
         </div>
         {copyNotice && <div className="app-layout-114">{copyNotice}</div>}
+        <details className="lobby-share"><summary>Share Gauntlet · site QR code</summary><ShareGameQrCard /></details>
         {account && <p className="app-layout-126"><strong>Account:</strong> {account.name}</p>}
         {error && <div className="app-layout-115"><strong>Error:</strong> {error}</div>}
         <MenuCard className="lobby-command-panel" title="Table Command">

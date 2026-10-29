@@ -23,4 +23,19 @@ test("lets players search faction backgrounds and open the campaign archive", ()
   expect(screen.getByText("A planetary chorus formed a living world.")).toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "Open Zynarth campaign" }));
   expect(onOpenCampaign).toHaveBeenCalledTimes(1);
+  expect(onOpenCampaign).toHaveBeenCalledWith("zynarth");
+});
+
+test("embedded lore preserves all records inside the existing main landmark", () => {
+  const onBack = jest.fn();
+  render(<main><h1>Campaign</h1><FactionLoreScreen manifest={manifest} onBack={onBack} onOpenCampaign={jest.fn()} embedded /></main>);
+  expect(screen.getAllByRole("main")).toHaveLength(1);
+  expect(screen.getByRole("heading", { level: 2, name: "Peoples of Gauntlet" })).toBeInTheDocument();
+  expect(document.querySelector(".faction-lore-page")).not.toHaveClass("menu-page");
+  expect(screen.getByText("River kingdoms became a republic.")).toBeInTheDocument();
+  expect(screen.getByText("Scouts crossed through a buried Timetwister.")).toBeInTheDocument();
+  expect(screen.getByText("A reformer who centralizes power.")).toBeInTheDocument();
+  expect(screen.getByText("Rumie tests divided power.")).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Back to Campaign" }));
+  expect(onBack).toHaveBeenCalledTimes(1);
 });
