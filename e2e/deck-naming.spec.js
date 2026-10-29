@@ -1,4 +1,5 @@
 const { test, expect } = require("@playwright/test");
+const { openCollection } = require("./player-navigation");
 const fs = require("node:fs");
 const path = require("node:path");
 const { COLLECTION_CARDS } = require("../server/gameContent");
@@ -15,9 +16,7 @@ test("deck names can be typed during creation and renamed without creating card 
   await page.addInitScript(token => localStorage.setItem("gauntlet_auth_token", token), session.token);
   const openWorkshop = async () => {
     await page.goto(baseURL);
-    await page.locator('button[data-area="build"]').click();
-    await page.getByRole("button", { name: "Open Collection Workshop" }).click();
-    await page.getByRole("tab", { name: "Decks", exact: true }).click();
+    await openCollection(page, "decks");
   };
   const typeName = async (field, name) => {
     await field.click();

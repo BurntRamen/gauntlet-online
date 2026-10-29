@@ -1,3 +1,4 @@
+const { navigatePlayer } = require("./player-navigation");
 const { area: adminArea, paraTab, identity } = require("./admin-navigation");
 const { origin, clientOrigin } = require("./admin-urls");
 const { test, expect } = require("@playwright/test");
@@ -60,7 +61,7 @@ test("Admin publication becomes a free human event with durable Prestige and ins
   try {
     const players = await Promise.all(contexts.map((context) => context.newPage()));
     await login(players[0], "Visitor"); await login(players[1], "Burnt Ramen");
-    const hub = async (p) => { await p.locator('button[data-area="play"]').click(); await p.getByRole("tab", { name: "Para League", exact: true }).click(); await p.getByRole("combobox", { name: "Official event", exact: true }).selectOption("runtime-qualifier"); };
+    const hub = async (p) => { await navigatePlayer(p, "compete", "para"); await p.getByRole("combobox", { name: "Official event", exact: true }).selectOption("runtime-qualifier"); };
     for (const p of players) {
       await hub(p); await expect(p.getByText(/Invitational not yet eligible/)).toBeVisible();
       await p.getByRole("checkbox", { name: /I accept these published rules/ }).check(); await p.getByRole("button", { name: "Enter free", exact: true }).click(); await expect(p.getByText(/Official run: 0 wins/)).toBeVisible();
@@ -82,8 +83,7 @@ test("Admin publication becomes a free human event with durable Prestige and ins
     expect((await new AxeBuilder({ page: players[0] }).include(".para-hub").analyze()).violations).toEqual([]);
     expect(await players[0].evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy();
     await players[0].screenshot({ path: "artifacts/para-runtime-player-mobile.png", fullPage: true });
-    await players[0].locator('button[data-area="identity"]').click();
-    await players[0].getByRole("tab", { name: "Record", exact: true }).click();
+    await navigatePlayer(players[0], "profile", "record");
     await expect(players[0].getByText("Para member · 12 lifetime Prestige · Official runs completed: 1", { exact: true })).toBeVisible();
     await players[0].getByRole("button", { name: "Public Profile", exact: true }).click();
     await expect(players[0].getByText("Para member · 12 lifetime Prestige · Official runs completed: 1", { exact: true })).toBeVisible();

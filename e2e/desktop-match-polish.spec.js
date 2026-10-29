@@ -1,3 +1,4 @@
+const { navigatePlayer } = require("./player-navigation");
 const fs = require("node:fs");
 const path = require("node:path");
 const { test, expect } = require("@playwright/test");
@@ -10,8 +11,8 @@ const root = path.resolve(__dirname, "../artifacts/desktop-match-polish");
 
 async function enterPractice(page, baseURL) {
   await page.goto(baseURL);
-  await page.locator('button[data-area="play"]').click();
-  await page.getByRole("button", { name: "Play Basic vs AI", exact: true }).click();
+  await navigatePlayer(page, "play");
+  await page.getByRole("button", { name: "Start Basic vs AI", exact: true }).click();
   await expect(page.getByTestId("production-babylon-match")).toBeVisible();
 }
 

@@ -1,3 +1,4 @@
+const { navigatePlayer, setGuestName } = require("./player-navigation");
 const { test, expect: baseExpect } = require("@playwright/test");
 const fs = require("node:fs");
 const path = require("node:path");
@@ -54,13 +55,10 @@ async function connectSeedClient() {
   return socket;
 }
 
-async function prepareGuest(page, baseURL, name, playTab = "Tables") {
+async function prepareGuest(page, baseURL, name, playView = "tables") {
   await page.goto(baseURL);
-  await page.locator('button[data-area="identity"]').click();
-  await page.getByLabel("Play as guest").check();
-  await page.getByPlaceholder("Guest name").fill(name);
-  await page.locator('button[data-area="play"]').click();
-  await page.getByRole("tab", { name: playTab }).click();
+  await setGuestName(page, name);
+  await navigatePlayer(page, "play", playView);
 }
 
 async function createBasicRoom(hostPage) {
@@ -179,13 +177,12 @@ async function registerTestAccount(request, name) {
   return response.json();
 }
 
-async function prepareAccount(page, token, baseURL, playTab = "Ranked") {
+async function prepareAccount(page, token, baseURL, queuePage = "compete") {
   await page.addInitScript((authToken) => {
     window.localStorage.setItem("gauntlet_auth_token", authToken);
   }, token);
   await page.goto(baseURL);
-  await page.locator('button[data-area="play"]').click();
-  await page.getByRole("tab", { name: playTab }).click();
+  await navigatePlayer(page, queuePage, queuePage === "draft" ? "league" : "ranked");
 }
 
 function seedDraftDecks(accounts) {
@@ -613,8 +610,8 @@ test("normal faction lobby entry executes Polea and Lafayette through live seman
 
 test("normal Training Grounds entry uses the shared Babylon match and semantic AI", async ({ page, baseURL }) => {
   test.setTimeout(60000);
-  await prepareGuest(page, baseURL, "AI Trainee", "Practice");
-  await page.getByRole("button", { name: "Play Basic vs AI", exact: true }).click();
+  await prepareGuest(page, baseURL, "AI Trainee", "");
+  await page.getByRole("button", { name: "Start Basic vs AI", exact: true }).click();
 
   const match = page.getByTestId("production-babylon-match");
   await expect(match).toBeVisible();
@@ -653,12 +650,12 @@ test("capture current match baseline through normal local practice and campaign 
   for (const route of ["practice", "campaign"]) {
     const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
     const page = await context.newPage();
-    await prepareGuest(page, baseURL, "Baseline Reviewer", "Practice");
+    await prepareGuest(page, baseURL, "Baseline Reviewer", "");
     if (route === "practice") {
-      await page.getByRole("button", { name: "Play Basic vs AI", exact: true }).click();
+      await page.getByRole("button", { name: "Start Basic vs AI", exact: true }).click();
     } else {
-      await page.locator('button[data-area="journey"]').click();
-      await page.getByRole("button", { name: /^(Choose a Faction|Continue Campaign)$/ }).click();
+      await navigatePlayer(page, "campaign");
+      await page.getByRole("button", { name: /^Rumin\b.*Open chapter selection/ }).click();
       await page.getByRole("button", { name: "Begin Battle", exact: true }).first().click();
     }
     const match = page.getByTestId("production-babylon-match");
@@ -682,8 +679,8 @@ test("capture current match baseline through normal local practice and campaign 
 
 test("normal Faction Training Grounds entry uses the same production match and semantic AI", async ({ page, baseURL }) => {
   test.setTimeout(60000);
-  await prepareGuest(page, baseURL, "Faction Trainee", "Practice");
-  await page.locator("button.play-mode-card").filter({ hasText: "Factions vs AI" }).click();
+  await prepareGuest(page, baseURL, "Faction Trainee", "");
+  await page.getByRole("button", { name: /^Factions vs AI\b/ }).click();
   await expect(page.getByText("Table Command")).toBeVisible();
   await chooseLobbyFaction(page, "Rumin");
   await page.getByRole("button", { name: "Confirm Start" }).click();
@@ -706,8 +703,8 @@ test("normal Faction Training Grounds entry uses the same production match and s
 
 test("board faction cards route available orders through hand and lane selection", async ({ page, baseURL }) => {
   await page.setViewportSize({ width: 1836, height: 878 });
-  await prepareGuest(page, baseURL, "Board Ability Reviewer", "Practice");
-  await page.locator("button.play-mode-card").filter({ hasText: "Factions vs AI" }).click();
+  await prepareGuest(page, baseURL, "Board Ability Reviewer", "");
+  await page.getByRole("button", { name: /^Factions vs AI\b/ }).click();
   await chooseLobbyFaction(page, "Frumo");
   await page.getByRole("button", { name: "Confirm Start" }).click();
   const commander = page.locator('[data-faction-role="commander"]');
@@ -731,8 +728,8 @@ test("resolution changes preserve framing and saved light mode updates the exist
   // The desktop rail caps the canvas width. Keep its CSS aspect ultrawide
   // while performance scaling crosses the old 420-render-pixel breakpoint.
   await page.setViewportSize({ width: 2560, height: 740 });
-  await prepareGuest(page, baseURL, "Theme Reviewer", "Practice");
-  await page.locator("button.play-mode-card").filter({ hasText: "Factions vs AI" }).click();
+  await prepareGuest(page, baseURL, "Theme Reviewer", "");
+  await page.getByRole("button", { name: /^Factions vs AI\b/ }).click();
   await chooseLobbyFaction(page, "Frumo");
   await page.getByRole("button", { name: "Confirm Start" }).click();
   const match = page.getByTestId("production-babylon-match");
@@ -759,8 +756,8 @@ test("resolution changes preserve framing and saved light mode updates the exist
 
 test("discard piles and player abilities use a non-overlapping responsive dock without restarting the table", async ({ page, baseURL }, testInfo) => {
   test.setTimeout(120000);
-  await prepareGuest(page, baseURL, "Dock Reviewer", "Practice");
-  await page.locator("button.play-mode-card").filter({ hasText: "Factions vs AI" }).click();
+  await prepareGuest(page, baseURL, "Dock Reviewer", "");
+  await page.getByRole("button", { name: /^Factions vs AI\b/ }).click();
   await chooseLobbyFaction(page, "Rumin");
   await page.getByRole("button", { name: "Confirm Start" }).click();
   const match = page.getByTestId("production-babylon-match");
@@ -859,8 +856,8 @@ test("later Bizi missions keep the new interface through boss actions", async ({
   page.on("pageerror", (error) => errors.push(error.message));
   for (const chapter of chapters.slice(-4)) {
     await page.goto(baseURL);
-    await page.locator('button[data-area="journey"]').click();
-    await page.getByRole("button", { name: /^(Choose a Faction|Continue Campaign)$/ }).click();
+    await navigatePlayer(page, "campaign");
+    await page.getByRole("button", { name: /^Rumin\b.*Open chapter selection/ }).click();
     await page.getByRole("tab", { name: /^Bizi/ }).click();
     await page.locator(".campaign-chapter").filter({
       has: page.getByRole("heading", { name: chapter.title, exact: true })
@@ -901,8 +898,8 @@ test("encounter dossiers play exchanges with faction accompaniment and independe
     };
   }, VOICE_ASSET_PATHS);
   await page.goto(baseURL);
-  await page.locator('button[data-area="journey"]').click();
-  await page.getByRole("button", { name: "Choose a Faction" }).click();
+  await navigatePlayer(page, "campaign");
+  await page.getByRole("button", { name: /^Rumin\b.*Open chapter selection/ }).click();
   await page.getByRole("button", { name: "View Briefing" }).first().click();
   const dialogue = page.getByRole("region", { name: "Voices before the battle" });
   await dialogue.getByRole("button", { name: "Play exchange" }).click();
@@ -963,12 +960,9 @@ test("normal campaign entry presents the campaign boss through the shared Babylo
     };
   }, VOICE_ASSET_PATHS);
   await page.goto(baseURL);
-  await page.locator('button[data-area="identity"]').click();
-  await page.getByLabel("Play as guest").check();
-  await page.getByPlaceholder("Guest name").fill("Campaign Trainee");
-  await page.locator('button[data-area="play"]').click();
-  await page.locator('button[data-area="journey"]').click();
-  await page.getByRole("button", { name: "Choose a Faction" }).click();
+  await setGuestName(page, "Campaign Trainee");
+  await navigatePlayer(page, "campaign");
+  await page.getByRole("button", { name: /^Rumin\b.*Open chapter selection/ }).click();
   await expect(page.getByRole("heading", { name: "Faction Campaigns" })).toBeVisible();
   await page.getByRole("button", { name: "Begin Battle" }).first().click();
 
@@ -1114,8 +1108,8 @@ test("signed-in campaign victory refreshes account state, continues, persists, a
     window.localStorage.setItem("gauntlet_auth_token", authToken);
   }, account.token);
   await page.goto(baseURL);
-  await page.locator('button[data-area="journey"]').click();
-  await page.getByRole("button", { name: "Choose a Faction" }).click();
+  await navigatePlayer(page, "campaign");
+  await page.getByRole("button", { name: /^Rumin\b.*Open chapter selection/ }).click();
   await expect(page.getByRole("heading", { name: "Faction Campaigns" })).toBeVisible();
   await page.getByRole("button", { name: "Begin Battle" }).first().click();
 
@@ -1161,9 +1155,9 @@ test("signed-in campaign victory refreshes account state, continues, persists, a
 
   await page.getByText("Match", { exact: true }).click();
   await page.getByRole("button", { name: "Main menu" }).click();
-  await page.locator('button[data-area="journey"]').click();
-  await expect(page.locator(".journey-campaign-progress strong")).toHaveText("1");
-  await page.getByRole("button", { name: "Continue Campaign" }).click();
+  await navigatePlayer(page, "campaign");
+  await expect(page.getByRole("button", { name: /^Rumin\b.*Open chapter selection/ })).toContainText("1 of 12 chapters cleared");
+  await page.getByRole("button", { name: /^Rumin\b.*Open chapter selection/ }).click();
   const completedChapter = page.locator(".campaign-chapter").filter({
     has: page.getByRole("heading", { name: completion.campaign.title, exact: true })
   });
@@ -1178,9 +1172,9 @@ test("signed-in campaign victory refreshes account state, continues, persists, a
   }
 
   await page.reload();
-  await page.locator('button[data-area="journey"]').click();
-  await expect(page.locator(".journey-campaign-progress strong")).toHaveText("1");
-  await page.locator('button[data-area="identity"]').click();
+  await navigatePlayer(page, "campaign");
+  await expect(page.getByRole("button", { name: /^Rumin\b.*Open chapter selection/ })).toContainText("1 of 12 chapters cleared");
+  await navigatePlayer(page, "profile");
   await page.getByRole("button", { name: "Sign Out" }).click();
   await page.getByPlaceholder("Account name").fill(accountName);
   await page.getByPlaceholder("Password").fill(password);
@@ -1193,8 +1187,8 @@ test("signed-in campaign victory refreshes account state, continues, persists, a
   expect(restoredAccount.stats.collection.packCredits).toBe(1);
   expect(restoredAccount.progression.campaign.rumin).toContain(completion.campaign.chapterId);
 
-  await page.locator('button[data-area="journey"]').click();
-  await page.getByRole("button", { name: "Continue Campaign" }).click();
+  await navigatePlayer(page, "campaign");
+  await page.getByRole("button", { name: /^Rumin\b.*Open chapter selection/ }).click();
   const replayChapter = page.locator(".campaign-chapter").filter({ hasText: completion.campaign.title });
   await replayChapter.getByRole("button", { name: "Begin Battle" }).click();
   await expect(page.getByTestId("production-babylon-match")).toBeVisible();
@@ -1229,11 +1223,11 @@ test("Mekan and a chosen General enter a ranked match from the queue picker", as
     const secondPage = await secondContext.newPage();
     await prepareAccount(firstPage, firstAccount.token, baseURL);
     await prepareAccount(secondPage, secondAccount.token, baseURL);
-    await firstPage.getByLabel("Ranked faction").selectOption("mekan");
-    await firstPage.getByLabel("Deck General").selectOption("hui");
-    await firstPage.getByRole("button", { name: "Find Faction Ranked Match", exact: true }).click();
-    await expect(firstPage.getByLabel("Ranked faction")).toBeDisabled();
-    await secondPage.getByRole("button", { name: "Find Faction Ranked Match", exact: true }).click();
+    await firstPage.getByLabel("Faction", { exact: true }).selectOption("mekan");
+    await firstPage.getByLabel("General", { exact: true }).selectOption("hui");
+    await firstPage.getByRole("button", { name: "Find Ranked Match", exact: true }).click();
+    await expect(firstPage.getByLabel("Faction", { exact: true })).toBeDisabled();
+    await secondPage.getByRole("button", { name: "Find Ranked Match", exact: true }).click();
     await expect(firstPage.getByText("Table Command")).toBeVisible();
     await expect(firstPage.getByLabel("Deck General")).toHaveValue("hui");
     await expect(firstPage.getByRole("button", { name: "Basic Mode" })).toBeDisabled();
@@ -1265,10 +1259,12 @@ test("normal ranked best-of-three entry advances to game two inside the same Bab
 
   await prepareAccount(firstPage, firstAccount.token, baseURL);
   await prepareAccount(secondPage, secondAccount.token, baseURL);
-  await expect(firstPage.getByRole("button", { name: "Find Faction Ranked BO3" })).toBeEnabled();
-  await expect(secondPage.getByRole("button", { name: "Find Faction Ranked BO3" })).toBeEnabled();
-  await firstPage.getByRole("button", { name: "Find Faction Ranked BO3" }).click();
-  await secondPage.getByRole("button", { name: "Find Faction Ranked BO3" }).click();
+  await firstPage.getByLabel("Match length").selectOption("3");
+  await secondPage.getByLabel("Match length").selectOption("3");
+  await expect(firstPage.getByRole("button", { name: "Find Ranked Match" })).toBeEnabled();
+  await expect(secondPage.getByRole("button", { name: "Find Ranked Match" })).toBeEnabled();
+  await firstPage.getByRole("button", { name: "Find Ranked Match" }).click();
+  await secondPage.getByRole("button", { name: "Find Ranked Match" }).click();
   await expect(firstPage.getByText("Table Command")).toBeVisible();
   await expect(secondPage.getByText("Table Command")).toBeVisible();
 
@@ -1319,13 +1315,17 @@ test("normal draft-league entry uses finalized draft decks and preserves them ac
   const secondContext = await browser.newContext({ viewport: { width: 1366, height: 768 } });
   const firstPage = await firstContext.newPage();
   const secondPage = await secondContext.newPage();
-  await prepareAccount(firstPage, firstAccount.token, baseURL, "Draft");
-  await prepareAccount(secondPage, secondAccount.token, baseURL, "Draft");
-  await expect(firstPage.getByRole("button", { name: "Live-draft deck · Best of 3" })).toBeEnabled();
-  await expect(secondPage.getByRole("button", { name: "Live-draft deck · Best of 3" })).toBeEnabled();
+  await prepareAccount(firstPage, firstAccount.token, baseURL, "draft");
+  await prepareAccount(secondPage, secondAccount.token, baseURL, "draft");
+  await firstPage.getByLabel("Deck source").selectOption("player");
+  await secondPage.getByLabel("Deck source").selectOption("player");
+  await firstPage.getByLabel("Match length").selectOption("3");
+  await secondPage.getByLabel("Match length").selectOption("3");
+  await expect(firstPage.getByRole("button", { name: "Find Limited Match" })).toBeEnabled();
+  await expect(secondPage.getByRole("button", { name: "Find Limited Match" })).toBeEnabled();
 
-  await firstPage.getByRole("button", { name: "Live-draft deck · Best of 3" }).click();
-  await secondPage.getByRole("button", { name: "Live-draft deck · Best of 3" }).click();
+  await firstPage.getByRole("button", { name: "Find Limited Match" }).click();
+  await secondPage.getByRole("button", { name: "Find Limited Match" }).click();
   for (const page of [firstPage, secondPage]) {
     const match = page.getByTestId("production-babylon-match");
     await expect(match).toBeVisible();

@@ -1,3 +1,4 @@
+const { navigatePlayer, setGuestName } = require("./player-navigation");
 const fs = require("node:fs");
 const path = require("node:path");
 const { execFileSync } = require("node:child_process");
@@ -1569,12 +1570,9 @@ test("capture real live and replay match presentation states", async ({ browser,
   });
   const localPage = await localContext.newPage();
   await localPage.goto(baseURL, { waitUntil: "domcontentloaded" });
-  await localPage.locator('button[data-area="identity"]').click();
-  await localPage.getByLabel("Play as guest").check();
-  await localPage.getByPlaceholder("Guest name").fill("Visual Local");
-  await localPage.locator('button[data-area="play"]').click();
-  await localPage.getByRole("tab", { name: "Practice" }).click();
-  await localPage.getByRole("button", { name: "Play Basic vs AI", exact: true }).click();
+  await setGuestName(localPage, "Visual Local");
+  await navigatePlayer(localPage, "play");
+  await localPage.getByRole("button", { name: "Start Basic vs AI", exact: true }).click();
   await expect(localPage.getByTestId("production-babylon-match")).toBeVisible();
   const localMatch = localPage.getByTestId("production-babylon-match");
   registerScenario(manifest, "local-training", null, {

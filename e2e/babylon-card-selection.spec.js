@@ -1,3 +1,4 @@
+const { navigatePlayer } = require("./player-navigation");
 const { test, expect } = require("@playwright/test");
 
 for (const viewport of [{ width: 1366, height: 768 }, { width: 390, height: 844 }, { width: 844, height: 390 }]) {
@@ -46,8 +47,8 @@ for (const mode of ["Basic", "Factions"]) {
       };
     });
     await page.goto(baseURL);
-    await page.locator('button[data-area="play"]').click();
-    await page.locator("button.play-mode-card").filter({ hasText: `${mode} vs AI` }).click();
+    await navigatePlayer(page, "play");
+    await page.getByRole("button", { name: mode === "Basic" ? "Start Basic vs AI" : /^Factions vs AI\b/ }).click();
     if (mode === "Factions") {
       await page.getByRole("button", { name: "Choose Rumin" }).click();
       await page.getByRole("button", { name: "Confirm Start" }).click();

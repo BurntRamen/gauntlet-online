@@ -1,3 +1,4 @@
+const { navigatePlayer, setGuestName } = require("./player-navigation");
 const fs = require("node:fs");
 const path = require("node:path");
 const { test, expect } = require("@playwright/test");
@@ -11,12 +12,9 @@ function percentile(values, percentage) {
 
 async function openTrainingGrounds(page, baseURL, sampleId) {
   await page.goto(baseURL, { waitUntil: "domcontentloaded" });
-  await page.locator('button[data-area="identity"]').click();
-  await page.getByLabel("Play as guest").check();
-  await page.getByPlaceholder("Guest name").fill(`Perf ${sampleId.slice(-14)}`);
-  await page.locator('button[data-area="play"]').click();
-  await page.getByRole("tab", { name: "Practice" }).click();
-  await expect(page.getByRole("button", { name: "Play Basic vs AI", exact: true })).toBeEnabled();
+  await setGuestName(page, `Perf ${sampleId.slice(-14)}`);
+  await navigatePlayer(page, "play");
+  await expect(page.getByRole("button", { name: "Start Basic vs AI", exact: true })).toBeEnabled();
 }
 
 async function collectSample(browser, baseURL, viewport, sampleId) {
@@ -24,7 +22,7 @@ async function collectSample(browser, baseURL, viewport, sampleId) {
   const page = await context.newPage();
   await openTrainingGrounds(page, baseURL, sampleId);
   const startedAt = Date.now();
-  await page.getByRole("button", { name: "Play Basic vs AI", exact: true }).click();
+  await page.getByRole("button", { name: "Start Basic vs AI", exact: true }).click();
   await expect(page.getByTestId("production-babylon-match")).toBeVisible();
   await expect(page.locator("canvas.babylon-match-canvas")).toBeVisible();
   await expect(page.locator(".production-context-panel")).toBeVisible();

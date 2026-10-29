@@ -1,0 +1,210 @@
+[
+  {
+    "viewport": {
+      "width": 1366,
+      "height": 768
+    },
+    "id": "basic-ai",
+    "bounds": {
+      "x": 218,
+      "y": 317.46875,
+      "width": 547.5,
+      "height": 91
+    }
+  },
+  {
+    "viewport": {
+      "width": 1366,
+      "height": 768
+    },
+    "id": "faction-ai",
+    "bounds": {
+      "x": 775.5,
+      "y": 317.46875,
+      "width": 547.5,
+      "height": 91
+    }
+  },
+  {
+    "viewport": {
+      "width": 1366,
+      "height": 768
+    },
+    "id": "private-duel",
+    "bounds": {
+      "x": 218,
+      "y": 418.46875,
+      "width": 547.5,
+      "height": 91
+    }
+  },
+  {
+    "viewport": {
+      "width": 1366,
+      "height": 768
+    },
+    "id": "join-table",
+    "bounds": {
+      "x": 775.5,
+      "y": 418.46875,
+      "width": 547.5,
+      "height": 91
+    }
+  },
+  {
+    "viewport": {
+      "width": 1366,
+      "height": 768
+    },
+    "id": "ranked",
+    "bounds": {
+      "x": 218,
+      "y": 519.46875,
+      "width": 547.5,
+      "height": 91
+    }
+  },
+  {
+    "viewport": {
+      "width": 1366,
+      "height": 768
+    },
+    "id": "draft",
+    "bounds": {
+      "x": 775.5,
+      "y": 519.46875,
+      "width": 547.5,
+      "height": 91
+    }
+  },
+  {
+    "viewport": {
+      "width": 1366,
+      "height": 768
+    },
+    "id": "campaign",
+    "bounds": {
+      "x": 218,
+      "y": 620.46875,
+      "width": 547.5,
+      "height": 91
+    }
+  },
+  {
+    "viewport": {
+      "width": 1366,
+      "height": 768
+    },
+    "id": "competition",
+    "bounds": {
+      "x": 775.5,
+      "y": 620.46875,
+      "width": 547.5,
+      "height": 91
+    }
+  },
+  {
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "id": "basic-ai",
+    "bounds": {
+      "x": 218,
+      "y": 310.46875,
+      "width": 504.5,
+      "height": 88
+    }
+  },
+  {
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "id": "faction-ai",
+    "bounds": {
+      "x": 732.5,
+      "y": 310.46875,
+      "width": 504.5,
+      "height": 88
+    }
+  },
+  {
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "id": "private-duel",
+    "bounds": {
+      "x": 218,
+      "y": 408.46875,
+      "width": 504.5,
+      "height": 88
+    }
+  },
+  {
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "id": "join-table",
+    "bounds": {
+      "x": 732.5,
+      "y": 408.46875,
+      "width": 504.5,
+      "height": 88
+    }
+  },
+  {
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "id": "ranked",
+    "bounds": {
+      "x": 218,
+      "y": 506.46875,
+      "width": 504.5,
+      "height": 88
+    }
+  },
+  {
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "id": "draft",
+    "bounds": {
+      "x": 732.5,
+      "y": 506.46875,
+      "width": 504.5,
+      "height": 88
+    }
+  },
+  {
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "id": "campaign",
+    "bounds": {
+      "x": 218,
+      "y": 604.46875,
+      "width": 504.5,
+      "height": 88
+    }
+  },
+  {
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "id": "competition",
+    "bounds": {
+      "x": 732.5,
+      "y": 604.46875,
+      "width": 504.5,
+      "height": 88
+    }
+  }
+]

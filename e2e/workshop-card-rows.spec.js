@@ -1,4 +1,5 @@
 const { test, expect } = require("@playwright/test");
+const { openCollection } = require("./player-navigation");
 const fs = require("node:fs");
 const path = require("node:path");
 const { COLLECTION_CARDS } = require("../server/gameContent");
@@ -17,8 +18,7 @@ test("deck Cards view places readable names and full rules beside left-aligned i
   page.on("pageerror", error => errors.push(error.message));
   await page.addInitScript(token => localStorage.setItem("gauntlet_auth_token", token), session.token);
   await page.goto(baseURL);
-  await page.locator('button[data-area="build"]').click();
-  await page.getByRole("button", { name: "Open Collection Workshop" }).click();
+  await openCollection(page);
   await page.getByRole("tab", { name: "Decks", exact: true }).click();
   await page.getByLabel("Deck faction", { exact: true }).selectOption("bizi");
   await page.getByLabel("Deck name", { exact: true }).fill("Bizi field notes");

@@ -1,3 +1,4 @@
+const { navigatePlayer } = require("./player-navigation");
 const { area: adminArea, paraTab, identity } = require("./admin-navigation");
 const { origin, clientOrigin } = require("./admin-urls");
 const { test, expect } = require("./admin-release-test"), AxeBuilder = require("@axe-core/playwright").default;
@@ -43,7 +44,7 @@ test("Admin authors and publishes a usable Gold product; player earns, buys, rea
   await publish("Operational Gold and match analysis"); const release = (await get("/api/admin/authoring")).activeReleaseId;
   const context = await browser.newContext({ baseURL: clientOrigin }); const player = await context.newPage();
   try {
-    await login(player, false); await player.locator('button[data-area="identity"]').click(); await player.getByRole("tab", { name: "Gold & Library", exact: true }).click();
+    await login(player, false); await navigatePlayer(player, "profile", "library");
     const library = player.getByRole("region", { name: "Gold & Library", exact: true });
     await library.getByRole("button", { name: "Claim Welcome to Gold · 700 Gold", exact: true }).click(); await expect(library).toContainText("700 Gold · Published");
     await library.getByRole("button", { name: "Claim Verified training · 300 Gold", exact: true }).click(); await expect(library).toContainText("1000 Gold · Published");
@@ -56,7 +57,7 @@ test("Admin authors and publishes a usable Gold product; player earns, buys, rea
     expect((await new AxeBuilder({ page: player }).include(".economy-console").analyze()).violations).toEqual([]);
     await library.screenshot({ path: "artifacts/gold-analysis-desktop.png" });
     await area(); await choose("Marketplace"); await page.getByRole("button", { name: /^Personal match analysis gold-browser-analysis/ }).click(); await page.getByRole("button", { name: "Archive definition", exact: true }).click(); await publish("Retire offer, preserve permanent library access");
-    await player.reload(); await player.locator('button[data-area="identity"]').click(); await player.getByRole("tab", { name: "Gold & Library", exact: true }).click();
+    await player.reload(); await navigatePlayer(player, "profile", "library");
     // Publishing refreshes the full Admin catalog while the player session is
     // restored. Wait for the resulting wallet view, including on loaded runners.
     await expect(library).toContainText("800 Gold · Published", { timeout: 15000 }); await expect(library.getByRole("button", { name: /^Review Personal/ })).toHaveCount(0);

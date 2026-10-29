@@ -1,3 +1,4 @@
+const { openCollection } = require("./player-navigation");
 const { test, expect } = require("./admin-release-test");
 const { waitForBufferedAdminResponse } = require("./buffered-admin-response");
 const fs = require("node:fs"), path = require("node:path"), { spawn } = require("node:child_process"), sharp = require("sharp");
@@ -74,7 +75,7 @@ test("create, upload, organize, publish, own, save, play, revise and recover a p
   // Explicit isolated fixture ownership; Admin creation itself grants nothing.
   const accountFile = path.join(root, "accounts.json"), store = JSON.parse(fs.readFileSync(accountFile, "utf8")), account = store.accounts[0];
   expect(account.stats.collection.collectorVariants?.[p2]).toBeUndefined(); account.stats.collection.collectorVariants = { ...account.stats.collection.collectorVariants, [p2]: 1 }; fs.writeFileSync(accountFile, JSON.stringify(store));
-  await page.goto(baseURL); await page.locator('button[data-area="build"]').click(); await page.getByRole("button", { name: "Open Collection Workshop" }).click(); await page.getByRole("tab", { name: "Decks", exact: true }).click(); await page.getByLabel("Deck faction", { exact: true }).selectOption("rumin");
+  await page.goto(baseURL); await openCollection(page, "decks"); await page.getByLabel("Deck faction", { exact: true }).selectOption("rumin");
   await page.getByRole("button", { name: "4 of diamonds — Standard playing card", exact: true }).click(); await page.getByRole("button", { name: "Swap 4 of diamonds for Rumin Sentry", exact: true }).click();
   await page.getByLabel("Rumin Sentry card version", { exact: true }).selectOption(p2); await page.getByLabel("Deck name", { exact: true }).fill("Printing journey deck"); await page.getByRole("button", { name: "Create Deck", exact: true }).click(); await expect(page.getByRole("button", { name: "Save New Version", exact: true })).toBeEnabled();
   const savedDeck = () => JSON.parse(fs.readFileSync(accountFile, "utf8")).accounts[0].stats.savedConstructedDeck; expect(savedDeck().collectorVariantSelections[cardId]).toBe(p2);

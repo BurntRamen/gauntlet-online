@@ -1,3 +1,4 @@
+const { navigatePlayer } = require("./player-navigation");
 const { area: adminArea, paraTab, identity } = require("./admin-navigation");
 const { origin } = require("./admin-urls");
 const { test: base, expect } = require("@playwright/test");
@@ -127,7 +128,7 @@ test("both authorized accounts can inspect every section; other accounts and gue
   await page.goto("/admin/gauntlet");
   await expect(page.getByRole("heading", { name: "Private administration" })).toBeVisible();
   expect((await request.get(origin + "/admin/gauntlet/content")).status()).toBe(401);
-  await page.getByRole("button", { name: "Sign in through Identity" }).click();
+  await page.getByRole("button", { name: "Sign in through Profile" }).click();
   await page.getByPlaceholder("Account name", { exact: true }).fill("simply");
   await page.getByPlaceholder("Password", { exact: true }).fill("test-password");
   await page.getByRole("button", { name: "Sign In", exact: true }).click();
@@ -413,14 +414,14 @@ test("manifest-picked faction and portrait artwork previews load immutable draft
 
 test("Admin is discoverable only after access approval and review controls retain keyboard context", async ({ page, request }) => {
   await page.goto("/");
-  const adminLink = page.getByRole("button", { name: /^Admin Content and operations/ });
+  const adminLink = page.getByRole("button", { name: /^Admin workspace/ });
   await expect(adminLink).toHaveCount(0);
   await signIn(page, request, "Visitor"); await page.reload();
-  await expect(page.getByRole("heading", { name: "Journey", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Ready to play?", exact: true })).toBeVisible();
   await expect(adminLink).toHaveCount(0);
   await signIn(page, request, "simply"); await page.reload();
   await expect(adminLink).toBeVisible();
-  await page.getByRole("navigation", { name: "Gauntlet areas" }).screenshot({ path: "artifacts/admin-ux-navigation.png" });
+  await page.locator(".cd-rail").screenshot({ path: "artifacts/admin-ux-navigation.png" });
   await adminLink.click();
   await page.getByRole("button", { name: "Close admin", exact: true }).click();
   await expect(adminLink).toBeVisible();
@@ -461,7 +462,7 @@ test("Admin is discoverable only after access approval and review controls retai
   await page.getByLabel("Search all players").fill("not a registered name"); await page.getByRole("button", { name: "Search players", exact: true }).click();
   await expect(page.getByRole("status")).toContainText("No players match this search");
   await page.getByRole("button", { name: "Back to Gauntlet", exact: true }).click();
-  await page.getByRole("button", { name: /^Identity Profile/ }).click();
+  await navigatePlayer(page, "profile");
   await page.getByRole("button", { name: "Sign Out", exact: true }).click();
   await expect(adminLink).toHaveCount(0);
 });
@@ -1034,7 +1035,7 @@ test("Admin search opens exact prose editors, guards local edits, and publishes 
   await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible();
   const publicPage = await page.context().newPage();
   await publicPage.goto("/");
-  await publicPage.getByRole("navigation", { name: "Gauntlet areas", exact: true }).getByRole("button", { name: "Play Games and tables", exact: true }).click();
+  await navigatePlayer(publicPage, "play", "practice");
   await expect(publicPage.getByRole("heading", { name: "A browser-reviewed practice heading.", exact: true })).toBeVisible();
   await publicPage.screenshot({ path: "artifacts/admin-search-prose-release/published-page.png", fullPage: false });
   await publicPage.close();

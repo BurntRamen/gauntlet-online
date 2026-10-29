@@ -1,13 +1,11 @@
 const { test, expect } = require("@playwright/test");
 const path = require("node:path");
+const { navigatePlayer, setGuestName } = require("./player-navigation");
 
 async function enterDraftMenu(page, baseURL, name = "Draft Tester") {
   await page.goto(baseURL);
-  await page.locator('button[data-area="identity"]').click();
-  await page.getByLabel("Play as guest").check();
-  await page.getByPlaceholder("Guest name").fill(name);
-  await page.locator('button[data-area="play"]').click();
-  await page.getByRole("tab", { name: /^Draft\b/ }).click();
+  await setGuestName(page, name);
+  await navigatePlayer(page, "draft");
 }
 
 test("a fresh visitor sees loading until the draft table is ready after seat assignment", async ({ page, baseURL }) => {
@@ -25,9 +23,8 @@ test("a fresh visitor sees loading until the draft table is ready after seat ass
     release = () => { hold = false; queued.forEach(message => client.send(message)); };
   });
   await page.goto(baseURL);
-  await page.locator('button[data-area="play"]').click();
-  await page.getByRole("tab", { name: "Draft", exact: true }).click();
-  await page.getByRole("button", { name: /Draft against bots/ }).click();
+  await navigatePlayer(page, "draft", "bot");
+  await page.getByRole("button", { name: "Start Bot Draft", exact: true }).click();
   await expect.poll(() => assigned).toBe(true);
   await expect(page.getByRole("heading", { name: "Opening your table" })).toBeVisible();
   await expect(page.getByRole("progressbar")).toBeVisible();
@@ -49,9 +46,10 @@ test("entry failures are visible and Sealed can be retried", async ({ page, base
     });
   });
   await enterDraftMenu(page, baseURL);
-  await page.getByRole("button", { name: /Open a Sealed pool/ }).click();
+  await navigatePlayer(page, "draft", "sealed");
+  await page.getByRole("button", { name: "Open Sealed Pool", exact: true }).click();
   await expect(page.getByText("That set is temporarily unavailable.")).toBeVisible();
-  await page.getByRole("button", { name: /Open a Sealed pool/ }).click();
+  await page.getByRole("button", { name: "Open Sealed Pool", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Gauntlet Sealed", exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Your Sealed Pool (78)", exact: true })).toBeVisible();
 });
@@ -60,7 +58,8 @@ test("bot draft opens, survives reload, and completes all 39 picks", async ({ pa
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await enterDraftMenu(page, baseURL);
-  await page.getByRole("button", { name: /Solo Table/i }).click();
+  await navigatePlayer(page, "draft", "bot");
+  await page.getByRole("button", { name: "Start Bot Draft", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Gauntlet Bot Draft" })).toBeVisible();
   for (let pick = 0; pick < 39; pick++) {
     await expect(page.getByRole("heading", { name: `Your Draft Pool (${pick})`, exact: true })).toBeVisible();
@@ -77,7 +76,7 @@ test("bot draft opens, survives reload, and completes all 39 picks", async ({ pa
   expect(errors).toEqual([]);
 });
 
-test("draft entry shows loading, saves an account deck, and opens the correct mode from Build", async ({ page, request, baseURL }) => {
+test("draft entry shows loading, saves an account deck, and enters its Limited League", async ({ page, request, baseURL }) => {
   const registered = await request.post(`${process.env.DRAFT_SERVER_URL || "http://127.0.0.1:4145"}/api/auth/register`, { data: { name: `Draft${Date.now().toString(36)}`, password: "Draft-Test-Password-42" } });
   expect(registered.ok()).toBeTruthy();
   const { token } = await registered.json();
@@ -97,10 +96,9 @@ test("draft entry shows loading, saves an account deck, and opens the correct mo
     });
   });
   await page.goto(baseURL);
-  await page.locator('button[data-area="build"]').click();
-  await page.getByRole("button", { name: "Open Draft Modes" }).click();
-  await expect(page.getByRole("tab", { name: /^Draft\b/ })).toHaveAttribute("aria-selected", "true");
-  await page.getByRole("button", { name: /Solo Table/i }).click();
+  await navigatePlayer(page, "draft", "bot");
+  await expect(page.getByRole("navigation", { name: "Limited formats" }).getByRole("button", { name: "Bot Draft", exact: true })).toHaveAttribute("aria-current", "page");
+  await page.getByRole("button", { name: "Start Bot Draft", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Opening your table" })).toBeVisible();
   await expect(page.getByRole("progressbar")).toBeVisible();
   await page.screenshot({ path: path.join(__dirname, "../artifacts/draft-review/loading.png") });
@@ -122,9 +120,12 @@ test("draft entry shows loading, saves an account deck, and opens the correct mo
   await expect(page.getByText(/Saved 1 .* Bot Draft League/)).toBeVisible();
   await page.screenshot({ path: path.join(__dirname, "../artifacts/draft-review/deck-saved.png"), fullPage: true });
   await page.getByRole("button", { name: "Main Menu", exact: true }).click();
-  await page.getByRole("button", { name: "Play saved bot-draft deck", exact: true }).click();
-  await expect(page.getByRole("button", { name: "Leave Draft Queue" })).toBeVisible();
-  await page.getByRole("button", { name: "Leave Draft Queue" }).click();
+  await navigatePlayer(page, "draft", "league");
+  await page.getByLabel("Deck source").selectOption("bot");
+  await page.getByRole("button", { name: "Find Limited Match", exact: true }).click();
+  const queue = page.getByRole("region", { name: "Limited queue" });
+  await expect(queue).toBeVisible();
+  await queue.getByRole("button", { name: "Leave Draft Queue", exact: true }).click();
 });
 
 test("expired drafts recover to the menu", async ({ page, baseURL }) => {
@@ -145,11 +146,11 @@ test("live draft joins from Draft, reconnects a waiting player, and blocks late 
     const guest = await guestContext.newPage();
     const late = await lateContext.newPage();
     await enterDraftMenu(page, baseURL, "Host");
-    await page.getByRole("button", { name: /Draft with friends/i }).click();
+    await page.getByRole("button", { name: "Create Draft Room", exact: true }).click();
     await expect(page.getByRole("button", { name: "Start Draft" })).toBeDisabled();
     const roomCode = await page.getByLabel("Room code").inputValue();
     await enterDraftMenu(guest, baseURL, "Partner");
-    await guest.getByRole("tab", { name: "Tables", exact: true }).click();
+    await navigatePlayer(guest, "play", "tables");
     await guest.getByLabel("Room code").fill(roomCode);
     await guest.getByRole("button", { name: "Join as Player" }).click();
     await expect(page.getByRole("button", { name: "Start Draft" })).toBeEnabled();
@@ -165,7 +166,7 @@ test("live draft joins from Draft, reconnects a waiting player, and blocks late 
     await guest.getByRole("button").filter({ has: guest.locator("span", { hasText: /^Pick$/ }) }).first().click();
     await expect(page.getByRole("heading", { name: "Current Pack (12 cards)" })).toBeVisible();
     await enterDraftMenu(late, baseURL, "Late Player");
-    await late.getByRole("tab", { name: "Tables", exact: true }).click();
+    await navigatePlayer(late, "play", "tables");
     await late.getByLabel("Room code").fill(roomCode);
     await late.getByRole("button", { name: "Join as Player" }).click();
     await expect(late.getByText(/This table has already started/)).toBeVisible();

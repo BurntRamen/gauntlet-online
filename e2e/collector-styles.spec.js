@@ -1,4 +1,5 @@
 const { test, expect } = require("@playwright/test");
+const { openCollection } = require("./player-navigation");
 const fs = require("node:fs");
 const path = require("node:path");
 const sharp = require("sharp");
@@ -27,8 +28,7 @@ test("choose an in-game card version, save it, reload it, and render its foil on
   await page.addInitScript(token => localStorage.setItem("gauntlet_auth_token", token), session.token);
   const openWorkshop = async () => {
     await page.goto(baseURL);
-    await page.locator('button[data-area="build"]').click();
-    await page.getByRole("button", { name: "Open Collection Workshop" }).click();
+    await openCollection(page);
   };
   await openWorkshop();
   await page.getByRole("tab", { name: "Collector Styles", exact: true }).click();
