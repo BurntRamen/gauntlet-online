@@ -7,7 +7,7 @@ module.exports = {
   testMatch: "collector-styles.spec.js",
   use: { ...base.use, baseURL: "http://127.0.0.1:3107" },
   webServer: [
-    { ...base.webServer[0], url: "http://127.0.0.1:4107/api/game-content",
+    { ...base.webServer[0], command: "npm --prefix server start", url: "http://127.0.0.1:4107/api/game-content",
       env: { ...base.webServer[0].env, PORT: "4107", CLIENT_URL: "http://127.0.0.1:3107",
         ACCOUNT_DATA_FILE: path.join(data, "accounts.json"), FACTION_STATS_DATA_FILE: path.join(data, "faction-stats.json"),
         MATCH_DATA_FILE: path.join(data, "matches.json"), ROOM_STATE_DATA_FILE: path.join(data, "rooms.json") } },

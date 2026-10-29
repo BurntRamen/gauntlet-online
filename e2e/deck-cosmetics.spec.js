@@ -1,12 +1,10 @@
+const { workshopSession } = require("./workshop-session");
 const { test, expect } = require("@playwright/test");
 const { openCollection } = require("./player-navigation");
 
-test("deck card backs and boxes remain selectable and persist after reload on desktop and mobile", async ({ page, request, baseURL }) => {
+test("deck card backs and boxes remain selectable and persist after reload on desktop and mobile", async ({ page, baseURL }) => {
   test.setTimeout(90000);
-  const server = process.env.E2E_SERVER_URL || "http://127.0.0.1:4104";
-  const response = await request.post(server + "/api/auth/register", { data: { name: "Cosmetic " + Date.now(), password: "Local-Cosmetics-Review-42" } });
-  expect(response.ok(), await response.text()).toBeTruthy();
-  const session = await response.json();
+  const session = workshopSession("cosmetics");
   await page.addInitScript(token => localStorage.setItem("gauntlet_auth_token", token), session.token);
   await page.goto(baseURL);
   await openCollection(page, "decks");

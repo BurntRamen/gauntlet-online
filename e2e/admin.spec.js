@@ -436,7 +436,8 @@ test("Admin is discoverable only after access approval and review controls retai
   await encounterSection(page, "test");
   await expect(page.getByLabel("Test faction", { exact: true })).toHaveValue("sheen");
   await expect(page.getByLabel("Test faction", { exact: true })).toBeDisabled();
-  await page.getByRole("region", { name: "Real engine playtest" }).screenshot({ path: "artifacts/admin-ux-playtest.png" });
+  await expect(page.getByRole("region", { name: "Real engine playtest" })).toBeVisible();
+  await page.screenshot({ path: "artifacts/admin-ux-playtest.png", fullPage: true });
   await encounterSection(page, "story");
   await page.getByLabel("Draft title", { exact: true }).fill("The Verdant Uprising · UX review");
   await page.getByRole("button", { name: "Save title to draft", exact: true }).click();

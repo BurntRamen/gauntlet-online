@@ -163,7 +163,12 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
       factionFamilies: require("./adminFactions").FAMILIES.map(id => ({ id, name: require("./gameContent").factionsData[id].name })),
       deckFactions: Object.values(require("./adminFactions").resolve(state.draft?.snapshot || live.snapshot)).map(({ id, name, origin, campaignOnly, general, generals, commander, city }) => ({ id, name, origin, campaignOnly, general, generals, commander, city })),
       printingEditions: require("./adminPrintings").editions(state.draft?.snapshot || live.snapshot),
-      fields: Object.fromEntries(Object.entries((state.draft?.snapshot || live.snapshot).domains).map(([domain, rows]) => [domain, Object.fromEntries(rows.map((row) => [row.id, Object.fromEntries(Object.entries(fieldsFor(domain, row, state.draft?.snapshot || live.snapshot)).map(([key, spec]) => [key, spec.type === "catalog-flags" ? { ...spec, labels: require("./catalogFlagLabels.json") } : spec]))]))])),
+      fields: Object.fromEntries(Object.entries((state.draft?.snapshot || live.snapshot).domains).map(([domain, rows]) => [domain, Object.fromEntries(rows.map((row) => [row.id, Object.fromEntries(Object.entries(fieldsFor(domain, row, state.draft?.snapshot || live.snapshot)).map(([key, spec]) => {
+        // Match the card editor's compatible choices without repeating the entire
+        // deployed effect registry for every card in the authoring response.
+        if (domain === "cards" && key === "effect") return [key, { ...spec, options: spec.options.filter(option => option.factionId === row.factionId && option.cardType === row.type) }];
+        return [key, spec.type === "catalog-flags" ? { ...spec, labels: require("./catalogFlagLabels.json") } : spec];
+      }))]))])),
       releases: Object.values(state.releases).map(({ snapshot, assetPackage, ...release }) => ({ ...release, compatible: compatible({ snapshot }), rollbackBlocked: catalog.rollbackProblem(live.snapshot, snapshot) })),
       activations: clone(state.activations).reverse(),
       para: { fields: paraLeague.FIELDS, templates: Object.fromEntries(Object.keys(paraLeague.FIELDS).map((key) => [key, paraLeague.newDefinition(key)])),

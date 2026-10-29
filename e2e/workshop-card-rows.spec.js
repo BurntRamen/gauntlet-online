@@ -1,14 +1,13 @@
+const { workshopSession } = require("./workshop-session");
 const { test, expect } = require("@playwright/test");
 const { openCollection } = require("./player-navigation");
 const fs = require("node:fs");
 const path = require("node:path");
 const { COLLECTION_CARDS } = require("../server/gameContent");
 
-test("deck Cards view places readable names and full rules beside left-aligned images", async ({ page, request, baseURL }) => {
+test("deck Cards view places readable names and full rules beside left-aligned images", async ({ page, baseURL }) => {
   test.setTimeout(120000);
-  const response = await request.post("http://127.0.0.1:4104/api/auth/register", { data: { name: `Rows QA ${Date.now()}`, password: "Local-Card-Rows-42" } });
-  expect(response.ok()).toBeTruthy();
-  const session = await response.json();
+  const session = workshopSession("rows");
   const storePath = path.resolve(__dirname, "../.playwright-data/slot-workshop/accounts.json");
   const store = JSON.parse(fs.readFileSync(storePath, "utf8"));
   const cards = COLLECTION_CARDS.filter(card => card.factionId === "bizi" && card.value < 6);

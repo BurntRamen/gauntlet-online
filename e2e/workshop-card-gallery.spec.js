@@ -1,3 +1,4 @@
+const { workshopSession } = require("./workshop-session");
 const { test, expect } = require("@playwright/test");
 const { openCollection } = require("./player-navigation");
 const fs = require("node:fs");
@@ -6,10 +7,8 @@ const AxeBuilder = require("@axe-core/playwright").default;
 const { COLLECTION_CARDS } = require("../server/gameContent");
 const DRONE_ART = require("../server/contentAssetManifest.json").entries.find((entry) => entry.source === "/assets/gauntlet/constructed/faces/bizi-dune-circuit-runner-hearts.webp").path;
 
-test("matching cards switch views and zoom without changing the deck, on desktop and mobile", async ({ page, request, baseURL }) => {
-  const response = await request.post("http://127.0.0.1:4104/api/auth/register", { data: { name: `Gallery QA ${Date.now()}`, password: "Local-Gallery-Review-42" } });
-  expect(response.ok()).toBeTruthy();
-  const session = await response.json();
+test("matching cards switch views and zoom without changing the deck, on desktop and mobile", async ({ page, baseURL }) => {
+  const session = workshopSession("gallery");
   const card = COLLECTION_CARDS.find((entry) => entry.name === "Aerial Drone");
   const storePath = path.resolve(__dirname, "../.playwright-data/slot-workshop/accounts.json");
   const store = JSON.parse(fs.readFileSync(storePath, "utf8"));
@@ -113,10 +112,8 @@ test("matching cards switch views and zoom without changing the deck, on desktop
   expect(errors).toEqual([]);
 });
 
-test("neutral cards keep their own faction in every workshop view and keyword deep link", async ({ page, request, baseURL }) => {
-  const response = await request.post("http://127.0.0.1:4104/api/auth/register", { data: { name: `Faction QA ${Date.now()}`, password: "Local-Faction-Review-42" } });
-  expect(response.ok()).toBeTruthy();
-  const session = await response.json();
+test("neutral cards keep their own faction in every workshop view and keyword deep link", async ({ page, baseURL }) => {
+  const session = workshopSession("neutral");
   const card = COLLECTION_CARDS.find((entry) => entry.factionId === "neutral");
   const storePath = path.resolve(__dirname, "../.playwright-data/slot-workshop/accounts.json");
   const store = JSON.parse(fs.readFileSync(storePath, "utf8"));
