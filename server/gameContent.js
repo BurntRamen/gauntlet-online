@@ -2269,6 +2269,16 @@ const CAMPAIGN_CHARACTER_DESCRIPTIONS = {
       description: "Draven is Alden's institutional mirror: experienced, intelligent, and convinced that civilization cannot survive if officers choose conscience over command. His composure should make the Directorate's violence feel systemic rather than theatrical."
     }
   },
+  xendra: {
+    elias: { name: "Elias Varen", role: "Cartographer and unwilling conduit", description: "A careful mapmaker with no appetite for heroism, Elias follows contradictions because leaving them unexplained feels more dangerous. Each answer makes him more useful to the XenDra ritual until curiosity, compassion, and manipulation become impossible to separate." },
+    syllith: { name: "Syllith, the Echoing Child", role: "Harbinger of altered memory", description: "Syllith repeats familiar words with one detail displaced, testing whether identity survives when memory remains emotionally true but factually wrong. The childlike form may be a person, a mask, or the shape Elias finds hardest to reject." },
+    thrallmaker: { name: "The Thrallmaker", role: "Architect of surrendered perception", description: "The Thrallmaker offers relief from fear by making every observer share one compliant reality. Its promise of mercy reveals the XenDra method: domination need not move a body if it can change which choices the body believes exist." },
+    nulth: { name: "Nulth, the Hollow Voice", role: "Speaker of the Deep Currents", description: "Nulth speaks in resonant questions that alter the assumptions beneath their answers. It treats mountains, oceans, pain, and personhood as temporary aspects, making conversation itself a form of terrain the listener can lose." },
+    arel: { name: "Arel Voss", role: "Enlightened Conduit", description: "Arel follows the XenDra willingly after experiencing the Deep Currents as an end to isolation and suffering. His serenity forces Elias to confront the possibility that sincere consent can still be cultivated inside a reality whose alternatives have been edited." },
+    krauth: { name: "Sovereign Krauth", role: "Crown of Static", description: "Krauth coordinates the eclipse ritual without behaving like a conventional general. It lets resistance complete the pattern, then names the difference between intent and consequence with the calm of something that has already experienced several outcomes." },
+    elder: { name: "The Village Elder", role: "Voice of the synchronized village", description: "The Elder's perfect courtesy hides a community whose people answer with identical language. Whether victim, volunteer, or distributed mask, the Elder is Elias's first evidence that ordinary social agreement can be made supernaturally exact." },
+    defenders: { name: "The Last Defenders of Reath", role: "Witnesses against oblivion", description: "The final defenders oppose Elias after he becomes the ritual's conduit. They are not a faceless army but the remaining people who insist that peace without separate minds, uncertain choices, and the right to refuse is another name for erasure." }
+  },
   sheen: {
     narrator: {
       name: "Sheen Narrator",

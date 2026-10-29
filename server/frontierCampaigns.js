@@ -345,9 +345,29 @@ function makeChapter(factionId, arc, index) {
 const CAMPAIGNS = Object.fromEntries(Object.entries(ARC).map(([id, arc]) => [id, arc.titles.map((_, index) => makeChapter(id, arc, index))]));
 const NARRATION = Object.fromEntries(Object.values(CAMPAIGNS).flat().map((entry) => [entry.id, { beforeBattle: entry.dialogue[0].replace(/^Narrator:\s*/, ""), afterBattle: entry.endDialogue[0].replace(/^Narrator:\s*/, "") }]));
 const METADATA = Object.fromEntries(Object.entries(ARC).map(([id, arc]) => [id, { commanderName: arc.theme, pitch: `Follow the ${FACTIONS[id].name} across homeworld ${arc.world}, test whether ${arc.conflict}, and reach Reath as a convergence point rather than an origin.`, coverImage: FACTIONS[id].cardImage }]));
+function oppositionArchive(factionId) {
+  const arc = ARC[factionId];
+  return Object.fromEntries(arc.foes.map((name, index) => [
+    `opposition-${index + 1}`,
+    {
+      name,
+      role: `Opposition in ${arc.titles[index]}`,
+      description: `${name} turns the conflict of “${arc.titles[index]}” into a test of whether ${arc.conflict}. The encounter matters because its answer changes who may speak, coordinate, and carry the faction's values into the next crisis.`
+    }
+  ]));
+}
+
 const CHARACTERS = {
-  ingles: { elian: { name: "Elian Wren", role: "First Speaker", description: "A constitutional reformer who treats law as a revisable promise among people rather than a sacred machine." }, rowan: { name: "Rowan Vale", role: "Marshal of the Common Fleet", description: "A disciplined defender who accepts civilian argument as part of command rather than an obstacle to it." } },
-  mercaw: { mara: { name: "Mara Kest", role: "Federal Convener", description: "A patient coalition builder who knows that unity chosen noisily is stronger than obedience imposed efficiently." }, rook: { name: "Rook Talon", role: "Frontier Pathfinder", description: "An inventor and pilot who loves independence enough to defend other people's right to it." } },
+  ingles: {
+    elian: { name: "Elian Wren", role: "First Speaker", description: "A constitutional reformer who treats law as a revisable promise among people rather than a sacred machine. Elian's authority comes from making disagreement legible, preserving the right to amend a decision even while Albion Reach is under attack." },
+    rowan: { name: "Rowan Vale", role: "Marshal of the Common Fleet", description: "A disciplined defender who accepts civilian argument as part of command rather than an obstacle to it. Rowan proves that a formation can remain decisive without turning temporary military necessity into a returning crown." },
+    ...oppositionArchive("ingles")
+  },
+  mercaw: {
+    mara: { name: "Mara Kest", role: "Federal Convener", description: "A patient coalition builder who knows that unity chosen noisily is stronger than obedience imposed efficiently. Mara keeps the many aeries inside the Accord by protecting their right to refuse, renegotiate, and still return to the common flight." },
+    rook: { name: "Rook Talon", role: "Frontier Pathfinder", description: "An inventor and pilot who loves independence enough to defend other people's right to it. Rook turns engines, maps, and improvised relays into connective tissue without treating discovery as a claim of ownership." },
+    ...oppositionArchive("mercaw")
+  },
   mtano: {
     mtari: { name: "M'Tari", role: "Founder of the Ancestral Veil", description: "A child prophet who teaches that leadership is a debt and sacrifice is honorable only when freely given, yet unintentionally creates a memory system that favors those history already remembers." },
     sundaro: { name: "Sundaro", role: "Founder of the Golden Kingdom", description: "An exiled prince who coordinates seven independent tribes without erasing their identities and establishes the Council of Seven." },
