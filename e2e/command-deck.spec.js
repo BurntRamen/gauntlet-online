@@ -161,6 +161,7 @@ test('layout editing supports keyboard movement, native handle dragging, hide re
   expect((await layoutOrder(page))[0]).toBe('basic-ai');
   await doneEditing(page);
   await page.getByRole('button', { name: 'Profile', exact: true }).click();
+  await page.getByText('Customize menu layouts', { exact: true }).click();
   await page.getByRole('switch', { name: 'Customize Mode' }).check();
   await expect(page.getByLabel('Panel options for Competitive Record')).toBeVisible();
   await page.getByLabel('Panel options for Gold & Library').selectOption('first');

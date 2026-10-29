@@ -67,7 +67,7 @@ test("fresh visitors can enter practice directly and each destination explains i
   await setGuestName(page, "New Practice Player");
   await expect(page.getByRole("heading", { name: "Your Profile", exact: true })).toBeVisible();
   await navigatePlayer(page, "decks");
-  await expect(page.getByRole("button", { name: /Browse Collection/ })).toContainText("Open sign-in and collection information");
+  await expect(page.getByRole("button", { name: /Browse Collection/ })).toHaveAttribute("aria-description", "Sign in to browse");
   await navigatePlayer(page, "play");
   await page.getByRole("button", { name: "Start Basic vs AI", exact: true }).click();
   await expect(page.getByTestId("production-babylon-match")).toBeVisible();
