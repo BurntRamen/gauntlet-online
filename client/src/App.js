@@ -3338,9 +3338,9 @@ export default function App() {
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Could not load match completion.");
-        if (cancelled) return;
         const completion = data.completion || null;
-        setCompletionEnvelope(completion);
+        // A completed match still belongs in this device's library when the
+        // player leaves the result view before the completion response arrives.
         if (authToken && completion?.matchId) {
           import("./matchHistory")
             .then(({ saveCompletedMatchFromServer }) => saveCompletedMatchFromServer({
@@ -3352,6 +3352,8 @@ export default function App() {
               console.warn("[MatchLibrary] Completed match could not be saved on this device.", localSaveError);
             });
         }
+        if (cancelled) return;
+        setCompletionEnvelope(completion);
         if (!authToken || !completion?.matchId) {
           setCompletionAccountReadyMatchId(matchId);
           return;

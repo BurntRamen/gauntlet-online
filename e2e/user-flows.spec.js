@@ -291,10 +291,24 @@ test("completed match exports, imports on another device, replays, and rejects m
   await navigatePlayer(page, "play");
   await page.getByRole("button", { name: "Start Basic vs AI", exact: true }).click();
   await expect(page.getByTestId("production-babylon-match")).toBeVisible();
-  await page.getByText("Match", { exact: true }).click();
-  await page.getByRole("button", { name: "Concede", exact: true }).click();
-  await page.getByRole("group", { name: "Confirm concession" }).getByRole("button", { name: "Confirm", exact: true }).click();
-  await page.getByRole("button", { name: "Matches", exact: true }).click();
+  // Leave the result view with completion still in flight. Saving the finalized
+  // archive must survive navigation without depending on response timing.
+  let releaseCompletion;
+  const completionGate = new Promise(resolve => { releaseCompletion = resolve; });
+  await page.route("**/api/matches/*/completion", async route => {
+    const response = await route.fetch();
+    await completionGate;
+    await route.fulfill({ response });
+  });
+  try {
+    await page.getByText("Match", { exact: true }).click();
+    await page.getByRole("button", { name: "Concede", exact: true }).click();
+    const completionStarted = page.waitForRequest(request => /\/api\/matches\/[^/]+\/completion$/.test(request.url()));
+    await page.getByRole("group", { name: "Confirm concession" }).getByRole("button", { name: "Confirm", exact: true }).click();
+    await completionStarted;
+    await page.getByRole("button", { name: "Matches", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Matches", exact: true })).toBeVisible();
+  } finally { releaseCompletion(); }
   const row = page.locator('.matches-row[data-local-match="true"]').first();
   await expect(row).toBeVisible();
   const downloaded = page.waitForEvent("download");

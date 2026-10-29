@@ -943,12 +943,30 @@ test("encounter dossiers play exchanges with faction accompaniment and independe
   await dialogue.screenshot({ path: path.join(review, "mobile.png") });
 
   // Every shipped arrangement must be decodable, including factions without voices yet.
-  const durations = await page.evaluate(async () => Promise.all(["rumin", "sheen", "frumo", "bizi"].map((faction) => new Promise((resolve, reject) => {
-    const audio = new Audio(`/assets/gauntlet/music/dossiers/${faction}-reverie.wav`);
-    audio.onloadedmetadata = () => resolve(audio.duration);
-    audio.onerror = () => reject(new Error(`Cannot decode ${faction} accompaniment`));
-    audio.load();
-  }))));
+  // Probe one arrangement at a time and release it before the next request;
+  // retaining concurrent WAV streams can exhaust Chromium's network buffers.
+  const durations = await page.evaluate(async () => {
+    const values = [];
+    for (const faction of ["rumin", "sheen", "frumo", "bizi"]) {
+      const audio = new Audio();
+      audio.preload = "metadata";
+      try {
+        values.push(await new Promise((resolve, reject) => {
+          audio.onloadedmetadata = () => resolve(audio.duration);
+          audio.onerror = () => reject(new Error(`Cannot decode ${faction} accompaniment: ${audio.error?.message || audio.error?.code || "unknown media error"}`));
+          audio.src = `/assets/gauntlet/music/dossiers/${faction}-reverie.wav`;
+          audio.load();
+        }));
+      } finally {
+        audio.onloadedmetadata = null;
+        audio.onerror = null;
+        audio.pause();
+        audio.removeAttribute("src");
+        audio.load();
+      }
+    }
+    return values;
+  });
   expect(durations).toEqual([48, 48, 48, 48]);
 });
 
@@ -1229,10 +1247,10 @@ test("Mekan and a chosen General enter a ranked match from the queue picker", as
     const secondPage = await secondContext.newPage();
     await prepareAccount(firstPage, firstAccount.token, baseURL);
     await prepareAccount(secondPage, secondAccount.token, baseURL);
-    await firstPage.getByLabel("Faction", { exact: true }).selectOption("mekan");
-    await firstPage.getByLabel("General", { exact: true }).selectOption("hui");
+    await firstPage.getByRole("combobox", { name: "Faction", exact: true }).selectOption("mekan");
+    await firstPage.getByRole("combobox", { name: "General", exact: true }).selectOption("hui");
     await firstPage.getByRole("button", { name: "Find Ranked Match", exact: true }).click();
-    await expect(firstPage.getByLabel("Faction", { exact: true })).toBeDisabled();
+    await expect(firstPage.getByRole("combobox", { name: "Faction", exact: true })).toBeDisabled();
     await secondPage.getByRole("button", { name: "Find Ranked Match", exact: true }).click();
     await expect(firstPage.getByText("Table Command")).toBeVisible();
     await expect(firstPage.getByLabel("Deck General")).toHaveValue("hui");
