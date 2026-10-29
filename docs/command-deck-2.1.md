@@ -1,22 +1,29 @@
 # Command Deck 2.1 implementation report
 
-The player menu hierarchy is replaced by a compact Command Deck. Play is the ordinary entry point; eight labeled game actions fit at 1366×768 and 1280×720. This branch is for an unmerged draft PR. It does not deploy the site or execute a production migration.
+The player menu hierarchy is replaced by a compact Command Deck. Play is the ordinary entry point, with eight primary game actions arranged for visibility at the target desktop sizes. The current release is **prepared pending final release checks**. Menu customization is disabled; this release requires no layout database migration.
 
-## Full-card artwork and header audio — October 29
+## Latest release candidate — October 29
 
-Artwork fills every illustrated action card. A dark gradient and text shadow protect the title and one short action cue; the redundant description line is removed. Campaign cards retain compact chapter progress. Guest collection actions still disclose sign-in before the click. On desktop widths of 1200px and above, Play uses four columns with 170px cards, exposing much more of each scene without moving its eight main actions below the fold. Smaller screens keep two columns; the mobile introductory panel is shortened. Compete and Decks use larger 160px cards.
+Action cards show **titles only**. Artwork fills the entire card and stays bright; a light text shadow protects the lettering without a dark image overlay, gradient plate, or separate text panel. The click outcome remains available as an accessible description. Desktop Play uses four columns to show more of each illustration while keeping the eight main choices together. Smaller screens retain two columns and a compact introductory panel. The complete campaign catalog remains scrollable.
 
-Three new candidate illustrations were generated with the built-in image-generation tool: a duel station, tournament dais, and drafting workbench. They complement the shipped arena, workshop, archive, identity, expedition, tutorial and faction assets. Versioned WebP files retain the original 1536×1024 dimensions and total about 619 KiB. The exact prompts, source paths, saved workspace asset paths and scope are recorded in [artwork provenance](generated-assets/command-deck-menu-art-2026-10-29.json). These are interface illustrations, with no new named lore, gameplay mechanics or promised rewards.
+The latest pass adds **17 distinct neutral illustrations**. Together with existing assets, all **28 unique action IDs have their own image**; a repeated action retains its identity across menus. The three illustrations from the previous pass—duel station, tournament dais and drafting workbench—remain in use. New subjects distinguish invitations, ranked play, official competition, collection, earned packs, saved draft decks, replays, records, social actions, training and references. These are interface illustrations, with no invented faction identity, named lore, mechanics or promised rewards.
 
-The header now exposes a persistent menu-audio mute button on desktop and mobile, including while editing layouts. Its pressed state, icon and tooltip communicate the current state. It shares the existing Settings master mute and immediately synchronizes with it; unmuting also clears an existing account mute override.
+Exact prompts, built-in generation method, original source paths and saved WebP paths are recorded in the [core-menu artwork manifest](generated-assets/distinct-menu-art-root.json), [collection and profile artwork manifest](generated-assets/distinct-menu-art-profile.json), and [social and learning artwork manifest](generated-assets/distinct-menu-art-deck.json). The [earlier three-image manifest](generated-assets/command-deck-menu-art-2026-10-29.json) retains their provenance. Generated PNG originals are preserved.
 
-All eight Play cards end at 667.47px in the 1366×768 viewport and 660.47px at 1280×720. At 390×844 they end at 769.69px, above the mobile navigation at 776px. Smaller or shorter screens retain scrolling and accessible controls. Compete and Decks expose all four choices by 518.44px at 1280×720. The complete campaign catalog remains scrollable. Images fill each card, load successfully and do not intercept input or dragging; forced-colors mode removes the decorative image layers. Reduced-motion settings disable hover image motion.
+Faction lore now has a searchable illustrated index, a prominent faction hero, compact record facts, section navigation and clearer story, figure and chapter presentation. It uses published faction content and the faction's own artwork where available. XenDra and Voltari use neutral fallback presentation instead of borrowing another faction's identity. The profile presents the player's portrait, actual progress, record and library actions more clearly, while retaining account, portrait, cosmetic and featured-deck controls.
 
-Validation: **70 client tests passed** across menu, shell, layout editing and audio suites. **5 browser scenarios passed**, covering desktop fit, 320/390/683/820px reflow, mobile navigation clearance, artwork loading and geometry, axe accessibility checks, keyboard/native layout editing, resets, guest reload, destinations/browser navigation and persistent header mute synchronized with Settings. Full-source lint, isolated production compilation and all existing bundle budgets passed. Earlier implementation validation below describes the preceding full qualification run.
+The header exposes persistent menu-audio mute on desktop and mobile. Its pressed state, icon and tooltip communicate the current state. It shares the Settings master mute; unmuting also clears an existing account mute override.
 
-Latest previews: [Play desktop](reviews/command-deck/artwork-play-desktop.png), [Compete](reviews/command-deck/artwork-compete.png), [Decks](reviews/command-deck/artwork-decks.png), [Campaign](reviews/command-deck/artwork-campaign.png), [Draft](reviews/command-deck/artwork-draft.png), [Play mobile](reviews/command-deck/artwork-play-mobile.png), and [Compete mobile](reviews/command-deck/artwork-compete-mobile.png).
+Existing deck customization is preserved. The deck editor still offers card-back selection and the Deck settings box picker. A real API browser regression selected a card back and Obsidian box, saved and reloaded the deck, then changed to account-default card back and Faction box on mobile and confirmed persistence again. Menu layout customization is a separate feature and is disabled in this release.
 
-![Command Deck with full-card artwork](reviews/command-deck/artwork-play-desktop.png)
+**Final release validation: pending final test, production-build, bundle-budget and deployed-preview results.**
+<!-- FINAL_RELEASE_VALIDATION: replace this pending line with the final checked revision, tests and deployment evidence. -->
+
+Earlier iterations passed focused menu/audio tests, the complete client suite, navigation/reflow checks and deck-cosmetic persistence checks. These establish regression coverage but do not substitute for the final release checks. Historical qualification results below are retained as earlier evidence.
+
+Latest previews: [Play desktop](reviews/command-deck/artwork-play-desktop.png), [Compete](reviews/command-deck/artwork-compete.png), [Decks](reviews/command-deck/artwork-decks.png), [Campaign](reviews/command-deck/artwork-campaign.png), [Draft](reviews/command-deck/artwork-draft.png), [Play mobile](reviews/command-deck/artwork-play-mobile.png), [Compete mobile](reviews/command-deck/artwork-compete-mobile.png), [Profile](reviews/command-deck/profile-final-1280.png), and [Faction lore](reviews/command-deck/lore-viewport-1280.png).
+
+![Command Deck with distinct full-card artwork](reviews/command-deck/artwork-play-desktop.png)
 
 ## Player experience
 
@@ -28,25 +35,27 @@ Latest previews: [Play desktop](reviews/command-deck/artwork-play-desktop.png), 
 | Ranked | Classic/Faction format, BO1/BO3, faction, General, applicable saved deck, explicit queue/leave actions. Deck editor returns to the retained setup. |
 | Draft | Published set and availability, Live Draft, Bot Draft, Sealed and their saved-deck Limited League queues. |
 | Campaign | Actual published factions and progress, Continue Campaign, quick references, preserved chapter briefings, dialogue and lore. |
-| Decks and cards | Active deck/editor, collection, earned packs first, collector purchases, saved versions/legality, Draft/Sealed library. Unsaved edits warn before leaving. |
+| Decks and cards | Active deck/editor, card-back and deck-box selection, collection, earned packs, collector purchases, saved versions/legality, Draft/Sealed library. Unsaved edits warn before leaving. |
 | Competition | Separate Ranked, Events, Para League and Standings destinations using existing server data and eligibility. |
 | Matches | Opponent/result/format/date first; record and replay actions distinct; local/cloud provenance, imports, exports and transcripts retained. |
 | Community | Direct Friends, Challenges, Messages and Invitations views, persistent actionable notices and actual unread counts. |
-| Profile and Settings | Account/recovery controls, record, Gold & Library, portrait/cosmetics/featured decks, layout settings, audio, helper labels and gameplay shortcuts. |
+| Profile and Settings | Account/recovery controls, record, Gold & Library, portrait/cosmetics/featured decks, audio, helper labels and gameplay shortcuts. Menu layout controls are disabled. |
 
-Browser navigation preserves invitation, public match/replay/profile, claim, recovery and Admin links. Active queues remain visible while browsing or editing layouts. Existing gameplay handlers, engines, rewards, economies, content and operator authorization are reused. Draft sign-in returns to Draft, and published Admin presentation overrides still reach the corresponding focused player screens.
+Browser navigation preserves invitation, public match/replay/profile, claim, recovery and Admin links. Active queues remain visible while browsing. Existing gameplay handlers, engines, rewards, economies, content and operator authorization are reused. Draft sign-in returns to Draft, and published Admin presentation overrides still reach the corresponding focused player screens.
 
-## Layout Studio and storage
+## Menu customization release gate
 
-More → Customize this page and Profile → Page Layouts → Customize Mode enter opt-in editing. Eligible panels have handle-only dragging, keyboard/touch movement menus, hide/show placeholders, position announcements and confirmed page/all-page resets. Normal tile actions are inert during editing. Done Editing restores ordinary interaction; hidden shortcuts remain reachable through permanent navigation/action directories.
+Menu layout customization is **disabled by default**. Normal builds use StaticLayoutProvider: menus retain their default ordering and visible actions, ignore saved guest/account layouts, and never initialize the layout-storage or account-layout request hook. More, Profile and Settings do not expose Customize, layout reset or layout preferences controls. This does not disable card backs, deck boxes, portraits, card printings or other existing player customization.
 
-The version-1 layout registry contains a bounded allowlist per landing page. Campaign IDs are derived from published content. Required recovery, queue, invitation, account and workflow controls stay outside customizable panels. Mobile editing uses one column and 44px controls.
+The unfinished Layout Studio remains in the codebase for explicitly enabled review builds only. REACT_APP_MENU_LAYOUT_CUSTOMIZATION=true opts into that review path; the dedicated Command Deck customization test configuration sets it explicitly. The release-menu browser configuration forces it off and checks a signed-in account across destinations, including default order, ignored saved preferences, absent controls and zero layout storage/network access.
 
-Guests save to browser storage, with in-session fallback when storage is denied. Authenticated `GET/PUT /api/account/layouts` use the existing Bearer authentication and stable account ID. Compare-and-set revisions reject conflicting writes with HTTP 409; users can load the saved version or retry their arrangement. Guest/account layouts require an explicit choice before replacement. Successful server responses alone display synced status. Request scopes prevent late account responses from changing another player's layout, and already-authorized queued saves finish across menu unmounts.
+**No layout database migration is required or executed for this release.** The dormant authenticated layout API and [command-deck-layouts.sql](../server/migrations/command-deck-layouts.sql) are unused by the default player menus. Any later decision to release account layout persistence needs its own deployment review and migration readiness checks.
 
-Local deployments use a locked, atomic, fsynced layout sidecar included in runtime backups. Supabase deployments use `gauntlet_account_layouts` with RLS and service-role-only access. The narrow migration is [command-deck-layouts.sql](../server/migrations/command-deck-layouts.sql). **It has not been applied to production.** Review and apply it before enabling account layout persistence on a Supabase deployment; the UI reports loading/saving errors honestly if the table is unavailable.
+Historical opt-in implementation: handle-only dragging, keyboard/touch movement, hide/show, confirmed resets, guest storage, versioned account persistence and conflict recovery were tested during development. Those capabilities and their historical screenshots below describe the gated review path, not the current player-facing release.
 
-## Validation
+## Historical qualification results
+
+These results cover earlier implementation revisions, including the opt-in Layout Studio. Final release results belong in the latest-release section above.
 
 - Server: 574 tests passed, 0 failed, 0 skipped, including original gameplay/account/Admin integration coverage.
 - Layout/storage: guest fallback, schema bounds, stale scopes, account conflicts, delayed saves, private SQL grants/RLS, backup/restore and local concurrency exercised. The migration was executed only in an isolated PGlite test database.
@@ -58,13 +67,15 @@ Local deployments use a locked, atomic, fsynced layout sidecar included in runti
 - Deck workshop suite: **5 scenarios passed** across the initial run and targeted rerun. The run exposed generic shell button styles overriding compact deck-card sizes; the shell now leaves the card grid's measured styles intact. Tests cover rename/version behavior, swaps and boxes, responsive previews, collector card display, full rules and sequential pack reveals.
 - Migrated player-flow and Draft regressions: **21 scenarios passed** across the initial run and targeted rerun. These include all 39 Bot Draft picks, saving and retry, Limited League entry, invitation entry, startup recovery, returning after sign-in, queue/account isolation, replay export/import, four-player matches and disconnected Draft recovery. Initial failures from retired heading expectations, the startup fixture and heading-level accessibility were corrected and the affected cases rerun successfully.
 - Existing collection, economy and Admin browser fixtures now use the replacement menus and retain their underlying assertions. The complete Admin/economy/renderer CI matrix was not rerun locally; those checks remain in the PR workflow.
-- Desktop geometry: the eighth action ends at 711.47px in a 768px viewport and 692.47px in a 720px viewport. [Measured rectangles](reviews/command-deck/above-the-fold.json).
+- Earlier desktop geometry: the eighth action ended at 711.47px in a 768px viewport and 692.47px in a 720px viewport. The [measurement file](reviews/command-deck/above-the-fold.json) is refreshed for the current candidate and may differ from these historical values.
 - Reflow and axe checks: 320px, 390px, 820px tablet, and 683×384 CSS viewport as 200%-equivalent desktop reflow; keyboard focus, More sheet, reduced motion and horizontal overflow checked. Actual browser chrome zoom and physical assistive devices were not separately exercised.
 - Production build and all existing bundle budgets passed: main **173.1 / 180 KiB**, player JavaScript **748.6 / 759 KiB**, largest async chunk **274.2 / 350 KiB**, initial Admin **17.3 / 20 KiB**, all lazy Admin **61.0 / 61 KiB** (gzip, rounded). The menu and Layout Studio load in a dedicated lazy chunk; budget ceilings were unchanged.
 
-Run `npm run test:e2e:command-deck` for the isolated browser suite (ports 3110/4110 and local test accounts). The PR workflow now includes this suite alongside the existing browser suites. Standard build, bundle, client, server and content checks remain available. Browser tests create only local test data.
+Run `npm run test:e2e:command-deck` for the isolated opt-in customization suite. Run `npx playwright test --config=playwright.release-menus.config.js` for the default-disabled release gate. Both use ports 3110/4110 and local test accounts, so run them sequentially. Standard build, bundle, client, server and content checks remain available. Browser tests create only local test data.
 
-## Review images
+## Historical review images
+
+The following images document the earlier implementation, including the gated layout editor. Use the latest-preview links above for the release candidate.
 
 Before desktop:
 
@@ -82,8 +93,8 @@ Mobile navigation and editing:
 
 Additional views: [Campaign](reviews/command-deck/after-campaign.png), [Chapter briefing](reviews/command-deck/after-campaign-briefing.png), [Decks & Cards](reviews/command-deck/after-decks-cards.png), [Deck Editor](reviews/command-deck/after-deck-editor.png), [Draft](reviews/command-deck/after-draft.png), [Compete](reviews/command-deck/after-compete.png), [Ranked Setup](reviews/command-deck/after-ranked-setup.png), [Matches](reviews/command-deck/after-matches.png), [Community](reviews/command-deck/after-community.png), [Learn & Rules](reviews/command-deck/after-learn-rules.png), [Profile](reviews/command-deck/after-profile.png), [Settings](reviews/command-deck/after-settings.png), [More](reviews/command-deck/after-more.png).
 
-## Review boundary
+## Historical review boundary
 
-The implementation is based on current main at d5778d6596588cea0d8f927adc53de89181e22ef. The original checkout's pre-existing edits were preserved; the proposed changes live in a separate worktree and branch. Legacy menu components and their dedicated styles/tests were retired; shared gameplay styling remains.
+The initial implementation was based on main at d5778d6596588cea0d8f927adc53de89181e22ef; subsequent main integration and release work are recorded in Git history. The original checkout's pre-existing edits were preserved; the proposed changes live in a separate worktree and branch. Legacy menu components and their dedicated styles/tests were retired; shared gameplay styling remains.
 
-No rule, reward, entitlement or economic behavior was redesigned. Layout preferences do not alter those stores. Live production event registration, purchases, deployment and the production SQL migration are outside this verification run.
+No rule, reward, entitlement or economic behavior was redesigned. Layout preferences do not alter those stores. Live production event registration and purchases were outside that historical verification run. The current user request authorizes deployment after final release checks; the layout migration remains unnecessary while menu customization is disabled.

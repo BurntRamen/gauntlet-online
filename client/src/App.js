@@ -2839,6 +2839,7 @@ function CampaignScreen({ embedded = false, initialFactionId, initialChapterId =
   const completedChapters = (activeCampaign?.chapters || []).filter(chapter => campaignProgress[activeFactionId]?.includes(chapter.id)).map(chapter => chapter.id);
   const nextChapterIndex = activeCampaign?.chapters?.findIndex((chapter) => !completedChapters.includes(chapter.id)) ?? -1;
   const nextChapter = nextChapterIndex >= 0 ? activeCampaign.chapters[nextChapterIndex] : null;
+  const campaignArtwork = getFactionArtwork(activeFactionId, nextChapter?.image, activeCampaign?.coverImage);
   const nextDifficulty = nextChapter ? encounterPresentation(nextChapter, manifest).difficulty : null;
   const briefingChapterIndex = activeCampaign?.chapters?.findIndex((chapter) => chapter.id === briefingChapterId) ?? -1;
   const briefingChapter = briefingChapterIndex >= 0 ? activeCampaign.chapters[briefingChapterIndex] : null;
@@ -2907,7 +2908,7 @@ function CampaignScreen({ embedded = false, initialFactionId, initialChapterId =
           />
         ) : (
           <section className="campaign-archive" style={{ "--faction-accent": activeTheme.primary, "--faction-border": activeTheme.border }}>
-            <header className="campaign-archive-hero" data-art-state={nextChapter?.image || activeCampaign.coverImage ? "chapter-art" : "faction-fallback"} style={{ backgroundImage: `linear-gradient(90deg, rgba(3,7,12,0.84) 0%, rgba(3,7,12,0.56) 54%, rgba(3,7,12,0.08) 100%), url(${resolveVisualAsset(nextChapter?.image || activeCampaign.coverImage || `/assets/gauntlet/${activeFactionId}-card.webp`)})` }}>
+            <header className="campaign-archive-hero" data-art-state={campaignArtwork ? "faction-art" : "neutral"} style={{ backgroundImage: `linear-gradient(90deg, rgba(3,7,12,0.84) 0%, rgba(3,7,12,0.56) 54%, rgba(3,7,12,0.08) 100%), url(${resolveVisualAsset(campaignArtwork || "/assets/gauntlet/ui/faction-art-unavailable.svg")})` }}>
               <div className="campaign-archive-copy">
                 <span>{completedChapters.length} of {activeCampaign.chapters.length} chapters cleared</span>
                 <h2>{activeCampaign.factionName}: {activeCampaign.commanderName}</h2>
@@ -2948,12 +2949,13 @@ function CampaignScreen({ embedded = false, initialFactionId, initialChapterId =
             <div className="campaign-chapter-grid">
               {activeCampaign.chapters.map((chapter, index) => {
                 const difficulty = encounterPresentation(chapter, manifest).difficulty;
+                const chapterArtwork = getFactionAsset(activeFactionId, chapter.image);
                 const unlocked = index === 0 || completedChapters.includes(activeCampaign.chapters[index - 1]?.id);
                 const completed = completedChapters.includes(chapter.id);
                 return (
                   <article key={chapter.id} aria-current={index === nextChapterIndex ? "step" : undefined} className={`campaign-chapter${unlocked ? " is-unlocked" : " is-locked"}${completed ? " is-complete" : ""}${index === nextChapterIndex ? " is-current" : ""}`}>
-                    <div className="campaign-chapter-art" data-art-state={chapter.image ? "chapter-art" : "faction-fallback"}>
-                      {chapter.image ? <img src={resolveVisualAsset(chapter.image)} alt="" loading="lazy" decoding="async" /> : <FactionArtwork factionId={activeFactionId} decorative />}
+                    <div className="campaign-chapter-art" data-art-state={chapterArtwork ? "chapter-art" : "faction-fallback"}>
+                      {chapterArtwork ? <img src={resolveVisualAsset(chapterArtwork)} alt="" loading="lazy" decoding="async" /> : <FactionArtwork factionId={activeFactionId} decorative />}
                     </div>
                     <div className="campaign-chapter-status">Chapter {index + 1}<span>{completed ? "Cleared" : index === nextChapterIndex ? "Next Battle" : unlocked ? "Pack Reward" : "Locked"}</span></div>
                     <h3>{chapter.title}</h3>

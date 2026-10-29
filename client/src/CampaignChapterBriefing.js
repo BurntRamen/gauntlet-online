@@ -1,4 +1,4 @@
-import { resolveVisualAsset } from "./GauntletVisuals";
+import { getFactionArtwork, resolveVisualAsset } from "./GauntletVisuals";
 import { dossierMusicSource, useDialoguePlayback } from "./dialoguePlayback";
 import DialoguePlaybackControls, { DialogueVoiceButton } from "./DialoguePlaybackControls";
 
@@ -61,7 +61,7 @@ export default function CampaignChapterBriefing({
   const Narrative = previewOnly ? "section" : "main", Dossier = previewOnly ? "section" : "aside";
   const chapterNumber = chapterIndex + 1;
   const stateLabel = completed ? "Cleared" : current ? "Next Battle" : unlocked ? "Available" : "Locked";
-  const art = resolveVisualAsset(chapter.image || campaign.coverImage || `/assets/gauntlet/${factionId}-card.webp`);
+  const art = resolveVisualAsset(getFactionArtwork(factionId, chapter.image, campaign.coverImage) || "/assets/gauntlet/ui/faction-art-unavailable.svg");
   const battleLabel = unlocked ? "Begin Battle" : `Clear Chapter ${chapterIndex} First`;
 
   return (

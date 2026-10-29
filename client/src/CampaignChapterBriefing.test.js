@@ -60,6 +60,12 @@ function renderBriefing(overrides = {}) {
   return props;
 }
 
+test("uses a neutral briefing scene instead of borrowed faction art", () => {
+  renderBriefing({ factionId: "xendra", campaign: { ...campaign, factionName: "XenDra", coverImage: "/assets/gauntlet/bizi-card.webp" }, chapter: { ...chapter, image: "/assets/gauntlet/rumin-card.webp" } });
+  expect(document.querySelector(".campaign-briefing-hero").style.backgroundImage).toContain("faction-art-unavailable.svg");
+  expect(document.querySelector(".campaign-briefing-hero").style.backgroundImage).not.toContain("rumin-card");
+});
+
 test("shows the complete source-grounded briefing while keeping a locked battle gated", () => {
   const props = renderBriefing();
 

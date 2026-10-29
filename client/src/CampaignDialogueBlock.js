@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useDialoguePlayback } from "./dialoguePlayback";
 import DialoguePlaybackControls, { DialogueVoiceButton } from "./DialoguePlaybackControls";
+import { getFactionAsset } from "./GauntletVisuals";
 import "./CampaignDialogueBlock.css";
 
 const SPEAKER_IMAGES = {
@@ -47,7 +48,7 @@ function assetUrl(source) {
   return `${process.env.PUBLIC_URL || ""}${source.startsWith("/") ? source : `/${source}`}`;
 }
 
-export function getCampaignSpeakerImage(speaker) {
+function speakerImageCandidate(speaker) {
   const normalized = String(speaker || "").toLowerCase();
   const alias = Object.keys(SPEAKER_IMAGES).find((key) => normalized.includes(key));
   if (alias) return SPEAKER_IMAGES[alias];
@@ -55,7 +56,12 @@ export function getCampaignSpeakerImage(speaker) {
   if (["admiral", "captain", "tide", "pirate", "corsair", "deep", "sunken"].some((key) => normalized.includes(key))) return "/assets/gauntlet/frumo-card.webp";
   if (["voltari", "silicon", "conductor", "regnum", "engine", "machine"].some((key) => normalized.includes(key))) return "/assets/gauntlet/bizi-card.webp";
   if (["xendra", "sovereign", "thrall", "conduit", "eclipse", "defender"].some((key) => normalized.includes(key))) return "/assets/gauntlet/bizi-card.webp";
-  return "/assets/gauntlet/rumin-card.webp";
+  return "";
+}
+
+export function getCampaignSpeakerImage(speaker, factionId) {
+  const candidate = speakerImageCandidate(speaker);
+  return (factionId ? getFactionAsset(factionId, candidate) : candidate) || "/assets/gauntlet/ui/faction-art-unavailable.svg";
 }
 
 export default function CampaignDialogueBlock({ title = "Dialogue", lines = [], audio = [], factionId = "default", compact = false, light = false, autoPlayKey = "", audioOnly = false, audioEnabled = true }) {
@@ -89,7 +95,7 @@ export default function CampaignDialogueBlock({ title = "Dialogue", lines = [], 
           return (
             <article className={`campaign-dialogue-entry${isPlaying ? " is-speaking" : ""}`} key={`${entry.speaker}-${index}`}>
               <span className="campaign-dialogue-portrait-shell" aria-hidden="true">
-                <img src={assetUrl(getCampaignSpeakerImage(entry.speaker))} alt="" />
+                <img src={assetUrl(getCampaignSpeakerImage(entry.speaker, factionId))} alt="" />
                 <i className="campaign-dialogue-mouth" />
               </span>
               <span className="campaign-dialogue-copy">
