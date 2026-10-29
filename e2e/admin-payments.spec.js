@@ -16,6 +16,6 @@ test("cash product authoring publishes exact terms while provider readiness and 
   await operations.getByRole("textbox", { name: "Search economy records" }).fill("No provider"); await expect(operations).toContainText("No provider, merchant account or live checkout is connected."); await expect(operations.getByRole("button", { name: "Recover or request refund of a payment", exact: true })).toHaveCount(0);
   expect((await new AxeBuilder({ page }).include(".economy-console").analyze()).violations).toEqual([]); await operations.screenshot({ path: "artifacts/phase2-payment-readiness.png", animations: "disabled" });
   await page.goto("/"); await navigatePlayer(page, "profile", "library");
-  const library = page.getByRole("region", { name: "Gold & Library", exact: true }); await expect(library).toContainText("Future Gem credit"); await expect(library).toContainText("Real-money checkout is unavailable"); await expect(library.getByRole("button", { name: /Review Future Gem credit/ })).toHaveCount(0);
+  const library = page.locator(".cd-setup-content").getByRole("region", { name: "Gold & Library", exact: true }); await expect(library).toContainText("Future Gem credit"); await expect(library).toContainText("Real-money checkout is unavailable"); await expect(library.getByRole("button", { name: /Review Future Gem credit/ })).toHaveCount(0);
   await library.screenshot({ path: "artifacts/phase2-payment-disabled.png", animations: "disabled" });
 });
