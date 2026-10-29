@@ -13,6 +13,12 @@ const softwareGraphics = process.env.GAUNTLET_E2E_SOFTWARE_GL === "true"
 // GPU-less runners need time to present queued events on every client.
 const expect = baseExpect.configure({ timeout: softwareGraphics ? 30000 : 10000 });
 
+async function openRuminCampaign(page) {
+  const campaign = page.getByRole("button", { name: "Rumin", exact: true });
+  await expect(campaign).toHaveAttribute("aria-description", /^Chapters · \d+ of \d+ cleared$/);
+  await campaign.click();
+}
+
 test.beforeAll(async ({ browser }) => {
   if (process.env.CI !== "true") return;
   const session = await browser.newBrowserCDPSession();
@@ -655,7 +661,7 @@ test("capture current match baseline through normal local practice and campaign 
       await page.getByRole("button", { name: "Start Basic vs AI", exact: true }).click();
     } else {
       await navigatePlayer(page, "campaign");
-      await page.getByRole("button", { name: /^Rumin\b.*Open chapter selection/ }).click();
+      await openRuminCampaign(page);
       await page.getByRole("button", { name: "Begin Battle", exact: true }).first().click();
     }
     const match = page.getByTestId("production-babylon-match");
@@ -857,7 +863,7 @@ test("later Bizi missions keep the new interface through boss actions", async ({
   for (const chapter of chapters.slice(-4)) {
     await page.goto(baseURL);
     await navigatePlayer(page, "campaign");
-    await page.getByRole("button", { name: /^Rumin\b.*Open chapter selection/ }).click();
+    await openRuminCampaign(page);
     await page.getByRole("tab", { name: /^Bizi/ }).click();
     await page.locator(".campaign-chapter").filter({
       has: page.getByRole("heading", { name: chapter.title, exact: true })
@@ -899,7 +905,7 @@ test("encounter dossiers play exchanges with faction accompaniment and independe
   }, VOICE_ASSET_PATHS);
   await page.goto(baseURL);
   await navigatePlayer(page, "campaign");
-  await page.getByRole("button", { name: /^Rumin\b.*Open chapter selection/ }).click();
+  await openRuminCampaign(page);
   await page.getByRole("button", { name: "View Briefing" }).first().click();
   const dialogue = page.getByRole("region", { name: "Voices before the battle" });
   await dialogue.getByRole("button", { name: "Play exchange" }).click();
@@ -962,7 +968,7 @@ test("normal campaign entry presents the campaign boss through the shared Babylo
   await page.goto(baseURL);
   await setGuestName(page, "Campaign Trainee");
   await navigatePlayer(page, "campaign");
-  await page.getByRole("button", { name: /^Rumin\b.*Open chapter selection/ }).click();
+  await openRuminCampaign(page);
   await expect(page.getByRole("heading", { name: "Faction Campaigns" })).toBeVisible();
   await page.getByRole("button", { name: "Begin Battle" }).first().click();
 
@@ -1109,7 +1115,7 @@ test("signed-in campaign victory refreshes account state, continues, persists, a
   }, account.token);
   await page.goto(baseURL);
   await navigatePlayer(page, "campaign");
-  await page.getByRole("button", { name: /^Rumin\b.*Open chapter selection/ }).click();
+  await openRuminCampaign(page);
   await expect(page.getByRole("heading", { name: "Faction Campaigns" })).toBeVisible();
   await page.getByRole("button", { name: "Begin Battle" }).first().click();
 
@@ -1156,8 +1162,8 @@ test("signed-in campaign victory refreshes account state, continues, persists, a
   await page.getByText("Match", { exact: true }).click();
   await page.getByRole("button", { name: "Main menu" }).click();
   await navigatePlayer(page, "campaign");
-  await expect(page.getByRole("button", { name: /^Rumin\b.*Open chapter selection/ })).toContainText("1 of 12 chapters cleared");
-  await page.getByRole("button", { name: /^Rumin\b.*Open chapter selection/ }).click();
+  await expect(page.getByRole("button", { name: "Rumin", exact: true })).toHaveAttribute("aria-description", "Chapters · 1 of 12 cleared");
+  await openRuminCampaign(page);
   const completedChapter = page.locator(".campaign-chapter").filter({
     has: page.getByRole("heading", { name: completion.campaign.title, exact: true })
   });
@@ -1173,7 +1179,7 @@ test("signed-in campaign victory refreshes account state, continues, persists, a
 
   await page.reload();
   await navigatePlayer(page, "campaign");
-  await expect(page.getByRole("button", { name: /^Rumin\b.*Open chapter selection/ })).toContainText("1 of 12 chapters cleared");
+  await expect(page.getByRole("button", { name: "Rumin", exact: true })).toHaveAttribute("aria-description", "Chapters · 1 of 12 cleared");
   await navigatePlayer(page, "profile");
   await page.getByRole("button", { name: "Sign Out" }).click();
   await page.getByPlaceholder("Account name").fill(accountName);
@@ -1188,7 +1194,7 @@ test("signed-in campaign victory refreshes account state, continues, persists, a
   expect(restoredAccount.progression.campaign.rumin).toContain(completion.campaign.chapterId);
 
   await navigatePlayer(page, "campaign");
-  await page.getByRole("button", { name: /^Rumin\b.*Open chapter selection/ }).click();
+  await openRuminCampaign(page);
   const replayChapter = page.locator(".campaign-chapter").filter({ hasText: completion.campaign.title });
   await replayChapter.getByRole("button", { name: "Begin Battle" }).click();
   await expect(page.getByTestId("production-babylon-match")).toBeVisible();

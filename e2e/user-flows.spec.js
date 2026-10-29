@@ -136,7 +136,9 @@ test("outer menus are accessible on phones and the draft shortcut opens Draft", 
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   }
   await navigatePlayer(page, "play");
-  await page.getByRole("button", { name: /Draft & Sealed.*Choose format/ }).click();
+  const draftShortcut = page.getByRole("button", { name: "Draft & Sealed", exact: true });
+  await expect(draftShortcut).toHaveAttribute("aria-description", "Choose format");
+  await draftShortcut.click();
   await expect(page.getByRole("heading", { name: "Draft & Sealed", exact: true, level: 1 })).toBeVisible();
   await expect(page.getByRole("button", { name: "Create Draft Room", exact: true })).toBeVisible();
   expect(errors).toEqual([]);
