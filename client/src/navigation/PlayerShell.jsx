@@ -1,5 +1,7 @@
 import React, { useEffect, useId, useRef, useState } from "react";
 import { getDestination, PRIMARY_DESTINATIONS, MOBILE_DESTINATIONS, MORE_DESTINATIONS } from "./destinations";
+import { resolveVisualAsset } from "../GauntletVisuals";
+import { MENU_SCENES } from "./menuArtwork";
 import "./PlayerShell.css";
 
 const ICON_PATHS = {
@@ -127,7 +129,8 @@ export default function PlayerShell({ destination = "play", navigationKey = dest
   }, []);
 
   return (
-    <div className={`cd-shell${editing ? " is-editing" : ""}`}>
+    <div className={`cd-shell${editing ? " is-editing" : ""}`} data-destination={current.id} style={{ "--cd-scene": `url("${resolveVisualAsset(MENU_SCENES[current.id])}")` }}>
+      <div className="cd-environment" aria-hidden="true"><img key={current.id} src={resolveVisualAsset(MENU_SCENES[current.id])} alt="" decoding="async" draggable={false} /></div>
       <div className="cd-shell-surface" inert={moreOpen ? true : undefined} aria-hidden={moreOpen ? true : undefined}>
         <a className="cd-skip-link" href={`#${mainId}`}>Skip to page content</a>
         <header className="cd-topbar">

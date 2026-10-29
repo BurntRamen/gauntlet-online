@@ -2,6 +2,18 @@
 
 The player menu hierarchy is replaced by a compact Command Deck. Play is the ordinary entry point; eight labeled game actions fit at 1366×768 and 1280×720. This branch is for an unmerged draft PR. It does not deploy the site or execute a production migration.
 
+## Existing-artwork visual refinement — October 29
+
+The Command Deck now reuses the previous menu's arena, workshop, archive, identity chamber, expedition, and tutorial scenes. Decorative artwork gives each destination a backdrop and illustrates action tiles. Campaign tiles use their published cover image, with the published faction artwork as a fallback. Brass borders, warmer headings, and the selected navigation treatment connect the compact interface to the existing game presentation. No new image assets were generated and no gameplay or navigation behavior changed.
+
+The artwork occupies existing space: all eight Play actions still end at 711.47px in a 768px viewport and 692.47px in a 720px viewport. Labels and click outcomes remain visible. Images are decorative, do not intercept clicks or dragging, and disappear in forced-colors mode; motion respects reduced-motion settings. Tile images load lazily, and the existing menu scenes are shared through the browser cache.
+
+Validation for this refinement: **63 client tests passed**, plus **4 existing browser scenarios** covering both desktop sizes, 320/390/683/820px reflow, axe accessibility checks, keyboard/native layout editing, resets, guest reload, destinations and browser navigation. The production build and every unchanged bundle budget passed: main **173.4/180 KiB**, player JavaScript **749.1/759 KiB**. Final screenshot capture also verified artwork loading and forced-colors decoration removal. Earlier implementation validation below describes the preceding full qualification run.
+
+Latest previews: [Play on desktop](reviews/command-deck/artwork-play-desktop.png), [Compete](reviews/command-deck/artwork-compete.png), [Campaign](reviews/command-deck/artwork-campaign.png), and [Play on mobile](reviews/command-deck/artwork-play-mobile.png).
+
+![Command Deck with existing Gauntlet artwork](reviews/command-deck/artwork-play-desktop.png)
+
 ## Player experience
 
 | Area | Result |
