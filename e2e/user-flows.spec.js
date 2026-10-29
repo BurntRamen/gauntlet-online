@@ -164,13 +164,14 @@ test("active deck leads Decks & Cards and Profile keeps picture editing availabl
     const primary = page.locator('.cd-action-tile[data-action-id="editor"]');
     await expect(primary).toBeEnabled();
     await expect(primary).toContainText("Edit Active Deck");
-    await expect(primary).toContainText("The Copper Guard");
+    await expect(page.locator(".cd-panel").filter({ has: page.getByRole("heading", { name: "Current deck", exact: true }) })).toContainText("The Copper Guard");
     await expect(page.locator("[data-layout-module]").first()).toHaveAttribute("data-layout-module", "editor");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: testInfo.outputPath(`build-${label}.png`), fullPage: true });
     await navigatePlayer(page, "profile");
     await settleMenu();
     await expect(page.getByRole("heading", { name: "Your Profile", exact: true })).toBeVisible();
+    await page.getByText("Customize menu layouts", { exact: true }).click();
     await expect(page.getByRole("switch", { name: "Customize Mode" })).toBeVisible();
     await page.getByText("Portrait, featured decks & campaign achievements", { exact: true }).click();
     const hero = page.locator(".identity-dossier-hero");

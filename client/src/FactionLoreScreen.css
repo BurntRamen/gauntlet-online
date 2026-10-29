@@ -91,3 +91,82 @@
   .is-embedded .faction-lore-hero { padding: 17px; }
   .is-embedded .faction-lore-hero dl { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* Illustrated archive: published artwork leads, with shading limited to the copy. */
+.faction-lore-header { min-height: 0; padding: 20px 0; gap: 18px; border: 0; background: none; }
+.faction-lore-header::before, .faction-lore-hero::before { display: none; }
+.faction-lore-header h1 { font-size: 32px; }
+.faction-lore-layout { gap: 18px; }
+.faction-lore-count { margin: 2px 3px 11px; color: #bdcdd3; font-size: 12px; }
+.faction-lore-index { border-radius: 10px; background: #101e28f5; }
+.faction-lore-index-list { padding: 3px; scrollbar-width: thin; scrollbar-color: #778b96 #101e28; }
+.faction-lore-index button { background: #16252e; }
+.faction-lore-index button:hover, .faction-lore-index button.is-active { border-color: var(--lore-accent); background: #27383e; }
+.faction-lore-index button.is-active { box-shadow: inset 2px 0 var(--lore-accent); }
+.faction-lore-index button small { color: #b5c7ce; }
+.faction-lore-record { border-radius: 12px; border-color: #465660; background: #0e1c26; box-shadow: 0 8px 28px #0004; }
+.faction-lore-hero, .is-embedded .faction-lore-hero { position: relative; display: flex; justify-content: flex-end; align-items: flex-start; flex-direction: column; min-height: 360px; overflow: hidden; padding: 28px; }
+.faction-lore-hero-art { position: absolute; z-index: -2; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 30%; }
+.faction-lore-hero-copy { position: relative; max-width: 620px; text-shadow: 0 2px 6px #000; }
+.faction-lore-hero-copy::before { content: ""; position: absolute; z-index: -1; inset: -30px -42px -40px -30px; background: radial-gradient(ellipse at 25% 80%, #061018fa 20%, #061018e6 52%, #06101800 76%); pointer-events: none; }
+.faction-lore-hero-copy > span { color: #f2d7a2; font-size: 10px; font-weight: 750; letter-spacing: .13em; text-transform: uppercase; }
+.faction-lore-hero h2, .is-embedded .faction-lore-hero h3 { margin: 7px 0 11px; color: #fff3d8; font: 500 clamp(32px, 4vw, 52px)/1.05 Georgia, serif; letter-spacing: -.025em; }
+.faction-lore-hero p, .is-embedded .faction-lore-hero p { max-width: 54ch; color: #e4e9ea; font-size: 14px; line-height: 1.65; }
+.faction-lore-page .faction-lore-start { display: inline-flex; align-items: center; gap: 18px; min-height: 44px; margin-top: 17px; padding: 10px 14px; border: 1px solid #f0d9aa; border-radius: 6px; color: #162029; background: #e2c48c; font-size: 13px; font-weight: 750; text-shadow: none; cursor: pointer; }
+.faction-lore-page .faction-lore-start:hover { color: #101b22; background: #f0d9ac; border-color: #fff1c9; }
+.faction-lore-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0; padding: 18px 26px; gap: 14px; background: #192d37; border-top: 2px solid var(--lore-accent); }
+.faction-lore-facts div { padding-left: 11px; border-left: 1px solid #657781; }
+.faction-lore-facts dt { color: #c0d0d7; font-size: 10px; text-transform: uppercase; letter-spacing: .07em; }
+.faction-lore-facts dd { margin: 5px 0 0; color: #f3ecdd; font-size: 13px; font-weight: 650; overflow-wrap: anywhere; }
+.faction-lore-sections { display: flex; flex-wrap: wrap; gap: 3px; padding: 8px 18px; border-bottom: 1px solid #3b4c56; }
+.faction-lore-sections a, .faction-lore-actions a { display: inline-flex; align-items: center; min-height: 44px; padding: 9px 10px; border-radius: 5px; color: #c1e5df; font-size: 13px; text-decoration: none; }
+.faction-lore-sections a:hover, .faction-lore-actions a:hover { color: #fff; background: #20333d; }
+.faction-lore-record :is(h2, h3, h4, h5), .faction-lore-header :is(h1, h2) { scroll-margin-top: 82px; overflow-wrap: anywhere; }
+.faction-lore-page :is(button, input, a):focus-visible { outline: 3px solid #9ae8dc; outline-offset: 3px; }
+.faction-lore-record :is(.faction-lore-prose, .faction-lore-doctrine, .faction-lore-section-heading) :is(h3, h4) { margin: 7px 0 14px; color: #f4e6c9; font: 500 25px/1.2 Georgia, serif; }
+.faction-lore-prose p, .is-embedded .faction-lore-prose p { max-width: 75ch; font-size: 15px; line-height: 1.8; }
+.faction-lore-doctrine blockquote, .is-embedded .faction-lore-doctrine blockquote { padding: 20px 24px; border-left-color: var(--lore-accent); background: linear-gradient(110deg, #293d47, #162831); font: 400 21px/1.5 Georgia, serif; }
+.faction-lore-arc { margin: 0 26px; padding: 28px 8px; border-bottom: 1px solid #9eb4bc24; }
+.is-embedded .faction-lore-arc { margin: 0 18px; padding: 20px 0; }
+.faction-lore-arc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(210px, 100%), 1fr)); gap: 13px; }
+.faction-lore-arc-grid article { padding: 18px; border: 1px solid #465963; border-radius: 8px; background: linear-gradient(145deg, #213942, #13232e); }
+.faction-lore-arc-grid article > span { color: #e8cc94; font-size: 10px; font-weight: 750; text-transform: uppercase; letter-spacing: .09em; }
+.faction-lore-arc-grid :is(h4, h5) { margin: 7px 0 10px; color: #fff0d6; font-size: 17px; line-height: 1.4; }
+.faction-lore-arc-grid p, .faction-lore-figure-grid p, .faction-lore-chronicle p { margin: 0; color: #c1d0d6; font-size: 14px; line-height: 1.7; }
+.faction-lore-section-heading > p { margin: 4px 0; color: #b8cbd3; font-size: 13px; line-height: 1.6; }
+.faction-lore-figure-grid article { padding: 0; overflow: hidden; border-color: #415762; border-radius: 8px; background: #172b35; }
+.faction-lore-figure-grid article > div { padding: 18px; }
+.faction-lore-portrait { display: block; width: 100%; height: 180px; object-fit: cover; object-position: center 25%; }
+.faction-lore-figure-grid small { display: block; margin-top: 14px; padding-top: 12px; border-top: 1px solid #536771; color: #c2d2d9; font-size: 12px; line-height: 1.6; }
+.faction-lore-chronicle li { overflow: hidden; padding: 0; border-radius: 8px; border-color: #415763; background: #132530; }
+.faction-lore-chronicle li::before { display: none; }
+.faction-lore-chronicle li > img { display: block; width: 100%; height: 145px; object-fit: cover; object-position: center 35%; }
+.faction-lore-chronicle li > div { padding: 17px; }
+.faction-lore-chronicle li small { color: #e9ca91; font-size: 10px; font-weight: 750; text-transform: uppercase; letter-spacing: .09em; }
+.faction-lore-chronicle li > div > span { display: block; margin: 7px 0 10px; color: #f4ead8; font-weight: 650; }
+@media (max-width: 1000px) {
+  .faction-lore-hero, .is-embedded .faction-lore-hero { min-height: 340px; }
+  .faction-lore-index-list, .is-embedded .faction-lore-index-list { max-height: 150px; }
+}
+@media (max-width: 600px) {
+  .faction-lore-index-list, .is-embedded .faction-lore-index-list { grid-template-columns: repeat(2, minmax(0, 1fr)); max-height: 140px; }
+  .faction-lore-index button, .is-embedded .faction-lore-index button { grid-template-columns: 28px minmax(0, 1fr); gap: 6px; padding: 5px; font-size: 12px; }
+  .faction-lore-index img, .is-embedded .faction-lore-index img { width: 28px; height: 36px; }
+  .faction-lore-index button small, .is-embedded .faction-lore-index button small { font-size: 11px; }
+  .faction-lore-hero, .is-embedded .faction-lore-hero { min-height: 300px; padding: 22px 18px; }
+  .faction-lore-hero-copy { padding-top: 70px; }
+  .faction-lore-hero h2, .is-embedded .faction-lore-hero h3 { font-size: 34px; }
+  .faction-lore-facts { padding: 15px 12px; gap: 7px; }
+  .faction-lore-facts div { padding-left: 6px; }
+  .faction-lore-facts dd { font-size: 12px; }
+  .faction-lore-facts dt { font-size: 9px; letter-spacing: 0; }
+  .faction-lore-sections { padding: 6px; }
+  .faction-lore-sections a { padding-inline: 8px; font-size: 12px; }
+  .faction-lore-prose p, .is-embedded .faction-lore-prose p { font-size: 14px; }
+  .faction-lore-doctrine blockquote, .is-embedded .faction-lore-doctrine blockquote { padding: 16px; font-size: 18px; }
+}
+@media (forced-colors: active) {
+  .faction-lore-hero-art, .faction-lore-hero-copy::before { display: none; }
+  .faction-lore-index button.is-active { outline: 2px solid Highlight; outline-offset: -2px; }
+  .faction-lore-hero-copy { text-shadow: none; }
+}

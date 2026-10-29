@@ -199,6 +199,7 @@ test("Profile retains account, layout preferences, and supplied progression and 
   renderMenus({ route: { page: "profile", view: "" }, account: { id: "one", name: "River" } });
   expect(screen.getByTestId("slot-account")).toBeInTheDocument();
   expect(screen.getByTestId("slot-profileExtras")).toBeInTheDocument();
+  fireEvent.click(screen.getByText("Customize menu layouts"));
   expect(screen.getByRole("switch", { name: "Customize Mode" })).toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Reset all page layouts" })).toBeInTheDocument();
 });

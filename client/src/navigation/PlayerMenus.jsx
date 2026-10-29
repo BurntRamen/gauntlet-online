@@ -211,11 +211,12 @@ export default function PlayerMenus({ route, onNavigate, account, ownerAuthorize
   else if (page === "profile" && view === "record") body = <SetupFrame title="Competitive Record" description="Your public account record and completed matches." onBack={profile} backLabel="Back to Profile">{slots.record}</SetupFrame>;
   else if (page === "profile" && view === "library") body = <SetupFrame title="Gold & Library" description="Your existing balances, entitlements, and library." onBack={profile} backLabel="Back to Profile">{slots.economy}</SetupFrame>;
   else if (page === "profile") body = <>
-    <div className="cd-profile-top"><section className="cd-panel"><h2>{account?.name || "Guest player"}</h2><p>{account ? "Your account, saved progression, and player identity." : "Start playing as a guest, or sign in to keep your progress across devices."}</p>{slots.account}</section><PageLayoutSettings /></div>
-    <Tiles pageId="profile" items={[
+    {slots.profileIdentity || <section className="cd-panel"><h2>{account?.name || "Guest player"}</h2><p>{account ? "Your progress and personal style." : "Play as a guest, or sign in to save your progress."}</p></section>}
+    <div className={`cd-profile-dashboard${account ? "" : " is-guest"}`}><div className="cd-profile-shortcuts"><Tiles pageId="profile" items={[
       action("record", "Competitive Record", "Wins, losses, and match history.", "View player record", () => nav("profile", "record"), "matches"),
       action("library", "Gold & Library", "Balances and existing earned entitlements.", "Open account library", () => nav("profile", "library"), "decks"),
-    ]} />{slots.profileExtras}
+    ]} />{slots.profileExtras}</div>
+    <aside className="cd-profile-account" aria-label="Account and preferences">{slots.account}<details className="cd-profile-layouts"><summary>Customize menu layouts</summary><PageLayoutSettings /></details></aside></div>
   </>;
   else if (page === "settings") body = slots.settings;
 

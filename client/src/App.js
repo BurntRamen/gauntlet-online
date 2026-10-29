@@ -1357,26 +1357,26 @@ function IdentityDossierHero({ account, featuredDecks, authToken, serverUrl, onA
   const achievements = Object.keys(progression.achievements || {}).length;
   const chapters = Object.values(progression.campaign || {}).reduce((total, entries) => total + (entries?.length || 0), 0);
   return (
-    <section className="identity-dossier-hero" style={{ "--faction-accent": FACTION_VISUALS[badgeId]?.accent || FACTION_VISUALS.basic.accent }}>
-      {equipment.banner ? <img src={equipment.banner.url} alt={equipment.banner.name} className="identity-dossier-art" /> : <FactionArtwork factionId={badgeId} decorative className="identity-dossier-art" />}
+    <section className="identity-dossier-hero" aria-label="Player identity" style={{ "--faction-accent": FACTION_VISUALS[badgeId]?.accent || FACTION_VISUALS.basic.accent }}>
+      {equipment.banner ? <img src={equipment.banner.url} alt={equipment.banner.name} className="identity-dossier-art" /> : <FactionArtwork factionId={badgeId} art={badgeId === "basic" ? "/assets/gauntlet/backgrounds/gauntlet-menu-identity-v2.jpg" : ""} decorative className="identity-dossier-art" />}
       <div className="identity-dossier-portrait">
         <PlayerAvatar subject={account} name={account?.name || "Guest"} serverUrl={serverUrl} size="large" />
       </div>
       <div className="identity-dossier-copy">
         <span>{title}</span>
-        <h3>{account?.name || "Guest Identity"}</h3>
-        <p>{account ? "Your honors, progress, and personal style." : "Sign in to save your progress, or choose a guest name below."}</p>
+        <h2>{account?.name || "Make your mark."}</h2>
+        <p>{account ? "Your honors, progress, and personal style." : "Your portrait, your decks, your story. Sign in below to keep them."}</p>
         {equipment.music && <audio controls preload="none" src={equipment.music.url} aria-label={equipment.music.name} />}
         {account && <details className="identity-portrait-settings">
           <summary>Edit profile picture</summary>
           <ProfilePortraitEditor account={account} authToken={authToken} serverUrl={serverUrl} onAccountUpdated={onAccountUpdated} />
         </details>}
       </div>
-      <div className="identity-dossier-stats" aria-label="Identity summary">
+      {account && <div className="identity-dossier-stats" aria-label="Identity summary">
         <span><strong>{achievements}</strong><small>Honors</small></span>
         <span><strong>{chapters}</strong><small>Chapters</small></span>
         <span><strong>{featuredDecks?.length || 0}</strong><small>Featured</small></span>
-      </div>
+      </div>}
     </section>
   );
 }
@@ -4757,8 +4757,9 @@ export default function App() {
           account: <><AccountPanel account={account} mode={authMode} form={authForm} error={authError} notice={authNotice} onRecoveryEmail={updateRecoveryEmail} onModeChange={setAuthMode}
             onFormChange={setAuthForm} onSubmit={submitAuth} onSignOut={signOut} />
             {!account && <div className="cd-panel"><label htmlFor="guest-name">Guest name</label><input id="guest-name" value={guestName} onChange={(event) => setGuestName(event.target.value)} maxLength={24} /><p>Guest play is ready from Play. Your progress stays in this session.</p></div>}</>,
+          profileIdentity: <IdentityDossierHero account={account} featuredDecks={enrichedFeaturedDecks} authToken={authToken} serverUrl={SOCKET_URL} onAccountUpdated={setAccount} />,
           profileExtras: <details className="cd-profile-extras"><summary>Portrait, featured decks & campaign achievements</summary>
-            <CurrencyWallet economy={account?.economy} compact /><IdentityDossierHero account={account} featuredDecks={enrichedFeaturedDecks} authToken={authToken} serverUrl={SOCKET_URL} onAccountUpdated={setAccount} />
+            <CurrencyWallet economy={account?.economy} compact />
             <section className="cd-featured-decks" aria-labelledby="cd-featured-title"><div className="cd-section-line"><h2 id="cd-featured-title">Featured decks</h2><button disabled={!account} onClick={() => openCollection("decks")}>Manage Featured Decks</button></div>
               {enrichedFeaturedDecks.length ? <div className="cd-featured-grid">{enrichedFeaturedDecks.map((deck) => <article key={deck.id} className="cd-panel">
                 {deck.format === "constructed" ? <DeckShowcase deck={deck} cards={[...(account?.collection?.catalog?.[deck.factionId] || []), ...(account?.collection?.catalog?.neutral || [])]} collectorCatalog={account?.collection?.collectorCatalog || []} compact /> : <DeckVisual deck={deck} decorative />}

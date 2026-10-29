@@ -13,7 +13,8 @@ const tokens = accounts.map((a) => __test.issueAccountSession(a).token); let ori
 test.before(async () => { await new Promise((r) => server.listen(0, "127.0.0.1", r)); origin = `http://127.0.0.1:${server.address().port}`; });
 test.after(async () => { await new Promise((r) => server.close(r)); __test.paraRuntime.close(); __test.goldEconomy.close(); fs.rmSync(root, { recursive: true, force: true }); });
 async function api(route, input, who = 0) {
-  const r = await fetch(origin + route, { method: input ? "POST" : "GET", headers: { "Content-Type": "application/json", ...(who === null ? {} : { Authorization: `Bearer ${tokens[who]}` }) }, ...(input ? { body: JSON.stringify(input) } : {}) });
+  // Publication work can outlive an idle pooled socket in this same-process server.
+  const r = await fetch(origin + route, { method: input ? "POST" : "GET", headers: { "Content-Type": "application/json", Connection: "close", ...(who === null ? {} : { Authorization: `Bearer ${tokens[who]}` }) }, ...(input ? { body: JSON.stringify(input) } : {}) });
   return { status: r.status, data: await r.json() };
 }
 const author = async (action, body = {}) => { const state = (await api("/api/admin/authoring")).data; const result = await api(`/api/admin/authoring/${action}`, { expectedRevision: state.revision, ...body }); assert.equal(result.status, 200, JSON.stringify(result.data)); return result.data; };
