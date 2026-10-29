@@ -154,7 +154,7 @@ export default function Studio({ serverUrl, authToken = "", onSignIn, onAuthoriz
         <span>Gauntlet Admin · private operations</span>
         <h3 id="studio-gate-title">Private administration</h3>
         <p>Gauntlet Admin is restricted to simply and Burnt Ramen. Access is checked by the server using your existing account session.</p>
-        {!authToken && <button onClick={onSignIn}>Sign in through Identity</button>}
+        {!authToken && <button onClick={onSignIn}>Sign in through Profile</button>}
         {authToken && <button disabled={loading} onClick={() => setAttempt((value) => value + 1)}>{loading ? "Checking access…" : "Check admin access"}</button>}
         {error && <p className="studio-error" role="alert">{error}</p>}
       </section>

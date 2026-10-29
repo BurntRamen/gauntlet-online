@@ -1,14 +1,14 @@
+const { workshopSession } = require("./workshop-session");
 const { test, expect } = require("@playwright/test");
+const { openCollection, navigatePlayer } = require("./player-navigation");
 const fs = require("node:fs");
 const path = require("node:path");
 const { COLLECTION_CARDS } = require("../server/gameContent");
 const MENDER_ART = require("../server/contentAssetManifest.json").entries.find((entry) => entry.source === "/assets/gauntlet/constructed/faces/sheen-raincall-mender-hearts.webp").path;
 
-test("52-card workshop saves exact swaps and boxes; packs reveal sequentially on desktop and mobile", async ({ page, request, baseURL }) => {
+test("52-card workshop saves exact swaps and boxes; packs reveal sequentially on desktop and mobile", async ({ page, baseURL }) => {
   test.setTimeout(120000);
-  const response = await request.post("http://127.0.0.1:4104/api/auth/register", { data: { name: `Slot QA ${Date.now()}`, password: "Local-Slot-Review-42" } });
-  expect(response.ok()).toBeTruthy();
-  const session = await response.json();
+  const session = workshopSession("slots");
   const storePath = path.resolve(__dirname, "../.playwright-data/slot-workshop/accounts.json");
   const store = JSON.parse(fs.readFileSync(storePath, "utf8"));
   const account = store.accounts.find((entry) => entry.id === session.account.id);
@@ -20,8 +20,7 @@ test("52-card workshop saves exact swaps and boxes; packs reveal sequentially on
   page.on("pageerror", (error) => errors.push(error.message));
   await page.addInitScript((token) => localStorage.setItem("gauntlet_auth_token", token), session.token);
   await page.goto(baseURL);
-  await page.locator('button[data-area="build"]').click();
-  await page.getByRole("button", { name: "Open Collection Workshop" }).click();
+  await openCollection(page);
   await page.getByRole("tab", { name: "Decks", exact: true }).click();
   await expect(page.locator(".deck-slot")).toHaveCount(52);
   const factions = page.getByLabel("Deck faction", { exact: true }).locator("option");
@@ -57,19 +56,35 @@ test("52-card workshop saves exact swaps and boxes; packs reveal sequentially on
   expect(getSaved().deckBoxId).toBe("obsidian");
   expect(getSaved().frontCardSlot).toBe(card.value + ":hearts");
   expect(getSaved().collectorVariantSelections[card.id]).toBe(card.id + ":collector-foil");
-  await expect(page.getByRole("status")).toContainText("Constructed deck saved.");
-  await page.getByRole("button", { name: "Main Menu", exact: true }).click();
-  await page.reload();
-  await page.locator('button[data-area="build"]').click();
-  const build = page.locator(".build-deck-entry");
-  await expect(build.locator(".build-deck-meta")).toContainText("1 replacements");
+  await expect(page.locator(".collection-workspace").getByRole("status")).toContainText("Constructed deck saved.");
+  await page.getByRole("button", { name: "Back to Decks & Cards", exact: true }).click();
+  // Open the editor before the restored account arrives. The active saved deck
+  // must initialize on hydration, not depend on the account/network being fast.
+  let releaseAccount;
+  const accountGate = new Promise(resolve => { releaseAccount = resolve; });
+  const accountUrl = "**/api/auth/me";
+  await page.route(accountUrl, async route => {
+    const response = await route.fetch();
+    await accountGate;
+    await route.fulfill({ response });
+  });
+  try {
+    await page.reload();
+    await navigatePlayer(page, "decks", "editor");
+    await expect(page.getByRole("button", { name: "Sign in to save decks and open earned packs", exact: true })).toBeVisible();
+  } finally { releaseAccount(); }
+  await expect(page.getByLabel("Saved deck", { exact: true }).locator("option:checked")).toHaveText("Sheen in Obsidian");
+  await page.unroute(accountUrl);
+  await page.locator(".deck-library-drawer > summary").click();
+  const build = page.locator(".deck-library-row").filter({ hasText: "Sheen in Obsidian" });
+  await expect(page.locator(".deck-slot.is-replaced")).toHaveCount(1);
   await expect(build.getByRole("img", { name: /Obsidian deck box/ })).toBeVisible();
   await expect(build.locator(".deck-showcase-front img")).toHaveAttribute("src", MENDER_ART);
   await expect(build.locator(".is-animated-collector")).toBeVisible();
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
   await page.setViewportSize({ width: 1366, height: 900 });
-  await page.getByRole("button", { name: "Edit Active Deck", exact: true }).click();
+  await page.locator(".deck-library-drawer > summary").click();
   await page.locator(".deck-settings > summary").click();
   await expect(page.getByLabel("Front card", { exact: true })).toHaveValue(card.value + ":hearts");
   await expect(page.getByRole("button", { name: "Obsidian deck box", exact: true })).toHaveAttribute("aria-pressed", "true");
@@ -97,8 +112,7 @@ test("52-card workshop saves exact swaps and boxes; packs reveal sequentially on
   await expect(page.locator(".deck-slot-preview")).toHaveCount(0);
   await expect(page.getByRole("button", { name: `Restore standard ${rank}♥`, exact: true })).toBeVisible();
   await page.reload();
-  await page.locator('button[data-area="build"]').click();
-  await page.getByRole("button", { name: "Open Collection Workshop" }).click();
+  await openCollection(page);
   await page.getByRole("tab", { name: "Decks", exact: true }).click();
   await expect(page.getByRole("button", { name: "Cards", exact: true })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("button", { name: "Preview", exact: true })).toHaveAttribute("aria-pressed", "false");
@@ -141,6 +155,10 @@ test("52-card workshop saves exact swaps and boxes; packs reveal sequentially on
   await page.getByRole("button", { name: "Create Deck", exact: true }).click();
   await expect(page.getByRole("button", { name: "Save New Version", exact: true })).toBeEnabled();
   expect(getSaved().generalId).toBe("hui");
+  // An intentional new draft must survive a later same-account update, such as
+  // earning cards from a pack; hydration initialization must not run again.
+  await page.getByRole("button", { name: "New deck", exact: true }).click();
+  await page.getByLabel("Deck name", { exact: true }).fill("Unfinished new deck");
   await page.getByRole("tab", { name: "Packs", exact: true }).click();
   await page.getByRole("radio", { name: /Theatrical/ }).check();
   const packResponse = page.waitForResponse((response) => response.url().endsWith("/api/collection/open-pack") && response.request().method() === "POST");
@@ -161,5 +179,8 @@ test("52-card workshop saves exact swaps and boxes; packs reveal sequentially on
   await dialog.getByRole("button", { name: "Reveal all", exact: true }).click();
   await expect(dialog).toHaveCount(0);
   await expect(page.locator(".pack-opened-cards article")).toHaveCount(openedCards.length);
+  await page.getByRole("tab", { name: "Decks", exact: true }).click();
+  await expect(page.getByLabel("Saved deck", { exact: true })).toHaveValue("");
+  await expect(page.getByLabel("Deck name", { exact: true })).toHaveValue("Unfinished new deck");
   expect(errors).toEqual([]);
 });

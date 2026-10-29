@@ -2,52 +2,47 @@ const { test, expect } = require("@playwright/test");
 const AxeBuilder = require("@axe-core/playwright").default;
 const { io } = require("socket.io-client");
 const fs = require("node:fs/promises");
+const { navigatePlayer, setGuestName } = require("./player-navigation");
 const SERVER_URL = "http://127.0.0.1:4100";
 const PASSWORD = "Flow-Test-Password-42";
 
-test("menu navigation survives a rejected transition animation without an uncaught error", async ({ page, baseURL }) => {
+test("primary menu navigation preserves history without an uncaught error", async ({ page, baseURL }) => {
   const errors = [];
   page.on("pageerror", error => errors.push(error.message));
   await page.emulateMedia({ reducedMotion: "no-preference" });
-  await page.addInitScript(() => {
-    window.completedMenuTransitions = 0;
-    document.startViewTransition = update => {
-      const finished = Promise.resolve().then(update);
-      const ready = finished.then(() => {
-        setTimeout(() => { window.completedMenuTransitions += 1; }, 0);
-        throw new DOMException("Transition was aborted because of timeout in DOM update", "AbortError");
-      });
-      return { ready, finished, skipTransition() {} };
-    };
-  });
   await page.goto(baseURL);
-  await page.locator('button[data-area="build"]').click();
-  await expect(page.getByRole("button", { name: "Open Collection Workshop", exact: true })).toBeVisible();
-  await page.locator('button[data-area="play"]').click();
-  await expect(page.getByRole("heading", { name: "Master your next move.", exact: true })).toBeVisible();
-  await expect.poll(() => page.evaluate(() => window.completedMenuTransitions)).toBe(2);
-  await expect(page.locator("html")).not.toHaveClass(/is-menu-transition/);
+  await navigatePlayer(page, "decks");
+  await expect(page.getByRole("heading", { name: "Decks & Cards", exact: true, level: 1 })).toBeVisible();
+  await navigatePlayer(page, "play");
+  await expect(page.getByRole("heading", { name: "Ready to play?", exact: true })).toBeVisible();
+  await page.goBack();
+  await expect(page.getByRole("heading", { name: "Decks & Cards", exact: true, level: 1 })).toBeVisible();
+  await page.goForward();
+  await expect(page.getByRole("heading", { name: "Ready to play?", exact: true })).toBeVisible();
   expect(errors).toEqual([]);
 });
 
 test("a stalled startup becomes retryable and recovers when the server returns", async ({ page, baseURL }) => {
   const { getPublicGameContent } = require("../server/gameContent");
   let attempts = 0;
+  let serverAvailable = false;
   await page.route("**/api/game-content", async (route) => {
     attempts += 1;
-    if (attempts === 1) return;
+    if (!serverAvailable) return;
     await route.fulfill({ json: { content: getPublicGameContent() } });
   });
   await page.goto(baseURL);
   await expect(page.getByRole("heading", { name: "Loading Gauntlet" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Unable to connect" })).toBeVisible({ timeout: 25000 });
   await expect(page.getByRole("status")).toContainText("taking too long");
+  const stalledAttempts = attempts;
+  serverAvailable = true;
   await page.getByRole("button", { name: "Retry", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Learn one turn", exact: true })).toBeVisible();
-  expect(attempts).toBe(2);
+  await expect(page.getByRole("heading", { name: "Ready to play?", exact: true })).toBeVisible();
+  expect(attempts).toBe(stalledAttempts + 1);
 });
 
-test("an invitation lands on Tables and a new guest joins without visiting Identity", async ({ page, baseURL }) => {
+test("an invitation opens room entry and a new guest joins without signing in", async ({ page, baseURL }) => {
   const host = io(SERVER_URL, { autoConnect: false, transports: ["websocket"] });
   try {
     const connected = waitEvent(host, "connect"); host.connect(); await connected;
@@ -55,46 +50,42 @@ test("an invitation lands on Tables and a new guest joins without visiting Ident
     const { roomCode } = await assigned;
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(`${baseURL}?join=${roomCode}`);
-    await expect(page.getByRole("tab", { name: "Tables", exact: true })).toHaveAttribute("aria-selected", "true");
+    await expect(page.getByRole("heading", { name: "Private Tables", exact: true })).toBeVisible();
     await expect(page.getByLabel("Room code")).toHaveValue(roomCode);
-    await expect(page.locator(".journey-next-step")).toHaveCount(0);
-    const joinBounds = await page.locator(".play-join-panel").boundingBox();
-    const createBounds = await page.locator(".play-focus-panel").boundingBox();
-    expect(joinBounds.y).toBeLessThan(createBounds.y);
-    await page.getByLabel("Table guest name").fill("Invited Newcomer");
+    await setGuestName(page, "Invited Newcomer");
+    await navigatePlayer(page, "play", "tables");
+    await expect(page.getByLabel("Room code")).toHaveValue(roomCode);
     await page.getByRole("button", { name: "Join as Player", exact: true }).click();
     await expect(page.getByText("Table Command")).toBeVisible();
     await expect(page.getByText("Invited Newcomer", { exact: true })).toBeVisible();
   } finally { host.disconnect(); }
 });
 
-test("fresh visitors can enter practice directly and recommendations follow the selected area", async ({ page, baseURL }) => {
+test("fresh visitors can enter practice directly and each destination explains its next action", async ({ page, baseURL }) => {
   await page.goto(baseURL);
-  await expect(page.getByRole("heading", { name: "Learn one turn", exact: true })).toBeVisible();
-  await page.locator('button[data-area="identity"]').click();
-  await expect(page.locator(".journey-next-step")).toHaveCount(0);
-  await page.locator('button[data-area="build"]').click();
-  await expect(page.getByRole("button", { name: "Play with friends", exact: true })).toBeVisible();
-  await page.locator('button[data-area="play"]').click();
-  await page.getByLabel("Practice guest name").fill("New Practice Player");
-  await page.getByRole("button", { name: "Play Basic vs AI", exact: true }).click();
+  await expect(page.getByRole("region", { name: "Suggested next action" })).toContainText("Your first match is one click away.");
+  await setGuestName(page, "New Practice Player");
+  await expect(page.getByRole("heading", { name: "Your Profile", exact: true })).toBeVisible();
+  await navigatePlayer(page, "decks");
+  await expect(page.getByRole("button", { name: /Browse Collection/ })).toHaveAttribute("aria-description", "Sign in to browse");
+  await navigatePlayer(page, "play");
+  await page.getByRole("button", { name: "Start Basic vs AI", exact: true }).click();
   await expect(page.getByTestId("production-babylon-match")).toBeVisible();
 });
 
 test("draft explains saving before picks and returns to Draft after sign-in", async ({ page, request, baseURL }) => {
   const credentials = await account(request, "DraftEntry", "192.0.2.46");
   await page.goto(baseURL);
-  await page.locator('button[data-area="play"]').click();
-  await page.getByRole("tab", { name: "Draft", exact: true }).click();
-  await expect(page.getByText(/Guest limited play is practice only/)).toBeVisible();
-  await expect(page.getByRole("button", { name: /Draft against bots/ })).toBeEnabled();
+  await navigatePlayer(page, "draft", "bot");
+  await expect(page.getByText(/Guests can play Draft and Sealed as practice/)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Start Bot Draft", exact: true })).toBeEnabled();
   await page.getByRole("button", { name: "Sign in to save your deck", exact: true }).click();
   await page.getByPlaceholder("Account name").fill(credentials.account.name);
   await page.getByPlaceholder("Password").fill(PASSWORD);
   await page.getByRole("button", { name: "Sign In", exact: true }).click();
-  await expect(page.getByRole("tab", { name: "Draft", exact: true })).toHaveAttribute("aria-selected", "true");
-  await expect(page.getByRole("button", { name: "Play saved bot-draft deck", exact: true })).toBeEnabled();
-  await expect(page.getByText(/Guest limited play is practice only/)).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Draft & Sealed", exact: true, level: 1 })).toBeVisible();
+  await expect(page.getByText("Saved decks stay with your account.", { exact: true })).toBeVisible();
+  await expect(page.getByText(/Guests can play Draft and Sealed as practice/)).toHaveCount(0);
 });
 
 test("direct practice preserves a saved account while its profile is unavailable", async ({ page, request, baseURL }) => {
@@ -104,8 +95,7 @@ test("direct practice preserves a saved account while its profile is unavailable
     status: 503, contentType: "application/json", body: JSON.stringify({ error: "Temporarily unavailable" })
   }));
   await page.goto(baseURL);
-  await page.locator('button[data-area="play"]').click();
-  await page.getByRole("button", { name: "Play Basic vs AI", exact: true }).click();
+  await page.getByRole("button", { name: "Start Basic vs AI", exact: true }).click();
   await expect(page.getByTestId("production-babylon-match")).toBeVisible();
   await expect(page.locator(".production-player-plate-bottom .production-player-copy strong")).toHaveText(credentials.account.name);
 });
@@ -122,7 +112,7 @@ async function account(request, prefix, address = "192.0.2.42") {
 async function signedIn(page, baseURL, credentials) {
   await page.addInitScript((token) => localStorage.setItem("gauntlet_auth_token", token), credentials.token);
   await page.goto(baseURL);
-  await page.locator('button[data-area="identity"]').click();
+  await navigatePlayer(page, "profile");
   await expect(page.getByText(`Signed in as ${credentials.account.name}`)).toBeVisible();
 }
 function waitEvent(socket, name) {
@@ -138,21 +128,21 @@ test("outer menus are accessible on phones and the draft shortcut opens Draft", 
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto(baseURL);
-  for (const area of ["play", "journey", "matches", "build", "identity"]) {
-    await page.locator(`button[data-area="${area}"]`).click();
-    await expect(page.locator(".home-area-heading h2")).toHaveText(new RegExp(area, "i"));
+  for (const [area, title] of [["play", "Ready to play?"], ["campaign", "Campaign"], ["matches", "Matches"], ["decks", "Decks & Cards"], ["profile", "Your Profile"]]) {
+    await navigatePlayer(page, area);
+    await expect(page.getByRole("heading", { name: title, exact: true, level: 1 })).toBeVisible();
     const result = await new AxeBuilder({ page }).analyze();
     expect(result.violations, `${area} accessibility`).toEqual([]);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   }
-  await page.locator('button[data-area="build"]').click();
-  await page.getByRole("button", { name: "Open Draft Modes" }).click();
-  await expect(page.getByRole("tab", { name: "Draft", exact: true })).toHaveAttribute("aria-selected", "true");
-  await expect(page.getByRole("button", { name: /Live Draft/ })).toBeVisible();
+  await navigatePlayer(page, "play");
+  await page.getByRole("button", { name: /Draft & Sealed.*Choose format/ }).click();
+  await expect(page.getByRole("heading", { name: "Draft & Sealed", exact: true, level: 1 })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Create Draft Room", exact: true })).toBeVisible();
   expect(errors).toEqual([]);
 });
 
-test("active deck leads Build and the compact profile keeps picture editing available", async ({ page, request, baseURL }, testInfo) => {
+test("active deck leads Decks & Cards and Profile keeps picture editing available", async ({ page, request, baseURL }, testInfo) => {
   test.setTimeout(90000);
   const credentials = await account(request, "MenuLayout", "192.0.2.48");
   const saved = await request.post(`${SERVER_URL}/api/collection/save-constructed-deck`, {
@@ -162,29 +152,30 @@ test("active deck leads Build and the compact profile keeps picture editing avai
   expect(saved.ok()).toBeTruthy();
   await signedIn(page, baseURL, credentials);
   const settleMenu = async () => {
-    await expect(page.locator("html")).not.toHaveClass(/is-menu-transition/);
     await page.evaluate(async () => {
       await document.fonts.ready;
-      await Promise.all([...document.querySelectorAll(".home-area-content img")].map(img => img.decode().catch(() => {})));
+      await Promise.all([...document.querySelectorAll(".cd-shell img")].map(img => img.decode().catch(() => {})));
     });
   };
   for (const [width, height, label] of [[1366, 900, "desktop"], [768, 1024, "tablet"], [390, 844, "phone"]]) {
     await page.setViewportSize({ width, height });
-    await page.locator('button[data-area="build"]').click();
+    await navigatePlayer(page, "decks");
     await settleMenu();
-    const primary = page.locator(".build-deck-entry");
-    await expect(primary.getByRole("button", { name: "Edit Active Deck", exact: true })).toBeEnabled();
-    await expect(primary.getByRole("heading", { name: "The Copper Guard" })).toBeVisible();
-    const deck = await primary.boundingBox(), vault = await page.locator(".build-vault-panel").boundingBox();
-    if (width > 980) expect(deck.width * deck.height).toBeGreaterThan(vault.width * vault.height * 1.5);
-    else expect(deck.y + deck.height).toBeLessThanOrEqual(vault.y);
+    const primary = page.locator('.cd-action-tile[data-action-id="editor"]');
+    await expect(primary).toBeEnabled();
+    await expect(primary).toContainText("Edit Active Deck");
+    await expect(page.locator(".cd-panel").filter({ has: page.getByRole("heading", { name: "Current deck", exact: true }) })).toContainText("The Copper Guard");
+    await expect(page.locator("[data-layout-module]").first()).toHaveAttribute("data-layout-module", "editor");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: testInfo.outputPath(`build-${label}.png`), fullPage: true });
-    await page.locator('button[data-area="identity"]').click();
+    await navigatePlayer(page, "profile");
     await settleMenu();
+    await expect(page.getByRole("heading", { name: "Your Profile", exact: true })).toBeVisible();
+    await expect(page.getByText("Customize menu layouts", { exact: true })).toHaveCount(0);
+    await expect(page.getByRole("switch", { name: "Customize Mode" })).toHaveCount(0);
+    await page.getByText("Portrait, featured decks & campaign achievements", { exact: true }).click();
     const hero = page.locator(".identity-dossier-hero");
-    expect((await hero.boundingBox()).height).toBeLessThan(290);
-    expect((await hero.getByRole("img", { name: `${credentials.account.name} portrait` }).boundingBox()).width).toBeLessThanOrEqual(80);
+    await expect(hero.getByRole("img", { name: `${credentials.account.name} portrait` })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Guest Identity", exact: true })).toHaveCount(0);
     await expect(page.getByLabel("Upload profile portrait")).not.toBeVisible();
     await page.screenshot({ path: testInfo.outputPath(`profile-${label}.png`), fullPage: true });
@@ -195,8 +186,8 @@ test("active deck leads Build and the compact profile keeps picture editing avai
     await pictureSettings.press("Enter");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   }
-  await page.locator('button[data-area="build"]').click();
-  await page.getByRole("button", { name: "Edit Active Deck", exact: true }).click();
+  await navigatePlayer(page, "decks");
+  await page.locator('.cd-action-tile[data-action-id="editor"]').click();
   await expect(page.getByLabel("Deck name", { exact: true })).toHaveValue("The Copper Guard");
 });
 
@@ -211,11 +202,10 @@ test("sign-out cancels ranked matchmaking and a new identity cannot inherit the 
     await route.fulfill({ status: 401, contentType: "application/json", body: JSON.stringify({ error: "Expired old session" }) });
   });
   await signedIn(page, baseURL, old);
-  await page.locator('button[data-area="play"]').click();
-  await page.getByRole("tab", { name: "Ranked" }).click();
-  await page.getByRole("button", { name: "Find Faction Ranked Match", exact: true }).click();
-  await expect(page.getByText(/Searching Season Zero/)).toBeVisible();
-  await page.locator('button[data-area="identity"]').click();
+  await navigatePlayer(page, "compete", "ranked");
+  await page.getByRole("button", { name: "Find Ranked Match", exact: true }).click();
+  await expect(page.getByRole("region", { name: "Ranked queue" })).toContainText(/Searching Season Zero/);
+  await navigatePlayer(page, "profile");
   await page.getByRole("button", { name: "Sign Out" }).click();
   await expect(page.getByRole("button", { name: "Sign In", exact: true })).toBeVisible();
   expect(await page.evaluate(() => localStorage.getItem("gauntlet_auth_token"))).toBeNull();
@@ -235,9 +225,8 @@ test("sign-out cancels ranked matchmaking and a new identity cannot inherit the 
     const oldResponse = page.waitForResponse((response) => response.url().endsWith("/api/friends") && response.status() === 401);
     releaseOldFriends();
     await oldResponse;
-    await page.locator('button[data-area="play"]').click();
-    await page.getByRole("tab", { name: "Ranked" }).click();
-    await page.getByRole("button", { name: "Find Faction Ranked Match", exact: true }).click();
+    await navigatePlayer(page, "compete", "ranked");
+    await page.getByRole("button", { name: "Find Ranked Match", exact: true }).click();
     await expect(page.getByText("Table Command")).toBeVisible();
     await expect(page.getByText(next.account.name, { exact: true })).toBeVisible();
     await expect(page.getByText(old.account.name, { exact: true })).toHaveCount(0);
@@ -253,14 +242,11 @@ test("expired saved rooms recover to the menu and disconnected room entry report
   await page.goto(baseURL);
   await expect(page.getByText(/This table is no longer available/)).toBeVisible();
   expect(await page.evaluate(() => localStorage.getItem("gauntlet_room_code"))).toBeNull();
-  await page.locator('button[data-area="identity"]').click();
-  await page.getByLabel("Play as guest").check();
-  await page.getByPlaceholder("Guest name").fill("Recovery Guest");
-  await page.locator('button[data-area="play"]').click();
-  await page.getByRole("tab", { name: "Tables" }).click();
+  await setGuestName(page, "Recovery Guest");
+  await navigatePlayer(page, "play", "tables");
   await page.context().setOffline(true);
   await page.waitForTimeout(500);
-  await page.getByRole("button", { name: /Duel/ }).click();
+  await page.getByRole("button", { name: /^Create Duel/ }).click();
   await expect(page.getByText(/Connecting to the server|table did not respond/)).toBeVisible({ timeout: 12000 });
   await page.context().setOffline(false);
 });
@@ -269,9 +255,8 @@ test("a full bot draft can be saved and found in the deck library", async ({ pag
   test.setTimeout(120000);
   const credentials = await account(request, "DraftFlow", "192.0.2.43");
   await signedIn(page, baseURL, credentials);
-  await page.locator('button[data-area="build"]').click();
-  await page.getByRole("button", { name: "Open Draft Modes" }).click();
-  await page.getByRole("button", { name: /Bot Draft/, exact: false }).first().click();
+  await navigatePlayer(page, "draft", "bot");
+  await page.getByRole("button", { name: "Start Bot Draft", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Gauntlet Bot Draft" })).toBeVisible();
   for (let pick = 0; pick < 60; pick++) {
     if (await page.getByRole("heading", { name: /Build Draft Deck/ }).count()) break;
@@ -293,7 +278,7 @@ test("a full bot draft can be saved and found in the deck library", async ({ pag
   expect(saved.draftType).toBe("bot");
   expect(saved.cards.length).toBeGreaterThan(0);
   await page.getByRole("button", { name: "Main Menu" }).click();
-  await page.locator('button[data-area="build"]').click();
+  await navigatePlayer(page, "decks", "library");
   await expect(page.getByText(saved.name, { exact: true })).toBeVisible();
 });
 
@@ -301,9 +286,8 @@ test("completed match exports, imports on another device, replays, and rejects m
   test.setTimeout(90000);
   const credentials = await account(request, "History", "192.0.2.44");
   await signedIn(page, baseURL, credentials);
-  await page.locator('button[data-area="play"]').click();
-  await page.getByRole("tab", { name: "Practice" }).click();
-  await page.getByRole("button", { name: "Play Basic vs AI", exact: true }).click();
+  await navigatePlayer(page, "play");
+  await page.getByRole("button", { name: "Start Basic vs AI", exact: true }).click();
   await expect(page.getByTestId("production-babylon-match")).toBeVisible();
   await page.getByText("Match", { exact: true }).click();
   await page.getByRole("button", { name: "Concede", exact: true }).click();
@@ -312,14 +296,14 @@ test("completed match exports, imports on another device, replays, and rejects m
   const row = page.locator('.matches-row[data-local-match="true"]').first();
   await expect(row).toBeVisible();
   const downloaded = page.waitForEvent("download");
-  await row.getByRole("button", { name: "Export JSON" }).click();
+  await row.getByRole("button", { name: "Export Match File", exact: true }).click();
   const download = await downloaded;
   const bytes = await fs.readFile(await download.path());
   const context = await browser.newContext();
   try {
     const other = await context.newPage();
     await other.goto(baseURL);
-    await other.locator('button[data-area="matches"]').click();
+    await navigatePlayer(other, "matches", "replays");
     const input = other.locator('.match-importer input[type="file"]');
     await input.setInputFiles({ name: "invalid.json", mimeType: "application/json", buffer: Buffer.from("{bad") });
     await expect(other.locator(".match-importer [role=alert]")).toBeVisible();
@@ -334,7 +318,7 @@ test("completed match exports, imports on another device, replays, and rejects m
     await other.getByRole("button", { name: "Next action" }).click();
     await expect(other.getByRole("slider", { name: "Replay action timeline" })).not.toHaveValue("0");
     await other.goBack();
-    await expect(other.getByRole("heading", { name: "Recent Matches" })).toBeVisible();
+    await expect(other.getByRole("heading", { name: "Replay Library", exact: true })).toBeVisible();
   } finally { await context.close(); }
 });
 
@@ -350,13 +334,10 @@ test("four guests can start free-for-all, reconnect, and finish by elimination",
       pages.push(page);
       page.on("dialog", (dialog) => dialog.accept());
       await page.goto(baseURL);
-      await page.locator('button[data-area="identity"]').click();
-      await page.getByLabel("Play as guest").check();
-      await page.getByPlaceholder("Guest name").fill(`FFA Flow ${index + 1}`);
-      await page.locator('button[data-area="play"]').click();
-      await page.getByRole("tab", { name: "Tables" }).click();
+      await setGuestName(page, `FFA Flow ${index + 1}`);
+      await navigatePlayer(page, "play", "tables");
       if (index === 0) {
-        await page.getByRole("button", { name: /Free-For-All/ }).click();
+        await page.getByRole("button", { name: /^Create Free-for-All/ }).click();
       } else {
         const code = await pages[0].getByLabel("Room code").inputValue();
         await page.getByLabel("Room code").fill(code);
@@ -408,12 +389,9 @@ test("a disconnected human draft explains recovery and can be cancelled", async 
   const guest = io(SERVER_URL, { autoConnect: false, transports: ["websocket"] });
   try {
     await page.goto(baseURL);
-    await page.locator('button[data-area="identity"]').click();
-    await page.getByLabel("Play as guest").check();
-    await page.getByPlaceholder("Guest name").fill("Draft Recovery Host");
-    await page.locator('button[data-area="play"]').click();
-    await page.getByRole("tab", { name: "Draft", exact: true }).click();
-    await page.getByRole("button", { name: /Live Draft/ }).click();
+    await setGuestName(page, "Draft Recovery Host");
+    await navigatePlayer(page, "draft", "live");
+    await page.getByRole("button", { name: "Create Draft Room", exact: true }).click();
     const code = await page.getByLabel("Room code").inputValue();
     const connected = waitEvent(guest, "connect"); guest.connect(); await connected;
     const assigned = waitEvent(guest, "assign"); guest.emit("joinRoom", { roomCode: code, guestName: "Draft Recovery Guest" }); await assigned;
@@ -427,7 +405,7 @@ test("a disconnected human draft explains recovery and can be cancelled", async 
     await expect(page.getByRole("heading", { name: "Draft cancelled", exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Current Pack/ })).toHaveCount(0);
     await page.getByRole("button", { name: "Main Menu", exact: true }).click();
-    await expect(page.locator('button[data-area="play"]')).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Draft & Sealed", exact: true, level: 1 })).toBeVisible();
   } finally { guest.disconnect(); }
 });
 
@@ -439,11 +417,11 @@ test("a temporary account-service failure preserves the session and reload recov
   const failed = page.waitForResponse((response) => response.url().endsWith("/api/auth/me") && response.status() === 503);
   await page.goto(baseURL);
   await failed;
-  await page.locator('button[data-area="identity"]').click();
+  await navigatePlayer(page, "profile");
   await expect(page.getByText("Temporarily unavailable")).toBeVisible();
   expect(await page.evaluate(() => localStorage.getItem("gauntlet_auth_token"))).toBe(credentials.token);
   await page.unroute("**/api/auth/me");
   await page.reload();
-  await page.locator('button[data-area="identity"]').click();
+  await navigatePlayer(page, "profile");
   await expect(page.getByText("Signed in as " + credentials.account.name)).toBeVisible();
 });

@@ -10,7 +10,7 @@ const defaults = {
   campaign: ["The academy & the archives", "Begin your journey.", "Learn the rhythm of Gauntlet, then follow a commander through their campaign. Your next chapter is waiting."]
 };
 const fields = [["heroEyebrow", "Page overline", 80], ["heroTitle", "Page heading", 160], ["heroDescription", "Page introduction", 600], ["menuDetail", "Menu description", 80]];
-const locations = { practice: "Play → Practice", freeForAll: "Play → Tables", ranked: "Play → Ranked", draft: "Play → Draft", campaign: "Journey" };
+const locations = { practice: "Learn & Rules → Practice", freeForAll: "Play → Join a Table", ranked: "Compete → Ranked", draft: "Draft", campaign: "Campaign" };
 function proseFields(id) {
   return Object.fromEntries((defaults[id] || []).map((defaultValue, index) => {
     const [key, label, maxLength] = fields[index];

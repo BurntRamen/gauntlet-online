@@ -1,4 +1,5 @@
 const { test, expect } = require("@playwright/test");
+const { openCollection } = require("./player-navigation");
 const fs = require("node:fs");
 const path = require("node:path");
 const { COLLECTION_CARDS } = require("../server/gameContent");
@@ -18,9 +19,8 @@ test("full-art catalog and responsive workshop preserve selected suits and saved
   page.on("response", (entry) => { if (entry.url().includes("/constructed/") && entry.status() >= 400) brokenFaces.push(entry.url()); });
   await page.addInitScript((token) => localStorage.setItem("gauntlet_auth_token", token), session.token);
   await page.goto(baseURL);
-  await page.locator('button[data-area="build"]').click();
-  await page.getByRole("button", { name: "Open Collection Workshop" }).click();
-  await page.getByRole("tab", { name: "Catalog", exact: true }).click();
+  await openCollection(page);
+  await page.getByRole("tab", { name: "Cards", exact: true }).click();
   await expect(page.locator(".catalog-card-tile .custom-playing-card-face")).toHaveCount(72);
   await expect.poll(() => page.locator(".catalog-card-tile img").evaluateAll((images) => images.every((img) => img.complete && img.naturalWidth === 500))).toBe(true);
   const catalogFaces = await page.locator(".catalog-card-tile > .special-card-presentation").evaluateAll((faces) => faces.map((face) => {

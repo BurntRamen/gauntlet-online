@@ -27,7 +27,7 @@ test("unauthenticated users use the existing sign-in flow and never request prot
   global.fetch = jest.fn();
   const onSignIn = jest.fn();
   render(<Studio serverUrl="http://localhost:4000" onSignIn={onSignIn} />);
-  fireEvent.click(screen.getByText("Sign in through Identity"));
+  fireEvent.click(screen.getByText("Sign in through Profile"));
   expect(onSignIn).toHaveBeenCalledTimes(1);
   expect(global.fetch).not.toHaveBeenCalled();
 });
@@ -58,6 +58,6 @@ test("an old account's delayed access response cannot reopen admin after logout"
   const { rerender } = render(<Studio serverUrl="http://localhost:4000" authToken="old-account" />);
   rerender(<Studio serverUrl="http://localhost:4000" authToken="" />);
   resolveAccess(response({ authorized: true }));
-  await waitFor(() => expect(screen.getByText("Sign in through Identity")).toBeVisible());
+  await waitFor(() => expect(screen.getByText("Sign in through Profile")).toBeVisible());
   expect(screen.queryByRole("heading", { name: "Gauntlet Admin" })).not.toBeInTheDocument();
 });

@@ -1,12 +1,12 @@
+const { workshopSession } = require("./workshop-session");
 const { test, expect } = require("@playwright/test");
+const { openCollection } = require("./player-navigation");
 const fs = require("node:fs");
 const path = require("node:path");
 const { COLLECTION_CARDS } = require("../server/gameContent");
 
-test("deck names can be typed during creation and renamed without creating card versions", async ({ page, request, baseURL }) => {
-  const response = await request.post("http://127.0.0.1:4104/api/auth/register", { data: { name: "Name QA " + Date.now(), password: "Local-Naming-Review-42" } });
-  expect(response.ok()).toBeTruthy();
-  const session = await response.json();
+test("deck names can be typed during creation and renamed without creating card versions", async ({ page, baseURL }) => {
+  const session = workshopSession("naming");
   const storePath = path.resolve(__dirname, "../.playwright-data/slot-workshop/accounts.json");
   const store = JSON.parse(fs.readFileSync(storePath, "utf8"));
   store.accounts.find(entry => entry.id === session.account.id).stats.collection.gameplayEntitlements = Object.fromEntries(COLLECTION_CARDS.map(card => [card.id, 4]));
@@ -15,9 +15,7 @@ test("deck names can be typed during creation and renamed without creating card 
   await page.addInitScript(token => localStorage.setItem("gauntlet_auth_token", token), session.token);
   const openWorkshop = async () => {
     await page.goto(baseURL);
-    await page.locator('button[data-area="build"]').click();
-    await page.getByRole("button", { name: "Open Collection Workshop" }).click();
-    await page.getByRole("tab", { name: "Decks", exact: true }).click();
+    await openCollection(page, "decks");
   };
   const typeName = async (field, name) => {
     await field.click();

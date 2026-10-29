@@ -1,3 +1,4 @@
+const { navigatePlayer, openProfileExtras } = require("./player-navigation");
 const { test, expect } = require("./admin-release-test"), { area, paraTab, identity } = require("./admin-navigation"), { origin } = require("./admin-urls");
 const fs = require("node:fs"), path = require("node:path"), AxeBuilder = require("@axe-core/playwright").default;
 test("operator publishes alternative and split prices; player purchases exact terms and operator refunds Gems", async ({ page, request }) => {
@@ -14,16 +15,17 @@ test("operator publishes alternative and split prices; player purchases exact te
   }
   await page.getByRole("button", { name: "Validate draft", exact: true }).click(); await page.getByRole("button", { name: "Preview saved draft", exact: true }).click(); await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible();
   await area(page, "Publishing"); await fill("Release name", "Qualified alternative and split currency terms"); await page.getByRole("button", { name: "Publish release", exact: true }).click(); await page.getByRole("button", { name: "Confirm publish", exact: true }).click(); await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible();
-  await page.goto("/"); await page.locator('button[data-area="identity"]').click(); await page.getByRole("tab", { name: "Gold & Library", exact: true }).click();
+  await page.goto("/"); await navigatePlayer(page, "profile", "library");
   const library = page.getByRole("region", { name: "Gold & Library", exact: true });
   await expect(library.getByRole("button", { name: "Review Flexible title · 10 Gold", exact: true })).toBeVisible();
   await library.getByRole("button", { name: "Review Flexible title · 7 Gems", exact: true }).click(); await expect(library).toContainText("7 Gems · Quote expires"); await library.getByRole("button", { name: "Confirm purchase · 7 Gems", exact: true }).click();
   await expect(library).toContainText("33 Gems (enabled)");
   await library.getByRole("button", { name: "Review Shared payment title · 6 Gold + 3 Gems", exact: true }).click(); await expect(library).toContainText("6 Gold + 3 Gems · Quote expires"); await library.getByRole("button", { name: "Confirm purchase · 6 Gold + 3 Gems", exact: true }).click();
   await expect(library).toContainText("94 Gold · Published"); await expect(library).toContainText("30 Gems (enabled)");
+  expect((await new AxeBuilder({ page }).include(".economy-console").analyze()).violations).toEqual([]); await library.screenshot({ path: "artifacts/phase2-gems-player.png" });
+  await openProfileExtras(page);
   await expect(page.getByLabel("Currency balances").getByText("Gems").locator("..")).toContainText("30");
   await expect(page.getByLabel("Currency balances").getByText("Timetwisters").locator("..")).toContainText("10");
-  expect((await new AxeBuilder({ page }).include(".economy-console").analyze()).violations).toEqual([]); await library.screenshot({ path: "artifacts/phase2-gems-player.png" });
   const data = await (await request.get(origin + "/api/admin/economy", { headers })).json(), purchase = data.view.tables.find(t => t.title === "Purchase receipts").rows.find(r => r[2] === "Flexible title");
   expect(purchase[3]).toBe("7 Gems");
   await page.goto("/admin/gauntlet"); await paraTab(page, "Marketplace"); const operations = page.getByRole("region", { name: "Economy operations", exact: true });

@@ -1,3 +1,4 @@
+const { openCollection } = require("./player-navigation");
 const { test, expect } = require("./admin-release-test");
 const { waitForBufferedAdminResponse } = require("./buffered-admin-response");
 const fs = require("node:fs"), path = require("node:path"), { spawn } = require("node:child_process");
@@ -51,12 +52,12 @@ test("author, reopen, test, publish and buy a deck product; retain it across res
   await page.getByRole("button", { name: "Preview saved draft", exact: true }).click(); await page.getByRole("button", { name: "Review release", exact: true }).click(); await page.getByLabel("Release name").fill("Browser deck R1"); await page.getByRole("button", { name: "Publish release", exact: true }).click(); await page.getByRole("button", { name: "Confirm publish", exact: true }).click(); await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible();
   const buyer = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
   try {
-    await buyer.addInitScript(token => localStorage.setItem("gauntlet_auth_token", token), playerToken); const p = await buyer.newPage(); await p.goto("/"); await p.locator('button[data-area="build"]').click(); await p.getByRole("button", { name: "Open Collection Workshop" }).click(); await p.getByRole("tab", { name: "Shop", exact: true }).click();
+    await buyer.addInitScript(token => localStorage.setItem("gauntlet_auth_token", token), playerToken); const p = await buyer.newPage(); await p.goto("/"); await openCollection(p, "shop");
     const products = p.getByRole("region", { name: "Deck products", exact: true }); await products.getByRole("button", { name: "30 Gold", exact: true }).click();
     const paid = p.waitForResponse(r => r.url().endsWith("/buy-deck-product")); await p.getByRole("button", { name: "Confirm purchase", exact: true }).click(); const result = await (await paid).json(); expect(result.account.economy.gold).toBe(70); expect(result.account.stats.savedConstructedDeck.collectorVariantSelections["rumin-vault-shield-bearer"]).toBe(printing);
     await expect(p.getByText(/Purchased Browser recipe/)).toBeVisible(); await p.getByRole("tab", { name: "Decks", exact: true }).click(); await p.getByLabel("Saved deck", { exact: true }).selectOption(result.receipt.deckId); await expect(p.getByLabel("Deck card back")).toHaveValue("campaignMap"); await p.screenshot({ path: path.join(artifacts, "purchased-deck.png") });
     await stop(); await start();
-    const fresh = await browser.newContext(); try { await fresh.addInitScript(token => localStorage.setItem("gauntlet_auth_token", token), playerToken); const f = await fresh.newPage(); await f.goto("/"); await f.locator('button[data-area="build"]').click(); await f.getByRole("button", { name: "Open Collection Workshop" }).click(); await f.getByRole("tab", { name: "Shop", exact: true }).click(); await expect(f.getByText("Your deck purchase receipts", { exact: true })).toBeVisible(); } finally { await fresh.close(); }
+    const fresh = await browser.newContext(); try { await fresh.addInitScript(token => localStorage.setItem("gauntlet_auth_token", token), playerToken); const f = await fresh.newPage(); await f.goto("/"); await openCollection(f, "shop"); await expect(f.getByText("Your deck purchase receipts", { exact: true })).toBeVisible(); } finally { await fresh.close(); }
     const stored = JSON.parse(fs.readFileSync(path.join(root, "accounts.json"))).accounts[2]; expect(stored.stats.economy.gold).toBe(finiteGold ? 100 : 70);
     const recovered = (await (await request.get(endpoint + "/api/auth/me", { headers: { Authorization: `Bearer ${playerToken}` } })).json()).account;
     expect(recovered.economy.gold).toBe(70); expect(recovered.stats.deckLibrary.decks).toHaveLength(1);

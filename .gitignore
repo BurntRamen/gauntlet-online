@@ -36,8 +36,12 @@ yarn-error.log*
 
 # local account data
 server/accounts.json
+server/accounts.json.layouts.json
+server/accounts.json.layouts.json.*.tmp
+server/accounts.json.layouts.json.lock
 server/accounts.json.content/
 server/faction-stats.json
 server/matches.json
 server/matches.json.archive/
 server/rooms.json
+/tmp/

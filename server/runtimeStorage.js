@@ -30,6 +30,7 @@ function runtimeStorageConfig(env = process.env, serverDirectory = __dirname) {
   const matches = env.MATCH_DATA_FILE || path.join(base, "matches.json");
   return { root: root ? path.resolve(root) : null, required: env.GAUNTLET_REQUIRE_DURABLE_STORAGE === "true", paths: {
     accounts, matches,
+    layouts: env.ACCOUNT_LAYOUT_DATA_FILE || `${accounts}.layouts.json`,
     factions: env.FACTION_STATS_DATA_FILE || path.join(base, "faction-stats.json"),
     rooms: env.ROOM_STATE_DATA_FILE || path.join(base, "rooms.json"),
     archive: env.MATCH_ARCHIVE_DATA_DIR || (root ? path.join(root, "match-archives") : `${matches}.archive`),

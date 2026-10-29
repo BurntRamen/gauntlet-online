@@ -1,3 +1,4 @@
+const { openCampaign } = require("./player-navigation");
 const { test, expect } = require("./admin-release-test");
 const { waitForBufferedAdminResponse } = require("./buffered-admin-response");
 const fs = require("node:fs"), path = require("node:path");
@@ -22,7 +23,7 @@ test("an operator creates a playable encounter and a player starts it from the p
   const pass = session.legalActions.find(a => a.type === "passPriority"); await harness.getByRole("combobox", { name: "Action", exact: true }).selectOption(pass.id);
   pending = page.waitForResponse(r => r.url().endsWith("/playtest/command")); await harness.getByRole("button", { name: "Execute selected action", exact: true }).click(); expect((await pending).status()).toBe(200);
   await page.getByRole("button", { name: "Preview saved draft", exact: true }).click(); await page.getByRole("button", { name: "Review release", exact: true }).click(); await page.getByLabel("Release name").fill("Playable additional encounter"); await page.getByRole("button", { name: "Publish release", exact: true }).click(); await page.getByRole("button", { name: "Confirm publish", exact: true }).click(); await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible();
-  await page.goto("/"); await page.locator('button[data-area="journey"]').click(); await page.getByLabel("Journey", { exact: true }).getByRole("button", { name: /^(Choose a Faction|Continue Campaign)$/ }).click(); await page.getByRole("tab", { name: /^Rumin/ }).click();
+  await page.goto("/"); await openCampaign(page, "Rumin");
   const chapter = page.locator(".campaign-chapter").filter({ has: page.getByRole("heading", { name: encounter.title, exact: true }) }); await expect(chapter.getByRole("button", { name: "Begin Battle", exact: true })).toBeEnabled();
   await expect(chapter.locator(".campaign-boss-line")).toContainText(encounter.setup.bossLife + " life / " + encounter.setup.attacksPerTurn + " attacks per turn");
   await chapter.screenshot({ path: "artifacts/phase2-published-encounter.png" }); await chapter.getByRole("button", { name: "Begin Battle", exact: true }).click();

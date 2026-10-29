@@ -3,8 +3,17 @@ const assert = require("node:assert/strict");
 const { createAuthoredBaseline, validateAuthoredContent, hash } = require("../authoredContent");
 const { createContentPublication } = require("../contentPublication");
 const { releaseReview } = require("../adminReleaseReview");
+const { proseFields } = require("../websiteProse");
 const fixture = require("./fixtures/content-v2/authored-baseline-v1.json");
 const baseline = createAuthoredBaseline({ domains: { decks: fixture.domains.decks }, game: { modes: fixture.domains.game } });
+
+test("page prose location notes point editors to the current player destinations", () => {
+  for (const [mode, location] of Object.entries({ practice: "Learn & Rules → Practice", freeForAll: "Play → Join a Table", ranked: "Compete → Ranked", draft: "Draft", campaign: "Campaign" })) {
+    for (const field of ["heroTitle", "heroDescription"]) {
+      assert.ok(proseFields(mode)[field].note.startsWith(`Shown in ${location}.`));
+    }
+  }
+});
 
 test("optional page prose preserves older snapshots and flows through preview, exact-hash publishing and rollback", () => {
   const store = createContentPublication({ baseline, memory: true });

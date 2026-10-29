@@ -71,6 +71,12 @@ jobs:
       - name: Check browser usability
         run: npm run test:e2e:usability
 
+      - name: Test Command Deck navigation and account layouts
+        run: npm run test:e2e:command-deck
+
+      - name: Test released menus with customization disabled
+        run: npm run test:e2e:release-menus
+
       - name: Check compiled Babylon performance safeguards
         run: npm run test:e2e:performance
 

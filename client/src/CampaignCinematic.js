@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { dialogueEntries, useDialoguePlayback } from "./dialoguePlayback";
 import DialoguePlaybackControls from "./DialoguePlaybackControls";
 import { getCampaignSpeakerImage } from "./CampaignDialogueBlock";
+import { getFactionArtwork } from "./GauntletVisuals";
 import "./CampaignCinematic.css";
 
 function assetUrl(source) {
@@ -19,6 +20,7 @@ export default function CampaignCinematic({ cinematic, lines = [], audio = [], f
   const entry = entries[Math.min(activeIndex, Math.max(0, entries.length - 1))] || { speaker: "Narrator", text: cinematic?.subtitle || "" };
   const isSpeaking = playback.playingIndex !== null && !playback.paused;
   const narrator = entry.speaker.toLowerCase() === "narrator";
+  const artwork = getFactionArtwork(factionId, cinematic?.image) || "/assets/gauntlet/ui/faction-art-unavailable.svg";
 
   useEffect(() => {
     if (!autoPlayKey || autoPlayed.current === autoPlayKey || !audioEnabled || !playback.hasAudio) return;
@@ -50,7 +52,7 @@ export default function CampaignCinematic({ cinematic, lines = [], audio = [], f
 
   return (
     <section className="campaign-cinematic" aria-label={`${cinematic.title} story cinematic`}>
-      <div className="campaign-cinematic-backdrop" style={{ backgroundImage: `url(${assetUrl(cinematic.image)})` }} />
+      <div className="campaign-cinematic-backdrop" style={{ backgroundImage: `url(${assetUrl(artwork)})` }} />
       <div className="campaign-cinematic-vignette" />
       <header>
         <span>{cinematic.kicker || "Story Cinematic"}</span>
@@ -59,7 +61,7 @@ export default function CampaignCinematic({ cinematic, lines = [], audio = [], f
       </header>
       {!narrator && (
         <div className={`campaign-cinematic-character${isSpeaking ? " is-speaking" : ""}`} aria-hidden="true">
-          <img src={assetUrl(getCampaignSpeakerImage(entry.speaker))} alt="" />
+          <img src={assetUrl(getCampaignSpeakerImage(entry.speaker, factionId))} alt="" />
           <i />
         </div>
       )}

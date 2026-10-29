@@ -19,6 +19,41 @@ function publish(store, label = "Reviewed release") {
   return store.publish({ expectedRevision: store.status().revision, label }, "admin-one");
 }
 
+test("authoring projection retains every compatible card effect without repeating the full registry", () => {
+  const effects = require("../../shared/duel-rules/effectRegistry").cardEffectDefinitions();
+  const store = createContentPublication({ baseline, memory: true });
+  const state = store.status();
+  for (const row of state.live.domains.cards) {
+    assert.deepEqual(state.fields.cards[row.id].effect.options, effects.filter(option => option.factionId === row.factionId && option.cardType === row.type), row.id);
+  }
+  assert.ok(Buffer.byteLength(JSON.stringify(state)) < 12 * 1024 * 1024, "The baseline authoring response must fit within 12 MiB instead of repeating approximately 96 MiB of effect options.");
+  assert.ok(Buffer.byteLength(JSON.stringify(state.fields)) < 8 * 1024 * 1024, "Per-row editor metadata must stay within 8 MiB.");
+  assert.deepEqual(require("../authoredContent").FIELDS.cards.effect.options, effects, "Response projection must not modify shared validation metadata.");
+  assert.deepEqual(state.live, baseline, "Projection must preserve the public content snapshot.");
+});
+
+test("saving an unpublished card's faction and type refreshes its compatible effect choices", () => {
+  const effects = require("../../shared/duel-rules/effectRegistry").cardEffectDefinitions();
+  const store = createContentPublication({ baseline, memory: true });
+  const sourceEffect = effects.find(option => option.factionId === "rumin" && option.cardType === "servitor");
+  let state = store.create({ expectedRevision: 0, domain: "sets", name: "Projection test set" }, "admin-one");
+  state = store.create({ expectedRevision: state.revision, domain: "cards", name: "Projection test card", setId: state.draft.snapshot.domains.sets[0].id, effectId: sourceEffect.id }, "admin-one");
+  const card = state.draft.snapshot.domains.cards.at(-1);
+  const otherFaction = effects.find(option => option.factionId !== card.factionId && option.cardType === card.type);
+  assert.ok(otherFaction, "The registry must provide another faction with this card type.");
+  const otherType = effects.find(option => option.factionId === otherFaction.factionId && option.cardType !== card.type);
+  assert.ok(otherType, "The registry must provide another type for that faction.");
+  for (const [field, value] of [["factionId", otherFaction.factionId], ["type", otherType.cardType]]) {
+    state = store.patch({ expectedRevision: state.revision, domain: "cards", id: card.id, field, value }, "admin-one");
+    const saved = state.draft.snapshot.domains.cards.find(row => row.id === card.id);
+    const compatible = effects.filter(option => option.factionId === saved.factionId && option.cardType === saved.type);
+    assert.ok(compatible.length > 0);
+    assert.deepEqual(state.fields.cards[card.id].effect.options, compatible, `The ${field} save response must include the new choices.`);
+    assert.deepEqual(store.status().fields.cards[card.id].effect.options, compatible, "Reloading must retain those choices.");
+  }
+  assert.deepEqual(require("../authoredContent").FIELDS.cards.effect.options, effects);
+});
+
 test("one draft edits eight domains without changing the active engine content or source registry", (t) => {
   const { store, patch } = fixture(t), initial = store.active(), sourceHash = hash(require("../gameContent").getPublicGameContent());
   const chapter = baseline.domains.encounters[0], card = baseline.domains.cards[0], art = baseline.domains.assets[0];

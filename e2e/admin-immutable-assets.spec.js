@@ -1,3 +1,4 @@
+const { openCollection } = require("./player-navigation");
 const { test, expect } = require("./admin-release-test");
 const { waitForBufferedAdminResponse } = require("./buffered-admin-response");
 const fs = require("node:fs"), path = require("node:path"), crypto = require("node:crypto"), { spawn } = require("node:child_process"), sharp = require("sharp");
@@ -95,9 +96,7 @@ test("Admin uploads A/B, publishes, renders pinned matches, rolls back, restarts
   expect(r1.game.handAttacks[0].card.presentation.illustrationAssetId).toBe(a.id); await delivered(a);
   await publish("Artwork R2"); const r2 = await capture(); expect(r2.game.handAttacks[0].card.presentation.illustrationAssetId).toBe(b.id); await delivered(b);
   await page.goto(baseURL);
-  await page.locator('button[data-area="build"]').click();
-  await page.getByRole("button", { name: "Open Collection Workshop" }).click();
-  await page.getByRole("tab", { name: "Cards", exact: true }).click();
+  await openCollection(page, "catalog");
   await page.getByPlaceholder("Search cards", { exact: true }).fill("Rumin Sentry");
   const bUrl = serverUrl + `/api/content-assets/${b.id}/${b.sha256}.webp`;
   await expect(page.locator(".catalog-card-tile img").first()).toHaveAttribute("src", bUrl);

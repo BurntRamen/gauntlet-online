@@ -13,7 +13,8 @@ const sockets = [];
 test.before(async () => { await new Promise((r) => server.listen(0, "127.0.0.1", r)); origin = `http://127.0.0.1:${server.address().port}`; });
 test.after(async () => { sockets.forEach((s) => s.disconnect()); await new Promise((r) => server.close(r)); for (const room of [...__test.rooms.values()]) __test.deleteRoom(room.roomCode); __test.paraRuntime.close(); fs.rmSync(root, { recursive: true, force: true }); });
 async function api(url, input, index = 0) {
-  const response = await fetch(origin + url, { method: input ? "POST" : "GET", headers: { "Content-Type": "application/json", ...(index === null ? {} : { Authorization: `Bearer ${tokens[index]}` }) }, ...(input ? { body: JSON.stringify(input) } : {}) });
+  // Publication work can outlive an idle pooled socket in this same-process server.
+  const response = await fetch(origin + url, { method: input ? "POST" : "GET", headers: { "Content-Type": "application/json", Connection: "close", ...(index === null ? {} : { Authorization: `Bearer ${tokens[index]}` }) }, ...(input ? { body: JSON.stringify(input) } : {}) });
   return { status: response.status, data: await response.json() };
 }
 const author = async (route, input = {}) => { const { data } = await api("/api/admin/authoring"); const result = await api(`/api/admin/authoring/${route}`, { expectedRevision: data.revision, ...input }); assert.equal(result.status, 200, JSON.stringify(result.data)); return result.data; };

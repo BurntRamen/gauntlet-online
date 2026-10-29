@@ -1,3 +1,4 @@
+const { navigatePlayer, openProfileExtras, openCollection, openCampaign } = require("./player-navigation");
 const { test, expect } = require("./admin-release-test"), { area, paraTab, identity } = require("./admin-navigation");
 const { origin } = require("./admin-urls"), fs = require("node:fs"), path = require("node:path"), AxeBuilder = require("@axe-core/playwright").default;
 test("operator publishes owned equipment; player acquires, equips and sees profile, deck and actual match appearance", async ({ page, request }) => {
@@ -23,7 +24,7 @@ test("operator publishes owned equipment; player acquires, equips and sees profi
   await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible(); await area(page, "Publishing"); await fill("Release name", "Owned equipment destinations");
   await page.getByRole("button", { name: "Publish release", exact: true }).click(); await page.getByRole("button", { name: "Confirm publish", exact: true }).click(); await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible();
   const saveDeck = await request.post(origin + "/api/collection/save-constructed-deck", { headers, data: { name: "Museum recipe", factionId: "rumin", cardQuantities: {} } }); expect(saveDeck.status()).toBe(200);
-  await page.goto("/"); await page.locator('button[data-area="identity"]').click(); await page.getByRole("tab", { name: "Gold & Library", exact: true }).click();
+  await page.goto("/"); await navigatePlayer(page, "profile", "library");
   const library = page.getByRole("region", { name: "Gold & Library", exact: true });
   await library.getByRole("button", { name: "Review Museum collection · 0 Gold", exact: true }).click(); await library.getByRole("button", { name: "Confirm purchase · 0 Gold", exact: true }).click();
   for (const [, name, , destination] of choices) {
@@ -31,7 +32,7 @@ test("operator publishes owned equipment; player acquires, equips and sees profi
     await library.getByRole("button", { name: `Set ${destination.toLowerCase()}`, exact: true }).click(); await expect(library.getByRole("status")).toContainText("Appearance saved");
   }
   expect((await new AxeBuilder({ page }).include(".economy-console").analyze()).violations).toEqual([]);
-  await page.getByRole("tab", { name: "Profile", exact: true }).click();
+  await openProfileExtras(page);
   await expect(page.locator(".identity-dossier-hero")).toContainText("Museum Keeper"); await expect(page.getByRole("img", { name: "Museum banner", exact: true })).toBeVisible();
   await expect(page.getByLabel("Museum theme", { exact: true })).toHaveAttribute("controls");
   expect(await page.getByLabel("Museum theme", { exact: true }).evaluate(async audio => { await audio.play(); const duration = audio.duration; audio.pause(); return duration > 0; })).toBeTruthy();
@@ -41,9 +42,9 @@ test("operator publishes owned equipment; player acquires, equips and sees profi
   expect(await page.getByLabel("Museum theme", { exact: true }).evaluate(audio => audio.getBoundingClientRect().right <= audio.parentElement.getBoundingClientRect().right + 1)).toBeTruthy();
   await page.locator(".identity-dossier-hero").screenshot({ path: "artifacts/phase2-cosmetics-mobile.png" });
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.reload(); await page.locator('button[data-area="identity"]').click(); await page.getByRole("tab", { name: "Profile", exact: true }).click(); await expect(page.locator(".identity-dossier-hero")).toContainText("Museum Keeper");
-  await page.locator('button[data-area="build"]').click(); await expect(page.getByRole("img", { name: "Museum box deck box for Rumin", exact: true }).first()).toBeVisible(); await page.locator(".build-deck-display").screenshot({ path: "artifacts/phase2-cosmetics-deck.png", animations: "disabled" });
-  await page.locator('button[data-area="journey"]').click(); await page.getByLabel("Journey", { exact: true }).getByRole("button", { name: /^(Choose a Faction|Continue Campaign)$/ }).click(); await page.getByRole("tab", { name: /^Rumin/ }).click();
+  await page.reload(); await openProfileExtras(page); await expect(page.locator(".identity-dossier-hero")).toContainText("Museum Keeper");
+  await openCollection(page, "decks"); await page.locator(".deck-library-drawer > summary").click(); await expect(page.getByRole("img", { name: "Museum box deck box for Rumin", exact: true }).first()).toBeVisible(); await page.locator(".deck-library").screenshot({ path: "artifacts/phase2-cosmetics-deck.png", animations: "disabled" });
+  await openCampaign(page, "Rumin");
   await page.getByRole("button", { name: "Begin Battle", exact: true }).first().click(); await expect(page.getByTestId("production-babylon-match")).toBeVisible(); await expect(page.locator("canvas.babylon-match-canvas")).toBeVisible();
   await page.screenshot({ path: "artifacts/phase2-cosmetics-match.png" });
 });

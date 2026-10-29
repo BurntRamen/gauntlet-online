@@ -37,7 +37,9 @@
     "check:experience-gate": "node scripts/babylon-experience-gate.js",
     "check": "npm run check:server && npm run test:qualification && npm run test:server && npm run test:client && npm run build:client && npm run check:bundle",
     "test:e2e:admin": "playwright test --config=playwright.admin.config.js",
-    "check:content-release": "node scripts/validate-content-release.js"
+    "check:content-release": "node scripts/validate-content-release.js",
+    "test:e2e:command-deck": "playwright test --config=playwright.command-deck.config.js",
+    "test:e2e:release-menus": "playwright test --config=playwright.release-menus.config.js"
   },
   "engines": {
     "node": ">=22 <25"

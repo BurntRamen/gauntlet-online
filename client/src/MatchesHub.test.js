@@ -1,12 +1,13 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import MatchesHub from "./MatchesHub";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import MatchesHub, { RecentMatchShortcut } from "./MatchesHub";
 import { createLocalMatchLibrary, createLocalMatchRecorder, createMemoryMatchBackend } from "./matchHistory";
+import * as transcript from "./matchTranscript";
 
 const { applyCommand, createCommandEnvelope, createMatch } = require("@gauntlet/duel-rules");
 
 const originalFetch = global.fetch;
 
-afterEach(() => { global.fetch = originalFetch; });
+afterEach(() => { global.fetch = originalFetch; jest.restoreAllMocks(); });
 
 function emptyLibrary() {
   return createLocalMatchLibrary({ backend: createMemoryMatchBackend() });
@@ -75,19 +76,19 @@ test("merges account references honestly and keeps Season Zero as a subsection",
     matchLibrary={emptyLibrary()}
   />);
 
-  expect(await screen.findByText("Rumin vs Beta")).toBeVisible();
-  expect(screen.getByText("Match bbbbbbbb")).toBeVisible();
+  expect(await screen.findByText("vs Beta")).toBeVisible();
+  expect(screen.getByText("Full match record unavailable")).toBeVisible();
   expect(screen.getAllByText(/Replay file not saved on this device/).length).toBeGreaterThan(0);
   expect(screen.getAllByRole("heading", { name: "Season Zero" }).length).toBeGreaterThan(0);
   expect(screen.getByText("Ranked results appear here; imported match files never change the standings.")).toBeVisible();
-  fireEvent.click(screen.getByRole("button", { name: "Play Ranked" }));
+  fireEvent.click(screen.getByRole("button", { name: "Open Ranked Setup" }));
   expect(onOpenRanked).toHaveBeenCalledTimes(1);
-  fireEvent.click(screen.getByRole("button", { name: "Preview" }));
+  fireEvent.click(screen.getByRole("button", { name: "Preview Record" }));
   expect(screen.getByText("11")).toBeVisible();
 
   fireEvent.click(screen.getByRole("button", { name: "Watch Replay" }));
   await waitFor(() => expect(onOpenReplay).toHaveBeenCalledWith("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"));
-  fireEvent.click(screen.getByRole("button", { name: "Match Record" }));
+  fireEvent.click(screen.getByRole("button", { name: "View Match Record" }));
   await waitFor(() => expect(onOpenMatch).toHaveBeenCalledWith("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"));
   expect(global.fetch).toHaveBeenCalledWith("http://localhost:4000/api/account/matches?limit=30", expect.any(Object));
 });
@@ -164,9 +165,112 @@ test("legacy saved matches verify just the selected archive when preview is requ
   await library.backend.put(entry);
   const get = jest.spyOn(library, "get");
   render(<MatchesHub matchLibrary={library} />);
-  const previewButton = await screen.findByRole("button", { name: "Preview" });
+  const previewButton = await screen.findByRole("button", { name: "Preview Record" });
   expect(get).not.toHaveBeenCalled();
   fireEvent.click(previewButton);
-  await waitFor(() => expect(screen.getByLabelText(`Match ${entry.matchId} preview`)).toBeVisible());
+  await waitFor(() => expect(screen.getByLabelText("Match record preview")).toBeVisible());
   expect(get).toHaveBeenCalledTimes(1);
+});
+
+test("saved matches retain plain-text transcript export alongside portable match files", async () => {
+  const library = emptyLibrary();
+  await library.save(portableJson());
+  const download = jest.spyOn(transcript, "downloadMatchTranscript").mockImplementation(() => {});
+  render(<MatchesHub matchLibrary={library} hideStandings />);
+  const exportButton = await screen.findByRole("button", { name: "Export Transcript" });
+  expect(screen.getByRole("button", { name: "Export Match File" })).toBeVisible();
+  expect(download).not.toHaveBeenCalled();
+  fireEvent.click(exportButton);
+  await waitFor(() => expect(download).toHaveBeenCalledWith(expect.objectContaining({ availability: expect.objectContaining({ available: true }) })));
+});
+
+function accountMatch(matchId, opponent, available) {
+  return {
+    matchId, mode: "basic", completedAt: "2026-10-28T12:00:00.000Z",
+    perspective: { outcome: "win", player: { displayName: "You" }, opponent: { displayName: opponent } },
+    replay: { available, mode: "public-state-frames", unavailableReason: available ? null : "Replay scenes were not recorded." }
+  };
+}
+
+test("replay destination filters unavailable matches while records remain separately accessible", async () => {
+  const matches = [accountMatch("available-match", "Replay Opponent", true), accountMatch("record-only", "Record Opponent", false)];
+  global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({ matches, unavailableMatchReferences: [{ matchId: "reference-only" }] }) });
+  const props = {
+    account: { id: "account-1" }, authToken: "token", serverUrl: "http://localhost:4000", matchLibrary: emptyLibrary(),
+    standings: [], lifetimeStandings: [], season: { displayName: "Season Zero" }, hideStandings: true,
+    onOpenReplay: jest.fn(), onOpenMatch: jest.fn()
+  };
+  const { rerender } = render(<MatchesHub {...props} view="replays" />);
+  expect(await screen.findByText("vs Replay Opponent")).toBeVisible();
+  expect(screen.getByRole("heading", { name: "Replay Library" })).toBeVisible();
+  expect(screen.queryByText("vs Record Opponent")).not.toBeInTheDocument();
+  expect(screen.queryByText("Full match record unavailable")).not.toBeInTheDocument();
+  expect(screen.queryByRole("heading", { name: "Season Zero" })).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "View Match Record" }));
+  await waitFor(() => expect(props.onOpenMatch).toHaveBeenCalledWith("available-match"));
+  rerender(<MatchesHub {...props} view="recent" />);
+  expect(screen.getByText("vs Record Opponent")).toBeVisible();
+  expect(screen.getByText("Replay scenes were not recorded.")).toBeVisible();
+  expect(screen.getAllByRole("button", { name: "View Match Record" })).toHaveLength(2);
+  expect(screen.getAllByRole("button", { name: "Watch Replay" })).toHaveLength(1);
+  expect(screen.getByText("Full match record unavailable")).toBeVisible();
+});
+
+test("replay destination truthfully explains an empty library and keeps importing available", async () => {
+  global.fetch = jest.fn();
+  render(<MatchesHub account={null} authToken="" view="replays" hideStandings matchLibrary={emptyLibrary()} />);
+  expect(await screen.findByText("No playable replays are available yet. Import a saved match file below.")).toBeVisible();
+  expect(screen.getByRole("button", { name: "Choose Match File" })).toBeVisible();
+  expect(screen.queryByRole("button", { name: "Watch Replay" })).not.toBeInTheDocument();
+});
+
+test("imported files without replay evidence never offer a misleading Watch Replay action", async () => {
+  const library = emptyLibrary();
+  const inspected = library.inspect(portableJson());
+  inspected.replay.availability = { available: false, unavailableReason: "The file contains results without replay evidence." };
+  jest.spyOn(library, "inspect").mockReturnValue(inspected);
+  const { container } = render(<MatchesHub account={null} authToken="" hideStandings matchLibrary={library} />);
+  fireEvent.drop(container.querySelector(".match-import-drop"), { dataTransfer: { files: [{ text: async () => "test-file" }] } });
+  expect(await screen.findByText("The file contains results without replay evidence.")).toBeVisible();
+  expect(screen.queryByRole("button", { name: "Watch Replay" })).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Save to My Matches" })).toBeVisible();
+});
+
+test("account changes immediately clear previous account results and discard late responses", async () => {
+  let resolveFirst;
+  global.fetch = jest.fn()
+    .mockImplementationOnce(() => new Promise((resolve) => { resolveFirst = resolve; }))
+    .mockResolvedValue({ ok: true, json: async () => ({ matches: [accountMatch("second-match", "Second Account Opponent", true)] }) });
+  const library = emptyLibrary();
+  const props = { serverUrl: "http://localhost:4000", matchLibrary: library, hideStandings: true };
+  const { rerender } = render(<MatchesHub {...props} account={{ id: "first" }} authToken="first-token" />);
+  await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(1));
+  rerender(<MatchesHub {...props} account={{ id: "second" }} authToken="second-token" />);
+  expect(await screen.findByText("vs Second Account Opponent")).toBeVisible();
+  await act(async () => { resolveFirst({ ok: true, json: async () => ({ matches: [accountMatch("first-match", "First Account Opponent", true)] }) }); });
+  await waitFor(() => expect(screen.queryByText("vs First Account Opponent")).not.toBeInTheDocument());
+  await act(async () => { rerender(<MatchesHub {...props} account={null} authToken="" />); });
+  expect(screen.queryByText("vs Second Account Opponent")).not.toBeInTheDocument();
+});
+
+
+test("Play shortcut opens an actual locally saved replay and labels its outcome", async () => {
+  const library = emptyLibrary();
+  const saved = await library.save(portableJson());
+  const onReplay = jest.fn();
+  render(<RecentMatchShortcut matchLibrary={library} onOpenReplay={onReplay} onOpenMatches={() => {}} />);
+  fireEvent.click(await screen.findByRole("button", { name: "Watch Replay" }));
+  await waitFor(() => expect(onReplay).toHaveBeenCalledWith(saved.entry.matchId, expect.objectContaining({ availability: expect.any(Object) }), expect.objectContaining({ matchId: saved.entry.matchId })));
+});
+
+test("Play shortcut does not show an earlier account's late history response", async () => {
+  let finishOld;
+  global.fetch = jest.fn().mockImplementationOnce(() => new Promise(resolve => { finishOld = resolve; })).mockResolvedValue({ ok: true, json: async () => ({ matches: [] }) });
+  const library = emptyLibrary();
+  const props = { serverUrl: "http://test", matchLibrary: library, onOpenMatches: jest.fn(), onOpenReplay: jest.fn() };
+  const { rerender } = render(<RecentMatchShortcut {...props} account={{ id: "one" }} authToken="first" />);
+  rerender(<RecentMatchShortcut {...props} account={{ id: "two" }} authToken="second" />);
+  await act(async () => { finishOld({ ok: true, json: async () => ({ matches: [{ matchId: "old", perspective: { opponent: { displayName: "Old Opponent" } }, replay: { available: true } }] }) }); });
+  expect(screen.queryByText(/Old Opponent/)).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Watch Replay" })).not.toBeInTheDocument();
 });

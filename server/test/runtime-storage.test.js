@@ -4,11 +4,12 @@ const { runtimeStorageConfig, inspectRuntimeStorage, persistentMount, SCHEMA, MA
 
 test("runtime paths move together without enabling a new economy or official league", () => {
   const root = path.resolve(os.tmpdir(), "private-volume"), config = runtimeStorageConfig({ GAUNTLET_RUNTIME_DATA_DIR: root });
-  for (const key of ["accounts", "matches", "factions", "rooms", "archive", "avatars", "content"]) assert.ok(config.paths[key].startsWith(root + path.sep));
+  for (const key of ["accounts", "matches", "factions", "rooms", "archive", "avatars", "content", "layouts"]) assert.ok(config.paths[key].startsWith(root + path.sep));
   assert.equal(config.paths.para, null); assert.equal(config.paths.economy, null);
   assert.throws(() => runtimeStorageConfig({ GAUNTLET_RUNTIME_DATA_DIR: "relative" }), /absolute/);
   const previous = runtimeStorageConfig({ ACCOUNT_DATA_FILE: "custom-accounts.json", MATCH_DATA_FILE: "custom-matches.json" });
   assert.equal(previous.paths.avatars, "custom-accounts.json.avatars"); assert.equal(previous.paths.archive, "custom-matches.json.archive");
+  assert.equal(previous.paths.layouts, "custom-accounts.json.layouts.json");
 });
 
 test("strict runtime configuration rejects missing mounts, missing markers and paths outside the volume", t => {
