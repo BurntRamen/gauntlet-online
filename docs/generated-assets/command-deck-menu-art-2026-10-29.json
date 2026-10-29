@@ -1,0 +1,37 @@
+{
+  "date": "2026-10-29",
+  "tool": "Built-in image_gen.imagegen (no CLI)",
+  "scope": "User-requested candidate menu illustrations; no named lore, faction identity, new game mechanics or reward claims.",
+  "processing": "WebP encoding at quality 84, original dimensions preserved.",
+  "assets": [
+    {
+      "name": "duel",
+      "prompt": "Use case: stylized-concept. Asset type: production candidate illustration for a Gauntlet Online game-menu choice, not a screenshot. Visual direction: modern tactical card-game arena infrastructure, blackened steel, graphite composite, bone enamel, restrained worn brass details and small amber and teal signal lights. Premium painted game concept art, clear tangible materials, readable silhouettes, controlled contrast. Landscape 3:2 composition with the main subject centered and all critical details in the middle 60 percent so both square thumbnails and wide menu crops work. Moderately bright, readable art; the application will place text separately. No people, faces, faction or civilization references, fantasy castles, medieval ornament, ornate gold, casino chips, currency, readable text, numbers, logos, labels, UI, watermarks, or face-up card ranks. Avoid a generic empty corridor. This is noncanonical interface illustration only; do not invent named lore or game mechanics. Subject: a close three-quarter view of a compact competitive duel station. Two opposing racks of plain charcoal-backed playing cards face one another across a clean brushed-steel playing surface. A restrained amber readiness light on one side and teal on the other suggest two opponents ready to play. Strong diagonal composition, immediately recognizable as a two-player card confrontation. Architectural background soft and secondary; no tabletop clutter.",
+      "source": "C:/Users/gjoep/.codex/generated_images/01a1854d-b85c-7d70-aeaa-6922088f3b70/exec-67c85927-f454-4429-baa2-fbad6ec4fdc6.png",
+      "asset": "client/public/assets/gauntlet/menus/command-duel-v1.webp"
+    },
+    {
+      "name": "tournament",
+      "prompt": "Use case: stylized-concept. Asset type: production candidate illustration for a Gauntlet Online game-menu choice, not a screenshot. Visual direction: modern tactical card-game arena infrastructure, blackened steel, graphite composite, bone enamel, restrained worn brass details and small amber and teal signal lights. Premium painted game concept art, clear tangible materials, readable silhouettes, controlled contrast. Landscape 3:2 composition with the main subject centered and all critical details in the middle 60 percent so both square thumbnails and wide menu crops work. Moderately bright, readable art; the application will place text separately. No people, faces, faction or civilization references, fantasy castles, medieval ornament, ornate gold, casino chips, currency, readable text, numbers, logos, labels, UI, watermarks, or face-up card ranks. Avoid a generic empty corridor. This is noncanonical interface illustration only; do not invent named lore or game mechanics. Subject: an elevated industrial tournament dais with a single bold angular steel victory emblem on a low plinth, shaped like an abstract shield with three rising fins. Beyond it, several orderly illuminated card-match stations recede into a spacious arena. Amber match lights, graphite architecture, crisp bone-enamel edge accents. The central victory object dominates and is clearly readable at small size. The object is generic event illustration, not a new logo, named trophy or promised in-game reward.",
+      "source": "C:/Users/gjoep/.codex/generated_images/01a1854d-b85c-7d70-aeaa-6922088f3b70/exec-5ab789b8-26c0-4e8d-9ac8-fa5293f3d754.png",
+      "asset": "client/public/assets/gauntlet/menus/command-tournament-v1.webp"
+    },
+    {
+      "name": "draft",
+      "prompt": "Use case: stylized-concept. Asset type: production candidate illustration for a Gauntlet Online game-menu choice, not a screenshot. Visual direction: modern tactical card-game arena infrastructure, blackened steel, graphite composite, bone enamel, restrained worn brass details and small amber and teal signal lights. Premium painted game concept art, clear tangible materials, readable silhouettes, controlled contrast. Landscape 3:2 composition with the main subject centered and all critical details in the middle 60 percent so both square thumbnails and wide menu crops work. Moderately bright, readable art; the application will place text separately. No people, faces, faction or civilization references, fantasy castles, medieval ornament, ornate gold, casino chips, currency, readable text, numbers, logos, labels, UI, watermarks, or face-up card ranks. Avoid a generic empty corridor. This is noncanonical interface illustration only; do not invent named lore or game mechanics. Subject: a close three-quarter view of a precision card-selection workbench. A sealed charcoal card packet opened at one end, several plain ivory-backed cards fanned into three separate selections, and a compact metal storage tray. Warm task lighting and cool teal workshop light. Clearly communicates opening a card pool and choosing cards. Center the card packet and fan in the frame, with tactile edges and an uncluttered modern graphite work surface. No written markings on the packet or cards.",
+      "source": "C:/Users/gjoep/.codex/generated_images/01a1854d-b85c-7d70-aeaa-6922088f3b70/exec-cac6e394-ca9d-4ea2-99ec-b23fadb01808.png",
+      "asset": "client/public/assets/gauntlet/menus/command-draft-v1.webp"
+    }
+  ],
+  "visualReview": {
+    "status": "Inspected in rendered desktop and mobile menus",
+    "checks": [
+      "No visible text, watermarks, or faction branding in new illustrations",
+      "Subjects retained within menu crops",
+      "Text contrast protected with localized CSS gradients and shadow",
+      "All seven captured menu views load every referenced image",
+      "No horizontal overflow; desktop Play, Compete and Decks main options fit",
+      "Forced-colors mode removes decoration"
+    ]
+  }
+}

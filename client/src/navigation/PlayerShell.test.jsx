@@ -22,6 +22,21 @@ test("keeps all eight primary destinations labeled and reachable", () => {
   expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Ready to play?");
 });
 
+test("header mute exposes its current state and remains available while editing", () => {
+  const onToggleAudio = jest.fn();
+  const { rerender } = renderShell({ onToggleAudio, audioMuted: false });
+  const toggle = screen.getByRole("button", { name: "Mute menu audio" });
+  expect(toggle).toHaveAttribute("aria-pressed", "false");
+  fireEvent.click(toggle);
+  expect(onToggleAudio).toHaveBeenCalledTimes(1);
+  rerender(<PlayerShell onNavigate={() => {}} onToggleAudio={onToggleAudio} audioMuted editing onDoneEditing={() => {}} />);
+  expect(toggle).toHaveAttribute("aria-pressed", "true");
+  expect(toggle).toHaveAttribute("title", "Unmute menu audio");
+  expect(screen.getByRole("button", { name: "Done Editing" })).toBeInTheDocument();
+  fireEvent.click(toggle);
+  expect(onToggleAudio).toHaveBeenCalledTimes(2);
+});
+
 test("More exposes truthful destinations and customization, traps keyboard focus, and restores its trigger", async () => {
   const onCustomize = jest.fn();
   renderShell({ customizable: true, onCustomize });
@@ -88,7 +103,7 @@ test("action tiles expose explanations and outcomes without hovering and setup p
   const onClick = jest.fn();
   const onBack = jest.fn();
   render(<><ActionTile id="basic" title="Basic vs AI" description="Play the core game solo." outcome="Starts a game immediately" onClick={onClick} /><SetupFrame title="Ranked Match" description="Choose a format before joining the queue." onBack={onBack}>Format selection</SetupFrame></>);
-  const tile = screen.getByRole("button", { name: /Basic vs AI Play the core game solo. Starts a game immediately/ });
+  const tile = screen.getByRole("button", { name: /Basic vs AI Starts a game immediately/ });
   fireEvent.click(tile);
   expect(onClick).toHaveBeenCalledTimes(1);
   expect(screen.getByRole("region", { name: "Ranked Match" })).toHaveTextContent("Format selection");

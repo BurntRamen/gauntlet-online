@@ -71,8 +71,15 @@ test('all eight core actions fit above the fold at both target desktop sizes', a
       measurements.push({ viewport, id, bounds });
       expect(bounds.y, `${id} starts above viewport`).toBeGreaterThanOrEqual(0);
       expect(bounds.y + bounds.height, `${id} should fit at ${viewport.width}×${viewport.height}`).toBeLessThanOrEqual(viewport.height);
-      await expect(tile.locator('.cd-action-description')).not.toHaveText('');
+      await expect(tile.locator('.cd-action-description')).toHaveCount(0);
+      const imageBounds = await tile.locator('.cd-action-art').boundingBox();
+      expect(Math.abs(imageBounds.width - bounds.width)).toBeLessThanOrEqual(2);
+      expect(Math.abs(imageBounds.height - bounds.height)).toBeLessThanOrEqual(2);
       await expect(tile.locator('.cd-action-outcome')).not.toHaveText('');
+      expect(await tile.locator('.cd-action-art img').evaluate(async (image) => {
+        await image.decode().catch(() => {});
+        return image.naturalWidth > 0;
+      }), `${id} artwork loads`).toBe(true);
     }
     await expectNoOverflow(page);
     await page.screenshot({ path: `artifacts/command-deck/after-desktop-${viewport.width}.png`, fullPage: true });
@@ -90,6 +97,13 @@ test('mobile, tablet and equivalent 200 percent zoom reflow retain visible contr
     await openPlay(page);
     await expectNoOverflow(page);
     if (viewport.width < 761) await expect(page.getByRole('navigation', { name: 'Mobile navigation' })).toBeVisible();
+    if (viewport.width === 390) {
+      const navigation = await page.getByRole('navigation', { name: 'Mobile navigation' }).boundingBox();
+      for (const id of ACTION_IDS) {
+        const tile = await page.locator(`.cd-action-tile[data-action-id="${id}"]`).boundingBox();
+        expect(tile.y + tile.height, `${id} is above the mobile navigation`).toBeLessThanOrEqual(navigation.y);
+      }
+    }
     await page.screenshot({ path: `artifacts/command-deck/after-reflow-${viewport.width}.png`, fullPage: true });
     await editPage(page);
     if (viewport.width < 601) {
@@ -193,6 +207,35 @@ test('primary destinations, focused setup outcomes and browser navigation remain
   await expect(page.getByRole('heading', { name: 'Your Profile', exact: true, level: 1 })).toBeVisible();
   await expectNoOverflow(page);
   await page.screenshot({ path: 'artifacts/command-deck/after-profile.png', fullPage: true });
+});
+
+test('header mute persists, follows Settings and remains accessible on mobile while editing', async ({ page }) => {
+  await openPlay(page);
+  const mute = page.getByRole('button', { name: 'Mute menu audio', exact: true });
+  await expect(mute).toHaveAttribute('aria-pressed', 'false');
+  await mute.click();
+  await expect(mute).toHaveAttribute('aria-pressed', 'true');
+  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('gauntlet_menu_audio_settings')).masterMuted)).toBe(true);
+  await page.reload();
+  await expect(mute).toHaveAttribute('aria-pressed', 'true');
+  await page.getByRole('button', { name: 'Settings', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Unmute all', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Unmute all', exact: true }).click();
+  await expect(mute).toHaveAttribute('aria-pressed', 'false');
+  await mute.click();
+  await expect(page.getByRole('button', { name: 'Unmute all', exact: true })).toBeVisible();
+  await expect(page.getByRole('slider', { name: 'Music volume', exact: true })).toBeDisabled();
+  await page.getByRole('navigation', { name: 'Main navigation', exact: true }).getByRole('button', { name: 'Play', exact: true }).click();
+  await page.setViewportSize({ width: 320, height: 700 });
+  await expect(mute).toBeInViewport();
+  await expectNoOverflow(page);
+  await editPage(page);
+  await expect(mute).toBeInViewport();
+  await mute.click();
+  await expect(mute).toHaveAttribute('aria-pressed', 'false');
+  await expectNoOverflow(page);
+  await expectAccessible(page);
+  await doneEditing(page);
 });
 
 test('new guests start Basic vs AI directly and recovery survives reload', async ({ page }) => {

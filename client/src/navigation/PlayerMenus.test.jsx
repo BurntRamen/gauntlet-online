@@ -34,7 +34,7 @@ const openMore = () => fireEvent.click(screen.getAllByRole("button", { name: "Mo
 
 beforeEach(() => localStorage.clear());
 
-test("Play exposes all eight actions with visible descriptions and accurate click outcomes", () => {
+test("Play exposes all eight actions with concise labels and accurate click outcomes", () => {
   const { props } = renderMenus();
   const cases = [
     ["basic-ai", "Basic vs AI", "Start game", "basicAi"],
@@ -51,7 +51,7 @@ test("Play exposes all eight actions with visible descriptions and accurate clic
     const tile = getTile(id);
     expect(tile).toHaveTextContent(title);
     expect(tile).toHaveTextContent(outcome);
-    expect(tile.querySelector(".cd-action-description").textContent.length).toBeGreaterThan(10);
+    expect(tile.querySelector(".cd-action-description")).toBeNull();
     expect(tile.querySelector(".cd-action-icon svg")).toBeInTheDocument();
     fireEvent.click(tile);
     if (Array.isArray(expected)) expect(props.onNavigate).toHaveBeenLastCalledWith(...expected);
@@ -218,7 +218,7 @@ test("Campaign shortcuts derive from actual content and continuing uses the exac
   const { props } = renderMenus({ route: { page: "campaign", view: "" }, content: { campaigns }, account: { id: "account", name: "River", progression: { campaign: { newly_published: ["intro"] } } }, state: { completedChapters: 1, nextCampaign: { factionId: "newly_published", chapter: { id: "crossing", title: "The Crossing" } } } });
   const faction = getTile("faction-newly_published");
   expect(faction).toHaveTextContent("Tideward");
-  expect(faction).toHaveTextContent("1 of 2 chapters cleared");
+  expect(faction).toHaveTextContent("Chapters · 1 of 2 cleared");
   fireEvent.click(faction);
   expect(props.actions.campaign).toHaveBeenCalledWith("newly_published");
   fireEvent.click(screen.getByRole("button", { name: "Continue next chapter" }));
@@ -289,9 +289,9 @@ test("decks, match records, replays and Community retain direct, distinct destin
 
 test("guest collection shortcuts explain the sign-in step before opening it", () => {
   const guest = renderMenus({ route: { page: "decks", view: "" } });
-  expect(getTile("editor")).toHaveTextContent("Open sign-in and deck information");
-  expect(getTile("collection")).toHaveTextContent("Open sign-in and collection information");
-  expect(getTile("packs")).toHaveTextContent("Open sign-in and pack information");
+  expect(getTile("editor")).toHaveTextContent("Sign in to build");
+  expect(getTile("collection")).toHaveTextContent("Sign in to browse");
+  expect(getTile("packs")).toHaveTextContent("Sign in to open");
   fireEvent.click(getTile("collection"));
   expect(guest.props.actions.collection).toHaveBeenCalledWith("catalog");
   guest.unmount();

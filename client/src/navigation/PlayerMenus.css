@@ -1,9 +1,11 @@
 .cd-directory { margin-top: 14px; font-size: 13px; color: #b9c9d5; }
-.cd-directory summary { cursor: pointer; padding: 8px 0; min-height: 44px; display: list-item; }
+.cd-directory summary { cursor: pointer; padding: 8px 6px; min-height: 44px; display: list-item; width: fit-content; border-radius: 5px; background: #09131be6; }
 .cd-directory p { margin: 6px 0; }
 .cd-directory button { font-size: 13px; }
 .cd-section-line { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 12px 0 8px; }
 .cd-section-line h2 { font-size: 15px; margin: 0; }
+.cd-section-line { border-radius: 5px; background: linear-gradient(90deg, #09131be6, #09131bb8); }
+.cd-landing > .cd-note { width: fit-content; max-width: 100%; border-radius: 4px; background: #09131be6; box-shadow: 0 0 0 3px #09131be6; }
 .cd-section-line button { font-size: 13px; padding: 6px 8px; background: transparent; border: none; color: #a4dcd5; }
 .cd-utility { height: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border: 1px solid #304453; background: #131f2a; border-radius: 9px; }
 .cd-utility div { display: grid; gap: 3px; }
@@ -30,7 +32,7 @@
 .cd-format-nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
 .cd-format-nav [aria-current=page] { color: #b1eee2; border-color: #78baa9; background: #1b393c; }
 .cd-campaign-references { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
-.cd-campaign-references button { padding: 8px 12px; font-size: 13px; color: #a4dcd5; background: transparent; }
+.cd-campaign-references button { padding: 8px 12px; font-size: 13px; color: #a4dcd5; background: #0c1822ee; }
 .cd-profile-top,.cd-reference-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; margin-bottom: 16px; align-items: start; }
 .cd-notice { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0 0 10px; padding: 12px; background: #1b303b; border: 1px solid #6896a1; border-radius: 8px; font-size: 14px; }
 .cd-notice.is-error { background: #3a2027; border-color: #d58a92; }

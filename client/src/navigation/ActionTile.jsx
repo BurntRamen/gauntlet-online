@@ -3,7 +3,7 @@ import { DestinationIcon } from "./PlayerShell";
 import { resolveVisualAsset } from "../GauntletVisuals";
 import { ACTION_ART, ACTION_ART_POSITIONS } from "./menuArtwork";
 
-/** The outcome stays visible: players should know what the button does before clicking. */
+/** One short action cue keeps the whole-card destination clear. */
 export default function ActionTile({ id, title, description, outcome, onClick, disabled = false, icon, artwork = ACTION_ART[id], tone = typeof icon === "string" ? icon : "campaign", className = "" }) {
   return (
     <button
@@ -14,12 +14,13 @@ export default function ActionTile({ id, title, description, outcome, onClick, d
       onClick={onClick}
       disabled={disabled}
     >
-      {artwork && <span className="cd-action-art" aria-hidden="true"><img src={resolveVisualAsset(artwork)} style={{ objectPosition: ACTION_ART_POSITIONS[id] }} alt="" loading="lazy" decoding="async" draggable={false} /></span>}
-      {icon && <span className="cd-action-icon" aria-hidden="true">{typeof icon === "string" ? <DestinationIcon name={icon} /> : icon}</span>}
+      {(artwork || icon) && <span className="cd-action-visual" aria-hidden="true">
+        {artwork && <span className="cd-action-art"><img src={resolveVisualAsset(artwork)} style={{ objectPosition: ACTION_ART_POSITIONS[id] }} alt="" loading="lazy" decoding="async" draggable={false} /></span>}
+        {icon && <span className="cd-action-icon">{typeof icon === "string" ? <DestinationIcon name={icon} /> : icon}</span>}
+      </span>}
       <span className="cd-action-copy">
         <span className="cd-action-title">{title}</span>
-        <span className="cd-action-description">{description}</span>
-        <span className="cd-action-outcome">{outcome}</span>
+        <span className="cd-action-outcome">{outcome || description}</span>
       </span>
       <span className="cd-action-arrow" aria-hidden="true">↗</span>
     </button>

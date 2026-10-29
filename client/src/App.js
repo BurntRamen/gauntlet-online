@@ -1038,7 +1038,7 @@ function MenuAudioControl({
   settings,
   onSettingsChange,
   accountSoundMuted,
-  onAccountSoundMutedChange,
+  onMasterMuteToggle,
   playCue,
   inline = false
 }) {
@@ -1049,16 +1049,6 @@ function MenuAudioControl({
   const togglePanel = () => {
     playCue(open ? "panelClose" : "panelOpen");
     setOpen((value) => !value);
-  };
-
-  const toggleMaster = () => {
-    if (accountSoundMuted) {
-      onAccountSoundMutedChange(false);
-      window.setTimeout(() => playCue("success"), 0);
-      return;
-    }
-    if (!settings.masterMuted) playCue("panelClose");
-    onSettingsChange({ masterMuted: !settings.masterMuted });
   };
 
   return (
@@ -1110,7 +1100,7 @@ function MenuAudioControl({
             <input type="range" min="0" max="0.2" step="0.01" value={settings.ambienceVolume} disabled={muted || !settings.ambienceEnabled} onChange={(event) => onSettingsChange({ ambienceVolume: Number(event.target.value) })} aria-label="Menu ambience volume" />
           </label>
           <div className="menu-audio-actions">
-            <button type="button" onClick={toggleMaster}>{muted ? "Unmute all" : "Mute all"}</button>
+            <button type="button" onClick={onMasterMuteToggle}>{muted ? "Unmute all" : "Mute all"}</button>
             <button type="button" disabled={muted || !settings.effectsEnabled} onClick={() => playCue("success")}>Test table</button>
           </div>
         </div>
@@ -3290,6 +3280,12 @@ export default function App() {
     }
   }
 
+  function toggleMenuMasterMute() {
+    const nextMuted = !(accountSoundMuted || menuAudioSettings.masterMuted);
+    if (accountSoundMuted) setSignedInSoundMuted(false);
+    updateMenuAudioSettings({ masterMuted: nextMuted });
+  }
+
   const loadAuthoritativeAccount = useCallback(() => fetchAuthoritativeAccount({
     apiBaseUrl: SOCKET_URL,
     authToken
@@ -4740,6 +4736,7 @@ export default function App() {
       onPlayBasicAi={() => startTutorialVsAi("basic")} onPlayFactionAi={() => startTutorialVsAi("factions")} canPlayAsPlayer={canPlayAsPlayer} />;
     return <Suspense fallback={<SurfaceLoading label="Command Deck" />}>
       <PlayerMenuExperience authToken={authToken} serverUrl={SOCKET_URL} factionIds={Object.keys(gameContent.campaigns || {})} route={playerRoute} onNavigate={navigateHomeArea} account={account} ownerAuthorized={ownerAuthorized}
+        audioMuted={effectiveMenuAudioSettings.masterMuted} onToggleAudio={toggleMenuMasterMute}
         content={gameContent} workflow={workflow}
         actions={{
           basicAi: () => startTutorialVsAi("basic"), factionAi: () => startTutorialVsAi("factions"),
@@ -4797,7 +4794,7 @@ export default function App() {
             <section className="cd-panel"><h2>Sound & Music</h2><p>Your existing music, interface, and ambience preferences.</p><MenuAudioControl inline trackKey={activeMusicTrack} onTrackChange={setMenuMusicTrack}
               musicEnabled={musicEnabled} musicVolume={musicVolume} onMusicToggle={() => setMusicEnabled((value) => !value)} onMusicVolumeChange={setMusicVolume}
               settings={menuAudioSettings} onSettingsChange={updateMenuAudioSettings} accountSoundMuted={accountSoundMuted}
-              onAccountSoundMutedChange={setSignedInSoundMuted} playCue={playMenuCue} /></section>
+              onMasterMuteToggle={toggleMenuMasterMute} playCue={playMenuCue} /></section>
             <section className="cd-panel"><h2>Display & Accessibility</h2><label className="cd-toggle-row"><input type="checkbox" checked={showHelperLabels} onChange={(event) => setShowHelperLabels(event.target.checked)} /> Show extra helper labels in gameplay</label>
               <p>Menus always explain each action. Keyboard focus is visible; motion follows your device’s reduced-motion setting. Browser zoom is supported.</p>
               <button onClick={() => { setShowHotkeys(true); }}>Gameplay keyboard shortcuts</button><HotkeyWindow visible={showHotkeys} onClose={() => setShowHotkeys(false)} />

@@ -15,6 +15,8 @@ const ICON_PATHS = {
   learn: "M12 6C9 3 5 3 3 4v15c3-1 6-1 9 2m0-15c3-3 7-3 9-2v15c-3-1-6-1-9 2V6Z",
   profile: "M20 21v-2a6 6 0 0 0-6-6h-4a6 6 0 0 0-6 6v2M16 6a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z",
   settings: "M4 7h16M4 17h16M8 4v6m8 4v6",
+  sound: "M3 9h4l5-4v14l-5-4H3V9Zm13-1a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14",
+  muted: "M3 9h4l5-4v14l-5-4H3V9Zm13 0 6 6m0-6-6 6",
   more: "M5 12h1m5 0h1m5 0h1",
   customize: "M3 3h7v7H3V3Zm11 0h7v7h-7V3ZM3 14h7v7H3v-7Zm11 0h7v7h-7v-7Z",
 };
@@ -97,7 +99,7 @@ function MoreSheet({ destination, onNavigate, onClose, onCustomize, customizable
   );
 }
 
-export default function PlayerShell({ destination = "play", navigationKey = destination, pageTitle, pageDescription, pageEyebrow, pageDetail, onNavigate, account, ownerAuthorized = false, onAdmin, onCustomize, customizable = false, editing = false, onDoneEditing, children, notices }) {
+export default function PlayerShell({ destination = "play", navigationKey = destination, pageTitle, pageDescription, pageEyebrow, pageDetail, onNavigate, account, audioMuted = false, onToggleAudio, ownerAuthorized = false, onAdmin, onCustomize, customizable = false, editing = false, onDoneEditing, children, notices }) {
   const [moreOpen, setMoreOpen] = useState(false);
   const returnFocusRef = useRef(null);
   const titleRef = useRef(null);
@@ -138,6 +140,7 @@ export default function PlayerShell({ destination = "play", navigationKey = dest
           <span className="cd-topbar-caption">THE COMMAND DECK</span>
           <div className="cd-header-actions">
             {editing && <button type="button" className="cd-button cd-button-primary cd-done-editing" onClick={onDoneEditing}>Done Editing</button>}
+            {onToggleAudio && <button type="button" className="cd-header-button cd-audio-button" aria-label="Mute menu audio" aria-pressed={audioMuted} title={audioMuted ? "Unmute menu audio" : "Mute menu audio"} onClick={onToggleAudio}><DestinationIcon name={audioMuted ? "muted" : "sound"} /><span>{audioMuted ? "Muted" : "Mute"}</span></button>}
             <button type="button" className="cd-header-button cd-profile-button" onClick={() => onNavigate("profile")} aria-label={accountName ? `Profile — ${accountName}` : "Profile"}><DestinationIcon name="profile" /><span>{accountName || "Profile"}</span></button>
             <button type="button" className="cd-header-button cd-settings-button" onClick={() => onNavigate("settings")}><DestinationIcon name="settings" /><span>Settings</span></button>
             <button type="button" className="cd-header-button cd-desktop-more" onClick={openMore} aria-haspopup="dialog" aria-expanded={moreOpen}><DestinationIcon name="more" /><span>More</span></button>

@@ -106,7 +106,7 @@ function DraftSetup({ view, onNavigate, account, content, actions, status, saved
   </>;
 }
 
-export default function PlayerMenus({ route, onNavigate, account, ownerAuthorized, content, actions, state, slots, workflow }) {
+export default function PlayerMenus({ route, onNavigate, account, ownerAuthorized, content, actions, state, slots, workflow, audioMuted, onToggleAudio }) {
   const { editing, setEditing } = usePlayerLayout();
   const { page, view } = route;
   const [rankedSelections, setRankedSelections] = useState({ format: "factions", bestOf: 1, factionId: "", generalId: "", deckId: "" });
@@ -159,7 +159,7 @@ export default function PlayerMenus({ route, onNavigate, account, ownerAuthorize
       const completed = account?.progression?.campaign?.[id] || [];
       const faction = content.factions?.find((entry) => entry.id === id);
       const emblem = faction?.cardImage || faction?.commander?.image;
-      return { ...action(`faction-${id}`, campaign.factionName || id, `${completed.length} of ${campaign.chapters.length} chapters cleared · ${campaign.commanderName}`, "Open chapter selection", () => actions.campaign(id), emblem ? <img src={resolveVisualAsset(emblem)} alt="" loading="lazy" decoding="async" draggable={false} /> : "campaign"), artwork: campaign.coverImage || faction?.commander?.image || faction?.cardImage };
+      return { ...action(`faction-${id}`, campaign.factionName || id, `${completed.length} of ${campaign.chapters.length} chapters cleared · ${campaign.commanderName}`, `Chapters · ${completed.length} of ${campaign.chapters.length} cleared`, () => actions.campaign(id), emblem ? <img src={resolveVisualAsset(emblem)} alt="" loading="lazy" decoding="async" draggable={false} /> : "campaign"), artwork: campaign.coverImage || faction?.commander?.image || faction?.cardImage };
     });
     items.push(action("tutorial", "Tutorial", "Learn one complete turn.", "Open tutorial", actions.tutorial, "learn"), action("lore", "Faction Lore", "Meet the published commanders.", "Read faction stories", () => nav("campaign", "lore"), "campaign"), action("rulebook", "Rulebook", "The full rules reference.", "Read rules", () => nav("learn", "rulebook"), "learn"));
     body = <><section className="cd-context"><div>{campaignPresentation.eyebrow && <span className="cd-eyebrow">{campaignPresentation.eyebrow}</span>}<h2>{campaignPresentation.title}</h2><p>{campaignPresentation.description && <>{campaignPresentation.description} </>}{account ? `${state.completedChapters} chapters cleared. Progress and earned packs stay with your account.` : "Guests can play every published campaign. Sign in to retain chapter progress and rewards."}</p>{campaignPresentation.detail && <p className="cd-authored-detail">{campaignPresentation.detail}</p>}</div>{state.nextCampaign && <button className="cd-button-primary" onClick={() => actions.campaign(state.nextCampaign.factionId, state.nextCampaign.chapter.id)}>{state.completedChapters ? "Continue next chapter" : "Open first chapter"}</button>}</section>
@@ -169,9 +169,9 @@ export default function PlayerMenus({ route, onNavigate, account, ownerAuthorize
   else if (page === "decks" && view === "library") body = <SetupFrame title="Draft Deck Library" description="Saved decks, versions, activation, and format restrictions." onBack={() => nav("decks")} backLabel="Back to Decks & Cards">{slots.draftLibrary}</SetupFrame>;
   else if (page === "decks") body = <><p className="cd-note">The standard 52-card deck is playable immediately. Faction-card replacements and collector presentation are optional.</p>
     <Tiles pageId="decks" items={[
-      action("editor", state.deck ? "Edit Active Deck" : "Create Deck", state.deck?.name || "Build and save a constructed deck.", account ? "Open deck editor" : "Open sign-in and deck information", () => actions.collection("decks"), "decks"),
-      action("collection", "Browse Collection", "Owned cards, legality, and collector variants.", account ? "Open card catalog" : "Open sign-in and collection information", () => actions.collection("catalog"), "decks"),
-      action("packs", state.packCredits ? `Open Earned Packs · ${state.packCredits}` : "Earned Packs", state.packCredits ? `${state.packCredits} pack credits ready to use.` : "Campaign victories earn gameplay packs.", account ? "Open packs" : "Open sign-in and pack information", () => actions.collection("packs"), "decks"),
+      action("editor", state.deck ? "Edit Active Deck" : "Create Deck", state.deck?.name || "Build and save a constructed deck.", account ? "Open deck editor" : "Sign in to build", () => actions.collection("decks"), "decks"),
+      action("collection", "Browse Collection", "Owned cards, legality, and collector variants.", account ? "Open card catalog" : "Sign in to browse", () => actions.collection("catalog"), "decks"),
+      action("packs", state.packCredits ? `Open Earned Packs · ${state.packCredits}` : "Earned Packs", state.packCredits ? `${state.packCredits} pack credits ready to use.` : "Campaign victories earn gameplay packs.", account ? "Open packs" : "Sign in to open", () => actions.collection("packs"), "decks"),
       action("draft-library", "Draft Deck Library", "Manage saved Live Draft, Bot Draft, and Sealed decks.", "Open saved decks", () => nav("decks", "library"), "draft"),
     ]} /><section className="cd-panel"><h2>Current deck</h2><p>{state.deck ? `${state.deck.name} · ${state.deck.factionName || state.deck.factionId}` : "Standard deck · no custom replacements required"}</p>{!account && <button onClick={profile}>Sign in to save decks and rewards</button>}</section></>;
   else if (page === "draft") body = <DraftSetup view={view} onNavigate={nav} account={account} content={content} actions={actions} status={state.draftQueue} savedDecks={state.savedDraftDecks} draftSetId={state.draftSetId} />;
@@ -227,6 +227,7 @@ export default function PlayerMenus({ route, onNavigate, account, ownerAuthorize
     {actions.roomCode && !(page === "play" && view === "tables" && !workflow) && !(page === "play" && !view && !workflow && !state.hasSavedRoom) && <section className="cd-notice" aria-label="Room invitation"><span>Room invitation: {actions.roomCode}</span><button onClick={() => nav("play", "tables")}>Open Invitation</button></section>}
   </>;
   return <PlayerShell destination={page} navigationKey={`${page}:${view}:${workflow ? "workflow" : "landing"}`} onNavigate={nav} account={account} ownerAuthorized={ownerAuthorized} onAdmin={() => nav("studio")}
+    audioMuted={audioMuted} onToggleAudio={onToggleAudio}
     pageTitle={page === "draft" ? draftPresentation.title : undefined} pageDescription={page === "draft" ? draftPresentation.description : undefined}
     pageEyebrow={page === "draft" ? draftPresentation.eyebrow : undefined} pageDetail={page === "draft" ? draftPresentation.detail : undefined}
     onCustomize={() => setEditing(true)} customizable={customizable} editing={editing} onDoneEditing={() => setEditing(false)} notices={notices}>
