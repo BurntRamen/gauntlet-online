@@ -16,7 +16,7 @@ test("operator publishes alternative and split prices; player purchases exact te
   await page.getByRole("button", { name: "Validate draft", exact: true }).click(); await page.getByRole("button", { name: "Preview saved draft", exact: true }).click(); await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible();
   await area(page, "Publishing"); await fill("Release name", "Qualified alternative and split currency terms"); await page.getByRole("button", { name: "Publish release", exact: true }).click(); await page.getByRole("button", { name: "Confirm publish", exact: true }).click(); await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible();
   await page.goto("/"); await navigatePlayer(page, "profile", "library");
-  const library = page.getByRole("region", { name: "Gold & Library", exact: true });
+  const library = page.locator(".cd-setup-content").getByRole("region", { name: "Gold & Library", exact: true });
   await expect(library.getByRole("button", { name: "Review Flexible title · 10 Gold", exact: true })).toBeVisible();
   await library.getByRole("button", { name: "Review Flexible title · 7 Gems", exact: true }).click(); await expect(library).toContainText("7 Gems · Quote expires"); await library.getByRole("button", { name: "Confirm purchase · 7 Gems", exact: true }).click();
   await expect(library).toContainText("33 Gems (enabled)");
