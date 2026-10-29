@@ -32,6 +32,7 @@ async function destination(page, name) {
 }
 async function workspaceView(page, name) {
   const controls = page.locator('[aria-label="Workspace view"]');
+  if (name === "Preview") await controls.waitFor({ state: "visible" });
   if (await controls.isVisible()) await controls.getByRole("button", { name, exact: true }).click();
   else if (name === "Editor") {
     // A retained Preview preference can outlive a test section or selection.
