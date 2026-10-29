@@ -420,7 +420,7 @@ test("Admin is discoverable only after access approval and review controls retai
   await expect(workshops(page).getByRole("button", { name: "Campaigns & Encounters", exact: true })).toHaveAttribute("aria-current", "page");
   await expect(page.getByRole("button", { name: "Validate draft", exact: true })).toBeHidden();
   await page.getByLabel("Search encounters").fill("nothing matches this encounter");
-  await expect(page.getByRole("status")).toContainText("No encounters match this search");
+  await expect(page.getByRole("status").filter({ hasText: "No matches in this catalog. Clear the filters or try another name." })).toBeVisible();
   await page.getByLabel("Search encounters").fill("Verdant");
   await page.getByRole("button", { name: "Inspect The Verdant Uprising", exact: true }).click();
   await encounterSection(page, "test");

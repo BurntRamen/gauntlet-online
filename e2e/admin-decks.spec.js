@@ -62,6 +62,7 @@ test("author, reopen, test, publish and buy a deck product; retain it across res
   await workspaceView(page, "Preview"); await expect(page.getByRole("heading", { name: "Store preview", exact: true })).toBeVisible(); await page.screenshot({ path: path.join(artifacts, "store-preview.png") });
   state = await status(); const encounter = state.draft.snapshot.domains.encounters.find(row => row.factionId === "rumin" && !row.setup.bossAdditions.length);
   await page.goto(`/admin/gauntlet?workshop=encounters&object=${encounter.id}&section=setup`);
+  await workspaceSection(page, "Encounter Workshop", "Opponent / Setup");
   await page.getByLabel("Draft authored opponent deck").selectOption(id); await saveRecord(page);
   await page.getByRole("button", { name: "Inspect assigned opponent recipe" }).click(); await testDeck();
   await page.getByRole("button", { name: "Preview saved draft", exact: true }).click(); await page.getByRole("button", { name: "Review release", exact: true }).click(); await page.getByLabel("Release name").fill("Browser deck R1"); await page.getByRole("button", { name: "Publish release", exact: true }).click(); await page.getByRole("button", { name: "Confirm publish", exact: true }).click(); await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible();

@@ -62,4 +62,4 @@ For a storage failure, stop further activation, preserve existing files and iden
 
 Follow `durable-storage-setup.md` for the supported backup/restore commands. SQLite backups must include committed WAL state through the supplied backup API. Restore to a new isolated directory, verify hashes and replay/reconnect behavior, then separately authorize activation. Account database and immutable object backups need coordinated coverage beyond the runtime archive. Never restore over active stores or deploy an older writer that can spend pre-cutover account Gold.
 
-The user authorized this code merge and deployment. Paid infrastructure, production database migrations, content publication, balance operations, Gem spending and real payments still require their own explicit authorization. Routine isolated testing requires none.
+Code review, merge and deployment are separate from paid infrastructure, production database migrations, content publication, balance operations, Gem spending and real payments. Those operations require their own explicit authorization. Routine isolated testing requires none.

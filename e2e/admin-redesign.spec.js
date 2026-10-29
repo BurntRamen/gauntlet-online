@@ -177,6 +177,15 @@ test("keyboard search is a modal extension, restores focus and opens exact edita
 
 test("operator preferences are scoped and private recent work clears when accounts change", async ({ page }) => {
   await openCard(page);
+  const browser = page.locator(".admin-content-browser");
+  await browser.evaluate(element => element.scrollTo(0, 400));
+  await expect.poll(() => browser.evaluate(element => element.scrollTop)).toBe(400);
+  const destinations = page.getByRole("navigation", { name: "Content destinations" });
+  await destinations.getByRole("button", { name: "Decks", exact: true }).click();
+  await expect(page.getByRole("region", { name: "Deck Workshop", exact: true })).toBeVisible();
+  await destinations.getByRole("button", { name: "Cards", exact: true }).click();
+  await expect(page.getByRole("region", { name: "Card Workshop", exact: true })).toBeVisible();
+  await expect.poll(() => browser.evaluate(element => element.scrollTop)).toBe(400);
   await page.getByRole("button", { name: "☆ Pin item", exact: true }).click();
   await page.getByLabel("Workspace options", { exact: true }).click();
   await page.getByRole("combobox", { name: "Density", exact: true }).selectOption("compact");
@@ -184,9 +193,12 @@ test("operator preferences are scoped and private recent work clears when accoun
   const firstScope = await page.evaluate(() => sessionStorage.getItem("gauntlet-admin-operator")); expect(firstScope).toBeTruthy();
   await page.reload();
   await expect(page.locator(".admin-workspace")).toHaveAttribute("data-density", "compact");
+  // List position is per-domain session context; persistent preferences are separate.
+  await expect.poll(() => browser.evaluate(element => element.scrollTop)).toBe(0);
   await page.evaluate(token => localStorage.setItem("gauntlet_auth_token", token), sessions()["Burnt Ramen"]);
   await page.reload();
   await expect(page.locator(".admin-workspace")).toHaveAttribute("data-density", "comfortable");
+  await expect.poll(() => browser.evaluate(element => element.scrollTop)).toBe(0);
   expect(await page.evaluate(scope => localStorage.getItem(`gauntlet-admin:${scope}`), firstScope)).toBeNull();
   await expect(page.getByRole("button", { name: "☆ Pin item", exact: true })).toBeVisible();
   await page.getByLabel("Workspace options", { exact: true }).click();

@@ -28,10 +28,22 @@ async function destination(page, name) {
   await page.getByRole("navigation", { name: "Content destinations" }).getByRole("button", { name: group, exact: true }).click();
   if (await page.getByRole("dialog", { name: "Unsaved local changes" }).isVisible()) return;
   if (type) await page.getByRole("combobox", { name: "Content type", exact: true }).selectOption(type);
+  await workspaceView(page, "Editor");
 }
 async function workspaceView(page, name) {
   const controls = page.locator('[aria-label="Workspace view"]');
   if (await controls.isVisible()) await controls.getByRole("button", { name, exact: true }).click();
+  else if (name === "Editor") {
+    // A retained Preview preference can outlive a test section or selection.
+    // Use its actual preference control when there is no selected-record toggle.
+    const preference = page.getByRole("combobox", { name: "Preview visibility", exact: true });
+    if (await preference.count() && await preference.inputValue() === "true") {
+      const options = page.getByLabel("Workspace options", { exact: true });
+      if (!await preference.isVisible()) await options.click();
+      await preference.selectOption("false");
+      await options.click();
+    }
+  }
 }
 async function workspaceSection(page, workshop, label) {
   await page.getByRole("region", { name: workshop, exact: true }).waitFor({ state: "visible" });
