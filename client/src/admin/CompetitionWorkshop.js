@@ -1,19 +1,37 @@
 import Help from "./AuthoringHelp";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Field } from "../GauntletParaLeague";
 import { EventHeader, Reward } from "../EventPresentation";
 import { SeasonQueueSummary } from "../SeasonQueueSummary";
 import "../EventHub.css";
+import { useEditorSession } from "./EditorSession";
+const EMPTY_CONFIG = { ranked: [], events: [] };
 
-export default function CompetitionWorkshop({ state, act, busy, onDirty }) {
+export default function CompetitionWorkshop({ state, act, busy, onDirty, initialTarget }) {
   const [domain, setDomain] = useState("ranked"), [editing, setEditing] = useState(null), [query, setQuery] = useState("");
-  const config = (state.draft?.snapshot || state.live).competition || { ranked: [], events: [] };
+  const config = (state.draft?.snapshot || state.live).competition || EMPTY_CONFIG;
+  const openedTarget = useRef(null);
+  useEffect(() => {
+    if (!initialTarget || openedTarget.current === initialTarget) return;
+    const selected = config[initialTarget.domain]?.find(row => row.id === initialTarget.id);
+    if (!selected) return;
+    openedTarget.current = initialTarget; setDomain(initialTarget.domain); setEditing(structuredClone(selected));
+    requestAnimationFrame(() => { const control = document.getElementById(`competition-${initialTarget.field || "name"}`); control?.scrollIntoView?.({ block: "center" }); control?.focus(); });
+  }, [initialTarget, config]);
   const row = config[domain].find(r => r.id === editing?.id), dirty = !!editing && JSON.stringify(row) !== JSON.stringify(editing);
   useEffect(() => { onDirty(dirty); return () => onDirty(false); }, [dirty, onDirty]);
   const disabled = busy || !state.writable;
   const pinned = (state.live.competition?.[domain] || []).some(r => r.id === editing?.id && r.status !== "draft");
-  const leave = action => { if (!dirty || window.confirm("Discard unsaved competition changes?")) action(); };
-  const save = async input => { if (await act("competition-draft", { domain, ...input })) setEditing(null); };
+  const save = async input => {
+    const result = await act("competition-draft", { domain, ...input });
+    if (!result) return false;
+    const savedRows = (result.draft?.snapshot || result.live).competition?.[domain] || [];
+    const next = ["create", "duplicate"].includes(input.operation) ? savedRows.at(-1) : savedRows.find(row => row.id === input.id);
+    setEditing(next ? structuredClone(next) : null);
+    return true;
+  };
+  const leave = useEditorSession({ dirty, label: `competition definition: ${editing?.name || "New definition"}`, local: editing, saved: row,
+    save: () => save({ operation: "update", id: editing.id, value: editing }), discard: () => setEditing(row ? structuredClone(row) : null) });
   const update = (key, value) => setEditing(current => ({ ...current, [key]: value }));
   return <section className="para-workspace" aria-label="Managed competition definitions">
     <Help topic="CompetitionWorkshop1" />

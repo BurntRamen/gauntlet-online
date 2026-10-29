@@ -17,6 +17,7 @@ function Status({ good, children }) {
 export default function Studio({ serverUrl, authToken = "", onSignIn, onAuthorizedChange, onClose, exitGuard, onOpenMatch, onOpenReplay }) {
   const sessionRef = useRef("");
   const [authorizedToken, setAuthorizedToken] = useState("");
+  const [operatorId, setOperatorId] = useState("");
   const [overview, setOverview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -29,6 +30,7 @@ export default function Studio({ serverUrl, authToken = "", onSignIn, onAuthoriz
   const closeAdmin = useCallback(() => {
     sessionRef.current = "";
     setAuthorizedToken("");
+    setOperatorId("");
     setOverview(null);
     setImportRecord(null);
     setImportPreview(null);
@@ -49,6 +51,7 @@ export default function Studio({ serverUrl, authToken = "", onSignIn, onAuthoriz
         if (active) {
           sessionRef.current = authToken;
           setAuthorizedToken(authToken);
+          setOperatorId(body.accountId);
           onAuthorizedChange?.(true);
         }
       })
@@ -156,6 +159,7 @@ export default function Studio({ serverUrl, authToken = "", onSignIn, onAuthoriz
         <p>Gauntlet Admin is restricted to simply and Burnt Ramen. Access is checked by the server using your existing account session.</p>
         {!authToken && <button onClick={onSignIn}>Sign in through Profile</button>}
         {authToken && <button disabled={loading} onClick={() => setAttempt((value) => value + 1)}>{loading ? "Checking access…" : "Check admin access"}</button>}
+        {onClose && <button onClick={onClose}>Back to Gauntlet</button>}
         {error && <p className="studio-error" role="alert">{error}</p>}
       </section>
     );
@@ -241,5 +245,5 @@ export default function Studio({ serverUrl, authToken = "", onSignIn, onAuthoriz
       <p className="studio-generated">Generated {formatDate(overview?.generatedAt)} · account storage {system.accountStorage || "unknown"} · Supabase {system.supabaseConfigured ? "configured" : "not configured"}</p>
     </div>
   ) : <p role={error ? "alert" : "status"}>{error || "Loading existing operations…"}</p>;
-  return <GauntletAdmin exitGuard={exitGuard} request={ownerRequest} onClose={onClose || closeAdmin} operations={operations} />;
+  return <GauntletAdmin key={`${serverUrl}:${operatorId}`} operatorScope={operatorId ? `${serverUrl}:${operatorId}` : ""} environment={serverUrl} exitGuard={exitGuard} request={ownerRequest} onClose={onClose || closeAdmin} operations={operations} />;
 }

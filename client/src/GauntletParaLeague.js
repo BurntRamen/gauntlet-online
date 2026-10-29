@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import Economy from "./GauntletEconomy";
+import { useEditorSession } from "./admin/EditorSession";
 
 const TABS = { Overview: null, Seasons: "seasons", Events: "events", Prestige: "events", "Gold Awards": "awards", Marketplace: "products", Entitlements: "entitlements" };
 const copy = (value) => JSON.parse(JSON.stringify(value));
+const EMPTY_CONFIG = {};
 
 export function Field({ field, value, onChange, config = {}, assets = [], disabled, id }) {
   const props = { disabled, "aria-label": field.label, id };
@@ -52,36 +54,51 @@ function Simulator({ state, config, request, disabled }) {
   </section>;
 }
 
-export default function GauntletParaLeague({ state, act, busy, request, onDirty, preview, scope }) {
+export default function GauntletParaLeague({ state, act, busy, request, onDirty, preview, scope, initialTarget }) {
   const [tab, setTab] = useState("Overview");
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
   const [editor, setEditor] = useState(null);
-  
+
   const domain = TABS[tab];
-  const config = (state.draft?.snapshot || state.live).paraLeague || {};
+  const config = (state.draft?.snapshot || state.live).paraLeague || EMPTY_CONFIG;
+  const openedTarget = useRef(null);
+  useEffect(() => {
+    if (!initialTarget || openedTarget.current === initialTarget) return;
+    const selected = config[initialTarget.domain]?.find(row => row.id === initialTarget.id), targetTab = Object.keys(TABS).find(tab => TABS[tab] === initialTarget.domain);
+    if (!selected || !targetTab) return;
+    openedTarget.current = initialTarget; setTab(targetTab); setEditor({ row: copy(selected), original: copy(selected) });
+    requestAnimationFrame(() => { const control = document.getElementById(`para-${initialTarget.domain}-${initialTarget.field || "name"}`); control?.scrollIntoView?.({ block: "center" }); control?.focus(); });
+  }, [initialTarget, config]);
   const dirty = !!editor && JSON.stringify(editor.row) !== JSON.stringify(editor.original);
   const disabled = busy || !state.writable;
   useEffect(() => { onDirty(dirty); return () => onDirty(false); }, [dirty, onDirty]);
-  const leave = () => !dirty || window.confirm("Discard unsaved form changes?");
-  const mutate = async (body) => { if (await act("para-draft", body)) { setEditor(null); } };
+  const mutate = async (body) => {
+    const result = await act("para-draft", body);
+    if (!result) return false;
+    const next = (result.draft?.snapshot || result.live).paraLeague?.[body.domain]?.find(row => row.id === body.id);
+    setEditor(next ? { row: copy(next), original: copy(next) } : null);
+    return true;
+  };
+  const leave = useEditorSession({ dirty, label: `definition: ${editor?.row.name || "New definition"}`, local: editor?.row, saved: config[domain]?.find(row => row.id === editor?.row.id),
+    save: () => mutate({ operation: editor.original ? "update" : "create", domain, id: editor.row.id, value: editor.row }), discard: () => setEditor(null) });
   const update = (key, value) => setEditor((current) => {
     const row = { ...current.row, [key]: value };
     if (key === "winTarget") { row.lossLimit = value === 5 ? 2 : 3; row.prestige = Array.from({ length: value + 1 }, (_, i) => row.prestige[i] || 0); }
     return { ...current, row };
   });
   return <div className="para-workspace"><p className="admin-lede">{state.para.capabilities.message}</p>
-    <nav className="admin-subnav" aria-label="Para workspaces">{Object.keys(TABS).filter(name => scope === "Competition" ? ["Overview", "Seasons", "Events", "Prestige"].includes(name) : scope === "Economy" ? !["Events", "Prestige"].includes(name) : true).map((name) => <button key={name} aria-pressed={tab === name} onClick={() => { if (leave()) { setTab(name); setEditor(null); setQuery(""); setFilter("all"); } }}>{name}</button>)}</nav>
+    <nav className="admin-subnav" aria-label="Para workspaces">{Object.keys(TABS).filter(name => scope === "Competition" ? ["Overview", "Seasons", "Events", "Prestige"].includes(name) : scope === "Economy" ? !["Events", "Prestige"].includes(name) : true).map((name) => <button key={name} aria-pressed={tab === name} onClick={() => leave(() => { setTab(name); setEditor(null); setQuery(""); setFilter("all"); })}>{name}</button>)}</nav>
     {!domain ? <><h4>Configuration overview</h4><p>Review definitions in Publishing before activation.</p><ul>{state.para.invariants.map((text) => <li key={text}>{text}</li>)}</ul>
       <button disabled={disabled || Object.values(config).some((rows) => Array.isArray(rows) && rows.length)} onClick={() => mutate({ operation: "seed" })}>Create Season Zero draft</button>
       <dl className="admin-facts">{Object.keys(state.para.fields).map((key) => <div key={key}><dt>{key}</dt><dd>{config[key]?.length || 0} proposals</dd></div>)}</dl>
     </> : <><p className="admin-note">{tab === "Prestige" ? "Edit awards and simulate; thresholds are in Seasons." : "Save to the shared draft. Archiving preserves history."}</p>
       <div className="admin-actions"><label className="admin-search">Search definitions<input value={query} onChange={(e) => setQuery(e.target.value)} /></label><label>Filter state<select value={filter} onChange={(e) => setFilter(e.target.value)}><option value="all">All</option><option value="current">Unarchived</option><option value="archived">Archived</option></select></label>
-        <button disabled={disabled} onClick={() => { if (leave()) { const row = copy(state.para.templates[domain]); row.id = `para-${crypto.randomUUID()}`; row.seasonId = Object.hasOwn(row, "seasonId") && domain !== "entitlements" ? config.seasons?.[0]?.id || "" : row.seasonId; if (!Object.hasOwn(state.para.templates[domain], "seasonId")) delete row.seasonId; setEditor({ row, original: null }); } }}>New {domain === "awards" ? "Gold award" : domain.slice(0, -1)}</button></div>
-      <div className="admin-authoring-layout"><div className="admin-object-list">{(config[domain] || []).filter((row) => `${row.id} ${row.name}`.toLowerCase().includes(query.toLowerCase()) && (filter === "all" || (row.status === "archived") === (filter === "archived"))).map((row) => <button key={row.id} onClick={() => { if (leave()) setEditor({ row: copy(row), original: copy(row) }); }}><strong>{row.name}</strong><small>{row.id} · {row.status || row.provenance}</small></button>)}</div>
+        <button disabled={disabled} onClick={() => leave(() => { const row = copy(state.para.templates[domain]); row.id = `para-${crypto.randomUUID()}`; row.seasonId = Object.hasOwn(row, "seasonId") && domain !== "entitlements" ? config.seasons?.[0]?.id || "" : row.seasonId; if (!Object.hasOwn(state.para.templates[domain], "seasonId")) delete row.seasonId; setEditor({ row, original: null }); })}>New {domain === "awards" ? "Gold award" : domain.slice(0, -1)}</button></div>
+      <div className="admin-authoring-layout"><div className="admin-object-list">{(config[domain] || []).filter((row) => `${row.id} ${row.name}`.toLowerCase().includes(query.toLowerCase()) && (filter === "all" || (row.status === "archived") === (filter === "archived"))).map((row) => <button key={row.id} onClick={() => leave(() => setEditor({ row: copy(row), original: copy(row) }))}><strong>{row.name}</strong><small>{row.id} · {row.status || row.provenance}</small></button>)}</div>
         <section className="admin-editor" aria-label="Para definition editor">{editor ? <><h4>{editor.original ? "Edit definition" : "New definition"} · {dirty ? "Unsaved" : state.draft ? "Saved draft" : "Published"}</h4><form className="admin-contract-fields" onSubmit={(e) => { e.preventDefault(); mutate({ operation: editor.original ? "update" : "create", domain, id: editor.row.id, value: editor.row }); }}>
           {Object.entries(state.para.fields[domain]).filter(([key]) => key !== "id").map(([key, field]) => <Field key={key} id={`para-${domain}-${key}`} field={field} value={editor.row[key] ?? state.para.templates[domain][key]} onChange={(value) => update(key, value)} config={config} assets={state.assetLibrary} disabled={disabled} />)}
-          <details><summary>Advanced · permanent identity</summary><Field field={state.para.fields[domain].id} value={editor.row.id} disabled={disabled || !!editor.original} onChange={value => update("id", value)} /></details><div className="admin-actions"><button type="submit" disabled={disabled || !dirty}>Save definition to draft</button><button type="button" onClick={() => { if (leave()) setEditor(null); }}>Close definition</button>{editor.original && Object.hasOwn(editor.row, "status") && <button type="button" disabled={disabled || dirty || editor.row.status === "archived"} onClick={() => mutate({ operation: "archive", domain, id: editor.row.id })}>Archive definition</button>}</div>
+          <details><summary>Advanced · permanent identity</summary><Field field={state.para.fields[domain].id} value={editor.row.id} disabled={disabled || !!editor.original} onChange={value => update("id", value)} /></details><div className="admin-actions"><button type="submit" disabled={disabled || !dirty}>Save definition to draft</button><button type="button" onClick={() => leave(() => setEditor(null))}>Close definition</button>{editor.original && Object.hasOwn(editor.row, "status") && <button type="button" disabled={disabled || dirty || editor.row.status === "archived"} onClick={() => mutate({ operation: "archive", domain, id: editor.row.id })}>Archive definition</button>}</div>
         </form>{editor.original && <div className="admin-actions"><button disabled={disabled || dirty} onClick={() => mutate({ operation: "duplicate", domain, id: `para-${crypto.randomUUID()}`, sourceId: editor.row.id })}>Duplicate definition</button></div>}</> : <p>Choose a definition. Copies receive a new identity; dates reset.</p>}</section></div>
     </>}
 

@@ -2,6 +2,7 @@ import Help from "./AuthoringHelp";
 import { useEffect, useState } from "react";
 import mechanics from "@gauntlet/duel-rules/mechanicContract";
 import modifiers from "@gauntlet/duel-rules/ruleModifierContract";
+import { useEditorSession } from "./EditorSession";
 
 const clone = value => structuredClone(value);
 const number = (label, value, min, max, change) => <label>{label}<input aria-label={label} type="number" min={min} max={max} required value={value} onChange={e => change(e.target.value === "" ? "" : Number(e.target.value))} /></label>;
@@ -12,12 +13,21 @@ export default function MechanicStudio({ state, act, busy, onDirty, onInspect, o
   const [editing, setEditing] = useState(() => rows.find(row => row.id === initialId) || null), [query, setQuery] = useState("");
   const saved = rows.find(row => row.id === editing?.id), dirty = !!editing && JSON.stringify(editing) !== JSON.stringify(saved);
   useEffect(() => { onDirty(dirty); return () => onDirty(false); }, [dirty, onDirty]);
-  const leave = action => { if (!dirty || window.confirm("Discard unsaved definition changes?")) action(); };
+  useEffect(() => { if (!dirty && editing?.id && editing.id !== initialId) onSelect?.(editing.id); }, [dirty, editing?.id, initialId, onSelect]);
   const update = (field, value) => setEditing(row => ({ ...row, [field]: value }));
   const ability = (index, value) => update("abilities", editing.abilities.map((a, i) => i === index ? value : a));
   const supported = !!state.capabilities?.[isMechanic ? "mechanicStudio" : "ruleModifiers"];
   const disabled = busy || !state.writable || !supported, errors = editing ? contract.errors(editing) : [];
-  const send = async input => { if (await act("studio-draft", { ...(isMechanic ? {} : { kind }), ...input })) setEditing(null); };
+  const send = async input => {
+    const result = await act("studio-draft", { ...(isMechanic ? {} : { kind }), ...input });
+    if (!result) return false;
+    const savedRows = (result.draft?.snapshot || result.live).studio?.[kind] || [];
+    const next = ["create", "duplicate"].includes(input.operation) ? savedRows.at(-1) : savedRows.find(row => row.id === input.id);
+    setEditing(next ? clone(next) : null);
+    return true;
+  };
+  const leave = useEditorSession({ dirty, label: `${noun}: ${editing?.name || "New definition"}`, local: editing, saved,
+    save: () => errors.length ? false : send({ operation: "update", id: editing.id, value: editing }), discard: () => setEditing(saved ? clone(saved) : null) });
   return <section className="para-workspace mechanic-studio" aria-label={heading}>
     <h4>{heading}</h4>{!supported && <p role="status">This server does not support this Studio registry.</p>}<Help topic={isMechanic ? "MechanicStudio1" : "ruleModifier"} />
     <div className="admin-actions"><button disabled={disabled || dirty} onClick={() => send({ operation: "create" })}>Create {noun}</button><button disabled={busy || dirty} onClick={onReview}>Review release</button><label>Find {noun}s<input value={query} onChange={e => setQuery(e.target.value)} /></label></div>

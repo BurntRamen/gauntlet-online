@@ -1,3 +1,4 @@
+const { saveRecord, workspaceSection } = require("./admin-navigation");
 const { openCollection } = require("./player-navigation");
 const { test, expect } = require("./admin-release-test");
 const { waitForBufferedAdminResponse } = require("./buffered-admin-response");
@@ -18,11 +19,8 @@ async function stop() { if (child && child.exitCode === null) await new Promise(
 test.beforeAll(async () => { fs.mkdirSync(artifactRoot, { recursive: true }); const parent = path.resolve(__dirname, "../.playwright-data"); fs.mkdirSync(parent, { recursive: true }); root = fs.mkdtempSync(path.join(parent, "immutable-assets-")); await start(); });
 test.afterAll(async () => { await stop(); });
 const hash = bytes => crypto.createHash("sha256").update(bytes).digest("hex");
-async function section(page, label) {
-  const select = page.getByRole("combobox", { name: "Card Workshop section", exact: true });
-  if (await select.isVisible()) await select.selectOption({ label });
-  else await page.getByRole("navigation", { name: "Card Workshop sections", exact: true }).getByRole("button", { name: label, exact: true }).click();
-}
+async function section(page, label) { await workspaceSection(page, "Card Workshop", label); }
+
 test("Admin uploads A/B, publishes, renders pinned matches, rolls back, restarts and serves retained bytes", async ({ browser, page, request, baseURL }) => {
   const login = async name => { const response = await request.post(serverUrl + "/api/auth/login", { data: { name, password: "test-password" } }); expect(response.ok()).toBeTruthy(); return (await response.json()).token; };
   const token = await login("simply"), headers = { Authorization: `Bearer ${token}`, Connection: "close" };
@@ -49,10 +47,10 @@ test("Admin uploads A/B, publishes, renders pinned matches, rolls back, restarts
     await picker.screenshot({ path: path.join(artifactRoot, replacement ? "replacement-mobile.png" : "upload-mobile.png") });
     await page.setViewportSize({ width: 1440, height: 1000 });
     await picker.getByRole("button", { name: "Use selected artwork", exact: true }).click();
-    const saving = page.waitForResponse(r => r.url().endsWith("/authoring/draft"));
-    await page.getByRole("button", { name: "Save artwork reference to draft", exact: true }).click();
+    const saving = page.waitForResponse(r => r.url().endsWith("/authoring/record"));
+    await saveRecord(page);
     expect((await saving).ok()).toBeTruthy();
-    await expect(page.getByRole("button", { name: "Save artwork reference to draft", exact: true })).toBeDisabled();
+    await expect(page.getByRole("region", { name: "Save record changes", exact: true })).toHaveCount(0);
     return version;
   };
   const a = await upload("#da321e");

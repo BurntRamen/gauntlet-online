@@ -1,3 +1,4 @@
+const { saveRecord } = require("./admin-navigation");
 const { openCampaign } = require("./player-navigation");
 const { test, expect } = require("./admin-release-test");
 const { waitForBufferedAdminResponse } = require("./buffered-admin-response");
@@ -11,10 +12,10 @@ test("an operator creates a playable encounter and a player starts it from the p
   const created = await (await pending).json(), encounter = created.draft.snapshot.domains.encounters.at(-1); expect(encounter.origin).toBe("admin-encounter-v1");
   await page.goto("/admin/gauntlet?workshop=encounters&object=" + encounter.id + "&section=story");
   await page.getByLabel("Draft story", { exact: true }).fill("Face a Rumin challenger in a battle of careful timing.");
-  pending = page.waitForResponse(r => r.url().endsWith("/authoring/draft") && r.request().method() === "PATCH"); await page.getByRole("button", { name: "Save story to draft", exact: true }).click(); expect((await pending).status()).toBe(200);
+  pending = page.waitForResponse(r => r.url().endsWith("/authoring/record") && r.request().method() === "PATCH"); await saveRecord(page); expect((await pending).status()).toBe(200);
   await page.goto("/admin/gauntlet?workshop=encounters&object=" + encounter.id + "&section=setup");
   await page.getByLabel("Boss Life", { exact: true }).fill("23"); await page.getByLabel("Attacks Per Turn", { exact: true }).fill("1");
-  pending = waitForBufferedAdminResponse(page, r => r.url().endsWith("/authoring/draft") && r.request().method() === "PATCH"); await page.getByRole("button", { name: "Save encounter mechanics to draft", exact: true }).click();
+  pending = waitForBufferedAdminResponse(page, r => r.url().endsWith("/authoring/record") && r.request().method() === "PATCH"); await saveRecord(page);
   const configured = await (await pending).json(); Object.assign(encounter, configured.draft.snapshot.domains.encounters.find(e => e.id === encounter.id));
   await page.goto("/admin/gauntlet?workshop=encounters&object=" + encounter.id + "&section=test");
   const harness = page.getByRole("region", { name: "Real engine playtest" }); await harness.getByRole("combobox", { name: "Test content", exact: true }).selectOption("draft");

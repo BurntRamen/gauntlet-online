@@ -1,3 +1,4 @@
+const { saveRecord } = require("./admin-navigation");
 const { openCampaign } = require("./player-navigation");
 const { test, expect } = require("./admin-release-test");
 const { waitForBufferedAdminResponse } = require("./buffered-admin-response");
@@ -11,9 +12,9 @@ test("operator creates and configures a new faction, publishes it and plays its 
   let pending = waitForBufferedAdminResponse(page, r => r.url().endsWith("/authoring/create")); await page.getByRole("button", { name: "Save new faction to draft", exact: true }).click();
   const result = await (await pending).json(), faction = result.draft.snapshot.domains.factions.at(-1), encounter = result.draft.snapshot.domains.encounters.at(-1);
   await page.getByLabel("Parameters Fourth Attack Bonus", { exact: true }).fill("6");
-  pending = page.waitForResponse(r => r.url().endsWith("/authoring/draft") && r.request().method() === "PATCH"); await page.getByRole("button", { name: "Save faction mechanics to draft", exact: true }).click(); expect((await pending).status()).toBe(200);
+  pending = page.waitForResponse(r => r.url().endsWith("/authoring/record") && r.request().method() === "PATCH"); await saveRecord(page); expect((await pending).status()).toBe(200);
   await page.goto("/admin/gauntlet?workshop=characters&object=" + faction.id + ":commander"); await page.getByLabel("Draft name", { exact: true }).fill("Glass Marshal");
-  pending = page.waitForResponse(r => r.url().endsWith("/authoring/draft") && r.request().method() === "PATCH"); await page.getByRole("button", { name: "Save name to draft", exact: true }).click(); expect((await pending).status()).toBe(200);
+  pending = page.waitForResponse(r => r.url().endsWith("/authoring/record") && r.request().method() === "PATCH"); await saveRecord(page); expect((await pending).status()).toBe(200);
   await page.goto("/admin/gauntlet?workshop=encounters&object=" + encounter.id + "&section=test");
   const harness = page.getByRole("region", { name: "Real engine playtest" }); await harness.getByRole("combobox", { name: "Test content", exact: true }).selectOption("draft");
   page.once("dialog", d => d.accept()); pending = waitForBufferedAdminResponse(page, r => r.url().endsWith("/authoring/playtest")); await harness.getByRole("button", { name: "Start " + encounter.title + " playtest", exact: true }).click();

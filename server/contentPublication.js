@@ -194,8 +194,7 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
   const lookupCard = id => clone(resolvedActive().cards.get(id) || null);
   const lookupVariant = id => clone(resolvedActive().variants.get(id) || null);
   const lookupSet = id => clone(resolvedActive().resolved.manifest.draftSets.find(set => set.id === id) || null);
-  function patch({ expectedRevision, domain, id, field, value, revert = false }, actorId) {
-    return transaction(expectedRevision, (state) => {
+  function applyField(state, { domain, id, field, value, revert = false }, actorId, deferValidation = false) {
       const original = (state.draft?.snapshot || state.releases[state.activeReleaseId].snapshot).domains[domain]?.find((row) => row.id === id);
       if (!original || !Object.hasOwn(fieldsFor(domain, original), field)) fail(400, "This field is engine-controlled or unknown.");
       if (!revert && value === undefined) fail(400, "A draft value is required.");
@@ -209,22 +208,34 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
       if (domain === "assets" && field === "edition" && next !== row.edition && !revert && require("./adminPrintings").editions(state.draft.snapshot).find(set => set.id === next)?.status === "archived") fail(422, "Choose an active digital set / edition. Existing archived membership is retained.");
       // Executable compositions reject malformed saves atomically as well as
       // passing through the full preview/publication validation gates.
-      if (domain === "cards" && field === "effect" && next?.id === require("../shared/duel-rules/compositionContract").ID) {
+      if (!deferValidation && domain === "cards" && field === "effect" && next?.id === require("../shared/duel-rules/compositionContract").ID) {
         const problems = require("../shared/duel-rules/compositionContract").errors(next, row);
         if (problems.length) fail(422, problems.map(problem => `${problem.path}: ${problem.message}`).join(" "));
       }
       if (next === undefined) delete row[field]; else row[field] = clone(next);
-      if (domain === "decks" && row.origin === require("./adminDecks").ORIGIN || domain === "offers") {
+      if (!deferValidation && (domain === "decks" && row.origin === require("./adminDecks").ORIGIN || domain === "offers")) {
         const problems = require(domain === "decks" ? "./adminDecks" : "./adminDeckOffers").errors(row, state.draft.snapshot).filter(problem => problem.field === field);
         if (problems.length) fail(422, problems.map(problem => problem.message).join(" "));
       }
       imageAssets.attachVersions(state.draft.snapshot, state);
-      if (domain === "assets" && row.origin === require("./adminPrintings").ORIGIN) {
+      if (!deferValidation && domain === "assets" && row.origin === require("./adminPrintings").ORIGIN) {
         const problems = require("./adminPrintings").errors(row, state.draft.snapshot);
         if (problems.length) fail(422, problems.map(problem => problem.message).join(" "));
       }
       if (domain === "cards" && row.origin === "admin-v1" && field === "suit") row.replacementSuit = row.suit;
       state.draft.updatedAt = new Date().toISOString(); state.draft.updatedBy = actorId; state.draft.previewedHash = null; state.draft.previewedRevision = null; state.draft.playtestedHash = null;
+  }
+  function patch(input, actorId) {
+    return transaction(input.expectedRevision, state => applyField(state, input, actorId));
+  }
+  // One record, one revision check, one durable write. A failed field or final
+  // record validation aborts the transaction, including all earlier changes.
+  function patchRecord({ expectedRevision, domain, id, changes: edits }, actorId) {
+    if (!Array.isArray(edits) || !edits.length || edits.length > 64 || edits.some(edit => !edit || typeof edit.field !== "string") || new Set(edits.map(edit => edit.field)).size !== edits.length) fail(400, "Provide 1–64 distinct fields on one record.");
+    return transaction(expectedRevision, state => {
+      for (const edit of edits) applyField(state, { domain, id, field: edit.field, value: edit.value, revert: edit.revert === true }, actorId, true);
+      const problems = validateAuthoredContent(state.draft.snapshot, baseline).errors.filter(issue => issue.domain === domain && issue.id === id);
+      if (problems.length) fail(422, problems.map(issue => `${issue.field ? `${issue.field}: ` : ""}${issue.message}`).join(" "));
     });
   }
   function create({ expectedRevision, ...input }, actorId) {
@@ -435,7 +446,7 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
     if (!row) fail(404, "Published image version not found.");
     return { mediaType: row.mediaType, body: imageAssets.verifiedBytes(row, state.assetBlobs), sha256: row.sha256 };
   }
-  return { published, paraDraft, paraSimulation, competitionDraft, studioDraft, saveNotes, uploadAsset, archiveAsset, privateAsset, publicAsset, exportState: () => clone(read()), releaseSnapshot, active, lookupCard, lookupVariant, lookupSet, status: () => project(read()), create, patch, discard, preview, publish, rollback, playtestContent, recordPlaytest };
+  return { published, paraDraft, paraSimulation, competitionDraft, studioDraft, saveNotes, uploadAsset, archiveAsset, privateAsset, publicAsset, exportState: () => clone(read()), releaseSnapshot, active, lookupCard, lookupVariant, lookupSet, status: () => project(read()), create, patch, patchRecord, discard, preview, publish, rollback, playtestContent, recordPlaytest };
 }
 
 function registerContentPublicationRoutes(app, publication) {
@@ -452,6 +463,7 @@ function registerContentPublicationRoutes(app, publication) {
   for (const [method, route, operation] of [
     ["get", "authoring", () => require("./adminLiveAvailability").readAuthoringStatus(publication)],
     ["patch", "authoring/draft", (req) => publication.patch(req.body, req.gauntletAdminAccount.id)],
+    ["patch", "authoring/record", (req) => publication.patchRecord(req.body, req.gauntletAdminAccount.id)],
     ["patch", "authoring/notes", (req) => publication.saveNotes(req.body, req.gauntletAdminAccount.id)],
     ["post", "authoring/assets/upload", (req) => publication.uploadAsset(req.body, req.gauntletAdminAccount.id)],
     ["post", "authoring/assets/archive", (req) => publication.archiveAsset(req.body)],

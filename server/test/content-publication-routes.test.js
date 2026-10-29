@@ -22,7 +22,7 @@ async function call(route = "", body, account = accounts[0], method = body ? "PO
 }
 
 test("all authoring reads and writes retain the exact two-account server gate", async () => {
-  for (const [route, method] of [["/studio-draft", "POST"], ["/assets/upload", "POST"], ["/assets/archive", "POST"], ["/assets/unknown", "GET"], ["/assets/unknown", "DELETE"], ["", "GET"], ["/draft", "PATCH"], ["/create", "POST"], ["/para-draft", "POST"], ["/para-simulate", "POST"], ["/validate", "POST"], ["/preview", "POST"], ["/publish", "POST"], ["/discard", "POST"], ["/rollback", "POST"], ["/reconcile", "POST"], ["/cancel-publication", "POST"], ["/playtest", "POST"], ["/playtest/command", "POST"]]) {
+  for (const [route, method] of [["/record", "PATCH"], ["/studio-draft", "POST"], ["/assets/upload", "POST"], ["/assets/archive", "POST"], ["/assets/unknown", "GET"], ["/assets/unknown", "DELETE"], ["", "GET"], ["/draft", "PATCH"], ["/create", "POST"], ["/para-draft", "POST"], ["/para-simulate", "POST"], ["/validate", "POST"], ["/preview", "POST"], ["/publish", "POST"], ["/discard", "POST"], ["/rollback", "POST"], ["/reconcile", "POST"], ["/cancel-publication", "POST"], ["/playtest", "POST"], ["/playtest/command", "POST"]]) {
     assert.equal((await call(route, method === "GET" ? undefined : {}, null, method)).status, 401);
     assert.equal((await call(route, method === "GET" ? undefined : {}, accounts[2], method)).status, 403);
   }

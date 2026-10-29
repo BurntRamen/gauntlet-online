@@ -43,3 +43,13 @@ test("authored mechanics retain printing controls and show their deployed Suppor
   expect(screen.getAllByText("after-armed-combat").length).toBeGreaterThan(0);
   expect(screen.queryByText("Editable marketing copy")).not.toBeInTheDocument();
 });
+
+test("card-local changes never relabel the saved card face and do not block another clean printing", () => {
+  const data = { ...state(), draft: { hash: "hash", snapshot: state().live }, localDirtyRecords: { "cards:spear": true } };
+  const { rerender } = render(<CardWorkshop row={card} state={data} field={() => null} unsaved />);
+  expect(screen.getByText("Saved draft · player card face")).toBeInTheDocument();
+  expect(screen.getByText(/Local edits are not included in this preview/)).toBeInTheDocument();
+  expect(screen.getByLabelText("Collector version")).toBeEnabled();
+  rerender(<CardWorkshop row={card} state={{ ...data, localDirtyRecords: { "assets:spear-first": true } }} field={() => null} unsaved />);
+  expect(screen.getByLabelText("Collector version")).toBeDisabled();
+});
