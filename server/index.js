@@ -140,6 +140,7 @@ const {
   touchRoom
 } = require("./roomLifecycle");
 const { createRoomStateStore, isRoomRecoveryEnabled } = require("./roomStateStore");
+const { createPlayerLayoutStore, registerPlayerLayoutRoutes } = require("./playerLayouts");
 const {
   ACTIVE_SEASON,
   applySeasonResult,
@@ -4133,6 +4134,16 @@ app.post("/api/events/:eventId/resign", async (req, res) => {
   } catch (error) {
     res.status(400).json({ error: error.message || "Could not resign the event run." });
   }
+});
+
+registerPlayerLayoutRoutes(app, {
+  requireAccount: requireAccountRecord,
+  store: createPlayerLayoutStore({
+    filePath: runtimeStorage.paths.layouts,
+    useSupabase: useSupabaseStore,
+    supabaseRequest,
+    getFactionIds: () => Object.keys(getPublicGameContent().campaigns || {})
+  })
 });
 
 app.put("/api/account/avatar", async (req, res) => {
