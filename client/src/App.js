@@ -1614,9 +1614,17 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
   const [inspectedCollectorVariantId, setInspectedCollectorVariantId] = useState("");
   const [collectionView, setCollectionView] = useState(initialView);
   const loadedConstructedVersion = useRef("");
+  const constructedSelectionAccount = useRef(account?.id);
 
   useEffect(() => {
     const activeId = account?.stats?.deckLibrary?.activeConstructedDeckId || "";
+    // The editor can mount before session restoration finishes. Initialize once
+    // per account, preserving an intentional New deck choice on later updates.
+    if (constructedSelectionAccount.current !== account?.id) {
+      constructedSelectionAccount.current = account?.id;
+      setSelectedConstructedDeckId(activeId);
+      return;
+    }
     const selectedStillExists = account?.stats?.deckLibrary?.decks?.some((deck) => deck.id === selectedConstructedDeckId && !deck.archived);
     if (selectedConstructedDeckId && !selectedStillExists && activeId !== selectedConstructedDeckId) setSelectedConstructedDeckId(activeId);
   }, [account?.id, account?.stats?.deckLibrary?.activeConstructedDeckId, account?.stats?.deckLibrary?.decks, selectedConstructedDeckId]);
