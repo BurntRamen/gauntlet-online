@@ -108,6 +108,18 @@
   outline-offset: 2px;
 }
 
+.babylon-accessible-ability-control {
+  display: grid;
+  max-width: 260px;
+  gap: 3px;
+}
+
+.babylon-accessible-ability-control small {
+  color: #c7d0d8;
+  font-size: 11px;
+  line-height: 1.3;
+}
+
 .babylon-renderer-error {
   display: grid;
   min-height: 100dvh;
