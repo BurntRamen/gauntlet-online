@@ -1440,7 +1440,9 @@ const PACK_THEMES = {
   ingles: { name: "Ingles", subtitle: "The Unwritten Charter", accent: "#e9c46a", glow: "#e9c46a4d", background: "linear-gradient(145deg,#102a43,#7c5b22)" },
   mercaw: { name: "Mercaw", subtitle: "The Many-Star Accord", accent: "#60a5fa", glow: "#60a5fa57", background: "linear-gradient(145deg,#172554,#7c3aed)" },
   mtano: { name: "M'Tano", subtitle: "The Mountain Remembers", accent: "#9ccf9b", glow: "#9ccf9b4d", background: "linear-gradient(145deg,#173f35,#155e75)" },
-  russo: { name: "Russo", subtitle: "The Long Winter Oath", accent: "#b9d7ea", glow: "#b9d7ea52", background: "linear-gradient(145deg,#202b3c,#7c2d12)" }
+  russo: { name: "Russo", subtitle: "The Long Winter Oath", accent: "#b9d7ea", glow: "#b9d7ea52", background: "linear-gradient(145deg,#202b3c,#7c2d12)" },
+  voltari: { name: "Voltari", subtitle: "The Golden Conduit", accent: "#f8d477", glow: "rgba(248,212,119,.34)", background: "linear-gradient(145deg,#2f2410,#9a6a18 44%,#16345c 90%)", art: "repeating-linear-gradient(90deg, rgba(255,239,177,.15) 0 2px, transparent 2px 24px), radial-gradient(circle at 68% 28%, rgba(250,204,21,.48), transparent 25%)" },
+  xendra: { name: "XenDra", subtitle: "Aspect Without Form", accent: "#c084fc", glow: "rgba(192,132,252,.34)", background: "linear-gradient(145deg,#160b2c,#581c87 44%,#111827 90%)", art: "repeating-radial-gradient(circle at 55% 45%, rgba(216,180,254,.13) 0 3px, transparent 3px 28px), radial-gradient(circle at 35% 25%, rgba(168,85,247,.5), transparent 24%)" }
 };
 
 const factionName = (id) => id === "neutral" ? "Reath" : PACK_THEMES[id]?.name || id;

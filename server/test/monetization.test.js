@@ -19,6 +19,7 @@ const { server, __test } = require("../index");
 const {
   buildCompetitiveCapabilitySnapshot,
   calculateAttackBonuses,
+  collectionSummary,
   createTurnData,
   getSavedConstructedDeck,
   grantPurchasedCollectorPack,
@@ -317,6 +318,13 @@ test("earned gameplay packs change free entitlement while collector grants do no
 });
 
 test("all earned gameplay packs contain 13 cards, cover every suit, and keep faction packs seeded", () => {
+  const boosters = collectionSummary({ collection: {} }).boosters;
+  for (const factionId of ["voltari", "xendra"]) {
+    const pack = boosters[`${factionId}-foundation`];
+    assert.equal(pack?.factionId, factionId, `${factionId}: listed as a faction pack`);
+    assert.match(pack?.artPath || "", /^\/assets\/gauntlet\//, `${factionId}: faction pack art`);
+  }
+
   const initiativeStats = { collection: { packCredits: 1 } };
   const initiativeCards = openCollectionBooster(initiativeStats, "initiative-all-factions");
   assert.equal(initiativeCards.length, 13);
