@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "xendra",
+  "role": "commander",
+  "event": "clicked",
+  "line": "A shape is only the angle from which you agreed to see it.",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "clientOutput": "client/public/assets/gauntlet/voices/faction-xendra-commander-clicked.mp3",
+  "generatedAt": "2026-10-30T17:27:41.841Z",
+  "publishedAt": "2026-10-30T17:28:03.735Z",
+  "bytes": 89486,
+  "sha256": "950005d0c8265fc72f9b74f15c718cdb0810902790e0bd3a88c8402911b6927f"
+}

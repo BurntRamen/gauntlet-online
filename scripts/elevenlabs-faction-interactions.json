@@ -1,5 +1,6 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
+  "voiceDesignModelId": "eleven_multilingual_ttv_v2",
   "speechModelId": "eleven_multilingual_v2",
   "outputFormat": "mp3_44100_128",
   "stagingDirectory": "artifacts/elevenlabs-faction-interactions",
@@ -41,5 +42,63 @@
     "russo": "CwhRBWXzGAHq8TQ4Fs17",
     "voltari": "SakKzhiHCBYiZmEvHirf",
     "xendra": "F4AXgTwG8nWPB9dcXaTh"
+  },
+  "speakerVoices": {
+    "zynarth": { "commander": "zynarth-queen", "general": "zynarth-synapse" },
+    "astral-vanguard": { "commander": "vanguard-commander", "general": "vanguard-specialist" },
+    "voltari": { "commander": "voltari-conduit", "general": "voltari-coordinator" },
+    "xendra": { "commander": "xendra-aspect", "general": "xendra-echo" }
+  },
+  "libraryVoiceIds": {
+    "zynarth-queen": "s5neZKA6louDxJJBf7dW",
+    "zynarth-synapse": "lphrNXJpwUeVnxbcz3LO",
+    "vanguard-commander": "VMEy7nzPWDa6rpxgaTVA",
+    "vanguard-specialist": "HNHNEBtwpFpOHgGWrg2w",
+    "voltari-conduit": "1jCcsqGg9v0RePVYevJR",
+    "voltari-coordinator": "Jtoqeh39nyRzzD6xYKXI",
+    "xendra-aspect": "vv3OvaW5RkPpKxXJ2mV0",
+    "xendra-echo": "0sPS2u5CCyNtVlLpaQS1"
+  },
+  "voices": {
+    "zynarth-queen": {
+      "name": "Gauntlet — Zynarth Queen",
+      "description": "A mature alien feminine voice with calm sovereign intelligence, broad organic chest resonance, controlled breath pulses, and faint chitin-like clicks between phrases. Maternal without softness, formidable without snarling, clearly articulate and emotionally individual. Natural performance with a very subtle communal subharmonic, never an insect-monster caricature.",
+      "previewText": "Stop burning our children. You mistook a living memory for an infestation, and still we chose to speak."
+    },
+    "zynarth-synapse": {
+      "name": "Gauntlet — Zynarth Synapse",
+      "description": "An alert and androgynous alien field voice, quick and lucid, with breathy organic texture, tiny palate clicks, and two faintly offset communal overtones. It should sound like one intelligence coordinating many bodies while retaining a distinct personality; urgent but never animalistic.",
+      "previewText": "The lane is fed. What falls there will return as shelter, strength, or a new beginning. Nothing is discarded while the brood remembers how to grow."
+    },
+    "vanguard-commander": {
+      "name": "Gauntlet — Astral Vanguard Commander",
+      "description": "A realistic human expedition commander in their early forties, grounded mid-low register, calm tactical authority, clean contemporary diction, and believable fatigue held beneath disciplined warmth. Capable of wonder and uncertainty without losing command presence; no announcer polish and no exaggerated military growl.",
+      "previewText": "We did not cross the dark to make every world resemble us. Hold the line, learn what is here, and bring everyone home."
+    },
+    "vanguard-specialist": {
+      "name": "Gauntlet — Astral Vanguard Specialist",
+      "description": "A realistic human field scientist and operations officer in their thirties, bright focused delivery, conversational intelligence, quick adaptability, and restrained humor under pressure. Precise enough for tactical radio, warm enough to sound like a real crewmate, with natural breaths and no synthetic effects.",
+      "previewText": "Those readings contradict each other, which means the instruments may be the only honest things in this valley."
+    },
+    "voltari-conduit": {
+      "name": "Gauntlet — Voltari Conduit",
+      "description": "A recognizably human-descended voice with elegant mid-low resonance and unnaturally exact timing. Every syllable is measured yet emotionally present; subtle doubled consonants suggest synchronized minds sharing a process. Compassion is expressed through pauses and ordering rather than sentiment. Never a generic robot, vocoder, or flat machine voice.",
+      "previewText": "Cease engagement. Your sensory systems have been compromised. We will restore the sequence before we discuss blame."
+    },
+    "voltari-coordinator": {
+      "name": "Gauntlet — Voltari Coordinator",
+      "description": "A human-origin procedural coordinator with a clear higher register, restrained urgency, immaculate articulation, and a faint synchronized harmonic shadow. Emotion survives as timing, hesitation, and careful precedence of information. Precise but not cold, and explicitly not a robotic text-to-speech stereotype.",
+      "previewText": "Transfer the effort, preserve the agency, and do not optimize away the person who must live with the result."
+    },
+    "xendra-aspect": {
+      "name": "Gauntlet — Xen'Dra Aspect",
+      "description": "An original ageless alien voice with deep resonant clarity, layered harmonic undertones, long spatial pauses, and a second whisper arriving from an impossible distance. Beautiful and unsettling rather than demonic; each phrase seems to change the room around the listener. Intelligible, abstract, and wholly original, without imitating any existing character or performer.",
+      "previewText": "You believe we opened the door. Reath opened it. We are only the aspect of the threshold that learned your name."
+    },
+    "xendra-echo": {
+      "name": "Gauntlet — Xen'Dra Echo",
+      "description": "An androgynous alien whisper with realistic breath and lucid diction whose apparent distance shifts inside a sentence. Soft resonant fundamentals, delayed glass-like harmonics, and sparse doubled words create impossible space without monster effects. Abstract, patient, and original rather than an imitation of any recognizable fantasy villain.",
+      "previewText": "Your thoughts are becoming loud. Lower them, and you may hear which memory is dreaming you. The answer has been waiting in the distance between your names."
+    }
   }
 }

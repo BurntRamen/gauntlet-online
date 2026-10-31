@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "xendra",
+  "role": "general",
+  "event": "clicked",
+  "line": "You hear one voice because the others are standing behind it.",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "clientOutput": "client/public/assets/gauntlet/voices/faction-xendra-general-clicked.mp3",
+  "generatedAt": "2026-10-30T17:27:46.050Z",
+  "publishedAt": "2026-10-30T17:28:03.745Z",
+  "bytes": 112474,
+  "sha256": "dc7978812cb8c7983c252648fd15e04895ef01d069e641767fac30412204ca8f"
+}

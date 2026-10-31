@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "approvalRequired": true,
+  "creator": "ElevenLabs Music API",
+  "jobId": "rumin-civic-imperium-aftermath",
+  "kind": "music",
+  "modelId": "music_v2_5",
+  "prompt": "Original complete three-minute instrumental faction theme for the Rumin of Gauntlet. Compose a full song with a civic marble-and-river opening, measured republican debate, an accelerating imperial middle where motifs and resources are centralized, a fractured passage after assassination, and a resilient synthesis in the outro; do not repeat a short loop. The music personifies the transfer of labor, capital, information, and military effort: frame drums, low lyre-like strings, disciplined brass, coin and stone percussion, and a warm public-square melody that becomes an efficient march before returning with distributed counterpoint. Powerful, humane, and politically uneasy rather than triumphalist. No lyrics, no recognizable melody, no trailer climax. Companion arrangement direction: Create a genuinely distinct three-minute alliance and aftermath arrangement. Let separate motifs negotiate, cooperate, and leave visible scars in a reflective but forward-looking resolution. Do not quote the first track's melody; use a new tempo, harmonic center, and a complete beginning-middle-end arc rather than a loop.",
+  "parameters": {
+    "music_length_ms": 180000,
+    "force_instrumental": true
+  },
+  "references": {},
+  "generationId": "gm6skk8YTdsxrwS2JzRW",
+  "generatedAt": "2026-10-30T17:28:58.144Z",
+  "publishedAt": "2026-10-30T17:40:06.890Z",
+  "clientOutput": "client/public/assets/gauntlet/music/factions/rumin-civic-imperium-v4.mp3",
+  "contentMimeType": "audio/mpeg",
+  "bytes": 4320620,
+  "sha256": "195f4ab66394bc3889fdaf2d06d12c311343d017fb9640abec9a9eb1d044e97d"
+}

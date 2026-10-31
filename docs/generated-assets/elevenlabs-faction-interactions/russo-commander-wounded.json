@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "russo",
+  "role": "commander",
+  "event": "wounded",
+  "line": "Twenty-one life. Share the heat and close the breach.",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "clientOutput": "client/public/assets/gauntlet/voices/faction-russo-commander-wounded.mp3",
+  "generatedAt": "2026-10-30T17:27:29.303Z",
+  "publishedAt": "2026-10-30T17:28:03.681Z",
+  "bytes": 52287,
+  "sha256": "afc8dcb93f68193acbd96b831aed58e3764151d3ece1398b9e724de6e7047585"
+}

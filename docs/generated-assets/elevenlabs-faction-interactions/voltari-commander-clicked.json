@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "role": "commander",
+  "event": "clicked",
+  "line": "Power serves civilization. Civilization does not serve the grid.",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "clientOutput": "client/public/assets/gauntlet/voices/faction-voltari-commander-clicked.mp3",
+  "generatedAt": "2026-10-30T17:27:38.521Z",
+  "publishedAt": "2026-10-30T17:28:03.721Z",
+  "bytes": 109548,
+  "sha256": "5be89abe7ee0e1c8663263157bb1151e8ce607b4bdcda2b55b8135bde7ca636c"
+}

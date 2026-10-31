@@ -35,6 +35,10 @@ function hash(buffer) { return crypto.createHash("sha256").update(buffer).digest
 function writeJson(filePath, value) { fs.mkdirSync(path.dirname(filePath), { recursive: true }); fs.writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`); }
 function readJson(filePath) { return JSON.parse(fs.readFileSync(filePath, "utf8")); }
 
+function voiceKeyFor(manifest, factionId, role) {
+  return manifest.speakerVoices?.[factionId]?.[role] || null;
+}
+
 function buildPlan(manifest) {
   const available = getPublicGameContent().factions;
   // Generation scope is explicit so adding playable factions never silently
@@ -48,12 +52,14 @@ function buildPlan(manifest) {
   });
   const lines = [];
   for (const faction of factions) {
-    const voiceId = manifest.voiceIds[faction.id];
-    if (!voiceId) throw new Error(`Missing ElevenLabs voice for ${faction.id}.`);
+    const commanderVoiceKey = voiceKeyFor(manifest, faction.id, "commander");
+    const generalVoiceKey = voiceKeyFor(manifest, faction.id, "general") || commanderVoiceKey;
+    const voiceId = manifest.voiceIds?.[faction.id];
+    if (!voiceId && (!commanderVoiceKey || !generalVoiceKey)) throw new Error(`Missing ElevenLabs voice for ${faction.id}.`);
     for (const [event, text] of Object.entries(faction.commander.announcements)) {
-      lines.push({ factionId: faction.id, role: "commander", event, text, voiceId, fileName: `faction-${faction.id}-commander-${event}.mp3` });
+      lines.push({ factionId: faction.id, role: "commander", event, text, voiceId, voiceKey: commanderVoiceKey, fileName: `faction-${faction.id}-commander-${event}.mp3` });
     }
-    lines.push({ factionId: faction.id, role: "general", event: "clicked", text: faction.general.clickedAnnouncement, voiceId, fileName: `faction-${faction.id}-general-clicked.mp3` });
+    lines.push({ factionId: faction.id, role: "general", event: "clicked", text: faction.general.clickedAnnouncement, voiceId, voiceKey: generalVoiceKey, fileName: `faction-${faction.id}-general-clicked.mp3` });
   }
   return lines;
 }
@@ -64,20 +70,57 @@ async function apiResponse(url, options, apiKey) {
   return response;
 }
 
+async function designVoices(manifest, root, { confirmCost }) {
+  if (!confirmCost) throw new Error("Voice Design may spend ElevenLabs credits. Re-run with --confirm-cost.");
+  const apiKey = process.env.ELEVENLABS_API_KEY;
+  if (!apiKey) throw new Error("ELEVENLABS_API_KEY is required.");
+  const staging = path.resolve(root, manifest.stagingDirectory);
+  const statePath = path.join(staging, "state.json");
+  const state = fs.existsSync(statePath) ? readJson(statePath) : { schemaVersion: 1, voices: {}, lines: {} };
+  state.voices ||= {};
+  for (const [voiceKey, definition] of Object.entries(manifest.voices || {})) {
+    if (state.voices[voiceKey]?.voiceId) continue;
+    const libraryVoiceId = manifest.libraryVoiceIds?.[voiceKey];
+    if (libraryVoiceId) {
+      state.voices[voiceKey] = { voiceId: libraryVoiceId, name: definition.name, source: "existing-library", adoptedAt: new Date().toISOString() };
+      writeJson(statePath, state);
+      continue;
+    }
+    const request = { voice_description: definition.description, text: definition.previewText, model_id: manifest.voiceDesignModelId };
+    const designedResponse = await apiResponse(`${API_BASE_URL}/text-to-voice/design?output_format=${encodeURIComponent(manifest.outputFormat)}`, { method: "POST", body: JSON.stringify(request) }, apiKey);
+    const designed = await designedResponse.json();
+    const selected = designed.previews?.[definition.previewIndex || 0];
+    if (!selected) throw new Error(`${voiceKey}: Voice Design returned no selected preview.`);
+    const previewDirectory = path.join(staging, "previews", voiceKey);
+    fs.mkdirSync(previewDirectory, { recursive: true });
+    designed.previews.forEach((preview, index) => fs.writeFileSync(path.join(previewDirectory, `${index + 1}.mp3`), Buffer.from(preview.audio_base_64, "base64")));
+    const createdResponse = await apiResponse(`${API_BASE_URL}/text-to-voice`, { method: "POST", body: JSON.stringify({ voice_name: definition.name, voice_description: definition.description, generated_voice_id: selected.generated_voice_id }) }, apiKey);
+    const created = await createdResponse.json();
+    if (!created.voice_id) throw new Error(`${voiceKey}: ElevenLabs did not return a voice_id.`);
+    state.voices[voiceKey] = { voiceId: created.voice_id, name: definition.name, designedAt: new Date().toISOString() };
+    writeJson(statePath, state);
+  }
+  return state;
+}
+
 async function generate(manifest, root, { confirmCost, force }) {
   if (!confirmCost) throw new Error("Speech generation may spend ElevenLabs credits. Re-run with --confirm-cost.");
   const apiKey = process.env.ELEVENLABS_API_KEY;
   if (!apiKey) throw new Error("ELEVENLABS_API_KEY is required.");
   const staging = path.resolve(root, manifest.stagingDirectory);
   const statePath = path.join(staging, "state.json");
-  const state = fs.existsSync(statePath) ? readJson(statePath) : { schemaVersion: 1, lines: {} };
+  const state = fs.existsSync(statePath) ? readJson(statePath) : { schemaVersion: 1, voices: {}, lines: {} };
+  state.voices ||= {};
+  state.lines ||= {};
   for (const line of buildPlan(manifest)) {
     const id = `${line.factionId}-${line.role}-${line.event}`;
     const request = { text: line.text, model_id: manifest.speechModelId, voice_settings: { stability: 0.58, similarity_boost: 0.78, style: 0.28, use_speaker_boost: true } };
-    const requestHash = hash(Buffer.from(JSON.stringify({ voiceId: line.voiceId, outputFormat: manifest.outputFormat, request })));
+    const voiceId = line.voiceKey ? state.voices[line.voiceKey]?.voiceId : line.voiceId;
+    if (!voiceId) throw new Error(`${line.voiceKey || line.factionId}: no designed voice is available. Run design first.`);
+    const requestHash = hash(Buffer.from(JSON.stringify({ voiceId, outputFormat: manifest.outputFormat, request })));
     const outputPath = path.join(staging, "lines", line.fileName);
     if (!force && state.lines[id]?.requestHash === requestHash && fs.existsSync(outputPath)) continue;
-    const response = await apiResponse(`${API_BASE_URL}/text-to-speech/${encodeURIComponent(line.voiceId)}?output_format=${encodeURIComponent(manifest.outputFormat)}`, { method: "POST", body: JSON.stringify(request) }, apiKey);
+    const response = await apiResponse(`${API_BASE_URL}/text-to-speech/${encodeURIComponent(voiceId)}?output_format=${encodeURIComponent(manifest.outputFormat)}`, { method: "POST", body: JSON.stringify(request) }, apiKey);
     const buffer = Buffer.from(await response.arrayBuffer());
     fs.mkdirSync(path.dirname(outputPath), { recursive: true });
     fs.writeFileSync(outputPath, buffer);
@@ -128,13 +171,14 @@ async function main() {
   const root = path.resolve(__dirname, "..");
   loadEnv(path.join(root, ".env"));
   const manifest = readJson(path.resolve(root, args.manifest));
-  if (manifest.schemaVersion !== 1) throw new Error("Faction interaction manifest schemaVersion must be 1.");
+  if (![1, 2].includes(manifest.schemaVersion)) throw new Error("Faction interaction manifest schemaVersion must be 1 or 2.");
   const plan = buildPlan(manifest);
-  if (args.command === "plan") return console.log(`Faction interaction voice plan: ${plan.length} lines across ${Object.keys(manifest.voiceIds).length} factions.`);
+  if (args.command === "plan") return console.log(`Faction interaction voice plan: ${plan.length} lines across ${manifest.factionIds.length} factions, with ${Object.keys(manifest.voices || {}).length} custom voices.`);
+  if (args.command === "design" || args.command === "all") await designVoices(manifest, root, args);
   if (args.command === "generate" || args.command === "all") await generate(manifest, root, args);
   if (args.command === "publish" || args.command === "all") console.log(`Published ${publish(manifest, root, args)} faction interaction voice files.`);
-  if (!["plan", "generate", "publish", "all"].includes(args.command)) throw new Error(`Unknown command: ${args.command}`);
+  if (!["plan", "design", "generate", "publish", "all"].includes(args.command)) throw new Error(`Unknown command: ${args.command}`);
 }
 
 if (require.main === module) main().catch((error) => { console.error(error.message); process.exitCode = 1; });
-module.exports = { buildPlan, parseArgs };
+module.exports = { buildPlan, designVoices, parseArgs, voiceKeyFor };

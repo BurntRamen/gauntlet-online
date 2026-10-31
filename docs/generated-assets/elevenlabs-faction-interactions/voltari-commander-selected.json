@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "role": "commander",
+  "event": "selected",
+  "line": "The conduit is live. Keep every mind sovereign.",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "clientOutput": "client/public/assets/gauntlet/voices/faction-voltari-commander-selected.mp3",
+  "generatedAt": "2026-10-30T17:27:37.835Z",
+  "publishedAt": "2026-10-30T17:28:03.719Z",
+  "bytes": 80709,
+  "sha256": "98c5e413db7befac2203dc404b0e4aee5cfabd2d7d69109e015389cfc68c56aa"
+}

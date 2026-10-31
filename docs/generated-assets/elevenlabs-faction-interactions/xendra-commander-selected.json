@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "xendra",
+  "role": "commander",
+  "event": "selected",
+  "line": "We arrive where your certainty thins.",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "clientOutput": "client/public/assets/gauntlet/voices/faction-xendra-commander-selected.mp3",
+  "generatedAt": "2026-10-30T17:27:41.284Z",
+  "publishedAt": "2026-10-30T17:28:03.733Z",
+  "bytes": 68588,
+  "sha256": "da7efab7b956f6254df8b464dad8d3679e97d44041fa41d5117f74af89289c35"
+}

@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "approvalRequired": true,
+  "creator": "ElevenLabs Music API",
+  "jobId": "astral-vanguard-hybrid-horizon-aftermath",
+  "kind": "music",
+  "modelId": "music_v2_5",
+  "prompt": "Original complete three-minute instrumental faction theme for the Astral Vanguard of Gauntlet. Compose a full song with separate human and futuristic motifs introduced clearly, a development where they trade roles, a vulnerable exploratory middle passage, an adaptable ensemble return, and a broad cooperative outro; do not repeat a short loop. Explorers survive by hybridizing contradictory ideas without flattening them: grounded field percussion, warm human strings, restrained synthesizer pulses, radio-like textures, and a broad brass horizon. Distinct motifs should remain identifiable while forming one ensemble. Heroic through cooperation and improvisation, not conquest. No lyrics, no recognizable melody, no bombastic trailer climax. Companion arrangement direction: Create a genuinely distinct three-minute alliance and aftermath arrangement. Let separate motifs negotiate, cooperate, and leave visible scars in a reflective but forward-looking resolution. Do not quote the first track's melody; use a new tempo, harmonic center, and a complete beginning-middle-end arc rather than a loop.",
+  "parameters": {
+    "music_length_ms": 180000,
+    "force_instrumental": true
+  },
+  "references": {},
+  "generationId": "ORbDJeCHsBDOz20owzCR",
+  "generatedAt": "2026-10-30T17:35:26.639Z",
+  "publishedAt": "2026-10-30T17:40:07.139Z",
+  "clientOutput": "client/public/assets/gauntlet/music/factions/astral-vanguard-hybrid-horizon-v4.mp3",
+  "contentMimeType": "audio/mpeg",
+  "bytes": 4320620,
+  "sha256": "9c49ac9f98548ebb148ab4cf2bec68a71198e4630935be30340db23f86d4733e"
+}

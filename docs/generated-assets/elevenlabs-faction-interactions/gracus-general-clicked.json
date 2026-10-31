@@ -9,8 +9,8 @@
   "modelId": "eleven_multilingual_v2",
   "outputFormat": "mp3_44100_128",
   "clientOutput": "client/public/assets/gauntlet/voices/faction-gracus-general-clicked.mp3",
-  "generatedAt": "2026-10-13T19:59:19.031Z",
-  "publishedAt": "2026-10-13T19:59:37.246Z",
-  "bytes": 51035,
-  "sha256": "d3678ce5da04f93dfc24f5e1ce3e487ac191e9daefdf8bf9f81e1bf2eec26aca"
+  "generatedAt": "2026-10-30T17:27:16.819Z",
+  "publishedAt": "2026-10-30T17:28:03.619Z",
+  "bytes": 47690,
+  "sha256": "3f513f43476e72772867c3933f38f771f7533595775ef02c6dc06442f681d9da"
 }

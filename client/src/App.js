@@ -240,6 +240,8 @@ const TABLETOP_THEME = {
   shadow: "0 14px 36px rgba(0,0,0,0.42), inset 0 0 0 1px rgba(255,232,188,0.08), inset 0 18px 42px rgba(255,255,255,0.04)"
 };
 
+const factionThemeSources = (slug) => [1, 2, 3, 4].map((version) => `/assets/gauntlet/music/factions/${slug}-v${version}.mp3`);
+
 const MUSIC_TRACKS = {
   menu: {
     label: "The Quiet Workshop",
@@ -262,23 +264,23 @@ const MUSIC_TRACKS = {
   basic: { label: "Basic Gauntlet Theme", pad: [65.41, 87.31, 130.81], notes: [261.63, 293.66, 329.63, 392, 349.23, 293.66, 246.94, 261.63], tempo: 600, wave: "triangle" },
   rumin: {
     label: "The Civic Imperium",
-    sources: ["/assets/gauntlet/music/factions/rumin-civic-imperium-v1.mp3"]
+    sources: factionThemeSources("rumin-civic-imperium")
   },
   sheen: {
     label: "The Living Renewal",
-    sources: ["/assets/gauntlet/music/factions/sheen-living-renewal-v1.mp3"]
+    sources: factionThemeSources("sheen-living-renewal")
   },
   frumo: {
     label: "The Council of Captains",
-    sources: ["/assets/gauntlet/music/factions/frumo-council-of-captains-v1.mp3"]
+    sources: factionThemeSources("frumo-council-of-captains")
   },
   bizi: {
     label: "The Plural Machine",
-    sources: ["/assets/gauntlet/music/factions/bizi-plural-machine-v1.mp3"]
+    sources: factionThemeSources("bizi-plural-machine")
   },
   mekan: {
     label: "The Eternal Festival",
-    sources: ["/assets/gauntlet/music/factions/mekan-eternal-festival-v1.mp3"],
+    sources: factionThemeSources("mekan-eternal-festival"),
     pad: [55, 82.41, 110],
     notes: [329.63, 392, 440, 523.25, 493.88, 392],
     tempo: 520,
@@ -286,22 +288,22 @@ const MUSIC_TRACKS = {
   },
   jali: {
     label: "The Revenant Formation",
-    sources: ["/assets/gauntlet/music/factions/jali-revenant-formation-v1.mp3"],
+    sources: factionThemeSources("jali-revenant-formation"),
     pad: [46.25, 69.3, 92.5],
     notes: [220, 261.63, 293.66, 349.23, 293.66, 246.94],
     tempo: 680,
     wave: "sawtooth"
   },
-  gracus: { label: "The Stone Question", sources: ["/assets/gauntlet/music/factions/gracus-stone-question-v1.mp3"], pad: [55, 82.41, 110], notes: [164.81, 220, 246.94, 329.63, 293.66], tempo: 610, wave: "square" },
-  indela: { label: "The Turning Omen", sources: ["/assets/gauntlet/music/factions/indela-turning-omen-v1.mp3"], pad: [69.3, 103.83, 138.59], notes: [277.18, 311.13, 369.99, 415.3, 369.99], tempo: 740, wave: "sine" },
-  zynarth: { label: "The Infinite Hive", sources: ["/assets/gauntlet/music/factions/zynarth-infinite-hive-v1.mp3"], pad: [41.2, 61.74, 82.41], notes: [164.81, 155.56, 185, 220, 207.65], tempo: 720, wave: "sawtooth" },
-  "astral-vanguard": { label: "The Hybrid Horizon", sources: ["/assets/gauntlet/music/factions/astral-vanguard-hybrid-horizon-v1.mp3"], pad: [55, 82.41, 110], notes: [220, 277.18, 329.63, 293.66, 369.99], tempo: 600, wave: "triangle" },
-  voltari: { label: "The Golden Conduit", sources: ["/assets/gauntlet/music/factions/voltari-golden-conduit-v1.mp3"], pad: [46.25, 69.3, 92.5], notes: [277.18, 311.13, 415.3, 369.99], tempo: 540, wave: "sine" },
-  xendra: { label: "Aspect Without Form", sources: ["/assets/gauntlet/music/factions/xendra-aspect-without-form-v1.mp3"], pad: [46.25, 69.3, 92.5], notes: [185, 174.61, 207.65, 138.59, 155.56, 123.47], tempo: 780, wave: "sine" },
-  ingles: { label: "The Unwritten Charter", sources: ["/assets/gauntlet/music/factions/ingles-unwritten-charter-v1.mp3"] },
-  mercaw: { label: "The Many-Star Accord", sources: ["/assets/gauntlet/music/factions/mercaw-many-star-accord-v1.mp3"] },
-  mtano: { label: "The Mountain Remembers", sources: ["/assets/gauntlet/music/factions/mtano-mountain-remembers-v1.mp3"] },
-  russo: { label: "The Long Winter Oath", sources: ["/assets/gauntlet/music/factions/russo-long-winter-oath-v1.mp3"] }
+  gracus: { label: "The Stone Question", sources: factionThemeSources("gracus-stone-question"), pad: [55, 82.41, 110], notes: [164.81, 220, 246.94, 329.63, 293.66], tempo: 610, wave: "square" },
+  indela: { label: "The Turning Omen", sources: [...factionThemeSources("indela-turning-omen"), "/assets/gauntlet/music/factions/indela-turning-omen-v5.mp3"], pad: [69.3, 103.83, 138.59], notes: [277.18, 311.13, 369.99, 415.3, 369.99], tempo: 740, wave: "sine" },
+  zynarth: { label: "The Infinite Hive", sources: factionThemeSources("zynarth-infinite-hive"), pad: [41.2, 61.74, 82.41], notes: [164.81, 155.56, 185, 220, 207.65], tempo: 720, wave: "sawtooth" },
+  "astral-vanguard": { label: "The Hybrid Horizon", sources: factionThemeSources("astral-vanguard-hybrid-horizon"), pad: [55, 82.41, 110], notes: [220, 277.18, 329.63, 293.66, 369.99], tempo: 600, wave: "triangle" },
+  voltari: { label: "The Golden Conduit", sources: factionThemeSources("voltari-golden-conduit"), pad: [46.25, 69.3, 92.5], notes: [277.18, 311.13, 415.3, 369.99], tempo: 540, wave: "sine" },
+  xendra: { label: "Aspect Without Form", sources: factionThemeSources("xendra-aspect-without-form"), pad: [46.25, 69.3, 92.5], notes: [185, 174.61, 207.65, 138.59, 155.56, 123.47], tempo: 780, wave: "sine" },
+  ingles: { label: "The Unwritten Charter", sources: factionThemeSources("ingles-unwritten-charter") },
+  mercaw: { label: "The Many-Star Accord", sources: factionThemeSources("mercaw-many-star-accord") },
+  mtano: { label: "The Mountain Remembers", sources: factionThemeSources("mtano-mountain-remembers") },
+  russo: { label: "The Long Winter Oath", sources: factionThemeSources("russo-long-winter-oath") }
 };
 
 const MENU_THEME = {

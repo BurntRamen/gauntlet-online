@@ -97,6 +97,54 @@
         "clicked": "/assets/gauntlet/voices/faction-indela-general-clicked.mp3"
       }
     },
+    "ingles": {
+      "commander": {
+        "selected": "/assets/gauntlet/voices/faction-ingles-commander-selected.mp3",
+        "clicked": "/assets/gauntlet/voices/faction-ingles-commander-clicked.mp3",
+        "wounded": "/assets/gauntlet/voices/faction-ingles-commander-wounded.mp3",
+        "critical": "/assets/gauntlet/voices/faction-ingles-commander-critical.mp3",
+        "denied": "/assets/gauntlet/voices/faction-ingles-commander-denied.mp3"
+      },
+      "general": {
+        "clicked": "/assets/gauntlet/voices/faction-ingles-general-clicked.mp3"
+      }
+    },
+    "mercaw": {
+      "commander": {
+        "selected": "/assets/gauntlet/voices/faction-mercaw-commander-selected.mp3",
+        "clicked": "/assets/gauntlet/voices/faction-mercaw-commander-clicked.mp3",
+        "wounded": "/assets/gauntlet/voices/faction-mercaw-commander-wounded.mp3",
+        "critical": "/assets/gauntlet/voices/faction-mercaw-commander-critical.mp3",
+        "denied": "/assets/gauntlet/voices/faction-mercaw-commander-denied.mp3"
+      },
+      "general": {
+        "clicked": "/assets/gauntlet/voices/faction-mercaw-general-clicked.mp3"
+      }
+    },
+    "mtano": {
+      "commander": {
+        "selected": "/assets/gauntlet/voices/faction-mtano-commander-selected.mp3",
+        "clicked": "/assets/gauntlet/voices/faction-mtano-commander-clicked.mp3",
+        "wounded": "/assets/gauntlet/voices/faction-mtano-commander-wounded.mp3",
+        "critical": "/assets/gauntlet/voices/faction-mtano-commander-critical.mp3",
+        "denied": "/assets/gauntlet/voices/faction-mtano-commander-denied.mp3"
+      },
+      "general": {
+        "clicked": "/assets/gauntlet/voices/faction-mtano-general-clicked.mp3"
+      }
+    },
+    "russo": {
+      "commander": {
+        "selected": "/assets/gauntlet/voices/faction-russo-commander-selected.mp3",
+        "clicked": "/assets/gauntlet/voices/faction-russo-commander-clicked.mp3",
+        "wounded": "/assets/gauntlet/voices/faction-russo-commander-wounded.mp3",
+        "critical": "/assets/gauntlet/voices/faction-russo-commander-critical.mp3",
+        "denied": "/assets/gauntlet/voices/faction-russo-commander-denied.mp3"
+      },
+      "general": {
+        "clicked": "/assets/gauntlet/voices/faction-russo-general-clicked.mp3"
+      }
+    },
     "zynarth": {
       "commander": {
         "selected": "/assets/gauntlet/voices/faction-zynarth-commander-selected.mp3",
@@ -119,6 +167,30 @@
       },
       "general": {
         "clicked": "/assets/gauntlet/voices/faction-astral-vanguard-general-clicked.mp3"
+      }
+    },
+    "voltari": {
+      "commander": {
+        "selected": "/assets/gauntlet/voices/faction-voltari-commander-selected.mp3",
+        "clicked": "/assets/gauntlet/voices/faction-voltari-commander-clicked.mp3",
+        "wounded": "/assets/gauntlet/voices/faction-voltari-commander-wounded.mp3",
+        "critical": "/assets/gauntlet/voices/faction-voltari-commander-critical.mp3",
+        "denied": "/assets/gauntlet/voices/faction-voltari-commander-denied.mp3"
+      },
+      "general": {
+        "clicked": "/assets/gauntlet/voices/faction-voltari-general-clicked.mp3"
+      }
+    },
+    "xendra": {
+      "commander": {
+        "selected": "/assets/gauntlet/voices/faction-xendra-commander-selected.mp3",
+        "clicked": "/assets/gauntlet/voices/faction-xendra-commander-clicked.mp3",
+        "wounded": "/assets/gauntlet/voices/faction-xendra-commander-wounded.mp3",
+        "critical": "/assets/gauntlet/voices/faction-xendra-commander-critical.mp3",
+        "denied": "/assets/gauntlet/voices/faction-xendra-commander-denied.mp3"
+      },
+      "general": {
+        "clicked": "/assets/gauntlet/voices/faction-xendra-general-clicked.mp3"
       }
     }
   }

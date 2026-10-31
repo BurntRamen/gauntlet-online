@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "russo",
+  "role": "commander",
+  "event": "denied",
+  "line": "The reserve cannot sustain that order.",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "clientOutput": "client/public/assets/gauntlet/voices/faction-russo-commander-denied.mp3",
+  "generatedAt": "2026-10-30T17:27:30.223Z",
+  "publishedAt": "2026-10-30T17:28:03.685Z",
+  "bytes": 35151,
+  "sha256": "90a783d2a4fe2bb0a6da98918ee720120f0cd033a3544cd4f1badfd25bf778c0"
+}

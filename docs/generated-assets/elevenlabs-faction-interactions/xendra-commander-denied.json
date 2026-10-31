@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "xendra",
+  "role": "commander",
+  "event": "denied",
+  "line": "That possibility is not facing you yet.",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "clientOutput": "client/public/assets/gauntlet/voices/faction-xendra-commander-denied.mp3",
+  "generatedAt": "2026-10-30T17:27:44.189Z",
+  "publishedAt": "2026-10-30T17:28:03.741Z",
+  "bytes": 110384,
+  "sha256": "9ffb11101f6bd2c5afa9c75bb2477877cd623fddc6a72f55a2b7d381def76936"
+}

@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "approvalRequired": true,
+  "creator": "ElevenLabs Music API",
+  "jobId": "jali-revenant-formation-exploration",
+  "kind": "music",
+  "modelId": "music_v2_5",
+  "prompt": "Original complete three-minute instrumental faction theme for the Jali of Gauntlet. Compose a full song with a disciplined opening formation, measured development, a spacious haunted middle passage, a transformed return, and a lucid resolved outro; do not repeat a short loop. Disciplined martial formation across a celestial archipelago: restrained taiko-like low drums, plucked strings, breathy bamboo-like timbres, high wind, and distant bronze. Precise pauses should feel as important as attacks. Memory returns in altered phrases, suggesting revenants who retain choice. Noble, lucid, and slightly haunted. No lyrics, no recognizable melody, no oversized cinematic climax. Companion arrangement direction: Create a genuinely distinct three-minute exploration and identity arrangement. Begin with unfamiliar territory and reveal the faction's signature instruments gradually. Keep the core philosophy recognizable without quoting the first track's melody; use a new tempo, harmonic center, and complete beginning-middle-end arc.",
+  "parameters": {
+    "music_length_ms": 180000,
+    "force_instrumental": true
+  },
+  "references": {},
+  "generationId": "H7IGWjmfKwbarCq6GSlt",
+  "generatedAt": "2026-10-30T17:32:05.562Z",
+  "publishedAt": "2026-10-30T17:40:07.016Z",
+  "clientOutput": "client/public/assets/gauntlet/music/factions/jali-revenant-formation-v2.mp3",
+  "contentMimeType": "audio/mpeg",
+  "bytes": 4320620,
+  "sha256": "74bb7c0fb07c4834c532dd867a9dd07cebdb15a73c3c7190e9f76451892c5721"
+}

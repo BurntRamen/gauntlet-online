@@ -9,8 +9,8 @@
   "modelId": "eleven_multilingual_v2",
   "outputFormat": "mp3_44100_128",
   "clientOutput": "client/public/assets/gauntlet/voices/faction-zynarth-commander-wounded.mp3",
-  "generatedAt": "2026-10-13T19:59:27.386Z",
-  "publishedAt": "2026-10-13T19:59:37.288Z",
-  "bytes": 53960,
-  "sha256": "d0a4b6bb12dee558d5e2baf0b459d112bd3c3564b72cd7c90cc0784d594baf65"
+  "generatedAt": "2026-10-30T17:27:32.447Z",
+  "publishedAt": "2026-10-30T17:28:03.696Z",
+  "bytes": 59811,
+  "sha256": "3faf3df5b0715a4c33c1c47c6320c53998215ab81945c76e1bf6ef374736f3ed"
 }

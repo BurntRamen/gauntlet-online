@@ -9,8 +9,8 @@
   "modelId": "eleven_multilingual_v2",
   "outputFormat": "mp3_44100_128",
   "clientOutput": "client/public/assets/gauntlet/voices/faction-indela-general-clicked.mp3",
-  "generatedAt": "2026-10-13T19:59:24.070Z",
-  "publishedAt": "2026-10-13T19:59:37.274Z",
-  "bytes": 34316,
-  "sha256": "24522d35b42bc6061fd39a1e62d3d398483a8059420aed18fbf49ce2b723e3ec"
+  "generatedAt": "2026-10-30T17:27:19.418Z",
+  "publishedAt": "2026-10-30T17:28:03.632Z",
+  "bytes": 30972,
+  "sha256": "b3ea833dbaef8a4d35d2b97aedb6ed10485a2cc13061911482b5f378f08d5e28"
 }

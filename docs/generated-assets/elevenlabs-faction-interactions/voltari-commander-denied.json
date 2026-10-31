@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "role": "commander",
+  "event": "denied",
+  "line": "The network will not accept an unverified connection.",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "clientOutput": "client/public/assets/gauntlet/voices/faction-voltari-commander-denied.mp3",
+  "generatedAt": "2026-10-30T17:27:40.082Z",
+  "publishedAt": "2026-10-30T17:28:03.729Z",
+  "bytes": 87814,
+  "sha256": "5c0978464c45398fec24d8cdc322feb9ad39338a2135c56e075d096d815bc89f"
+}
