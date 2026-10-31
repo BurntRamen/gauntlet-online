@@ -4391,6 +4391,12 @@ export default function App() {
     socket.emit("selectFaction", { factionId, generalId });
   }
 
+  function previewLobbyFaction(faction) {
+    if (!faction?.id) return;
+    setLobbyFactionPreviewId(faction.id);
+    announceCommander(faction, "selected", faction.commander?.name || faction.name || "Commander", "Faction preview");
+  }
+
   function setGameMode(mode) {
     socket.emit("setGameMode", { mode });
   }
@@ -4909,7 +4915,7 @@ export default function App() {
                         role="tab"
                         aria-selected={previewed}
                         className={`faction-${faction.id}`}
-                        onClick={() => setLobbyFactionPreviewId(faction.id)}
+                        onClick={() => previewLobbyFaction(faction)}
                         style={{ "--faction-accent": factionTheme.primary }}
                       >
                         <span className="lobby-faction-thumb" style={{ backgroundImage: `url(${resolveAssetPath(getFactionArtwork(faction.id, faction.cardImage) || "/assets/gauntlet/ui/faction-art-unavailable.svg")})` }} />
