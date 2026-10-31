@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "mercaw",
+  "role": "commander",
+  "event": "selected",
+  "line": "Many wings, one chosen course.",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "clientOutput": "client/public/assets/gauntlet/voices/faction-mercaw-commander-selected.mp3",
+  "generatedAt": "2026-10-30T17:27:22.554Z",
+  "publishedAt": "2026-10-30T17:28:03.647Z",
+  "bytes": 43510,
+  "sha256": "d3d624afc61d78a60b116b936e47cd5747786ec5ad277ac8e76b2ff07b69f33f"
+}

@@ -9,8 +9,8 @@
   "modelId": "eleven_multilingual_v2",
   "outputFormat": "mp3_44100_128",
   "clientOutput": "client/public/assets/gauntlet/voices/faction-mekan-commander-wounded.mp3",
-  "generatedAt": "2026-10-13T19:59:02.828Z",
-  "publishedAt": "2026-10-13T19:59:37.180Z",
-  "bytes": 51035,
-  "sha256": "bf82bddab199c3fdcd1d657a25419105ca8a14989efbe20ade19624e3f047ebe"
+  "generatedAt": "2026-10-30T17:27:08.795Z",
+  "publishedAt": "2026-10-30T17:28:03.588Z",
+  "bytes": 49362,
+  "sha256": "760fced17f109046fd42be7f29b5c09583ee2434616b784fad81e21c7ed5b152"
 }

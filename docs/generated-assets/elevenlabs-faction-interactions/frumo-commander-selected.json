@@ -9,8 +9,8 @@
   "modelId": "eleven_multilingual_v2",
   "outputFormat": "mp3_44100_128",
   "clientOutput": "client/public/assets/gauntlet/voices/faction-frumo-commander-selected.mp3",
-  "generatedAt": "2026-10-13T19:58:49.548Z",
-  "publishedAt": "2026-10-13T19:59:37.121Z",
-  "bytes": 33898,
-  "sha256": "6e95441c15c2d9db7efc46cf1e8e7d5a69ad5ef7496b781fb297df0738f8cc16"
+  "generatedAt": "2026-10-30T17:27:02.582Z",
+  "publishedAt": "2026-10-30T17:28:03.556Z",
+  "bytes": 27628,
+  "sha256": "9ca28a480aba1284d21410e8b296b6d4b2ec7a5e602dd81b500d361ae0d08d34"
 }

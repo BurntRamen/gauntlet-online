@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "approvalRequired": true,
+  "creator": "ElevenLabs Music API",
+  "jobId": "bizi-plural-machine-exploration",
+  "kind": "music",
+  "modelId": "music_v2_5",
+  "prompt": "Original complete three-minute instrumental faction theme for the Bizi of Gauntlet. Compose a full song with a fragile workshop awakening, a confident industrial golden age, a precise but emotionally narrowing optimized middle, a catastrophic mechanical fracture, and a rebuilt plural ending; do not repeat a short loop. Self-aware machines on Volaris inherit human infrastructure and argue about personhood, faith, efficiency, repair, and civic continuity: clockwork pulse, hammered brass, rail rhythm, prepared piano, warm low strings, and small irregular motifs that prove the system contains distinct minds. Mechanical without losing tenderness; analytical without becoming faceless. No lyrics, no recognizable melody, no generic steampunk march, no trailer climax. Companion arrangement direction: Create a genuinely distinct three-minute exploration and identity arrangement. Begin with unfamiliar territory and reveal the faction's signature instruments gradually. Keep the core philosophy recognizable without quoting the first track's melody; use a new tempo, harmonic center, and complete beginning-middle-end arc.",
+  "parameters": {
+    "music_length_ms": 180000,
+    "force_instrumental": true
+  },
+  "references": {},
+  "generationId": "6zuEwTwCUn2VrLM49bBw",
+  "generatedAt": "2026-10-30T17:30:34.802Z",
+  "publishedAt": "2026-10-30T17:40:06.963Z",
+  "clientOutput": "client/public/assets/gauntlet/music/factions/bizi-plural-machine-v2.mp3",
+  "contentMimeType": "audio/mpeg",
+  "bytes": 4320620,
+  "sha256": "36e9adc66db04332feb1bb6373a770b83a9c7da04098814d7de37be055313aec"
+}

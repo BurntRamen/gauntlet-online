@@ -9,8 +9,8 @@
   "modelId": "eleven_multilingual_v2",
   "outputFormat": "mp3_44100_128",
   "clientOutput": "client/public/assets/gauntlet/voices/faction-mekan-general-clicked.mp3",
-  "generatedAt": "2026-10-13T19:59:06.102Z",
-  "publishedAt": "2026-10-13T19:59:37.193Z",
-  "bytes": 35988,
-  "sha256": "6289de0fab15b5d3a22c20f9a1c52ae19b2a95abe561147ce45dd46c19ab99fa"
+  "generatedAt": "2026-10-30T17:27:11.214Z",
+  "publishedAt": "2026-10-30T17:28:03.594Z",
+  "bytes": 36823,
+  "sha256": "4b6515b944bb443cbae49058831830f3164bc6d8268ed3b1d7a089fb3acec9b7"
 }

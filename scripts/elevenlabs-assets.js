@@ -54,6 +54,30 @@ function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, "utf8"));
 }
 
+function expandCompanionMusicJobs(manifest) {
+  const variants = manifest.companionMusicVariants || [];
+  if (!variants.length) return manifest;
+  const companionJobs = [];
+  for (const job of manifest.jobs || []) {
+    if (job.kind !== "music") continue;
+    if (!/-v1\.mp3$/i.test(job.clientOutput)) throw new Error(`${job.id}: companion music requires a -v1.mp3 clientOutput.`);
+    for (const variant of variants) {
+      if (variant.onlyJobIds && !variant.onlyJobIds.includes(job.id)) continue;
+      if (!Number.isInteger(variant.version) || variant.version < 2 || !variant.idSuffix || !variant.promptDirection) {
+        throw new Error("Each companion music variant needs a version, idSuffix, and promptDirection.");
+      }
+      companionJobs.push({
+        ...job,
+        id: `${job.id}-${variant.idSuffix}`,
+        reviewStatus: variant.reviewStatus || "candidate",
+        prompt: `${job.prompt} Companion arrangement direction: ${variant.promptDirection}`,
+        clientOutput: job.clientOutput.replace(/-v1\.mp3$/i, `-v${variant.version}.mp3`)
+      });
+    }
+  }
+  return { ...manifest, jobs: [...manifest.jobs, ...companionJobs] };
+}
+
 function loadLocalEnv(filePath, environment = process.env) {
   if (!fs.existsSync(filePath)) return environment;
   fs.readFileSync(filePath, "utf8").replace(/^\uFEFF/, "").split(/\r?\n/).forEach((line) => {
@@ -578,7 +602,7 @@ async function main(argv = process.argv.slice(2), dependencies = {}) {
   const args = parseArgs(argv);
   if (args.command === "help" || args.command === "--help") return console.log(usage());
   const manifestPath = resolveWorkspacePath(workspaceRoot, args.manifest || DEFAULT_MANIFEST, "manifest");
-  const manifest = validateManifest(readJson(manifestPath), workspaceRoot);
+  const manifest = validateManifest(expandCompanionMusicJobs(readJson(manifestPath)), workspaceRoot);
   const jobs = topologicalJobs(manifest.jobs, args.only);
   if (args.command === "plan") return printPlan(manifest, jobs, workspaceRoot);
   if (args.command === "publish") {
@@ -623,6 +647,7 @@ module.exports = {
   buildRequest,
   convertPcm16MonoToWave,
   convertPcm16ToMonoWave,
+  expandCompanionMusicJobs,
   generateJobs,
   loadLocalEnv,
   parseArgs,

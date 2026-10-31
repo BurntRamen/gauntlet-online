@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "approvalRequired": true,
+  "creator": "ElevenLabs Music API",
+  "jobId": "russo-long-winter-oath-exploration",
+  "kind": "music",
+  "modelId": "music_v2_5",
+  "prompt": "Original complete three-minute instrumental faction theme for the Russo of Gauntlet. Compose a full song with a sparse frozen opening, a patient communal rhythm gathering warmth, a severe middle passage where command nearly overwhelms the ensemble, a return led by many smaller voices, and a resilient thawing outro; do not repeat a short loop. Evoke survival on an ice world through low bowed strings, bass choir used only as wordless texture, iron percussion, distant bells, quiet balalaika-like plucks, and a hearth motif passed among instruments. Somber, durable, and humane without militaristic propaganda. No lyrics, no recognizable melody, no bombastic trailer climax. Companion arrangement direction: Create a genuinely distinct three-minute exploration and identity arrangement. Begin with unfamiliar territory and reveal the faction's signature instruments gradually. Keep the core philosophy recognizable without quoting the first track's melody; use a new tempo, harmonic center, and complete beginning-middle-end arc.",
+  "parameters": {
+    "music_length_ms": 180000,
+    "force_instrumental": true
+  },
+  "references": {},
+  "generationId": "3GLxwspdyeADnbvWJXkw",
+  "generatedAt": "2026-10-30T17:44:47.966Z",
+  "publishedAt": "2026-10-30T17:45:13.816Z",
+  "clientOutput": "client/public/assets/gauntlet/music/factions/russo-long-winter-oath-v2.mp3",
+  "contentMimeType": "audio/mpeg",
+  "bytes": 4320620,
+  "sha256": "22fcc169789d90ebfc2e005ec49411d77b3e3f3df531c6aca1544831dde1b6ef"
+}

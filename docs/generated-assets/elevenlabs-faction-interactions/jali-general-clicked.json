@@ -9,8 +9,8 @@
   "modelId": "eleven_multilingual_v2",
   "outputFormat": "mp3_44100_128",
   "clientOutput": "client/public/assets/gauntlet/voices/faction-jali-general-clicked.mp3",
-  "generatedAt": "2026-10-13T19:59:12.370Z",
-  "publishedAt": "2026-10-13T19:59:37.219Z",
-  "bytes": 36824,
-  "sha256": "576089cd3c15dbc1560c279e5f1a9be3e9dc1f2a06220c0b7d2891c582ee2ac0"
+  "generatedAt": "2026-10-30T17:27:13.871Z",
+  "publishedAt": "2026-10-30T17:28:03.606Z",
+  "bytes": 36823,
+  "sha256": "c89f663ffae3137d70818a272ad1c6dc7c948a08c9822f82d4fcdab3c2bbdcd0"
 }

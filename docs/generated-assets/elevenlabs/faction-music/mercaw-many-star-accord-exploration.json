@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "approvalRequired": true,
+  "creator": "ElevenLabs Music API",
+  "jobId": "mercaw-many-star-accord-exploration",
+  "kind": "music",
+  "modelId": "music_v2_5",
+  "prompt": "Original complete three-minute instrumental faction theme for the Mercaw of Gauntlet. Compose a full song with separate aerie motifs entering from different registers, an inventive syncopated development, a spacious uncertain middle section, a thrilling moment of voluntary convergence, and a broad pluralistic outro; do not repeat a short loop. Evoke migrating sky cities and a contentious federation: bright brass fragments, agile strings, hand percussion, wind rush, resonant plucked metal, and independent themes that choose a shared pulse. Energetic, inventive, and civic rather than nationalistic. No lyrics, no recognizable melody, no oversized trailer ending. Companion arrangement direction: Create a genuinely distinct three-minute exploration and identity arrangement. Begin with unfamiliar territory and reveal the faction's signature instruments gradually. Keep the core philosophy recognizable without quoting the first track's melody; use a new tempo, harmonic center, and complete beginning-middle-end arc.",
+  "parameters": {
+    "music_length_ms": 180000,
+    "force_instrumental": true
+  },
+  "references": {},
+  "generationId": "C18dtafrrolG4MjVrUpF",
+  "generatedAt": "2026-10-30T17:37:51.565Z",
+  "publishedAt": "2026-10-30T17:40:07.237Z",
+  "clientOutput": "client/public/assets/gauntlet/music/factions/mercaw-many-star-accord-v2.mp3",
+  "contentMimeType": "audio/mpeg",
+  "bytes": 4320620,
+  "sha256": "3500403067c8b373c6bf517f5b98bbed5e20c3688d58b8bda9ac4c2cacdbd520"
+}

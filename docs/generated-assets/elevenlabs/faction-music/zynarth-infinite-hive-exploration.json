@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "approvalRequired": true,
+  "creator": "ElevenLabs Music API",
+  "jobId": "zynarth-infinite-hive-exploration",
+  "kind": "music",
+  "modelId": "music_v2_5",
+  "prompt": "Original complete three-minute instrumental faction theme for the Zynarth of Gauntlet. Compose a full song with one living pulse as the introduction, expanding layers that consume and transform earlier material, a mournful sparse middle section, a resilient ecological return, and a changed but hopeful outro; do not repeat a short loop. A living planet thinks through insectoid bodies: low organic pulses, scraped chitin textures, breath-like bass, clustered strings, and amber bioluminescent tones. Express recycling, adaptation, grief, and stubborn hope. Alien and biological without generic horror. No lyrics, no recognizable melody, no jump scares or trailer climax. Companion arrangement direction: Create a genuinely distinct three-minute exploration and identity arrangement. Begin with unfamiliar territory and reveal the faction's signature instruments gradually. Keep the core philosophy recognizable without quoting the first track's melody; use a new tempo, harmonic center, and complete beginning-middle-end arc.",
+  "parameters": {
+    "music_length_ms": 180000,
+    "force_instrumental": true
+  },
+  "references": {},
+  "generationId": "ACfjgxzWrrXJKd4LzQb9",
+  "generatedAt": "2026-10-30T17:34:14.209Z",
+  "publishedAt": "2026-10-30T17:40:07.097Z",
+  "clientOutput": "client/public/assets/gauntlet/music/factions/zynarth-infinite-hive-v2.mp3",
+  "contentMimeType": "audio/mpeg",
+  "bytes": 4320620,
+  "sha256": "da68cb863a2f7f175adb5de03d2146710d3723fe4ac0708bf1aa2491c11ae3c1"
+}

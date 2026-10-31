@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "approvalRequired": true,
+  "creator": "ElevenLabs Music API",
+  "jobId": "indela-turning-omen-convergence",
+  "kind": "music",
+  "modelId": "music_v2_5",
+  "prompt": "Original complete three-minute instrumental faction theme for the Indela of Gauntlet. Compose a full song with a luminous scholarly opening, alternating warm and cool developments, a suspended contemplative middle passage, an interlocking return, and a clear resolved outro; do not repeat a short loop. A golden age balancing fire and frost: luminous plucked strings, glass harmonics, low bowed drones, hand bells, and slow interlocking rhythmic cycles. Warm and cool colors should alternate before combining. Mystical through pattern and observation, not vague fantasy magic. No lyrics, no recognizable melody, no trailer climax. Companion arrangement direction: Create a genuinely distinct full three-minute convergence arrangement. Preserve the Indela's existing omen as history while moving into a new harmonic language of shifting perspective, divided prophecy, and paths meeting at Reath. Use a complete beginning-middle-end arc and do not end before three minutes.",
+  "parameters": {
+    "music_length_ms": 180000,
+    "force_instrumental": true
+  },
+  "references": {},
+  "generationId": "4C0FVBzZWPoKuUjY6jsi",
+  "generatedAt": "2026-10-30T17:45:01.289Z",
+  "publishedAt": "2026-10-30T17:45:13.830Z",
+  "clientOutput": "client/public/assets/gauntlet/music/factions/indela-turning-omen-v5.mp3",
+  "contentMimeType": "audio/mpeg",
+  "bytes": 4320620,
+  "sha256": "3a602c4d0d501fbc50e206e88ad71aeb9dbbe342df984e32415df39c345b00b9"
+}

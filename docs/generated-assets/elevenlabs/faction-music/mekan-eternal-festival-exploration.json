@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "approvalRequired": true,
+  "creator": "ElevenLabs Music API",
+  "jobId": "mekan-eternal-festival-exploration",
+  "kind": "music",
+  "modelId": "music_v2_5",
+  "prompt": "Original complete three-minute instrumental faction theme for the Mekan of Gauntlet. Compose a full song with a distinct intimate introduction, a gathering communal dance, a contrasting reflective middle passage, a developed return, and a gentle resolved outro; do not repeat a short loop. A joyful ceremonial procession where remembrance and celebration coexist: warm hand percussion, marimba-like wood, brass breaths, acoustic strings, and a faint spectral choir used only as texture. Festive and humane with a thread of mortality, never comic or macabre. No lyrics, no recognizable melody, no trailer climax. Companion arrangement direction: Create a genuinely distinct three-minute exploration and identity arrangement. Begin with unfamiliar territory and reveal the faction's signature instruments gradually. Keep the core philosophy recognizable without quoting the first track's melody; use a new tempo, harmonic center, and complete beginning-middle-end arc.",
+  "parameters": {
+    "music_length_ms": 180000,
+    "force_instrumental": true
+  },
+  "references": {},
+  "generationId": "5ixqkV60jBO8e3EadABS",
+  "generatedAt": "2026-10-30T17:31:20.631Z",
+  "publishedAt": "2026-10-30T17:40:06.989Z",
+  "clientOutput": "client/public/assets/gauntlet/music/factions/mekan-eternal-festival-v2.mp3",
+  "contentMimeType": "audio/mpeg",
+  "bytes": 4320620,
+  "sha256": "3b423ac71e78ddcaf887014b838d081cc53c03c53c4cde1514d45292ae474334"
+}

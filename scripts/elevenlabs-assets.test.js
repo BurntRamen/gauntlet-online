@@ -9,6 +9,7 @@ const {
   buildRequest,
   convertPcm16MonoToWave,
   convertPcm16ToMonoWave,
+  expandCompanionMusicJobs,
   generateJobs,
   loadLocalEnv,
   publishJobs,
@@ -68,6 +69,23 @@ test("published faction themes are full-length songs matching the approved Eleve
     assert.ok(approved.durationSeconds >= 170, `${job.id}: at least 2m50s of composed music`);
     const digest = crypto.createHash("sha256").update(fs.readFileSync(outputPath)).digest("hex");
     assert.equal(digest, approved.sha256, `${job.id}: approved artifact digest`);
+  }
+});
+
+test("faction music manifest expands every preserved theme into a four-song library", () => {
+  const root = path.resolve(__dirname, "..");
+  const musicManifest = JSON.parse(fs.readFileSync(path.join(root, "scripts", "elevenlabs-faction-music.json"), "utf8"));
+  const expanded = validateManifest(expandCompanionMusicJobs(musicManifest), root);
+  assert.equal(expanded.jobs.length, 65);
+  for (const base of musicManifest.jobs) {
+    const family = expanded.jobs.filter((job) => job.clientOutput.replace(/-v[1-5]\.mp3$/, "") === base.clientOutput.replace(/-v1\.mp3$/, ""));
+    const versions = base.id === "indela-turning-omen" ? [1, 2, 3, 4, 5] : [1, 2, 3, 4];
+    assert.deepEqual(family.map((job) => path.basename(job.clientOutput)).sort(), versions.map((version) => path.basename(base.clientOutput).replace("-v1.mp3", `-v${version}.mp3`)));
+    family.forEach((job) => {
+      assert.equal(job.parameters.music_length_ms, 180000);
+      assert.equal(fs.existsSync(path.join(root, job.clientOutput)), true, `${job.id}: published theme`);
+      assert.ok(fs.statSync(path.join(root, job.clientOutput)).size > 3500000, `${job.id}: substantial full-song audio`);
+    });
   }
 });
 
