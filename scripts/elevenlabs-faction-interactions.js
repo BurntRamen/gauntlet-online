@@ -143,8 +143,9 @@ function publish(manifest, root, { force }) {
     if (fs.existsSync(destination) && !force) throw new Error(`${line.fileName} already exists. Use --force to replace it.`);
     fs.mkdirSync(path.dirname(destination), { recursive: true });
     fs.copyFileSync(source, destination);
+    const audioSha256 = record.sha256 || hash(fs.readFileSync(source));
     registry.factions[line.factionId] ||= { commander: {}, general: {} };
-    registry.factions[line.factionId][line.role][line.event] = `/assets/gauntlet/voices/${line.fileName}`;
+    registry.factions[line.factionId][line.role][line.event] = `/assets/gauntlet/voices/${line.fileName}?v=${audioSha256.slice(0, 12)}`;
     writeJson(path.resolve(root, manifest.provenanceDirectory, `${id}.json`), {
       schemaVersion: 1,
       status: "candidate",
