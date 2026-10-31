@@ -256,16 +256,17 @@ test("validates the authoritative versioned game content registry", () => {
   const sheen = content.factions.find((faction) => faction.id === "sheen");
   assert.equal(rumin.commander.announcements.selected, "Roads do not end. They arrive.");
   assert.equal(sheen.commander.announcements.selected, "We won a forest. Now we must make it a home.");
+  const voiceAssetPath = (audioPath) => audioPath.split("?")[0];
   for (const faction of content.factions) {
     if (faction.commander.announcementAudio) {
       for (const event of ["selected", "clicked", "wounded", "critical", "denied"]) {
-        assert.match(faction.commander.announcementAudio[event], /\/assets\/gauntlet\/voices\/.+\.mp3$/);
-        assert.equal(fs.existsSync(path.join(__dirname, "..", "..", "client", "public", faction.commander.announcementAudio[event])), true, `${faction.id}:${event}`);
+        assert.match(faction.commander.announcementAudio[event], /\/assets\/gauntlet\/voices\/.+\.mp3\?v=[a-f0-9]{12}$/);
+        assert.equal(fs.existsSync(path.join(__dirname, "..", "..", "client", "public", voiceAssetPath(faction.commander.announcementAudio[event]))), true, `${faction.id}:${event}`);
       }
     }
     if (faction.general.clickedAudio) {
-      assert.match(faction.general.clickedAudio, /\/assets\/gauntlet\/voices\/.+\.mp3$/);
-      assert.equal(fs.existsSync(path.join(__dirname, "..", "..", "client", "public", faction.general.clickedAudio)), true, `${faction.id}:general`);
+      assert.match(faction.general.clickedAudio, /\/assets\/gauntlet\/voices\/.+\.mp3\?v=[a-f0-9]{12}$/);
+      assert.equal(fs.existsSync(path.join(__dirname, "..", "..", "client", "public", voiceAssetPath(faction.general.clickedAudio))), true, `${faction.id}:general`);
     }
   }
   for (const faction of content.factions) {
