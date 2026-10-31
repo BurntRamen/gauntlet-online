@@ -150,6 +150,8 @@ function normalizePlayer(game, playerNumber, { isLocal = false, visibleHand = fa
     discardCount: Number(source.discardCount ?? source.discard?.length ?? 0),
     revenants: Number(source.revenants || 0),
     accelerationCounters: Number(source.accelerationCounters || 0),
+    chargeCounters: Number(source.chargeCounters || 0),
+    insanityCounters: Number(source.insanityCounters || 0),
     progress: isLocal ? { attacks: Number(source.turnData?.attacksDeclaredThisTurn || 0), blocks: Number(source.turnData?.blocksDeclaredThisTurn || 0), previousValue: source.turnData?.previousPlayedValue, previousSuit: source.turnData?.previousAttackSuit } : null,
     pendingEffects: isLocal ? pendingEffects(source) : [],
     guests: (source.discard || []).filter(card => card.mekanGuest).map(card => ({ id: card.id, label: card.name || cardLabel(card), invited: source.turnData?.mekanInvitation === card.id })),

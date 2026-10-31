@@ -8496,6 +8496,8 @@ export default function App() {
                     <span><strong>Prev suit</strong>{getSuitSymbol(me.turnData.previousAttackSuit) || "None"}</span>
                     <span><strong>Prev value</strong>{me.turnData.previousPlayedValue ?? "None"}</span>
                     <span><strong>Acceleration</strong>{me.accelerationCounters}</span>
+                    {me.faction?.id === "voltari" && <span title="Charge persists between turns. Voltari cards generate and spend it, up to 6."><strong>Charge</strong>{me.chargeCounters || 0}/6</span>}
+                    {me.faction?.id === "xendra" && <span title="At 6 Insanity, you fracture: lose 2 life, then return to 2 Insanity."><strong>Insanity</strong>{me.insanityCounters || 0}/6</span>}
                   </div>
                 </div>
               )}

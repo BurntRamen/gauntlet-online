@@ -18,7 +18,7 @@ const mechanicContract = require("./mechanicContract");
 const SCHEMA_VERSION = 2;
 const COMMAND_SCHEMA_VERSION = 1;
 const EVENT_SCHEMA_VERSION = 1;
-const CARD_CONTENT_VERSION = "gauntlet-cards-v9";
+const CARD_CONTENT_VERSION = "gauntlet-cards-v10";
 const { STARTING_LIFE, HAND_SIZE, SUITS, VALUES, handSize, validateGameConfig } = require("./gameConfig");
 const RANKS = { 11: "J", 12: "Q", 13: "K", 14: "A" };
 const RUMIN_ARMABLE_EFFECT_IDS = new Set([
@@ -30,7 +30,7 @@ const RUMIN_ARMABLE_EFFECT_IDS = new Set([
   "triumphal-ram",
   "kaisers-gold-claw"
 ]);
-const SUPPORT_TYPES = new Set(["armament", "weaponry", "spell", "shelter", "ambush", "contraption", "biomorph", "operation", "arcana"]);
+const SUPPORT_TYPES = new Set(["armament", "weaponry", "spell", "shelter", "ambush", "contraption", "biomorph", "operation", "arcana", "conduit", "nightmare"]);
 const SUIT_KEYS = Object.freeze({
   "♠": "spades", spade: "spades", spades: "spades",
   "♥": "hearts", heart: "hearts", hearts: "hearts",
@@ -80,6 +80,8 @@ const FACTION_PROFILES = {
   },
   zynarth: { id: "zynarth", name: "Zynarth", commander: "Broodmother Zalara", city: "Brood Nest", general: { id: "klar", name: "K'Lar, Biomass Keeper" } },
   "astral-vanguard": { id: "astral-vanguard", name: "Astral Vanguard", commander: "High Marshal Alden", city: "Vanguard Outpost", general: { id: "myra-cross", name: "Sergeant Myra Cross" } },
+  voltari: { id: "voltari", name: "Voltari", commander: "Silicon Sovereign", city: "The Golden Conduit", general: { id: "consent-keeper", name: "Consent Keeper" } },
+  xendra: { id: "xendra", name: "Xen’Dra", commander: "The Deep Currents", city: "Total Eclipse", general: { id: "distant-witness", name: "Distant Witness" } },
   ingles: { id: "ingles", name: "Ingles", commander: "First Speaker Elian Wren", city: "Crownless Haven", general: { id: "rowan-vale", name: "Marshal Rowan Vale" } },
   mercaw: { id: "mercaw", name: "Mercaw", commander: "Convener Mara Kest", city: "Accord Spire", general: { id: "rook-talon", name: "Rook Talon" } },
   mtano: { id: "mtano", name: "M'Tano", commander: "Rainkeeper Amari", city: "Mawingu Terraces", general: { id: "kito", name: "Pathfinder Kito" } },
@@ -302,7 +304,8 @@ function createTurnData() {
     indelaElementalArrayUsed: false,
     indelaFrostbiteGaleUsed: false,
     indelaGlacialInsightUsed: false,
-    indelaEndTurnDraws: 0
+    indelaEndTurnDraws: 0,
+    alienEndTurnDraws: 0
   };
 }
 
@@ -332,6 +335,8 @@ function makePlayer(number, name, deck, faction = null) {
     faction: normalizedFaction,
     connected: true,
     accelerationCounters: 0,
+    chargeCounters: 0,
+    insanityCounters: 0,
     turnData: createTurnData()
   };
 }
@@ -898,6 +903,98 @@ function calculateFactionAttackBonus(player, card) {
   return { bonus, notes };
 }
 
+function catalogTriggerActive(player, card, trigger, context) {
+  const previousSuit = player.turnData.previousAttackSuit;
+  const previousPlayedValue = player.turnData.previousPlayedValue;
+  if (context.kind === "attack") return (
+    (trigger === 1 && context.attackNumber === 1)
+    || (trigger === 2 && context.source === "lane")
+    || (trigger === 3 && context.source === "hand")
+    || (trigger === 4 && context.attackNumber > 1 && previousSuit && !suitsMatch(previousSuit, card.suit))
+    || (trigger === 5 && context.attackNumber > 1 && previousSuit && suitsMatch(previousSuit, card.suit))
+    || (trigger === 6 && previousPlayedValue != null && context.baseValue > Number(previousPlayedValue))
+    || (trigger === 7 && context.attackNumber >= 3)
+    || (trigger === 8 && player.turnData.damageTakenThisTurn)
+  );
+  return (
+    (trigger === 9 && context.blockNumber === 1)
+    || (trigger === 10 && context.source === "lane")
+    || (trigger === 11 && context.attackSource === "hand")
+    || (trigger === 12 && context.blockNumber >= 2)
+    || (trigger === 13 && cardValue(context.attacker) > cardValue(card))
+    || (trigger === 14 && suitsMatch(context.attacker?.suit, card.suit))
+    || (trigger === 15 && context.attacker?.suit && !suitsMatch(context.attacker.suit, card.suit))
+  );
+}
+
+function adjustAlienResource(game, playerNumber, faction, amount, notes, source) {
+  const player = game.players[playerNumber];
+  const key = faction === "voltari" ? "chargeCounters" : "insanityCounters";
+  const label = faction === "voltari" ? "Charge" : "Insanity";
+  if (amount < 0) {
+    player[key] = Math.max(0, Number(player[key] || 0) + amount);
+    notes.push(`${source} spent ${Math.abs(amount)} ${label}`);
+    return;
+  }
+  player[key] = Math.min(6, Number(player[key] || 0) + amount);
+  notes.push(`${source} gained ${amount} ${label}`);
+  if (faction === "xendra" && player[key] >= 6) {
+    player.life = Math.max(1, Number(player.life || 0) - 2);
+    player[key] = 2;
+    notes.push(`${source} fractured: lost 2 life and returned to 2 Insanity`);
+  }
+}
+
+function applyAlienResourceCard(game, playerNumber, card, context) {
+  const result = { bonus: 0, preventDamage: 0, notes: [] };
+  if (!hasCardEffect(card, "catalog-alien-resource")) return result;
+  const faction = card.factionId;
+  if (faction !== "voltari" && faction !== "xendra") return result;
+  const player = game.players[playerNumber];
+  const trigger = cardParameter(card, "trigger");
+  if (!catalogTriggerActive(player, card, trigger, context)) return result;
+  if (isSupportCard(card) && card.supportState?.alienResourceUsedTurn === game.turn) return result;
+
+  const spend = cardParameter(card, "spend");
+  const key = faction === "voltari" ? "chargeCounters" : "insanityCounters";
+  const label = faction === "voltari" ? "Charge" : "Insanity";
+  if (spend && Number(player[key] || 0) < spend) {
+    result.notes.push(`${card.name} needs ${spend} ${label}`);
+    return result;
+  }
+  if (spend) adjustAlienResource(game, playerNumber, faction, -spend, result.notes, card.name);
+  const gain = cardParameter(card, "gain");
+  if (gain) adjustAlienResource(game, playerNumber, faction, gain, result.notes, card.name);
+  result.bonus += cardParameter(card, "bonus");
+  result.preventDamage += cardParameter(card, "prevent");
+  const draw = cardParameter(card, "draw");
+  if (draw) {
+    player.turnData.alienEndTurnDraws = Number(player.turnData.alienEndTurnDraws || 0) + draw;
+    result.notes.push(`${card.name} readied an end-turn draw`);
+  }
+  const heal = cardParameter(card, "heal");
+  if (heal) {
+    player.life += heal;
+    result.notes.push(`${card.name} restored ${heal} life`);
+  }
+  if (result.bonus) result.notes.push(`${card.name} +${result.bonus}`);
+  if (result.preventDamage) result.notes.push(`${card.name} prevents ${result.preventDamage}`);
+  if (isSupportCard(card) && card.supportState) card.supportState.alienResourceUsedTurn = game.turn;
+  return result;
+}
+
+function applyAlienResourceEffects(game, playerNumber, card, context) {
+  const effects = [applyAlienResourceCard(game, playerNumber, card, context)];
+  for (const entry of controlledSupportEntries(game, playerNumber)) {
+    if (hasCardEffect(entry.card, "catalog-alien-resource")) effects.push(applyAlienResourceCard(game, playerNumber, entry.card, context));
+  }
+  return effects.reduce((total, effect) => ({
+    bonus: total.bonus + effect.bonus,
+    preventDamage: total.preventDamage + effect.preventDamage,
+    notes: [...total.notes, ...effect.notes]
+  }), { bonus: 0, preventDamage: 0, notes: [] });
+}
+
 function calculateConstructedAttackBonus(game, playerNumber, card, source, command, paymentCards, payment) {
   const player = game.players[playerNumber];
   const notes = [];
@@ -906,6 +1003,12 @@ function calculateConstructedAttackBonus(game, playerNumber, card, source, comma
   let bonus = 0;
   const attackNumber = Number(player.turnData.attacksDeclaredThisTurn || 0) + 1;
   const baseValue = cardValue(card);
+
+  const alienResource = applyAlienResourceEffects(game, playerNumber, card, {
+    kind: "attack", source, attackNumber, baseValue
+  });
+  bonus += alienResource.bonus;
+  notes.push(...alienResource.notes);
 
   if (hasCardEffect(card, "catalog-faction-identity")) {
     const trigger = cardParameter(card, "trigger");
@@ -1307,6 +1410,13 @@ function calculateConstructedBlockBonus(game, playerNumber, card, context, comma
   let bonus = 0;
   let preventDamage = 0;
   const blockNumber = Number(player.turnData.blocksDeclaredThisTurn || 0) + 1;
+  const alienResource = applyAlienResourceEffects(game, playerNumber, card, {
+    kind: "block", source: context.laneBlock ? "lane" : "hand", blockNumber,
+    attacker: context.attack?.card, attackSource: context.attack?.source
+  });
+  bonus += alienResource.bonus;
+  preventDamage += alienResource.preventDamage;
+  notes.push(...alienResource.notes);
   if (hasCardEffect(card, "catalog-faction-identity")) {
     const trigger = cardParameter(card, "trigger");
     const amount = cardParameter(card, "bonus");
@@ -1576,6 +1686,20 @@ function applyConstructedLaneEntry(game, playerNumber, card, laneIndex, command,
     const notes = [];
     gainAcceleration(game, playerNumber, 2, "Interference Matrix", notes, events);
     player.turnData.biziPrimeSignalAvailable = Math.min(4, player.accelerationCounters);
+  }
+  if (hasCardEffect(card, "catalog-alien-resource")) {
+    const amount = cardParameter(card, "onPlayGain");
+    if (amount) {
+      const notes = [];
+      adjustAlienResource(game, playerNumber, card.factionId, amount, notes, card.name);
+      events.push(event(game, card.factionId === "voltari" ? "charge.gained" : "insanity.gained", {
+        player: playerNumber,
+        amount,
+        source: card.name,
+        total: card.factionId === "voltari" ? player.chargeCounters : player.insanityCounters,
+        notes
+      }));
+    }
   }
   if (isSupportCard(card)) mechanicRuntime.trigger(game, playerNumber, card, "placed", {}, mechanicApi(game, events));
   events.push(event(game, "laneEntry.resolved", {
@@ -1913,6 +2037,13 @@ function startNextTurn(game, events) {
       playerNumber,
       Number(turnData.neutralEndTurnDraws || 0),
       "Reath cards",
+      events
+    );
+    drawExtraCards(
+      game,
+      playerNumber,
+      Number(turnData.alienEndTurnDraws || 0),
+      "Charge and Insanity",
       events
     );
   }

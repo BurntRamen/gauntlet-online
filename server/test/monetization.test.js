@@ -129,10 +129,13 @@ test("every catalog faction covers 2 through ace with the shared face-card rarit
       assert.equal(faceCard.rarity, rarity, `${factionId} ${value} rarity`);
       const effect = defaultCardEffect(faceCard.id);
       const isFullCatalogFaction = Object.hasOwn(FULL_FACTION_COLLECTIONS, factionId);
-      assert.equal(effectDefinitions.get(effect.id).handler, isFullCatalogFaction ? "catalog-faction-identity" : "printed-value-only", `${faceCard.id} effect contract`);
+      const expectedHandler = !isFullCatalogFaction ? "printed-value-only"
+        : ["voltari", "xendra"].includes(factionId) ? "catalog-alien-resource" : "catalog-faction-identity";
+      assert.equal(effectDefinitions.get(effect.id).handler, expectedHandler, `${faceCard.id} effect contract`);
       if (isFullCatalogFaction) {
         assert.equal(Number.isInteger(effect.parameters.trigger), true, `${faceCard.id} has a deterministic faction trigger`);
-        assert.equal(effect.parameters.bonus, 1, `${faceCard.id} has the shared balanced identity bonus`);
+        if (!["voltari", "xendra"].includes(factionId)) assert.equal(effect.parameters.bonus, 1, `${faceCard.id} has the shared balanced identity bonus`);
+        else assert.equal(Number.isInteger(effect.parameters.spend), true, `${faceCard.id} has a deterministic resource cost`);
       } else {
         assert.deepEqual(effect.parameters, {}, `${faceCard.id} has no unimplemented parameters`);
       }

@@ -12,6 +12,8 @@ export default function AbilityStatePanel({ viewModel, commands }) {
       {local.progress?.previousValue != null && ` · Last printed value: ${local.progress.previousValue}`}
       {local.progress?.previousSuit && ` · Previous attack suit: ${local.progress.previousSuit}`}
       {local.factionId === 'bizi' && ` · Acceleration: ${local.accelerationCounters}`}
+      {local.factionId === 'voltari' && ` · Charge: ${local.chargeCounters}/6`}
+      {local.factionId === 'xendra' && ` · Insanity: ${local.insanityCounters}/6`}
       {local.factionId === 'jali' && ` · Revenants: ${local.revenants}`}</p>}
     <div className="ability-state-columns">
       <section aria-label="Current card effects"><h4>Current card effects</h4>

@@ -1,10 +1,10 @@
 "use strict";
 
 const RULES_VERSION = "gauntlet-rules-v6";
-const CONTENT_VERSION = "gauntlet-content-v27";
+const CONTENT_VERSION = "gauntlet-content-v28";
 const NEUTRAL_FACTION_ID = "neutral";
 const { getCardWording } = require("./cardWording");
-const { catalogIdentity } = require("../shared/duel-rules/catalogFactionIdentity");
+const { alienCatalogProfile, catalogIdentity } = require("../shared/duel-rules/catalogFactionIdentity");
 const { LEGACIES } = require("./legaciesContent");
 const {
   ADDITIONAL_CAMPAIGNS,
@@ -852,16 +852,17 @@ const FULL_FACTION_COLLECTIONS = Object.freeze(Object.fromEntries(Object.entries
     const rank = CATALOG_RANK_SLUG[value] || String(value);
     const name = `${profile.aspects[suit]} ${profile.ranks[index]}`;
     const identity = catalogIdentity(factionId, suit);
+    const alienProfile = alienCatalogProfile(factionId, suit, value);
     return {
       id: `${factionId}-${suit}-${rank}`,
       factionId,
       name,
-      type: "servitor",
+      type: alienProfile?.type || "servitor",
       rarity: CATALOG_RARITY[value],
       value,
       suit,
       art: profile.art,
-      text: `${identity.name} — ${identity.text} ${name} carries the ${profile.aspects[suit].toLowerCase()} tradition into the convergence.`
+      text: alienProfile?.text || `${identity.name} — ${identity.text} ${name} carries the ${profile.aspects[suit].toLowerCase()} tradition into the convergence.`
     };
   }))
 ])));
@@ -2520,7 +2521,9 @@ function validateGameContent() {
     ["bizi", "contraption"],
     ["zynarth", "biomorph"],
     ["astral-vanguard", "operation"],
-    ["indela", "arcana"]
+    ["indela", "arcana"],
+    ["voltari", "conduit"],
+    ["xendra", "nightmare"]
   ]);
   for (const card of COLLECTION_CARDS) {
     requireText(card.id, "cards.id");

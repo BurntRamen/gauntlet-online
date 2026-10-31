@@ -465,7 +465,7 @@ test("keeps an explicit deterministic rules test for every constructed card", ()
     .filter((card) => {
       const effectId = require("../../shared/duel-rules/effectRegistry").defaultCardEffect(card.id)?.id;
       const handler = effectDefinitions.get(effectId)?.handler;
-      const behaviorNeedle = handler === "catalog-faction-identity" || handler === "printed-value-only" ? handler : card.id;
+      const behaviorNeedle = ["catalog-faction-identity", "catalog-alien-resource", "printed-value-only"].includes(handler) ? handler : card.id;
       return !behaviorTests.includes(`"${behaviorNeedle}"`);
     })
     .map((card) => card.id);
