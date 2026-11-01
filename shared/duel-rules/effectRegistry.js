@@ -3,26 +3,40 @@
 // This is a deployed, finite catalogue of engine handlers. Authors configure
 // these definitions; they never supply handler names or executable code.
 const baseDefinitions = require("./effectDefinitions.json");
-const { CATALOG_FACTION_IDENTITIES } = require("./catalogFactionIdentity");
+const { CATALOG_FACTION_IDENTITIES, alienCatalogProfile } = require("./catalogFactionIdentity");
 const completeCatalogFactions = Object.keys(CATALOG_FACTION_IDENTITIES);
 const completeCatalogSuits = ["spades", "hearts", "diamonds", "clubs"];
 const completeCatalogRanks = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "jack", "queen", "king", "ace"];
+const completeCatalogValues = Object.freeze({ jack: 11, queen: 12, king: 13, ace: 14 });
 const definitions = [
   ...baseDefinitions,
   ...completeCatalogFactions.flatMap((factionId) => completeCatalogSuits.flatMap((suit) => {
     const trigger = CATALOG_FACTION_IDENTITIES[factionId][suit][0];
-    return completeCatalogRanks.map((rank) => ({
-      id: `catalog-${factionId}-${suit}-${rank}`,
-      version: 1,
-      legacyCardId: `${factionId}-${suit}-${rank}`,
-      factionId,
-      cardType: "servitor",
-      handler: "catalog-faction-identity",
-      parameters: {
-        trigger: { min: trigger, max: trigger, default: trigger },
-        bonus: { min: 1, max: 1, default: 1 }
-      }
-    }));
+    return completeCatalogRanks.map((rank) => {
+      const value = completeCatalogValues[rank] || Number(rank);
+      const alien = alienCatalogProfile(factionId, suit, value);
+      return {
+        id: `catalog-${factionId}-${suit}-${rank}`,
+        version: alien ? 2 : 1,
+        legacyCardId: `${factionId}-${suit}-${rank}`,
+        factionId,
+        cardType: alien?.type || "servitor",
+        handler: alien ? "catalog-alien-resource" : "catalog-faction-identity",
+        parameters: alien ? {
+          trigger: { min: alien.trigger, max: alien.trigger, default: alien.trigger },
+          gain: { min: alien.gain, max: alien.gain, default: alien.gain },
+          spend: { min: alien.spend, max: alien.spend, default: alien.spend },
+          bonus: { min: alien.bonus, max: alien.bonus, default: alien.bonus },
+          prevent: { min: alien.prevent, max: alien.prevent, default: alien.prevent },
+          draw: { min: alien.draw, max: alien.draw, default: alien.draw },
+          heal: { min: alien.heal, max: alien.heal, default: alien.heal },
+          onPlayGain: { min: alien.onPlayGain, max: alien.onPlayGain, default: alien.onPlayGain }
+        } : {
+          trigger: { min: trigger, max: trigger, default: trigger },
+          bonus: { min: 1, max: 1, default: 1 }
+        }
+      };
+    });
   }))
 ];
 const composition = require("./compositionContract");
