@@ -24,6 +24,7 @@ import SpecialCardFace, { getCardIllustration } from "./SpecialCardFace";
 import CollectorCardPresentation from "./CollectorCardPresentation";
 import { useDialogueActivity } from "./dialoguePlayback";
 import { resolveCharacterVoice } from "./characterVoices";
+import { playFactionVoice } from "./factionVoicePlayback";
 import CampaignChapterBriefing from "./CampaignChapterBriefing";
 import { DeckVisual, FactionArtwork, FACTION_VISUALS, getFactionArtwork, getFactionAsset, resolveVisualAsset } from "./GauntletVisuals";
 import FactionLoadoutPicker from "./FactionLoadoutPicker";
@@ -3780,10 +3781,11 @@ export default function App() {
       utterance.voice = profile.voice;
       window.speechSynthesis.speak(utterance);
     };
-    if (!voiceClip || !window.Audio) return synthesize();
-    const audio = new window.Audio(resolveAssetPath(voiceClip));
-    voiceAudioRef.current = audio;
-    audio.play().catch(synthesize);
+    voiceAudioRef.current = playFactionVoice({
+      AudioCtor: window.Audio,
+      source: voiceClip ? resolveAssetPath(voiceClip) : "",
+      synthesize
+    });
   }, [accountSoundMuted]);
 
   const announceCommander = useCallback((factionInput, event, commanderName = "Commander", detail = "") => {
