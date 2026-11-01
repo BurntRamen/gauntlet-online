@@ -3,9 +3,12 @@ const manifest = require("./contentAssetManifest.json");
 const byReference = new Map([...manifest.entries, ...require("./presentationAssetManifest.json")].flatMap((row) => [[row.id, row], [row.source, row], [row.path, row]]));
 let deliveryOrigin = process.env.RENDER_EXTERNAL_URL || "https://gauntlet-online.onrender.com";
 function setDeliveryOrigin(value) { deliveryOrigin = value.replace(/\/$/, ""); }
+function withoutVersionQuery(reference) {
+  return typeof reference === "string" ? reference.replace(/\?v=[a-f0-9]+$/i, "") : reference;
+}
 function assetEntry(reference, versions = [], releaseId = "") {
   const row = versions.find(row => [row.id, require("./authoredAssets").publicPath(row), `${deliveryOrigin}${require("./authoredAssets").publicPath(row)}`, `/api/admin/authoring/assets/${row.id}`].includes(reference));
-  return row ? { ...row, path: releaseId.startsWith("draft:") ? `/api/admin/authoring/assets/${row.id}` : `${deliveryOrigin}${require("./authoredAssets").publicPath(row)}` } : byReference.get(reference) || null;
+  return row ? { ...row, path: releaseId.startsWith("draft:") ? `/api/admin/authoring/assets/${row.id}` : `${deliveryOrigin}${require("./authoredAssets").publicPath(row)}` } : byReference.get(reference) || byReference.get(withoutVersionQuery(reference)) || null;
 }
 function resolveAsset(reference, versions = [], releaseId = "") { return reference ? assetEntry(reference, versions, releaseId)?.path || (reference.startsWith("data:image/webp;base64,") ? reference : null) : reference; }
 function validAssetReference(reference, media, versions = []) {
