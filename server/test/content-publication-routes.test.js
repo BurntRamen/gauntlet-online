@@ -180,7 +180,17 @@ test("collection labels, collector artwork and commander audio use the same depl
   assert.equal(cosmetic.art, artwork.path);
   assert.equal(cosmetic.presentation.illustration, artwork.path);
   assert.equal(cosmetic.gameplay.name, "Reviewed collection label");
-  assert.match(__test.contentPublication.active().factions.rumin.commander.announcementAudio.denied, /^\/assets\/gauntlet\/releases\//);
+  const publishedFactions = __test.contentPublication.active().factions;
+  assert.match(publishedFactions.rumin.commander.announcementAudio.denied, /^\/assets\/gauntlet\/releases\//);
+  for (const factionId of ["zynarth", "astral-vanguard", "voltari", "xendra"]) {
+    for (const event of ["selected", "clicked"]) {
+      assert.match(
+        publishedFactions[factionId].commander.announcementAudio[event],
+        /^\/assets\/gauntlet\/releases\/.+\.mp3$/,
+        `${factionId}:${event} must publish a recorded voice asset`
+      );
+    }
+  }
   await call("/rollback", { expectedRevision: state.revision, releaseId: originalId });
   assert.deepEqual((await account()).collection.catalog, before.collection.catalog);
   assert.deepEqual((await account()).collection.collectorCatalog, before.collection.collectorCatalog);
