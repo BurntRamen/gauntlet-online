@@ -1,8 +1,9 @@
 "use strict";
 
-// Full-catalog factions use one mechanical identity per suit. These rules are
-// intentionally modest (+1) because every rank from 2 through Ace carries one;
-// the distinction comes from when each faction earns the bonus.
+// Most full-catalog factions use one modest combat identity per suit. Voltari
+// and Xen'Dra use the same trigger vocabulary as secondary texture, but their
+// cards are authored around Charge and Insanity instead of fifty-two copies of
+// a conditional +1.
 const TRIGGERS = Object.freeze({
   FIRST_ATTACK: 1,
   LANE_ATTACK: 2,
@@ -78,9 +79,100 @@ const CATALOG_FACTION_IDENTITIES = Object.freeze({
   })
 });
 
+const ALIEN_SUPPORT_VALUES = Object.freeze(new Set([10, 12, 14]));
+const ALIEN_RESOURCE_CAPS = Object.freeze({ voltari: 6, xendra: 6 });
+
+function alienCardType(factionId, value) {
+  if (factionId === "voltari" && ALIEN_SUPPORT_VALUES.has(Number(value))) return "conduit";
+  if (factionId === "xendra" && ALIEN_SUPPORT_VALUES.has(Number(value))) return "nightmare";
+  return "servitor";
+}
+
+function alienEffectNumbers(factionId, suit, value) {
+  const numericValue = Number(value);
+  const support = ALIEN_SUPPORT_VALUES.has(numericValue);
+  const highCombat = numericValue === 11 || numericValue === 13;
+  const lowCombat = numericValue <= 5;
+  const effect = { gain: 0, spend: 0, bonus: 0, prevent: 0, draw: 0, heal: 0, onPlayGain: 0 };
+
+  if (factionId === "voltari") {
+    if (support) {
+      effect.onPlayGain = numericValue === 10 ? 2 : numericValue === 12 ? 1 : 2;
+      effect.spend = numericValue === 10 ? 0 : numericValue === 12 ? 1 : 2;
+      effect.draw = numericValue >= 12 ? 1 : 0;
+      effect.bonus = numericValue === 14 ? 2 : numericValue === 12 ? 1 : 0;
+    } else if (lowCombat) {
+      effect.gain = 1;
+    } else if (highCombat) {
+      effect.gain = 1;
+      effect.bonus = 1;
+    } else {
+      effect.spend = 1;
+      effect.bonus = 2;
+    }
+  } else if (factionId === "xendra") {
+    if (support) {
+      effect.onPlayGain = numericValue === 10 ? 1 : numericValue === 12 ? 2 : 3;
+      effect.spend = numericValue === 10 ? 0 : numericValue === 12 ? 2 : 3;
+    } else if (lowCombat) {
+      effect.gain = 1;
+    } else if (highCombat) {
+      effect.gain = 1;
+    } else {
+      effect.spend = 2;
+    }
+
+    const magnitude = support ? (numericValue === 14 ? 2 : 1) : (highCombat ? 1 : lowCombat ? 0 : 2);
+    if (suit === "spades") effect.bonus = magnitude;
+    if (suit === "hearts") effect.prevent = magnitude;
+    if (suit === "diamonds") effect.draw = magnitude ? 1 : 0;
+    if (suit === "clubs") effect.heal = magnitude;
+  }
+  return effect;
+}
+
+function alienRulesText(factionId, suit, value, identity) {
+  const type = alienCardType(factionId, value);
+  const effect = alienEffectNumbers(factionId, suit, value);
+  const combatTriggerText = identity.text.replace(/, it gets \+1 (block )?value\./, ".").replace(/, this gets \+1 value when it attacks\./, ".");
+  const supportTriggerText = {
+    spades: "Once each turn, when your attack differs in suit from your previous attack.",
+    hearts: "Once each turn, when you declare your first block.",
+    diamonds: "Once each turn, when one of your lane cards attacks.",
+    clubs: "Once each turn, when you declare your third or later attack."
+  }[suit];
+  const triggerText = type === "servitor" ? combatTriggerText : supportTriggerText;
+  const pieces = [];
+  if (type !== "servitor") pieces.push(`${type === "conduit" ? "Conduit" : "Nightmare"} — Permanent.`);
+  if (effect.onPlayGain) pieces.push(`When played, gain ${effect.onPlayGain} ${factionId === "voltari" ? "Charge" : "Insanity"}.`);
+  pieces.push(triggerText);
+  if (effect.gain) pieces.push(`Gain ${effect.gain} ${factionId === "voltari" ? "Charge" : "Insanity"}.`);
+  if (effect.spend) pieces.push(`If you have at least ${effect.spend}, spend ${effect.spend} ${factionId === "voltari" ? "Charge" : "Insanity"}.`);
+  if (effect.bonus) pieces.push(type === "servitor"
+    ? `It gets +${effect.bonus} value.`
+    : `The triggering card gets +${effect.bonus} value.`);
+  if (effect.prevent) pieces.push(`Prevent ${effect.prevent} damage from that combat.`);
+  if (effect.draw) pieces.push(`Draw 1 extra card at turn end.`);
+  if (effect.heal) pieces.push(`Gain ${effect.heal} life.`);
+  if (factionId === "xendra") pieces.push("At 6 Insanity, fracture: lose 2 life (to a minimum of 1), then return to 2 Insanity.");
+  else pieces.push("Charge persists between turns, to a maximum of 6.");
+  return `${identity.name} — ${pieces.join(" ")}`;
+}
+
+function alienCatalogProfile(factionId, suit, value) {
+  if (factionId !== "voltari" && factionId !== "xendra") return null;
+  const identity = catalogIdentity(factionId, suit);
+  return {
+    type: alienCardType(factionId, value),
+    trigger: identity.trigger,
+    ...alienEffectNumbers(factionId, suit, value),
+    text: alienRulesText(factionId, suit, value, identity)
+  };
+}
+
 function catalogIdentity(factionId, suit) {
   const rule = CATALOG_FACTION_IDENTITIES[factionId]?.[suit];
   return rule ? { trigger: rule[0], name: rule[1], text: rule[2] } : null;
 }
 
-module.exports = { TRIGGERS, CATALOG_FACTION_IDENTITIES, catalogIdentity };
+module.exports = { TRIGGERS, CATALOG_FACTION_IDENTITIES, ALIEN_RESOURCE_CAPS, alienCatalogProfile, catalogIdentity };
