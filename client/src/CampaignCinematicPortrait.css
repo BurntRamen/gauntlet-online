@@ -1,0 +1,8 @@
+.campaign-cinematic-character .animated-character-portrait {
+  width: 100%;
+}
+
+.campaign-cinematic-character .animated-character-portrait-frame {
+  animation: none !important;
+  filter: drop-shadow(0 10px 24px #000c);
+}

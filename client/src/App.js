@@ -41,6 +41,7 @@ import {
   fetchAuthoritativeAccount
 } from "./completionAccountRefresh";
 import { PlayerAvatar, ProfilePortraitEditor } from "./ProfileAvatar";
+import AnimatedCharacterPortrait from "./AnimatedCharacterPortrait";
 import { CardBackArt, getCardBackDefinition, resolveCardBackAsset } from "./CardBackArt";
 import {
   DEFAULT_MENU_AUDIO_SETTINGS,
@@ -1364,7 +1365,10 @@ function IdentityDossierHero({ account, featuredDecks, authToken, serverUrl, onA
     <section className="identity-dossier-hero" aria-label="Player identity" style={{ "--faction-accent": FACTION_VISUALS[badgeId]?.accent || FACTION_VISUALS.basic.accent }}>
       {equipment.banner ? <img src={equipment.banner.url} alt={equipment.banner.name} className="identity-dossier-art" /> : <FactionArtwork factionId={badgeId} art={badgeId === "basic" ? "/assets/gauntlet/backgrounds/gauntlet-menu-identity-v2.jpg" : ""} decorative className="identity-dossier-art" />}
       <div className="identity-dossier-portrait">
-        <PlayerAvatar subject={account} name={account?.name || "Guest"} serverUrl={serverUrl} size="large" />
+        {equipment.portrait?.url
+          ? <AnimatedCharacterPortrait speaker={equipment.portrait.name || account?.name || "Commander"}
+              image={equipment.portrait.url} animated />
+          : <PlayerAvatar subject={account} name={account?.name || "Guest"} serverUrl={serverUrl} size="large" />}
       </div>
       <div className="identity-dossier-copy">
         <span>{title}</span>

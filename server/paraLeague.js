@@ -10,7 +10,7 @@ const choice = (label, options) => ({ type: "choice", label, options });
 const reference = (label, target, multiple = false) => ({ type: multiple ? "references" : "reference", label, target });
 const date = (label) => ({ type: "date", label });
 const common = { id: text("ID", 80), name: text("Name"), description: text("Description", 4000, false) };
-const CATEGORIES = ["profile-music", "faction-soundtrack", "digital-publication", "collector-treatment", "card-back", "deck-box", "profile-title", "faction-banner", "analytics", "variant-lab", "digital-edition", "bundle"];
+const CATEGORIES = ["profile-music", "faction-soundtrack", "digital-publication", "collector-treatment", "card-back", "deck-box", "profile-title", "faction-banner", "character-portrait", "analytics", "variant-lab", "digital-edition", "bundle"];
 const FORMATS = ["faction-constructed", "classic"];
 const FIELDS = {
   seasons: {
