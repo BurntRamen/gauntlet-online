@@ -46,15 +46,20 @@ test("validates the authoritative versioned game content registry", () => {
   assert.equal(content.schemaVersion, 2);
   assert.equal(content.contentVersion, CONTENT_VERSION);
   assert.equal(content.rulesVersion, RULES_VERSION);
-  assert.equal(content.factions.length, 16);
-  assert.equal(Object.values(content.campaigns).flatMap((campaign) => campaign.chapters).length, 188);
-  for (const factionId of ["mekan", "jali", "gracus", "indela", "voltari", "zynarth"]) {
+  assert.equal(content.factions.length, 17);
+  assert.equal(Object.values(content.campaigns).flatMap((campaign) => campaign.chapters).length, 200);
+  for (const factionId of ["mekan", "jali", "gracus", "indela", "voltari", "zynarth", "morphlings"]) {
     assert.equal(content.campaigns[factionId].chapters.length, 12, `${factionId}: campaign length`);
     assert.equal(content.campaigns[factionId].chapters.every((chapter) => chapter.dialogue.length >= 5 && chapter.endDialogue.length >= 5), true, `${factionId}: dialogue depth`);
   }
   const zynarth = content.factions.find((faction) => faction.id === "zynarth");
   assert.equal(zynarth.campaignPending, undefined);
   assert.equal(zynarth.campaignOnly, undefined);
+  const morphlings = content.campaigns.morphlings;
+  assert.match(morphlings.origin, /Human Astral Vanguard explorers transformed on Pelagia/);
+  assert.match(morphlings.arrivalOnReath, /Reath is their convergence, not their birthplace/);
+  assert.match(morphlings.chapters[0].story, /Human Astral Vanguard personnel/);
+  assert.match(morphlings.chapters[1].endDialogue.join(" "), /We were Astral Vanguard.*becoming Morphlings/);
   for (const [factionId, homeworld, finalTitle] of [
     ["ingles", "Albion Reach", "The Open Door"],
     ["mercaw", "Cairn", "The Many-Star Accord"],
@@ -226,7 +231,7 @@ test("validates the authoritative versioned game content registry", () => {
     assert.equal(typeof chapter.sceneStarter?.perspective, "string", `${chapter.id}: scene perspective`);
   }
   const cinematicChapters = Object.values(content.campaigns).flatMap((campaign) => campaign.chapters).filter((chapter) => chapter.cinematic);
-  assert.equal(cinematicChapters.length, 16);
+  assert.equal(cinematicChapters.length, 17);
   for (const chapter of cinematicChapters) {
     assert.equal(typeof chapter.cinematic.title, "string", `${chapter.id}: cinematic title`);
     assert.match(chapter.cinematic.image, /^\/assets\/gauntlet\/.+\.(?:webp|png|svg)$/);

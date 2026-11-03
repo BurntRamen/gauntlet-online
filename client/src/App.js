@@ -302,6 +302,7 @@ const MUSIC_TRACKS = {
   "astral-vanguard": { label: "The Hybrid Horizon", sources: factionThemeSources("astral-vanguard-hybrid-horizon"), pad: [55, 82.41, 110], notes: [220, 277.18, 329.63, 293.66, 369.99], tempo: 600, wave: "triangle" },
   voltari: { label: "The Golden Conduit", sources: factionThemeSources("voltari-golden-conduit"), pad: [46.25, 69.3, 92.5], notes: [277.18, 311.13, 415.3, 369.99], tempo: 540, wave: "sine" },
   xendra: { label: "Aspect Without Form", sources: factionThemeSources("xendra-aspect-without-form"), pad: [46.25, 69.3, 92.5], notes: [185, 174.61, 207.65, 138.59, 155.56, 123.47], tempo: 780, wave: "sine" },
+  morphlings: { label: "The Light That Changes", sources: factionThemeSources("morphlings-changing-light"), pad: [55, 73.42, 110], notes: [220, 246.94, 293.66, 329.63, 369.99], tempo: 690, wave: "sine" },
   ingles: { label: "The Isles Across the Ages", sources: factionThemeSources("ingles-unwritten-charter") },
   mercaw: { label: "The Many-Star Accord", sources: factionThemeSources("mercaw-many-star-accord") },
   mtano: { label: "The Mountain Remembers", sources: factionThemeSources("mtano-mountain-remembers") },
@@ -1447,7 +1448,8 @@ const PACK_THEMES = {
   mtano: { name: "M'Tano", subtitle: "The Mountain Remembers", accent: "#9ccf9b", glow: "#9ccf9b4d", background: "linear-gradient(145deg,#173f35,#155e75)" },
   russo: { name: "Russo", subtitle: "The Long Winter Oath", accent: "#b9d7ea", glow: "#b9d7ea52", background: "linear-gradient(145deg,#202b3c,#7c2d12)" },
   voltari: { name: "Voltari", subtitle: "The Golden Conduit", accent: "#f8d477", glow: "rgba(248,212,119,.34)", background: "linear-gradient(145deg,#17130b,#8a621c 46%,#082d54 100%)", art: "repeating-linear-gradient(90deg, rgba(255,239,177,.18) 0 3px, transparent 3px 26px), linear-gradient(20deg, transparent 0 42%, rgba(38,153,255,.45) 43% 46%, transparent 47%), radial-gradient(circle at 68% 28%, rgba(56,189,248,.58), transparent 22%)" },
-  xendra: { name: "XenDra", subtitle: "Aspect Without Form", accent: "#b9a6d8", glow: "rgba(185,166,216,.3)", background: "linear-gradient(145deg,#020204,#111018 48%,#242033 100%)", art: "radial-gradient(circle at 54% 28%, #050507 0 12%, rgba(226,220,234,.32) 13% 15%, transparent 16%), linear-gradient(112deg, transparent 0 38%, rgba(226,220,234,.18) 39% 41%, transparent 42%), radial-gradient(ellipse at 30% 70%, rgba(0,0,0,.88), transparent 34%)" }
+  xendra: { name: "XenDra", subtitle: "Aspect Without Form", accent: "#b9a6d8", glow: "rgba(185,166,216,.3)", background: "linear-gradient(145deg,#020204,#111018 48%,#242033 100%)", art: "radial-gradient(circle at 54% 28%, #050507 0 12%, rgba(226,220,234,.32) 13% 15%, transparent 16%), linear-gradient(112deg, transparent 0 38%, rgba(226,220,234,.18) 39% 41%, transparent 42%), radial-gradient(ellipse at 30% 70%, rgba(0,0,0,.88), transparent 34%)" },
+  morphlings: { name: "Morphlings", subtitle: "Chosen Becoming", accent: "#8ee7df", glow: "rgba(142,231,223,.34)", background: "linear-gradient(145deg,#10152b,#245d70 44%,#6a4b88 76%,#4f2149 100%)", art: "radial-gradient(circle at 28% 30%, rgba(184,255,241,.62), transparent 17%), radial-gradient(circle at 72% 62%, rgba(182,156,255,.48), transparent 22%), linear-gradient(115deg, transparent 0 36%, rgba(255,157,213,.26) 37% 42%, transparent 43%)" }
 };
 
 const factionName = (id) => id === "neutral" ? "Reath" : PACK_THEMES[id]?.name || id;
@@ -8504,6 +8506,7 @@ export default function App() {
                     <span><strong>Acceleration</strong>{me.accelerationCounters}</span>
                     {me.faction?.id === "voltari" && <span title="Charge persists between turns. Voltari cards generate and spend it, up to 6."><strong>Charge</strong>{me.chargeCounters || 0}/6</span>}
                     {me.faction?.id === "xendra" && <span title="At 6 Insanity, you fracture: lose 2 life, then return to 2 Insanity."><strong>Insanity</strong>{me.insanityCounters || 0}/6</span>}
+                    {me.faction?.id === "morphlings" && <span title="Continuity persists. At 6, cohere: gain 1 life, ready an end-turn draw, then return to 2."><strong>Continuity</strong>{me.continuityCounters || 0}/6</span>}
                   </div>
                 </div>
               )}

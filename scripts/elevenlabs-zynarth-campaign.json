@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "factionId": "zynarth",
+  "voiceDesignModelId": "eleven_multilingual_ttv_v2",
+  "speechModelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "stagingDirectory": "artifacts/elevenlabs-campaign-voices/zynarth-insectoid",
+  "publicDirectory": "client/public/assets/gauntlet/voices",
+  "provenanceDirectory": "docs/generated-assets/elevenlabs-campaign-voices/zynarth-insectoid",
+  "contentRegistry": "server/zynarthCampaignVoiceAssets.json",
+  "libraryVoiceIds": {
+    "narrator": "F4AXgTwG8nWPB9dcXaTh",
+    "human-expedition": "p4TAaoUAniL3oGGYQxGO"
+  },
+  "voices": {
+    "narrator": {
+      "name": "Witness of K'lar",
+      "description": "A calm original documentary narrator with grounded low-mid resonance, measured pacing, clear neutral English, and restrained awe. No metallic processing, no shrillness, and no imitation of a real performer.",
+      "previewText": "The mountain breathed before the egg opened, and an entire living world felt the small new pulse beneath its roots."
+    },
+    "broodmother": {
+      "name": "Broodmother Zalara",
+      "description": "An original nonhuman insectoid intelligence made intelligible to human listeners: low thoracic resonance rather than a human chest voice, dry mandible articulations at phrase edges, a quiet underlayer of communal stridulation, and patient maternal authority. The sound is organic, textured, and alien but always clear; never shrill, never metallic, never robotic, never a conventional human woman, and never an imitation of a real performer.",
+      "previewText": "New life is possibility, not inventory. Fold the warm shells beneath us. Let the wounded roots remember our weight, and let every small pulse choose how it enters the brood."
+    },
+    "queen": {
+      "name": "Zynarth Queen Chorus",
+      "description": "An original alien insectoid Queen voice with a broad low register, layered breathless clicks, subtle wing-case vibration, and two closely synchronized organic resonances suggesting one mind distributed through several bodies. Intelligent and emotionally precise, not feminine or masculine in a human way; no squeal, vocoder, synthetic robot timbre, or imitation of a real performer.",
+      "previewText": "The dead do not vanish from the body. Their chitin remembers the blow, their heat returns to the nursery, and their absence teaches the next shell where it must bend."
+    },
+    "planetary-mind": {
+      "name": "K'lar Planetary Chorus",
+      "description": "An original planet-scale insect ecology speaking through countless bodies: very low resonant pulses, slow cavernous air movement, distant layered stridulation, and sparse words that feel physically grown rather than electronically transmitted. Organic and immense, with intelligible consonants formed by mandibles; never robotic, never booming to the point of distortion, never shrill, and never an imitation of a real performer.",
+      "previewText": "Preserve. Listen. Become more, but do not become less. Carry home within change. Remember both shores."
+    },
+    "native-pressure": {
+      "name": "K'lar Environmental Voice",
+      "description": "An original hostile biological presence voiced through scraping limbs, low resonant shell cavities, and short intelligible phrases. Predatory, dry, and alien without screaming or metallic effects; no conventional human emotional cadence and no imitation of a real performer.",
+      "previewText": "Only the hardest shell survives. Difference will divide you. Cold chooses for you. Spring will invite your hunger."
+    },
+    "human-expedition": {
+      "name": "Offworld Expedition Command",
+      "description": "An original disciplined human expedition voice with practical military clarity and restrained alarm. Natural speech, no caricature and no imitation of a real performer.",
+      "previewText": "Survey confirms coordinated biological terrain. Withdraw the drill team and prepare for a living planetary response."
+    }
+  },
+  "speakerVoices": {
+    "Narrator": "narrator",
+    "Broodmother Zalara": "broodmother",
+    "Queen Nerith": "queen",
+    "Queen Vorash": "queen",
+    "K'lar Echo": "planetary-mind",
+    "K'lar": "planetary-mind",
+    "The One Voice": "planetary-mind",
+    "The Glass Hunter": "native-pressure",
+    "The Salt Drought": "native-pressure",
+    "The White Hunger": "native-pressure",
+    "The Severing Signal": "native-pressure",
+    "Vanguard Survey Team": "human-expedition",
+    "The Second Landing": "human-expedition",
+    "The Orbital Burn": "human-expedition",
+    "The Coalition": "human-expedition",
+    "The Worldbreaker Array": "human-expedition",
+    "The Purifier Coalition": "human-expedition"
+  }
+}

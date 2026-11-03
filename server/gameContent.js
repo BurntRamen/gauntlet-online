@@ -39,7 +39,7 @@ const DRAFT_SETS = Object.freeze([
   Object.freeze({ id: "legacies", number: 2, name: "Legacies", factionIds: Object.freeze(["mekan", "jali", "gracus", "indela"]), draftAvailable: true, sealedAvailable: true }),
   Object.freeze({ id: "frontiers", number: 3, name: "Frontiers", factionIds: Object.freeze(["ingles", "mercaw", "mtano", "russo"]), draftAvailable: true, sealedAvailable: true }),
   Object.freeze({ id: "reath-beyond", number: 4, name: "Reath Beyond", factionIds: Object.freeze(["zynarth", "astral-vanguard"]), draftAvailable: true, sealedAvailable: true }),
-  Object.freeze({ id: "convergence", number: 5, name: "Convergence", factionIds: Object.freeze(["voltari", "xendra"]), draftAvailable: true, sealedAvailable: true })
+  Object.freeze({ id: "convergence", number: 5, name: "Convergence", factionIds: Object.freeze(["voltari", "xendra", "morphlings"]), draftAvailable: true, sealedAvailable: true })
 ]);
 
 const RUMIN_COLLECTION_CARDS = [
@@ -821,6 +821,11 @@ const FULL_CATALOG_FACTIONS = Object.freeze({
     aspects: { spades: "Absent", hearts: "Dreaming", diamonds: "Prismatic", clubs: "Resonant" },
     ranks: ["Distant Witness", "Borrowed Reflection", "Unfixed Shape", "Horizon Listener", "Memory Current", "Aspect Weaver", "Threshold Echo", "Impossible Pilgrim", "Veiled Harbinger", "Deep Voice", "Queen of Angles", "King Without Form", "Total Eclipse"]
   },
+  morphlings: {
+    art: "/assets/gauntlet/morphlings-emblem.svg",
+    aspects: { spades: "Adaptive", hearts: "Sheltering", diamonds: "Remembered", clubs: "Becoming" },
+    ranks: ["First Stirring", "Soft-Shell Scout", "Shape Listener", "Refraction Guide", "Wound Keeper", "Continuity Bearer", "Tide Walker", "Refuge Warden", "Many-Form Guardian", "Luminous Witness", "Memory Matriarch", "Cohesion Keeper", "Future Unfolding"]
+  },
   ingles: {
     art: "/assets/gauntlet/ingles-emblem.svg",
     aspects: { spades: "Crownless", hearts: "Common", diamonds: "Harbor", clubs: "Charter" },
@@ -1163,7 +1168,8 @@ const COMMANDER_ANNOUNCEMENTS = Object.freeze({
   mercaw: { selected: "Many wings, one chosen course.", clicked: "Argue freely. Act together.", wounded: "Twenty-one life. Every aerie stays in the accord.", critical: "Ten life. Concentrate the federation's strength.", denied: "No member has authorized that commitment." },
   mtano: { selected: "The mountain remembers our path.", clicked: "Listen before the water changes course.", wounded: "Twenty-one life. Carry the lesson to every terrace.", critical: "Ten life. The watershed survives through us.", denied: "The living record does not support that choice." },
   russo: { selected: "The hearth is lit. The line will hold.", clicked: "Endurance belongs to everyone beside us.", wounded: "Twenty-one life. Share the heat and close the breach.", critical: "Ten life. No one freezes alone.", denied: "The reserve cannot sustain that order." },
-  xendra: { selected: "We arrive where your certainty thins.", clicked: "A shape is only the angle from which you agreed to see it.", wounded: "Twenty-one remains in the account you call life.", critical: "Ten. The smallest opening admits an infinite horizon.", denied: "That possibility is not facing you yet." }
+  xendra: { selected: "We arrive where your certainty thins.", clicked: "A shape is only the angle from which you agreed to see it.", wounded: "Twenty-one remains in the account you call life.", critical: "Ten. The smallest opening admits an infinite horizon.", denied: "That possibility is not facing you yet." },
+  morphlings: { selected: "We survived the shape we lost. Now we choose what comes next.", clicked: "No form is final, but every life remains its own.", wounded: "The wound changes us. It does not decide us.", critical: "Hold the memory-thread. We can still become tomorrow.", denied: "That shape would break our continuity." }
 });
 
 const COMMANDER_ANNOUNCEMENT_AUDIO = Object.freeze({
@@ -1221,7 +1227,8 @@ const GENERAL_CLICK_ANNOUNCEMENTS = Object.freeze({
   mercaw: "The accord moves because each aerie chose it.",
   mtano: "Carry strength where the watershed needs it.",
   russo: "Keep the shared hearth alive through the longest night.",
-  xendra: "You hear one voice because the others are standing behind it."
+  xendra: "You hear one voice because the others are standing behind it.",
+  morphlings: "Adaptation is hope only when the changed may choose it."
 });
 
 const GENERAL_CLICK_AUDIO = Object.freeze({
@@ -1238,7 +1245,7 @@ const COMMANDER_VOICE_PROFILES = Object.freeze({
   mekan: [1.06, 1.08], jali: [0.78, 0.72], gracus: [1.04, 0.84], indela: [0.88, 1.08],
   voltari: [0.9, 0.92], zynarth: [0.72, 0.48], "astral-vanguard": [0.94, 0.82],
   ingles: [0.96, 0.86], mercaw: [1.04, 0.94], mtano: [0.86, 0.78], russo: [0.8, 0.68],
-  xendra: [0.58, 0.32]
+  xendra: [0.58, 0.32], morphlings: [0.82, 0.86]
 });
 
 const COMMANDER_VOICE_HINTS = Object.freeze({
@@ -1257,7 +1264,8 @@ const COMMANDER_VOICE_HINTS = Object.freeze({
   mercaw: ["aria", "andrew", "christopher", "samantha"],
   mtano: ["guy", "davis", "aria", "william"],
   russo: ["mark", "davis", "george", "andrew"],
-  xendra: ["william", "davis", "mark", "zira"]
+  xendra: ["william", "davis", "mark", "zira"],
+  morphlings: ["aria", "jenny", "william", "andrew"]
 });
 
 // ============ FACTION DATA ============
@@ -1365,6 +1373,16 @@ const factionsData = {
     commander: { name: "Elias Varen, Final Conduit", image: "/assets/gauntlet/rumin-card.webp", text: "Playable identity: change suits and perspectives until apparently fixed values reveal another aspect." },
     general: { name: "Syllith, the Echoing Child", image: "/assets/gauntlet/sheen-card.webp", text: "Playable identity: repeat and reinterpret ordinary actions as memories, echoes, and unreliable predictions." },
     city: { name: "The Deep Currents", image: "/assets/gauntlet/frumo-card.webp", text: "The battlefield presents several true aspects of the same event without promising which one will endure." }
+  },
+  morphlings: {
+    id: "morphlings",
+    name: "Morphlings",
+    setId: "convergence",
+    draftRules: true,
+    cardImage: "/assets/gauntlet/morphlings-emblem.svg",
+    commander: { name: "Captain Ilyra Vale, Keeper of the First Shape", image: "/assets/gauntlet/morphlings-emblem.svg", text: "A former Astral Vanguard captain. Build Continuity by adapting to changing attacks and resilient blocks. At 6 Continuity, cohere: gain 1 life, draw 1 extra card at turn end, then return to 2." },
+    general: { id: "tessan", name: "Dr. Tessan Rook, Many-Form Guide", image: "/assets/gauntlet/morphlings-emblem.svg", text: "A former Vanguard xenobiologist. Spades adapt, Hearts shelter, Diamonds remember, and Clubs become together; every changed form has a role without becoming compulsory." },
+    city: { name: "The Refuge of Returning Light", image: "/assets/gauntlet/morphlings-emblem.svg", text: "Continuity persists between turns. The Refuge treats transformation as chosen survival, never compulsory perfection." }
   }
 };
 
@@ -1391,7 +1409,7 @@ for (const [factionId, announcements] of Object.entries(COMMANDER_ANNOUNCEMENTS)
 }
 
 function listFactions() {
-  return ["rumin", "sheen", "frumo", "bizi", "mekan", "jali", "gracus", "indela", "ingles", "mercaw", "mtano", "russo", "zynarth", "astral-vanguard", "voltari", "xendra"].map((id) => factionsData[id]);
+  return ["rumin", "sheen", "frumo", "bizi", "mekan", "jali", "gracus", "indela", "ingles", "mercaw", "mtano", "russo", "zynarth", "astral-vanguard", "voltari", "xendra", "morphlings"].map((id) => factionsData[id]);
 }
 
 function getFactionById(id, generalId) {
@@ -1749,6 +1767,14 @@ for (const chapter of campaignChapters.bizi) {
 const xendraCampaignVoiceAssets = require("./xendraCampaignVoiceAssets.json");
 for (const chapter of campaignChapters.xendra) {
   const audio = xendraCampaignVoiceAssets.chapters?.[chapter.id];
+  if (!audio) continue;
+  chapter.dialogueAudio = [...audio.dialogueAudio];
+  chapter.endDialogueAudio = [...audio.endDialogueAudio];
+}
+
+const zynarthCampaignVoiceAssets = require("./zynarthCampaignVoiceAssets.json");
+for (const chapter of campaignChapters.zynarth || []) {
+  const audio = zynarthCampaignVoiceAssets.chapters?.[chapter.id];
   if (!audio) continue;
   chapter.dialogueAudio = [...audio.dialogueAudio];
   chapter.endDialogueAudio = [...audio.endDialogueAudio];
@@ -2471,7 +2497,7 @@ function validateGameContent() {
   requireText(CONTENT_VERSION, "contentVersion");
   const factionIds = Object.keys(factionsData);
   const playableFactionIds = factionIds.filter((factionId) => !factionsData[factionId].campaignOnly);
-  if (playableFactionIds.length !== 16) throw new Error("Invalid game content: expected sixteen playable factions.");
+  if (playableFactionIds.length !== 17) throw new Error("Invalid game content: expected seventeen playable factions.");
   for (const factionId of factionIds) {
     const faction = factionsData[factionId];
     if (faction.id !== factionId) throw new Error(`Invalid game content: faction key ${factionId} does not match its ID.`);
@@ -2523,7 +2549,8 @@ function validateGameContent() {
     ["astral-vanguard", "operation"],
     ["indela", "arcana"],
     ["voltari", "conduit"],
-    ["xendra", "nightmare"]
+    ["xendra", "nightmare"],
+    ["morphlings", "biomorph"]
   ]);
   for (const card of COLLECTION_CARDS) {
     requireText(card.id, "cards.id");

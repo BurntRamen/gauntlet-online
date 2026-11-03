@@ -13,7 +13,13 @@ function catalogCard(id, value, suit) {
     gameplayCardId: id,
     name: id,
     factionId,
-    type: specialSupport && factionId === "voltari" ? "conduit" : specialSupport && factionId === "xendra" ? "nightmare" : "servitor",
+    type: specialSupport && factionId === "voltari"
+      ? "conduit"
+      : specialSupport && factionId === "xendra"
+        ? "nightmare"
+        : specialSupport && factionId === "morphlings"
+          ? "biomorph"
+          : "servitor",
     value,
     suit,
     effect: defaultCardEffect(id)
@@ -90,4 +96,27 @@ test("Xen’Dra spend Insanity for non-pump suit effects", () => {
   assert.equal(result.accepted, true);
   assert.equal(result.state.players[1].insanityCounters, 0);
   assert.equal(result.state.handAttacks[0].block[0].preventDamage, 2);
+});
+
+test("Morphlings build persistent Continuity and cohere without losing their identity", () => {
+  const state = engine.createMatch({ gameMode: "factions", startingPriority: 1,
+    factions: { 1: engine.FACTION_PROFILES.morphlings, 2: engine.FACTION_PROFILES.rumin } }).state;
+  state.players[1].continuityCounters = 5;
+  state.players[1].life = 17;
+  const biomorph = catalogCard("morphlings-spades-10", 10, "spades");
+  state.players[1].hand = [biomorph, { id: "pay", value: 14, suit: "clubs" }];
+
+  const command = engine.createCommandEnvelope(state, 1, {
+    type: "playSupport",
+    cardId: biomorph.id,
+    laneIndex: 0,
+    paymentCardIds: ["pay"]
+  });
+  const result = engine.applyCommand(state, command);
+
+  assert.equal(result.accepted, true);
+  assert.equal(result.state.lanes[0].support[1].type, "biomorph");
+  assert.equal(result.state.players[1].continuityCounters, 2);
+  assert.equal(result.state.players[1].life, 18);
+  assert.equal(result.state.players[1].turnData.alienEndTurnDraws, 1);
 });

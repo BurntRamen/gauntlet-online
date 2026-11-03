@@ -234,11 +234,14 @@ test("voice profiles remain deterministic while distinguishing speakers and fact
   expect(resolveCharacterVoice({ factionId: "astral-vanguard", speaker: "Alden", voices })).toEqual(alden);
   expect(resolveCharacterVoice({ factionId: "astral-vanguard", speaker: "Myra Cross", voices }).rate).not.toBe(alden.rate);
   expect(resolveCharacterVoice({ factionId: "xendra", speaker: "The Voice", voices }).abstract).toBe(true);
+  const zynarth = resolveCharacterVoice({ factionId: "zynarth", speaker: "Broodmother Zalara", voices });
+  expect(zynarth.insectoid).toBe(true);
+  expect(zynarth.pitch).toBeLessThan(0.6);
 });
 
 test("every playable campaign and ranked faction has a voice identity", () => {
   expect(Object.keys(FACTION_VOICE_PROFILES).sort()).toEqual([
     "astral-vanguard", "bizi", "default", "frumo", "gracus", "indela", "ingles", "jali",
-    "mekan", "mercaw", "mtano", "rumin", "russo", "sheen", "voltari", "xendra", "zynarth"
+    "mekan", "mercaw", "morphlings", "mtano", "rumin", "russo", "sheen", "voltari", "xendra", "zynarth"
   ]);
 });
