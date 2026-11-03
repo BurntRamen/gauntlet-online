@@ -908,19 +908,22 @@ test("encounter dossiers play exchanges with faction accompaniment and independe
   await openRuminCampaign(page);
   await page.getByRole("button", { name: "View Briefing" }).first().click();
   const dialogue = page.getByRole("region", { name: "Voices before the battle" });
+  await expect.poll(() => page.evaluate(() => window.__previewMedia.filter((clip) => !clip.paused && /\/music\//.test(clip.src)).length)).toBe(1);
+  await page.evaluate(() => {
+    window.__campaignMusic = window.__previewMedia.find((clip) => !clip.paused && /\/music\//.test(clip.src));
+  });
   await dialogue.getByRole("button", { name: "Play exchange" }).click();
   await expect(dialogue.getByRole("button", { name: "Pause", exact: true })).toBeVisible();
-  await expect.poll(() => page.evaluate(() => window.__previewMedia.filter((clip) => !clip.paused && (/dossiers/.test(clip.src) || window.__voiceAssetPaths.some((path) => clip.src.endsWith(path)))).length)).toBe(2);
+  await expect.poll(() => page.evaluate(() => window.__previewMedia.filter((clip) => !clip.paused && window.__voiceAssetPaths.some((path) => clip.src.endsWith(path))).length)).toBe(1);
+  expect(await page.evaluate(() => !window.__campaignMusic.paused && window.__previewMedia.filter((clip) => clip === window.__campaignMusic).length === 1)).toBe(true);
+  expect(await page.evaluate(() => window.__previewMedia.filter((clip) => /dossiers/.test(clip.src)).length)).toBe(0);
   await expect.poll(() => page.evaluate(() => window.__previewMedia.filter((clip) => !clip.paused && /music\/menu|menu_room_ambience/.test(clip.src)).length)).toBe(0);
-  const bed = await page.evaluate(() => {
-    const music = window.__previewMedia.find((clip) => clip.src.includes("rumin-reverie"));
-    return { duration: music.duration, volume: music.volume, loop: music.loop };
-  });
-  expect(bed).toEqual({ duration: 48, volume: 0.09, loop: true });
   await dialogue.getByRole("button", { name: "Pause", exact: true }).click();
-  expect(await page.evaluate(() => window.__previewMedia.filter((clip) => !clip.paused && (/dossiers/.test(clip.src) || window.__voiceAssetPaths.some((path) => clip.src.endsWith(path)))).length)).toBe(0);
+  expect(await page.evaluate(() => window.__previewMedia.filter((clip) => !clip.paused && window.__voiceAssetPaths.some((path) => clip.src.endsWith(path))).length)).toBe(0);
+  expect(await page.evaluate(() => window.__campaignMusic.paused)).toBe(false);
   await dialogue.getByRole("button", { name: "Resume", exact: true }).click();
-  await expect.poll(() => page.evaluate(() => window.__previewMedia.filter((clip) => !clip.paused && (/dossiers/.test(clip.src) || window.__voiceAssetPaths.some((path) => clip.src.endsWith(path)))).length)).toBe(2);
+  await expect.poll(() => page.evaluate(() => window.__previewMedia.filter((clip) => !clip.paused && window.__voiceAssetPaths.some((path) => clip.src.endsWith(path))).length)).toBe(1);
+  expect(await page.evaluate(() => window.__campaignMusic.paused)).toBe(false);
   // Seek near the real clip's end to exercise the browser's actual ended event.
   await page.evaluate(() => {
     const voice = window.__previewMedia.find((clip) => !clip.paused && window.__voiceAssetPaths.some((path) => clip.src.endsWith(path)));

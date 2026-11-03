@@ -2838,7 +2838,7 @@ function TutorialScreen({ embedded = false, onBack, onPlayBasicAi, onPlayFaction
   );
 }
 
-function CampaignScreen({ embedded = false, initialFactionId, initialChapterId = "", manifest, onBack, onStartChapter, onEnableGuest, canPlayAsPlayer, account, campaigns, audioEnabled, musicEnabled, musicVolume }) {
+function CampaignScreen({ embedded = false, initialFactionId, initialChapterId = "", manifest, onBack, onStartChapter, onEnableGuest, canPlayAsPlayer, account, campaigns, audioEnabled }) {
   const campaignPresentation = getModePresentation("campaign", manifest.modeMetadata, {
     title: "Faction Campaigns",
     description: "Choose your commander. Explore their story, chapter by chapter, and earn faction cards along the way."
@@ -2900,8 +2900,6 @@ function CampaignScreen({ embedded = false, initialFactionId, initialChapterId =
           <CampaignChapterBriefing
             campaign={activeCampaign}
             audioEnabled={audioEnabled}
-            musicEnabled={musicEnabled}
-            musicVolume={musicVolume}
             factionId={activeFactionId}
             theme={activeTheme}
             chapter={briefingChapter}
@@ -3565,7 +3563,9 @@ export default function App() {
       musicStopRef.current = null;
     }
     const menuMasterMuted = menuAudioActive && menuAudioSettings.masterMuted;
-    if (musicEnabled && !accountSoundMuted && !menuMasterMuted && !dialogueActive) {
+    // Dialogue is mixed over this player. Keeping dialogue activity out of this
+    // lifecycle preserves the current track and playback position between lines.
+    if (musicEnabled && !accountSoundMuted && !menuMasterMuted) {
       musicStopRef.current = startMusicTrack(activeMusicTrack, musicVolumeRef.current);
     }
     return () => {
@@ -3574,7 +3574,7 @@ export default function App() {
         musicStopRef.current = null;
       }
     };
-  }, [activeMusicTrack, musicEnabled, accountSoundMuted, menuAudioActive, menuAudioSettings.masterMuted, dialogueActive]);
+  }, [activeMusicTrack, musicEnabled, accountSoundMuted, menuAudioActive, menuAudioSettings.masterMuted]);
 
   useEffect(() => {
     if (!accountSoundMuted) return;
@@ -4747,7 +4747,7 @@ export default function App() {
       initialFactionId={showCampaign.factionId} initialChapterId={showCampaign.chapterId}
       onBack={() => setShowCampaign(false)} onStartChapter={startCampaignChapter} canPlayAsPlayer={canPlayAsPlayer}
       account={account} campaigns={gameContent.campaigns} audioEnabled={!accountSoundMuted && !menuAudioSettings.masterMuted}
-      musicEnabled={musicEnabled} musicVolume={musicVolume} />;
+      />;
     else if (showCollection) workflow = <SetupFrame title={collectionView === "decks" ? "Deck Editor" : collectionView === "catalog" ? "Card Collection" : "Earned Packs"}
       description="Owned cards, saved deck versions, and legal format choices." onBack={() => { if (confirmLeaveDeck()) setShowCollection(false); }}
       backLabel={playerRoute.view === "ranked" ? "Return to Ranked Setup" : playerRoute.page === "play" ? "Back to Play" : "Back to Decks & Cards"}>

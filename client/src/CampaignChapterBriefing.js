@@ -1,9 +1,9 @@
 import { getFactionArtwork, resolveVisualAsset } from "./GauntletVisuals";
-import { dossierMusicSource, useDialoguePlayback } from "./dialoguePlayback";
+import { useDialoguePlayback } from "./dialoguePlayback";
 import DialoguePlaybackControls, { DialogueVoiceButton } from "./DialoguePlaybackControls";
 
-export function CampaignBriefingDialogue({ title, lines = [], audio = [], factionId, scopeKey, audioEnabled = true, musicEnabled = true, musicVolume = 0.18 }) {
-  const playback = useDialoguePlayback({ lines, audio, factionId, scopeKey, enabled: audioEnabled, musicSource: dossierMusicSource(factionId), musicEnabled, musicVolume });
+export function CampaignBriefingDialogue({ title, lines = [], audio = [], factionId, scopeKey, audioEnabled = true }) {
+  const playback = useDialoguePlayback({ lines, audio, factionId, scopeKey, enabled: audioEnabled });
   if (playback.entries.length === 0) return null;
 
   return (
@@ -49,8 +49,6 @@ export default function CampaignChapterBriefing({
   canPlayAsPlayer,
   previewOnly = false,
   audioEnabled = true,
-  musicEnabled = true,
-  musicVolume = 0.18,
   onBack,
   onStartChapter,
   onEnableGuest,
@@ -101,7 +99,7 @@ export default function CampaignChapterBriefing({
             <p>{chapter.story}</p>
           </section>
 
-          <CampaignBriefingDialogue title="Voices before the battle" lines={chapter.dialogue} audio={chapter.dialogueAudio} factionId={factionId} scopeKey={chapter.id} audioEnabled={audioEnabled} musicEnabled={musicEnabled} musicVolume={musicVolume} />
+          <CampaignBriefingDialogue title="Voices before the battle" lines={chapter.dialogue} audio={chapter.dialogueAudio} factionId={factionId} scopeKey={chapter.id} audioEnabled={audioEnabled} />
 
           {completed ? (
             <>
@@ -112,7 +110,7 @@ export default function CampaignChapterBriefing({
                 </div>
                 <p className="campaign-briefing-lede">{chapter.afterBattle}</p>
               </section>
-              <CampaignBriefingDialogue title="Voices after the battle" lines={chapter.endDialogue} audio={chapter.endDialogueAudio} factionId={factionId} scopeKey={chapter.id} audioEnabled={audioEnabled} musicEnabled={musicEnabled} musicVolume={musicVolume} />
+              <CampaignBriefingDialogue title="Voices after the battle" lines={chapter.endDialogue} audio={chapter.endDialogueAudio} factionId={factionId} scopeKey={chapter.id} audioEnabled={audioEnabled} />
             </>
           ) : (
             <section className="campaign-briefing-section campaign-after-action is-classified">
