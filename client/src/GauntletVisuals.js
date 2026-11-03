@@ -5,18 +5,19 @@ export const FACTION_VISUALS = {
   jali: { name: "Jali", accent: "#ef6a78", art: "/assets/gauntlet/jali-emblem.svg" },
   gracus: { name: "Gracus", accent: "#f59e0b", art: "/assets/gauntlet/gracus-emblem.svg" },
   indela: { name: "Indela", accent: "#c4b5fd", art: "/assets/gauntlet/indela-emblem.svg" },
-  voltari: { name: "Voltari", accent: "#edcc7a", art: "" },
+  voltari: { name: "Voltari", accent: "#edcc7a", art: "", artDirection: { silhouette: "Monumental architectural machines, procession lines, gliders, and exposed storm reactors", materials: "Gilded structural metal, dark ceramic joints, and electric-blue conduit light", motifs: "Organized energy transfer, nested systems, precise apertures, and visible power routing", guardrail: "Keep every machine readable as a component of a larger system; avoid generic humanoid robots." } },
   rumin: { name: "Rumin", accent: "#c97858", art: "/assets/gauntlet/rumin-card.webp" },
   sheen: { name: "Sheen", accent: "#71b187", art: "/assets/gauntlet/sheen-card.webp" },
   frumo: { name: "Frumo", accent: "#69a8dc", art: "/assets/gauntlet/frumo-card.webp" },
   bizi: { name: "Bizi", accent: "#b080ce", art: "/assets/gauntlet/factions/bizi/constanti-technology-hub.webp" },
-  zynarth: { name: "Zynarth", accent: "#a3e635", art: "/assets/gauntlet/factions/zynarth/brood-nest.webp" },
-  "astral-vanguard": { name: "Astral Vanguard", accent: "#60a5fa", art: "/assets/gauntlet/factions/astral-vanguard/vanguard-outpost.webp" },
+  zynarth: { name: "Zynarth", accent: "#d5963d", art: "/assets/gauntlet/factions/zynarth/brood-nest.webp", artDirection: { silhouette: "Coordinated swarms, protective queens, egg chambers, and bodies specialized for a shared task", materials: "Dark chitin, amber membranes, wet stone, resin, and recycled biomass", motifs: "Consumption becoming growth, nested broods, molting layers, and living architecture", guardrail: "Show intelligence through coordinated ecology, not human expressions or interchangeable insect-monster imagery." } },
+  "astral-vanguard": { name: "Astral Vanguard", accent: "#f28a38", art: "/assets/gauntlet/factions/astral-vanguard/vanguard-outpost.webp", artDirection: { silhouette: "Human explorers in worn industrial armor, practical spacecraft, field drones, and modular outposts", materials: "Scuffed steel, fabric seals, repair patches, glass, and restrained orange markings", motifs: "Hybrid systems, improvised connections, expedition labels, and visible repairs", guardrail: "Keep their technology powerful but tangible: equipment is maintained, damaged, adapted, and carried by people." } },
   ingles: { name: "Ingles", accent: "#e9c46a", art: "/assets/gauntlet/ingles-emblem.svg" },
   mercaw: { name: "Mercaw", accent: "#60a5fa", art: "/assets/gauntlet/mercaw-emblem.svg" },
   mtano: { name: "M'Tano", accent: "#9ccf9b", art: "/assets/gauntlet/mtano-emblem.svg" },
   russo: { name: "Russo", accent: "#b9d7ea", art: "/assets/gauntlet/russo-emblem.svg" },
-  xendra: { name: "XenDra", accent: "#a88ad8", art: "" },
+  morphlings: { name: "Morphlings", accent: "#8ee7df", art: "", artDirection: { silhouette: "Fluid figures whose anatomy shifts without losing a recognizable emotional through-line", materials: "Iridescent translucent tissue, flowing crystal, liquid surfaces, and refracted light", motifs: "Tragic remnants, hopeful adaptation, incomplete reflections, and forms becoming possible", guardrail: "Their change should feel vulnerable and purposeful rather than random body horror." } },
+  xendra: { name: "XenDra", accent: "#b9a6d8", art: "", artDirection: { silhouette: "Suspended shadows, fragmented masks, impossible anatomy, eclipses, and deliberate empty space", materials: "Lightless void, fractured pale surfaces, smoke without a source, and edges that disagree", motifs: "Altered perception, missing context, overlapping aspects, and absence behaving like a presence", guardrail: "Porcelain-like masks are a prototype visual option, not settled canon; preserve ambiguity and avoid a single fixed species design." } },
   basic: { name: "Basic Gauntlet", accent: "#d0a863", art: "" }
 };
 
@@ -92,6 +93,7 @@ export function factionIdFrom(value) {
   if (normalized.includes("voltari")) return "voltari";
   if (normalized.includes("zynarth")) return "zynarth";
   if (normalized.includes("astralvanguard")) return "astral-vanguard";
+  if (normalized.includes("morphling")) return "morphlings";
   if (normalized.includes("xendra")) return "xendra";
   return "basic";
 }

@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { render } from "@testing-library/react";
-import { FactionArtwork, getFactionAsset, getFactionArtwork } from "./GauntletVisuals";
+import { FactionArtwork, FACTION_VISUALS, factionIdFrom, getFactionAsset, getFactionArtwork } from "./GauntletVisuals";
 
 test("keeps the neutral fallback behind only artwork-free faction surfaces", () => {
   const stylesheet = fs.readFileSync(path.join(__dirname, "GauntletVisuals.css"), "utf8");
@@ -30,4 +30,13 @@ test("a faction with no own artwork renders a neutral identity instead of anothe
   const { container } = render(<FactionArtwork factionId="xendra" art="/assets/gauntlet/bizi-card.webp" />);
   expect(container.firstChild).toHaveClass("is-neutral");
   expect(container.firstChild.style.backgroundImage).toBe("");
+});
+
+test("records distinct material and silhouette direction for the convergence factions", () => {
+  expect(FACTION_VISUALS.voltari.artDirection.materials).toMatch(/gilded|electric-blue/i);
+  expect(FACTION_VISUALS.zynarth.artDirection.materials).toMatch(/chitin|amber/i);
+  expect(FACTION_VISUALS["astral-vanguard"].artDirection.silhouette).toMatch(/human explorers|industrial armor/i);
+  expect(FACTION_VISUALS.morphlings.artDirection.materials).toMatch(/iridescent|translucent/i);
+  expect(FACTION_VISUALS.xendra.artDirection.guardrail).toMatch(/not settled canon/i);
+  expect(factionIdFrom("Morphling remnant")).toBe("morphlings");
 });
