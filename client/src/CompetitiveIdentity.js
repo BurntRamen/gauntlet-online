@@ -2,6 +2,7 @@ import "./CompetitiveIdentity.css";
 import { DeckVisual } from "./GauntletVisuals";
 import DeckShowcase from "./DeckShowcase";
 import { PlayerAvatar } from "./ProfileAvatar";
+import AnimatedCharacterPortrait from "./AnimatedCharacterPortrait";
 import { CardBackArt, getCardBackDefinition } from "./CardBackArt";
 
 const DOSSIER_FACTIONS = new Set(["rumin", "sheen", "frumo", "bizi", "xendra"]);
@@ -105,7 +106,10 @@ function ProfileBody({ profile, serverUrl, onOpenMatch, onOpenReplay }) {
     <>
       <div className="competitive-profile-header" style={equipment.banner || identityFactionId !== "basic" ? { backgroundImage: `linear-gradient(90deg, rgba(5,11,18,0.99), rgba(5,11,18,0.86) 43%, rgba(5,11,18,0.35)), url(${equipment.banner?.url || factionArt(identityFactionId)})` } : undefined}>
         <div className="competitive-profile-persona">
-          <PlayerAvatar subject={profile} name={profile.displayName} serverUrl={serverUrl} size="large" />
+          {equipment.portrait?.url
+            ? <AnimatedCharacterPortrait speaker={equipment.portrait.name || profile.displayName}
+                image={equipment.portrait.url} animated />
+            : <PlayerAvatar subject={profile} name={profile.displayName} serverUrl={serverUrl} size="large" />}
           <div>
             <span className="competitive-kicker">{profile.identity?.selectedTitleName || profile.identity?.selectedTitle || "Recruit"}</span>
             <h1>{profile.displayName}</h1>

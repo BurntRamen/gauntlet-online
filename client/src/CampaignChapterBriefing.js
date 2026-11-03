@@ -1,6 +1,7 @@
 import { getFactionArtwork, resolveVisualAsset } from "./GauntletVisuals";
 import { useDialoguePlayback } from "./dialoguePlayback";
 import DialoguePlaybackControls, { DialogueVoiceButton } from "./DialoguePlaybackControls";
+import AnimatedCharacterPortrait from "./AnimatedCharacterPortrait";
 
 export function CampaignBriefingDialogue({ title, lines = [], audio = [], factionId, scopeKey, audioEnabled = true }) {
   const playback = useDialoguePlayback({ lines, audio, factionId, scopeKey, enabled: audioEnabled });
@@ -18,7 +19,7 @@ export function CampaignBriefingDialogue({ title, lines = [], audio = [], factio
           const isPlaying = playback.playingIndex === index;
           return (
             <article className={`campaign-dialogue-line${isPlaying ? " is-playing" : ""}`} key={`${entry.speaker}-${index}`}>
-              <span className="campaign-dialogue-speaker-mark" aria-hidden="true">{entry.speaker.slice(0, 1)}</span>
+              <AnimatedCharacterPortrait speaker={entry.speaker} factionId={factionId} speaking={isPlaying && !playback.paused} compact decorative />
               <div>
                 <div className="campaign-dialogue-speaker">
                   <strong>{entry.speaker}</strong>

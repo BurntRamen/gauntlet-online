@@ -110,6 +110,17 @@ function adapterFor(overrides = {}) {
   };
 }
 
+test("Jali Revenants stay visible beside the normal ability control", async () => {
+  const viewModel = {
+    ...createViewModel(),
+    mode: "factions",
+    bottom: { ...createViewModel().bottom, factionId: "jali", factionName: "Jali", revenants: 2 }
+  };
+  render(<ProductionMatchExperience adapter={adapterFor({ viewModel, controls: {} })} options={{ audioEnabled: false, reducedMotion: true }} />);
+  expect(await screen.findByRole("status", { name: "2 Revenants available" })).toBeVisible();
+  expect(screen.getByRole("button", { name: "Faction abilities · 2" })).toBeVisible();
+});
+
 test("announces priority once and automatically passes a forced no-choice window", async () => {
   jest.useFakeTimers();
   const passPriority = jest.fn();

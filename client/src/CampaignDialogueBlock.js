@@ -1,67 +1,12 @@
 import { useEffect, useRef } from "react";
 import { useDialoguePlayback } from "./dialoguePlayback";
 import DialoguePlaybackControls, { DialogueVoiceButton } from "./DialoguePlaybackControls";
-import { getFactionAsset } from "./GauntletVisuals";
+import AnimatedCharacterPortrait from "./AnimatedCharacterPortrait";
+import { resolveCharacterPortrait } from "./characterPortraits";
 import "./CampaignDialogueBlock.css";
 
-const SPEAKER_IMAGES = {
-  augustus: "/assets/gauntlet/kaiser-gauntlet.webp",
-  bark: "/assets/gauntlet/sheen-card.webp",
-  blackthorn: "/assets/gauntlet/sheen-card.webp",
-  bobei: "/assets/gauntlet/kaiser-gauntlet.webp",
-  brutus: "/assets/gauntlet/rumin-card.webp",
-  cassius: "/assets/gauntlet/rumin-card.webp",
-  crowd: "/assets/gauntlet/rumie.webp",
-  den: "/assets/gauntlet/sheen-card.webp",
-  dowan: "/assets/gauntlet/sheen-card.webp",
-  focus: "/assets/gauntlet/factions/bizi/focus-conductor-of-progress.webp",
-  guardian: "/assets/gauntlet/rumin-card.webp",
-  hera: "/assets/gauntlet/factions/bizi/hera-general.webp",
-  hushan: "/assets/gauntlet/sheen-card.webp",
-  kaiser: "/assets/gauntlet/kaiser-gauntlet.webp",
-  arel: "/assets/gauntlet/bizi-card.webp",
-  elias: "/assets/gauntlet/rumin-card.webp",
-  krauth: "/assets/gauntlet/bizi-card.webp",
-  nulth: "/assets/gauntlet/frumo-card.webp",
-  syllith: "/assets/gauntlet/sheen-card.webp",
-  thrallmaker: "/assets/gauntlet/bizi-card.webp",
-  lafayette: "/assets/gauntlet/lafayette.webp",
-  leafen: "/assets/gauntlet/leafen-gao.png",
-  leshan: "/assets/gauntlet/sheen-card.webp",
-  marcell: "/assets/gauntlet/rumin-card.webp",
-  merchant: "/assets/gauntlet/rumie.webp",
-  alden: "/assets/gauntlet/factions/astral-vanguard/high-marshal-alden.webp",
-  "myra cross": "/assets/gauntlet/factions/astral-vanguard/sergeant-myra-cross.webp",
-  polea: "/assets/gauntlet/polea.webp",
-  reane: "/assets/gauntlet/sheen-card.webp",
-  remex: "/assets/gauntlet/rumin-card.webp",
-  rolmus: "/assets/gauntlet/kaiser-gauntlet.webp",
-  senator: "/assets/gauntlet/rumie.webp",
-  severan: "/assets/gauntlet/rumin-card.webp",
-  tang: "/assets/gauntlet/tang.webp",
-  vercan: "/assets/gauntlet/rumin-card.webp",
-  zalara: "/assets/gauntlet/frumo-card.webp"
-};
-
-function assetUrl(source) {
-  if (!source || /^(?:[a-z]+:|\/\/)/i.test(source)) return source;
-  return `${process.env.PUBLIC_URL || ""}${source.startsWith("/") ? source : `/${source}`}`;
-}
-
-function speakerImageCandidate(speaker) {
-  const normalized = String(speaker || "").toLowerCase();
-  const alias = Object.keys(SPEAKER_IMAGES).find((key) => normalized.includes(key));
-  if (alias) return SPEAKER_IMAGES[alias];
-  if (["ironbark", "rootlash", "goldroot", "hollowvine", "drought", "blight", "ash"].some((key) => normalized.includes(key))) return "/assets/gauntlet/sheen-card.webp";
-  if (["admiral", "captain", "tide", "pirate", "corsair", "deep", "sunken"].some((key) => normalized.includes(key))) return "/assets/gauntlet/frumo-card.webp";
-  if (["voltari", "silicon", "conductor", "regnum", "engine", "machine"].some((key) => normalized.includes(key))) return "/assets/gauntlet/bizi-card.webp";
-  if (["xendra", "sovereign", "thrall", "conduit", "eclipse", "defender"].some((key) => normalized.includes(key))) return "/assets/gauntlet/bizi-card.webp";
-  return "";
-}
-
 export function getCampaignSpeakerImage(speaker, factionId) {
-  const candidate = speakerImageCandidate(speaker);
-  return (factionId ? getFactionAsset(factionId, candidate) : candidate) || "/assets/gauntlet/ui/faction-art-unavailable.svg";
+  return resolveCharacterPortrait(speaker, factionId);
 }
 
 export default function CampaignDialogueBlock({ title = "Dialogue", lines = [], audio = [], factionId = "default", compact = false, light = false, autoPlayKey = "", audioOnly = false, audioEnabled = true }) {
@@ -94,10 +39,8 @@ export default function CampaignDialogueBlock({ title = "Dialogue", lines = [], 
           const isPlaying = playback.playingIndex === index && !playback.paused;
           return (
             <article className={`campaign-dialogue-entry${isPlaying ? " is-speaking" : ""}`} key={`${entry.speaker}-${index}`}>
-              <span className="campaign-dialogue-portrait-shell" aria-hidden="true">
-                <img src={assetUrl(getCampaignSpeakerImage(entry.speaker, factionId))} alt="" />
-                <i className="campaign-dialogue-mouth" />
-              </span>
+              <AnimatedCharacterPortrait speaker={entry.speaker} factionId={factionId} speaking={isPlaying}
+                compact decorative className="campaign-dialogue-portrait-shell" />
               <span className="campaign-dialogue-copy">
                 <span className="campaign-dialogue-byline">
                   <strong>{entry.speaker}</strong>
