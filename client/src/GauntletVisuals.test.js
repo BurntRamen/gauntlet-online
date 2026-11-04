@@ -36,7 +36,8 @@ test("records distinct material and silhouette direction for the convergence fac
   expect(FACTION_VISUALS.voltari.artDirection.materials).toMatch(/gilded|electric-blue/i);
   expect(FACTION_VISUALS.zynarth.artDirection.materials).toMatch(/chitin|amber/i);
   expect(FACTION_VISUALS["astral-vanguard"].artDirection.silhouette).toMatch(/human explorers|industrial armor/i);
-  expect(FACTION_VISUALS.morphlings.artDirection.materials).toMatch(/iridescent|translucent/i);
+  expect(FACTION_VISUALS.morphlings.artDirection.materials).toMatch(/tissue|chitin/i);
+  expect(FACTION_VISUALS.morphlings.artDirection.silhouette).toMatch(/grotesquely transformed/i);
   expect(FACTION_VISUALS.xendra.artDirection.guardrail).toMatch(/not settled canon/i);
   expect(factionIdFrom("Morphling remnant")).toBe("morphlings");
 });

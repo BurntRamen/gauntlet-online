@@ -1169,7 +1169,7 @@ const COMMANDER_ANNOUNCEMENTS = Object.freeze({
   mtano: { selected: "The mountain remembers our path.", clicked: "Listen before the water changes course.", wounded: "Twenty-one life. Carry the lesson to every terrace.", critical: "Ten life. The watershed survives through us.", denied: "The living record does not support that choice." },
   russo: { selected: "The hearth is lit. The line will hold.", clicked: "Endurance belongs to everyone beside us.", wounded: "Twenty-one life. Share the heat and close the breach.", critical: "Ten life. No one freezes alone.", denied: "The reserve cannot sustain that order." },
   xendra: { selected: "We arrive where your certainty thins.", clicked: "A shape is only the angle from which you agreed to see it.", wounded: "Twenty-one remains in the account you call life.", critical: "Ten. The smallest opening admits an infinite horizon.", denied: "That possibility is not facing you yet." },
-  morphlings: { selected: "We survived the shape we lost. Now we choose what comes next.", clicked: "No form is final, but every life remains its own.", wounded: "The wound changes us. It does not decide us.", critical: "Hold the memory-thread. We can still become tomorrow.", denied: "That shape would break our continuity." }
+  morphlings: { selected: "Do not look away. The person you knew is still speaking.", clicked: "No form is final, but every life remains its own.", wounded: "The wound changes us. It does not decide us.", critical: "Hold the memory-thread. We can still become tomorrow.", denied: "That shape would break our continuity." }
 });
 
 const COMMANDER_ANNOUNCEMENT_AUDIO = Object.freeze({
@@ -1380,9 +1380,9 @@ const factionsData = {
     setId: "convergence",
     draftRules: true,
     cardImage: "/assets/gauntlet/morphlings-emblem.svg",
-    commander: { name: "Captain Ilyra Vale, Keeper of the First Shape", image: "/assets/gauntlet/morphlings-emblem.svg", text: "A former Astral Vanguard captain. Build Continuity by adapting to changing attacks and resilient blocks. At 6 Continuity, cohere: gain 1 life, draw 1 extra card at turn end, then return to 2." },
-    general: { id: "tessan", name: "Dr. Tessan Rook, Many-Form Guide", image: "/assets/gauntlet/morphlings-emblem.svg", text: "A former Vanguard xenobiologist. Spades adapt, Hearts shelter, Diamonds remember, and Clubs become together; every changed form has a role without becoming compulsory." },
-    city: { name: "The Refuge of Returning Light", image: "/assets/gauntlet/morphlings-emblem.svg", text: "Continuity persists between turns. The Refuge treats transformation as chosen survival, never compulsory perfection." }
+    commander: { name: "Captain Ilyra Vale, Keeper of the First Shape", image: "/assets/gauntlet/morphlings-emblem.svg", text: "A grotesquely transformed former Astral Vanguard captain whose fused uniform and remembered oath make her humanity undeniable. Build Continuity by adapting to changing attacks and resilient blocks. At 6 Continuity, cohere: gain 1 life, draw 1 extra card at turn end, then return to 2." },
+    general: { id: "tessan", name: "Dr. Tessan Rook, Many-Form Guide", image: "/assets/gauntlet/morphlings-emblem.svg", text: "A former Vanguard xenobiologist now bearing unstable human, insectile, and crystalline anatomy. Spades adapt, Hearts shelter, Diamonds remember, and Clubs become together; every changed form has a role without becoming compulsory." },
+    city: { name: "The Refuge of Returning Light", image: "/assets/gauntlet/morphlings-emblem.svg", text: "Built on Pelagia after Vanguard planets refused the transformed crews entry. Continuity persists between turns, and the Refuge recognizes personhood where quarantine law saw only contamination." }
   }
 };
 

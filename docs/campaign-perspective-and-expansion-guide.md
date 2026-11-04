@@ -25,7 +25,7 @@ Individual characters provide access to a faction's philosophy without making th
 
 Voltari dialogue should repeatedly ask who chooses an objective, whose labor is transferred, which information receives precedence, and who can stop the procedure. AION is the crisis of helpful transfer becoming compulsory. Veyra, Kryos, and Oru disagree over safeguards because all three understand why wider coordination saves lives.
 
-Morphlings should carry grief for unstable identity and displacement while retaining credible hope. Their voices can layer a stable present voice with quieter prior forms instead of using a generic monster effect. Music should let a fragile recurring melody survive changes in instrumentation, tuning, or meter so transformation is painful without implying that the future is empty.
+Morphlings should carry grief for unstable identity, grotesque bodily transformation, and exile while retaining credible hope. They remain humans in continuity and self-understanding, but their visibly fused, asymmetric, insectile, and crystalline bodies are disturbing enough that Astral Vanguard planets classify them as biological threats and refuse them entry. Their voices can layer a stable present voice with quieter prior forms instead of using a generic monster effect. Music should let a fragile recurring melody survive changes in instrumentation, tuning, or meter so transformation is painful without implying that the future is empty. Their hope comes from solidarity, chosen adaptation, and recognition—not from becoming conventionally beautiful again.
 
 ## Voice and music direction
 

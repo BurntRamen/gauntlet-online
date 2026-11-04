@@ -10,6 +10,7 @@
   "contentRegistry": "server/zynarthCampaignVoiceAssets.json",
   "libraryVoiceIds": {
     "narrator": "F4AXgTwG8nWPB9dcXaTh",
+    "broodmother": "XWmk32TNUUAfRRjjcusG",
     "human-expedition": "p4TAaoUAniL3oGGYQxGO"
   },
   "voices": {

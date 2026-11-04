@@ -56,10 +56,12 @@ test("validates the authoritative versioned game content registry", () => {
   assert.equal(zynarth.campaignPending, undefined);
   assert.equal(zynarth.campaignOnly, undefined);
   const morphlings = content.campaigns.morphlings;
-  assert.match(morphlings.origin, /Human Astral Vanguard explorers transformed on Pelagia/);
+  assert.match(morphlings.origin, /Human Astral Vanguard explorers grotesquely transformed on Pelagia/);
+  assert.match(morphlings.arrivalOnReath, /Denied entry to Astral Vanguard planets/);
   assert.match(morphlings.arrivalOnReath, /Reath is their convergence, not their birthplace/);
   assert.match(morphlings.chapters[0].story, /Human Astral Vanguard personnel/);
   assert.match(morphlings.chapters[1].endDialogue.join(" "), /We were Astral Vanguard.*becoming Morphlings/);
+  assert.match(morphlings.chapters[2].story, /grotesque, unstable bodies/);
   for (const [factionId, homeworld, finalTitle] of [
     ["ingles", "Albion Reach", "The Open Door"],
     ["mercaw", "Cairn", "The Many-Star Accord"],
