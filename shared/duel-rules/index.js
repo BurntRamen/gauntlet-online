@@ -82,7 +82,7 @@ const FACTION_PROFILES = {
   "astral-vanguard": { id: "astral-vanguard", name: "Astral Vanguard", commander: "High Marshal Alden", city: "Vanguard Outpost", general: { id: "myra-cross", name: "Sergeant Myra Cross" } },
   voltari: { id: "voltari", name: "Voltari", commander: "Silicon Sovereign", city: "The Golden Conduit", general: { id: "consent-keeper", name: "Consent Keeper" } },
   xendra: { id: "xendra", name: "Xen’Dra", commander: "The Deep Currents", city: "Total Eclipse", general: { id: "distant-witness", name: "Distant Witness" } },
-  morphlings: { id: "morphlings", name: "Morphlings", commander: "Captain Ilyra Vale, Keeper of the First Shape", city: "The Refuge of Returning Light", general: { id: "tessan", name: "Dr. Tessan Rook, Many-Form Guide" } },
+  morphlings: { id: "morphlings", name: "The Continuants", commander: "Captain Ilyra Vale, Keeper of the First Shape", city: "The Refuge of Returning Light", general: { id: "tessan", name: "Dr. Tessan Rook, Many-Form Guide" } },
   ingles: { id: "ingles", name: "Ingles", commander: "Queen Victoria Ashbourne", city: "Ashbourne", general: { id: "arthur-wellington", name: "Lord Arthur Wellington" } },
   mercaw: { id: "mercaw", name: "Mercaw", commander: "Gerrick Warclaw", city: "Accord Spire", general: { id: "rook-talon", name: "Rook Talon" } },
   mtano: { id: "mtano", name: "M'Tano", commander: "Rainkeeper Amari", city: "Mawingu Terraces", general: { id: "kito", name: "Pathfinder Kito" } },

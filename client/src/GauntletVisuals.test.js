@@ -38,6 +38,8 @@ test("records distinct material and silhouette direction for the convergence fac
   expect(FACTION_VISUALS["astral-vanguard"].artDirection.silhouette).toMatch(/human explorers|industrial armor/i);
   expect(FACTION_VISUALS.morphlings.artDirection.materials).toMatch(/tissue|chitin/i);
   expect(FACTION_VISUALS.morphlings.artDirection.silhouette).toMatch(/grotesquely transformed/i);
+  expect(FACTION_VISUALS.morphlings.name).toBe("The Continuants");
   expect(FACTION_VISUALS.xendra.artDirection.guardrail).toMatch(/not settled canon/i);
   expect(factionIdFrom("Morphling remnant")).toBe("morphlings");
+  expect(factionIdFrom("Continuant refuge")).toBe("morphlings");
 });

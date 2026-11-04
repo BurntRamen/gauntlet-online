@@ -1376,7 +1376,7 @@ const factionsData = {
   },
   morphlings: {
     id: "morphlings",
-    name: "Morphlings",
+    name: "The Continuants",
     setId: "convergence",
     draftRules: true,
     cardImage: "/assets/gauntlet/morphlings-emblem.svg",

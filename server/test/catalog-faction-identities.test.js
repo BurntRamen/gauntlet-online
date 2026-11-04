@@ -98,7 +98,7 @@ test("Xen’Dra spend Insanity for non-pump suit effects", () => {
   assert.equal(result.state.handAttacks[0].block[0].preventDamage, 2);
 });
 
-test("Morphlings build persistent Continuity and cohere without losing their identity", () => {
+test("The Continuants build persistent Continuity and cohere without losing their identity", () => {
   const state = engine.createMatch({ gameMode: "factions", startingPriority: 1,
     factions: { 1: engine.FACTION_PROFILES.morphlings, 2: engine.FACTION_PROFILES.rumin } }).state;
   state.players[1].continuityCounters = 5;

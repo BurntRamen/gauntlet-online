@@ -1449,7 +1449,7 @@ const PACK_THEMES = {
   russo: { name: "Russo", subtitle: "The Long Winter Oath", accent: "#b9d7ea", glow: "#b9d7ea52", background: "linear-gradient(145deg,#202b3c,#7c2d12)" },
   voltari: { name: "Voltari", subtitle: "The Golden Conduit", accent: "#f8d477", glow: "rgba(248,212,119,.34)", background: "linear-gradient(145deg,#17130b,#8a621c 46%,#082d54 100%)", art: "repeating-linear-gradient(90deg, rgba(255,239,177,.18) 0 3px, transparent 3px 26px), linear-gradient(20deg, transparent 0 42%, rgba(38,153,255,.45) 43% 46%, transparent 47%), radial-gradient(circle at 68% 28%, rgba(56,189,248,.58), transparent 22%)" },
   xendra: { name: "XenDra", subtitle: "Aspect Without Form", accent: "#b9a6d8", glow: "rgba(185,166,216,.3)", background: "linear-gradient(145deg,#020204,#111018 48%,#242033 100%)", art: "radial-gradient(circle at 54% 28%, #050507 0 12%, rgba(226,220,234,.32) 13% 15%, transparent 16%), linear-gradient(112deg, transparent 0 38%, rgba(226,220,234,.18) 39% 41%, transparent 42%), radial-gradient(ellipse at 30% 70%, rgba(0,0,0,.88), transparent 34%)" },
-  morphlings: { name: "Morphlings", subtitle: "Exiled Becoming", accent: "#8ee7df", glow: "rgba(142,231,223,.28)", background: "linear-gradient(145deg,#10151b,#18383b 35%,#4d323f 69%,#281622 100%)", art: "radial-gradient(ellipse at 28% 30%, rgba(155,234,208,.42), transparent 13%), radial-gradient(ellipse at 72% 62%, rgba(132,82,124,.5), transparent 19%), repeating-linear-gradient(115deg, transparent 0 11%, rgba(112,182,166,.13) 12% 14%, transparent 15% 28%)" }
+  morphlings: { name: "The Continuants", subtitle: "Exiled Becoming", accent: "#8ee7df", glow: "rgba(142,231,223,.28)", background: "linear-gradient(145deg,#10151b,#18383b 35%,#4d323f 69%,#281622 100%)", art: "radial-gradient(ellipse at 28% 30%, rgba(155,234,208,.42), transparent 13%), radial-gradient(ellipse at 72% 62%, rgba(132,82,124,.5), transparent 19%), repeating-linear-gradient(115deg, transparent 0 11%, rgba(112,182,166,.13) 12% 14%, transparent 15% 28%)" }
 };
 
 const factionName = (id) => id === "neutral" ? "Reath" : PACK_THEMES[id]?.name || id;
@@ -4520,6 +4520,14 @@ export default function App() {
     navigateHomeArea("matches");
   }
 
+  async function openEarnedCampaignPack(packId) {
+    if (!packId || !authToken) return;
+    await openBoosterPack(packId);
+    returnToMainMenu();
+    navigateHomeArea("build");
+    setShowCollection("packs");
+  }
+
   function returnToJourney() {
     returnToMainMenu();
     navigateHomeArea("journey");
@@ -5004,6 +5012,7 @@ export default function App() {
             onContinueJourney={returnToJourney}
             onOpenReplay={gameIsOver && game.matchId ? () => openReplay(game.matchId) : null}
             onOpenMatches={returnToMatches}
+            onOpenEarnedPack={openEarnedCampaignPack}
             options={{
               forceAccessible: !shouldUseProductionMatchRenderer(),
               audioEnabled: !accountSoundMuted,
@@ -5041,6 +5050,7 @@ export default function App() {
       : null;
     const campaignClearType = completionEnvelope?.campaign?.firstClear ? "First clear" : completionEnvelope?.campaign?.repeatClear ? "Repeat clear" : null;
     const boosterCreditDelta = Number(completionEnvelope?.rewards?.boosterCreditDelta || 0);
+    const campaignPackReward = completionEnvelope?.rewards?.campaignPack || null;
     const eventReward = completionEnvelope?.event || null;
     const unlockedCardStyles = completionEnvelope?.rewards?.cardStylesUnlocked || [];
     const goldDelta = Number(completionEnvelope?.rewards?.goldDelta || 0);
@@ -5102,7 +5112,8 @@ export default function App() {
           <div className="app-layout-130">
             <div><strong>Match ID:</strong> {resultProjection.matchId || "Pending"}</div>
             {game.campaign && <div><strong>Chapter outcome:</strong> {campaignClearType || (didWin ? "Cleared" : "Not cleared")}</div>}
-            {completionEnvelope && <div><strong>Booster credits:</strong> {boosterCreditDelta > 0 ? `+${boosterCreditDelta}` : boosterCreditDelta}</div>}
+            {campaignPackReward && <div><strong>Campaign reward:</strong> {campaignPackReward.name} × {campaignPackReward.count}</div>}
+            {completionEnvelope && !campaignPackReward && <div><strong>Pack credits:</strong> {boosterCreditDelta > 0 ? `+${boosterCreditDelta}` : boosterCreditDelta}</div>}
             {eventReward && <div><strong>Event run:</strong> {eventReward.wins} win{eventReward.wins === 1 ? "" : "s"} · {eventReward.losses} loss{eventReward.losses === 1 ? "" : "es"}{eventReward.status === "complete" ? " · run complete" : ""}</div>}
             {unlockedCardStyles.map((styleId) => <div key={styleId}><strong>Card style earned:</strong> {styleId.split(":")[0].replaceAll("-", " ")}</div>)}
             {goldDelta > 0 && <div><strong>Daily quest gold:</strong> +{goldDelta.toLocaleString()}</div>}
@@ -5158,6 +5169,14 @@ export default function App() {
             })}
           </div>
           <div className="app-layout-133">
+            {campaignPackReward && (
+              <MenuButton
+                disabled={Boolean(authToken) && completionAccountReadyMatchId !== game.matchId}
+                onClick={() => openEarnedCampaignPack(campaignPackReward.packId)}
+              >
+                Open earned pack
+              </MenuButton>
+            )}
             {nextCampaignChapter && (
               <MenuButton
                 disabled={Boolean(authToken) && completionAccountReadyMatchId !== game.matchId}

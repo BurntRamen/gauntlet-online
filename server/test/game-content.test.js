@@ -60,7 +60,7 @@ test("validates the authoritative versioned game content registry", () => {
   assert.match(morphlings.arrivalOnReath, /Denied entry to Astral Vanguard planets/);
   assert.match(morphlings.arrivalOnReath, /Reath is their convergence, not their birthplace/);
   assert.match(morphlings.chapters[0].story, /Human Astral Vanguard personnel/);
-  assert.match(morphlings.chapters[1].endDialogue.join(" "), /We were Astral Vanguard.*becoming Morphlings/);
+  assert.match(morphlings.chapters[1].endDialogue.join(" "), /We were Astral Vanguard.*becoming the Continuants/);
   assert.match(morphlings.chapters[2].story, /grotesque, unstable bodies/);
   for (const [factionId, homeworld, finalTitle] of [
     ["ingles", "Albion Reach", "The Open Door"],
