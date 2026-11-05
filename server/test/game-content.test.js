@@ -392,7 +392,7 @@ test("maps every catalog constructed card into the shared deterministic rules", 
       return !effectId || (handler !== "printed-value-only" && !sharedRulesSource.includes(`"${handler}"`));
     });
 
-  assert.equal(COLLECTION_CARDS.length, 644);
+  assert.equal(COLLECTION_CARDS.length, 696);
   assert.deepEqual(missing, []);
 });
 
@@ -458,7 +458,7 @@ test("requires card-specific constructed behavior coverage for the full catalog"
     })
     .map((card) => card.id);
 
-  assert.equal(COLLECTION_CARDS.length, 644);
+  assert.equal(COLLECTION_CARDS.length, 696);
   assert.deepEqual(missing, []);
 });
 
