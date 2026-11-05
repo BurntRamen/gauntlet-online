@@ -83,8 +83,8 @@ const FACTION_PROFILES = {
   voltari: { id: "voltari", name: "Voltari", commander: "Silicon Sovereign", city: "The Golden Conduit", general: { id: "consent-keeper", name: "Consent Keeper" } },
   xendra: { id: "xendra", name: "Xen’Dra", commander: "The Deep Currents", city: "Total Eclipse", general: { id: "distant-witness", name: "Distant Witness" } },
   morphlings: { id: "morphlings", name: "The Continuants", commander: "Captain Ilyra Vale, Keeper of the First Shape", city: "The Refuge of Returning Light", general: { id: "tessan", name: "Dr. Tessan Rook, Many-Form Guide" } },
-  ingles: { id: "ingles", name: "Ingles", commander: "Queen Victoria Ashbourne", city: "Ashbourne", general: { id: "arthur-wellington", name: "Lord Arthur Wellington" } },
-  mercaw: { id: "mercaw", name: "Mercaw", commander: "Gerrick Warclaw", city: "Accord Spire", general: { id: "rook-talon", name: "Rook Talon" } },
+  ingles: { id: "ingles", name: "Ingles", commander: "First Speaker Elian Wren", city: "Crownless Haven", general: { id: "rowan-vale", name: "Marshal Rowan Vale" } },
+  mercaw: { id: "mercaw", name: "Mercaw", commander: "Convener Mara Kest", city: "Accord Spire", general: { id: "rook-talon", name: "Rook Talon" } },
   mtano: { id: "mtano", name: "M'Tano", commander: "Rainkeeper Amari", city: "Mawingu Terraces", general: { id: "kito", name: "Pathfinder Kito" } },
   russo: { id: "russo", name: "Russo", commander: "Warden Irina Volkov", city: "Novaya Hearth", general: { id: "mikhail-saran", name: "Mikhail Saran" } }
 };
@@ -338,7 +338,7 @@ function makePlayer(number, name, deck, faction = null) {
     accelerationCounters: 0,
     chargeCounters: 0,
     insanityCounters: 0,
-    continuityCounters: 0,
+    ...(faction?.id === "morphlings" ? { continuityCounters: 0 } : {}),
     turnData: createTurnData()
   };
 }
