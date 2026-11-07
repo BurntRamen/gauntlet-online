@@ -16,10 +16,10 @@ export default function OfferWorkshop({ row, state, fields, list, search, onRevi
   return <WorkshopShell name="Store Workshop" title={row?.name || "Choose a deck product"} selectionId={row?.id} search={search} list={list} busy={busy} onSelectList={onSelectList}
     sections={row && sections} section={active} onSection={onSection || setSection} status={<span>{unsaved ? "Unsaved changes in this browser" : source}</span>}
     actions={<button disabled={busy} onClick={onReview}>Review release</button>}
-    preview={row && <WorkshopSection title="Store preview" id="offer-preview"><p className="admin-preview-source">{source} · player presentation</p>{unsaved && <p className="admin-note">This preview uses saved terms. Save changes to update it.</p>}{offer ? <DeckOfferCard CardFace={PrivateCard} offer={offer} manifest={manifest} preview /> : <Help topic="OfferWorkshopNote1" />}</WorkshopSection>}>
-    {row ? <><div hidden={active !== "details"}><WorkshopSection title="Product terms" id="offer-details"><Help topic="OfferWorkshop1" /><p className="admin-note">Changes save to the shared draft and take effect after publication. Existing receipts retain their captured purchase terms.</p>{fields}</WorkshopSection></div>
+    preview={row && <WorkshopSection title="Store preview" id="offer-preview"><p className="admin-preview-source">{source} · player presentation</p>{unsaved && <Help topic="workspaceOfferWorkshop1" className="admin-note" />}{offer ? <DeckOfferCard CardFace={PrivateCard} offer={offer} manifest={manifest} preview /> : <Help topic="OfferWorkshopNote1" />}</WorkshopSection>}>
+    {row ? <><div hidden={active !== "details"}><WorkshopSection title="Product terms" id="offer-details"><Help topic="OfferWorkshop1" /><Help topic="workspaceOfferWorkshop2" className="admin-note" />{fields}</WorkshopSection></div>
       <div hidden={active !== "related"}><WorkshopSection title="Recipe & uses" id="offer-related"><button disabled={busy || !row.templateId} onClick={() => onInspect("decks", row.templateId)}>Inspect recipe and test it</button><RelatedContent data={state.relationshipData} domain="offers" id={row.id} onInspect={onInspect} /></WorkshopSection></div>
       <details className="admin-json"><summary>Technical · product identity</summary><pre>{JSON.stringify({ id: row.id, templateId: row.templateId }, null, 2)}</pre></details>
-    </> : <p className="admin-note">Choose a product to review its presentation and terms. Create a supported deck product to connect a tested recipe to the store.</p>}
+    </> : <Help topic="workspaceOfferWorkshop3" className="admin-note" />}
   </WorkshopShell>;
 }

@@ -52,23 +52,31 @@ The native browser zoom check is `node e2e/admin-native-zoom.cjs`. It requires t
 
 | Check | Result |
 | --- | --- |
-| Production client build, lint, compile and asset pruning | Passed with the structured-editor heading repair and explicit isolated backend; includes current main `6498387` |
-| Full client tests | 118 suites, 919 tests passed in CI on `fd0659d`; 33 affected local tests also passed after the structured-heading repair |
+| Production client build, lint, compile and asset pruning | Passed after shared-editor consolidation with the explicit isolated backend; includes current main `6498387` |
+| Full client tests | 121 suites, 935 tests passed after shared-editor consolidation and versioned guidance |
+| Deferred catalog loading | 9 affected client tests passed, including first Content/Players access, direct links, navigation reuse and explicit refresh; final full-suite CI also includes the four new regressions |
 | Full server tests | 596 passed, zero failures in CI on `fd0659d`, including all seven added validation regression cases |
+| Versioned guidance and workshop projections | 6 affected server tests passed, including authenticated writable and read-only outage responses, private access, and complete client guidance |
 | Focused record-validation regressions | 49 affected server tests passed for `232ee6e`, plus 3 final schema/malformed-data checks; all 11 record-save cases covered |
 | Qualification tests | 53 passed |
-| Client toolchain tests | 4 passed in CI on `fd0659d` |
+| Client toolchain tests | 4 passed after consolidation |
 | Strict match-asset report | Passed; no cutover blockers or checksum mismatches |
 | Focused redesign browser suite | 12 unique journeys passed on current main; final screenshots and preference coverage refreshed |
 | Existing admin browser suites | All 37 unique journeys passed across the five configurations, including targeted reruns after navigation, heading and response-synchronization fixes |
 | Native 200% browser zoom | Passed: actual 200% page zoom, keyboard focus, zero Axe violations and 1366×768 full-surface capture |
-| Bundle checks | Main, player, initial Admin entry and largest async chunk passed; aggregate Admin budget failed |
+| Bundle checks | All five limits passed: aggregate Admin 71.2/75, main 177.4/180, player 752.9/759, initial Admin entry 14.4/20, largest async 274.2/350 KiB gzip |
 
-The aggregate lazy Admin JavaScript is **74.5 KiB gzip against the unchanged 61.0 KiB limit**. This is a merge blocker. The draft PR must remain unmerged until that budget is met; the limits were not relaxed. Passing budgets are main 177.4/180.0 KiB, player JavaScript 752.9/759.0 KiB, initial Admin entry 14.3/20.0 KiB, and largest async chunk 274.2/350.0 KiB.
+The aggregate lazy Admin JavaScript is **71.2 KiB gzip against the operator-approved 75.0 KiB limit**. The original 61 KiB allowance had only 10 bytes of headroom in the captured `b6d80ff` baseline (62,454 of 62,464 bytes). The user approved a modest Admin-only allowance after reviewing the tradeoff, with fast loading as the requirement. All player limits and the 20 KiB initial Admin entry limit remain unchanged. Source-map accounting still rejects unnamed Admin chunks and accidental imports into the player bundle, and charges shared Economy code to both budgets.
 
-[The completed CI check job](https://github.com/BurntRamen/gauntlet-online/actions/runs/42341671985/job/128310492214) passed server, client, toolchain and production-build steps, then failed the unchanged aggregate Admin bundle gate. The CI production build also passed the other four bundle limits (main 177.5/180 KiB, player 755.5/759 KiB, initial Admin 14.3/20 KiB, largest async 274.2/350 KiB).
+The first redesign build used 74.5 KiB. Consolidating redundant imports within the existing lazy workshop boundary, registry edit-session behavior, typed value controls, and immutable field updates reduced it to 71.2 KiB without removing controls or workflows. All 56 relocated explanatory strings match their prior wording and add 5,735 raw bytes (1,503 gzip bytes in isolation) to the existing protected server guide, with no additional request; client behavior remains in counted JavaScript. There is no new rendering protocol or dependency. Home retains the small initial Admin entry, and the workshop code loads when needed.
 
-A source-map audit found no duplicated vendor payload. The captured `b6d80ff` baseline, restricted to files in its asset manifest, used 62,454 bytes of the 62,464-byte Admin allowance. The redesign uses 76,250 bytes. An isolated internal-import consolidation experiment saved about 2 KiB but still exceeded the limit; it was not applied. Meeting the unchanged budget remains unfinished work.
+Cold Home also defers the full private catalog until an authoring workspace or Players first needs it. The original request transferred 7,215,882 uncompressed bytes in the isolated fixture despite Home not consuming that data. Once requested, the catalog remains available across navigation and still reloads on explicit Refresh; direct Content and Players links request it immediately. This reduces unnecessary network, server and JSON parsing work independently of the JavaScript budget.
+
+[Loading measurements](after/loading.json) record three fresh browser contexts plus a 4× CPU sample against the production build and isolated backend. Host-speed medians were 2.73 seconds to populated Home, 1.51 seconds for first Content, and 239 ms to open a selected editor. Typing took 25–74 ms through two animation frames with no typing long tasks in the host-speed samples. All four contexts confirmed that Home requested neither the catalog nor the workshop chunk. The local server sends uncompressed assets without caching; these are local QA measurements, not production latency or field INP. Host variability prevents a before/after timing claim, and the slower 4× CPU results remain in the evidence. The verified improvement is removing Home's unnecessary catalog download and parsing work.
+
+The corrected Gold/Para release pair passed together after a CI trace revealed a click before the save response body completed. The helper now waits for the completed response, enabled editor, and saved editor/shell states. Cleanup covers setup failures too, preventing a failed Gold setup from leaving a draft in the next journey. Purchase, ownership, archive, refund, seed and rollback assertions remain intact.
+
+Record saves require `PATCH /api/admin/authoring/record`, and the updated guidance requires `guide.workspaceVersion: 1`. Deploy the server before or with the client. During a mixed-version rollout, the client explicitly reports that the Admin update is deploying and withholds editors until refreshed compatible guidance arrives; the compatibility regression verifies recovery. Final-head CI and both frontend/backend production revisions must be checked before calling the release live.
 
 Responsive coverage uses 1920 × 1080, 1280 × 720, 768 × 1024, 390 × 844, and 683 × 384 CSS pixels, with reduced motion enabled, overflow checks, drawer keyboard behavior, accessible names and zero Axe violations at all five sizes. The phone journey edits a field, switches sections and preview modes without losing the buffer, saves, and verifies the shared draft response. The 683 × 384 viewport is a reflow simulation. Separately, real browser page zoom changed the measured viewport from 1366 × 768 at device pixel ratio 1 to 683 × 384 at device pixel ratio 2, with `visualViewport.scale` remaining 1; [native zoom metrics](after/native-zoom.json) distinguish that check from viewport emulation.
 

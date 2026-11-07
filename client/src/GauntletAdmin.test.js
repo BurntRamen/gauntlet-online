@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import GauntletAdmin from "./GauntletAdmin";
 
-jest.mock("./GauntletAuthoring", () => ({ __esModule: true, default: ({ area }) => <p>Authoring area: {area}</p> }));
+jest.mock("./GauntletAuthoring", () => ({ __esModule: true, default: ({ area, catalog }) => <><p>Authoring area: {area}</p><span>{catalog ? "Catalog ready" : "Catalog loading"}</span></> }));
 
 const id = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const record = { matchId: id, mode: "campaign", recordVersion: 2, contentVersion: "content-v1", participants: [{ playerNum: 1, displayName: "Player A", faction: { name: "Rumin" }, result: "win", deck: { deckVersionId: "deck-v1" } }], campaign: { title: "First battle" }, auditEvents: [{ sequence: 1, turn: 1, eventType: "game_completed", publicPayload: { message: "Player 1 wins." }, stateChecksum: "checksum" }], leagueEvidence: [] };
@@ -30,6 +30,36 @@ function select(area) {
   if (area === "Matches" && screen.queryByRole("button", { name: "Match evidence" })) fireEvent.click(screen.getByRole("button", { name: "Match evidence" }));
   if (area === "System") fireEvent.click(screen.getByRole("button", { name: "Health" }));
 }
+
+test.each(["Content", "Players"])("Home defers the catalog until %s needs it, then navigation retains it and Refresh reloads it", async area => {
+  const catalogReads = () => request.mock.calls.filter(([path]) => path === "/api/admin/catalog").length;
+  const ready = () => screen.findByText(area === "Content" ? "Catalog ready" : "Player A");
+  render(<GauntletAdmin request={request} onClose={() => {}} />);
+  await screen.findByRole("heading", { name: "Make your next move." });
+  expect(catalogReads()).toBe(0);
+  fireEvent.click(screen.getByText("Refresh admin"));
+  await screen.findByRole("heading", { name: "Make your next move." });
+  expect(catalogReads()).toBe(0);
+  select(area);
+  await waitFor(() => expect(catalogReads()).toBe(1));
+  await ready();
+  select("Home");
+  await screen.findByRole("heading", { name: "Make your next move." });
+  select(area);
+  await ready();
+  expect(catalogReads()).toBe(1);
+  fireEvent.click(screen.getByText("Refresh admin"));
+  await waitFor(() => expect(catalogReads()).toBe(2));
+  await ready();
+});
+
+test.each(["Content", "Players"])("a direct %s entry requests its catalog without visiting Home", async area => {
+  window.history.replaceState({}, "", `/admin/gauntlet?area=${area}`);
+  render(<GauntletAdmin request={request} onClose={() => {}} />);
+  await waitFor(() => expect(request).toHaveBeenCalledWith("/api/admin/catalog"));
+  await screen.findByText(area === "Content" ? "Catalog ready" : "Player A");
+  expect(request).not.toHaveBeenCalledWith("/api/admin/home");
+});
 
 test("provides seven modular areas with content, player state and original match evidence", async () => {
   render(<GauntletAdmin request={request} onClose={() => {}} />);
@@ -170,6 +200,7 @@ test("returning from Design preserves the match filter and page scroll", async (
     fireEvent.change(await screen.findByLabelText("Search recent records"), { target: { value: "Player A" } });
     Object.defineProperty(window, "scrollY", { configurable: true, value: 720 });
     select("Design");
+    await screen.findByText("Catalog ready");
     Object.defineProperty(window, "scrollY", { configurable: true, value: 140 });
     fireEvent.click(screen.getByRole("button", { name: "Return to match inspection" }));
     expect(screen.getByLabelText("Search recent records")).toHaveValue("Player A");

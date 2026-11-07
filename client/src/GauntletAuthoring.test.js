@@ -61,6 +61,18 @@ beforeEach(() => {
 });
 afterEach(() => jest.restoreAllMocks());
 
+test("an older workspace guide waits for the matching backend before showing editors", async () => {
+  state.guide = { ...guide };
+  delete state.guide.workspaceVersion;
+  const { rerender } = render(<GauntletAuthoring {...props()} />);
+  expect(await screen.findByText("Admin update is deploying. Refresh admin shortly.")).toBeVisible();
+  expect(screen.queryByRole("button", { name: "Inspect First card" })).not.toBeInTheDocument();
+  state.guide = guide;
+  rerender(<GauntletAuthoring {...props()} revision={1} />);
+  expect(await screen.findByRole("button", { name: "Inspect First card" })).toBeVisible();
+  expect(screen.queryByText("Admin update is deploying. Refresh admin shortly.")).not.toBeInTheDocument();
+});
+
 test("Para conflicts retain the original revision until the operator explicitly retries", async () => {
   const season = { id: "season-one", name: "Original season" };
   state.live.paraLeague = { seasons: [season], events: [], products: [] };

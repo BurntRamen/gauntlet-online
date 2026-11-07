@@ -27,15 +27,16 @@ export const CONTENT_DESTINATIONS = [
 ];
 const contentDestination = domain => CONTENT_DESTINATIONS.find(([, types]) => types.some(([id]) => id === domain)) || CONTENT_DESTINATIONS[0];
 
-function useAdminData(request, path, revision) {
+function useAdminData(request, path, revision, enabled = true) {
   const [state, setState] = useState({ loading: true, data: null, error: "" });
   useEffect(() => {
+    if (!enabled) return undefined;
     let active = true;
     setState({ loading: true, data: null, error: "" });
     request(path).then((data) => { if (active) setState({ loading: false, data, error: "" }); })
       .catch((error) => { if (active) setState({ loading: false, data: null, error: error.message }); });
     return () => { active = false; };
-  }, [request, path, revision]);
+  }, [request, path, revision, enabled]);
   return state;
 }
 
@@ -168,7 +169,9 @@ function AdminWorkspace({ request, onClose, operations, exitGuard, environment }
     if (value === "Match evidence") setMatchesOpened(true);
   });
   const inspectContent = (domain, id) => selectArea("Content", domain, id);
-  const catalog = useAdminData(request, "/api/admin/catalog", revision);
+  const [catalogRequested, setCatalogRequested] = useState(!!authoringArea || area === "Players");
+  useEffect(() => { if (authoringArea || area === "Players") setCatalogRequested(true); }, [authoringArea, area]);
+  const catalog = useAdminData(request, "/api/admin/catalog", revision, catalogRequested);
   const currentDomain = editing?.domain || contentDomain?.name || targetFromLocation({ domain: "cards" }).domain;
   const destination = contentDestination(currentDomain);
   const closeDrawer = () => { setDrawer(false); drawerTrigger.current?.focus(); };

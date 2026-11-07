@@ -1,0 +1,213 @@
+{
+  "measuredAt": "2026-11-07T06:55:16.176Z",
+  "build": {
+    "adminBudgetBytes": 76800,
+    "aggregateAdminGzipBytes": 72890,
+    "adminFiles": [
+      {
+        "name": "gauntlet-admin-economy-shared.b2ebe03d.chunk.js",
+        "gzipBytes": 1635
+      },
+      {
+        "name": "gauntlet-admin-workshops.2eb67217.chunk.js",
+        "gzipBytes": 56518
+      },
+      {
+        "name": "gauntlet-admin.4df5da84.chunk.js",
+        "gzipBytes": 14737
+      }
+    ]
+  },
+  "method": {
+    "browser": "Playwright Chromium, headless",
+    "viewport": "1366x768",
+    "fixture": "e2e/admin-server.js with fresh isolated local data",
+    "build": "Production webpack build with loopback API origin",
+    "samples": "Three fresh browser contexts at host speed, followed by one Chromium 4x CPU sample",
+    "cache": "Fresh storage; external-origin route guard disables HTTP cache",
+    "network": "Loopback without network throttling; static server sends uncompressed assets with Cache-Control: no-store",
+    "home": "Navigation to /admin/gauntlet?area=Home through visible Home heading and two animation frames",
+    "content": "Content navigation through visible target catalog record and two animation frames",
+    "record": "Record click through visible Draft name input and two animation frames",
+    "typing": "Three real keyboard characters; event-to-two-animation-frame delay, not field INP; local buffer restored without saving",
+    "gzipLevel": 9,
+    "isolation": "All non-loopback HTTP(S) browser origins blocked. No production mutations or profile payloads recorded.",
+    "contention": "An intermediate run overlapping focused unit tests was excluded. Final samples ran after that process exited."
+  },
+  "hostMedian": {
+    "homeReadyMs": 2733,
+    "homeRangeMs": [
+      2101,
+      3850
+    ],
+    "firstContentfulPaintMs": 280,
+    "contentReadyMs": 1508,
+    "recordReadyMs": 239,
+    "mechanicsSectionMs": 205,
+    "detailsSectionMs": 183,
+    "typingTwoFramesRangeMs": [
+      25,
+      74
+    ],
+    "typingLongTaskCount": 0
+  },
+  "samples": [
+    {
+      "cpuSlowdown": 1,
+      "homeReadyMs": 3850,
+      "firstContentfulPaintMs": 292,
+      "contentReadyMs": 2101,
+      "recordReadyMs": 371,
+      "mechanicsSectionMs": 309,
+      "detailsSectionMs": 200,
+      "typing": {
+        "inputToTwoAnimationFramesMs": [
+          74,
+          51,
+          32
+        ],
+        "longTaskCount": 0,
+        "longestTaskMs": 0
+      },
+      "pageErrors": []
+    },
+    {
+      "cpuSlowdown": 1,
+      "homeReadyMs": 2733,
+      "firstContentfulPaintMs": 280,
+      "contentReadyMs": 1508,
+      "recordReadyMs": 239,
+      "mechanicsSectionMs": 198,
+      "detailsSectionMs": 133,
+      "typing": {
+        "inputToTwoAnimationFramesMs": [
+          70,
+          29,
+          29
+        ],
+        "longTaskCount": 0,
+        "longestTaskMs": 0
+      },
+      "pageErrors": []
+    },
+    {
+      "cpuSlowdown": 1,
+      "homeReadyMs": 2101,
+      "firstContentfulPaintMs": 216,
+      "contentReadyMs": 1425,
+      "recordReadyMs": 226,
+      "mechanicsSectionMs": 205,
+      "detailsSectionMs": 183,
+      "typing": {
+        "inputToTwoAnimationFramesMs": [
+          65,
+          25,
+          26
+        ],
+        "longTaskCount": 0,
+        "longestTaskMs": 0
+      },
+      "pageErrors": []
+    },
+    {
+      "cpuSlowdown": 4,
+      "homeReadyMs": 4891,
+      "firstContentfulPaintMs": 1068,
+      "contentReadyMs": 5162,
+      "recordReadyMs": 1462,
+      "mechanicsSectionMs": 984,
+      "detailsSectionMs": 851,
+      "typing": {
+        "inputToTwoAnimationFramesMs": [
+          307,
+          408,
+          207
+        ],
+        "longTaskCount": 4,
+        "longestTaskMs": 217
+      },
+      "pageErrors": []
+    }
+  ],
+  "comparison": {
+    "change": "Request the catalog on first Content or Players use, retaining it for the operator session and preserving explicit refresh.",
+    "beforeMeasuredAt": "2026-11-07T06:45:52.585Z",
+    "beforeHostMedian": {
+      "homeReadyMs": 2228,
+      "homeRangeMs": [
+        2136,
+        2232
+      ],
+      "firstContentfulPaintMs": 232,
+      "contentReadyMs": 1299,
+      "recordReadyMs": 233,
+      "mechanicsSectionMs": 215,
+      "detailsSectionMs": 185,
+      "typingTwoFramesRangeMs": [
+        24,
+        64
+      ],
+      "typingLongTaskCount": 0
+    },
+    "afterHostMedian": {
+      "homeReadyMs": 2733,
+      "homeRangeMs": [
+        2101,
+        3850
+      ],
+      "firstContentfulPaintMs": 280,
+      "contentReadyMs": 1508,
+      "recordReadyMs": 239,
+      "mechanicsSectionMs": 205,
+      "detailsSectionMs": 183,
+      "typingTwoFramesRangeMs": [
+        25,
+        74
+      ],
+      "typingLongTaskCount": 0
+    },
+    "catalogRequestedDuringHome": {
+      "before": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "after": [
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    "baselineCatalogEncodedResponseBytes": 7215882,
+    "interpretation": "The request is absent from Home in all final samples. Local timing variability does not establish a before/after speedup; the verified improvement is deferring this large unused startup response."
+  },
+  "requestProof": {
+    "scriptsRequestedBeforeHomeReady": [
+      "main.d5d3ee13.js",
+      "gauntlet-command-deck.d3a5cfb2.chunk.js",
+      "gauntlet-admin.4df5da84.chunk.js",
+      "match-history.69281dab.chunk.js",
+      "705.ba5b81b9.chunk.js"
+    ],
+    "additionalScriptsRequestedOnFirstContent": [
+      "content-consumers.88d0a0af.chunk.js",
+      "gauntlet-match.2b574dc7.chunk.js",
+      "gauntlet-admin-workshops.2eb67217.chunk.js"
+    ],
+    "workshopRequestedBeforeHome": false,
+    "wholeApplicationGzipEquivalentJS": {
+      "home": 236841,
+      "afterContent": 447365
+    },
+    "note": "These include existing application and engine dependencies, not only the Admin-source budget. Gzip equivalents use exact requested build files; local transfer was uncompressed.",
+    "sharedContentChunks": "content-consumers contains DeckOfferCard and compositionContract. gauntlet-match groups shared duel rules with existing match presentation code. No babylon-shared or WebGL-shader chunk was requested."
+  },
+  "limitations": [
+    "Local QA timings are not production latency or real-user Web Vitals.",
+    "CPU throttling simulates a slower CPU; its slower loading and typing results are retained above.",
+    "Existing public-content and account JSON also affect initial startup. The Admin JavaScript budget does not measure API response sizes.",
+    "Three host-speed samples characterize this fixture and machine only; no statistical latency guarantee is implied."
+  ]
+}

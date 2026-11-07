@@ -64,8 +64,15 @@ async function saveDefinition(page) {
   const button = page.getByRole("button", { name: "Save definition to draft", exact: true });
   const saved = page.waitForResponse(response => response.url().endsWith("/authoring/para-draft") && response.request().method() === "POST");
   await button.click();
-  expect((await saved).ok()).toBeTruthy();
+  const response = await saved;
+  expect(response.ok()).toBeTruthy();
+  await response.finished();
+  // Response headers arrive before the potentially large authoring body. A
+  // disabled Save button also means busy, so wait for the acknowledged editor.
+  await expect(name).toBeEnabled();
   await expect(name).toHaveValue(expectedName);
+  await expect(page.getByRole("region", { name: "Para definition editor", exact: true }).getByRole("heading", { name: "Edit definition · Saved draft", exact: true })).toBeVisible();
+  await expect(page.locator(".admin-save-context")).toHaveText("Saved to shared draft");
   await expect(button).toBeDisabled();
   await page.getByRole("button", { name: "Close definition", exact: true }).click();
   await expect(name).toHaveCount(0);

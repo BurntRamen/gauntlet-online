@@ -1,3 +1,4 @@
+import Help from "./AuthoringHelp";
 import { useLayoutEffect, useRef, useState } from "react";
 import { PrivateImage } from "./PrivateAsset";
 import { getCardIllustration } from "../SpecialCardFace";
@@ -20,7 +21,7 @@ export default function ContentBrowser({ rows, total, domain, selected, busy, on
   const sorted = [...rows].sort((a,b) => sort === "name" ? contentName(a).localeCompare(contentName(b)) : sort === "changed" ? Number(changed(b.id)) - Number(changed(a.id)) : 0);
   const visual = ["cards", "assets", "factions", "characters", "asset-library"].includes(domain);
   return <><div className="admin-browser-count"><span>{rows.length} of {total} · loaded catalog</span>{visual && <button aria-pressed={gallery} onClick={() => setGallery(!gallery)}>{gallery ? "List" : "Gallery"}</button>}</div><div ref={browser} onScroll={event => onPosition?.(event.currentTarget.scrollTop)} className={`admin-object-list admin-content-browser ${gallery ? "is-gallery" : ""}`}>
-    {!rows.length && <p className="admin-empty" role="status">No matches in this catalog. Clear the filters or try another name.</p>}
+    {!rows.length && <Help topic="workspaceContentBrowser1" className="admin-empty" role="status" />}
     {sorted.map(entry => {
       const card = domain === "cards" ? manifest?.cards?.find(card => card.id === entry.id) : null;
       const variant = domain === "assets" ? manifest?.collectorVariants?.find(variant => variant.variantId === entry.id) : null;

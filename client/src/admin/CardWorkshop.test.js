@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import CardWorkshop from "./CardWorkshop";
 import { HelpProvider } from "./AuthoringHelp";
-const wrapper = ({ children }) => <HelpProvider value={require("../../../server/adminHelpTopics.json")}>{children}</HelpProvider>;
+const wrapper = ({ children }) => <HelpProvider value={require("../../../server/adminAuthoringGuide").help}>{children}</HelpProvider>;
 import { create } from "@gauntlet/duel-rules/compositionContract";
 
 jest.mock("../SpecialCardFace", () => ({ __esModule: true, default: ({ card }) => <p data-testid="card-face">{card.name} · {card.suit} · {card.presentation?.illustration}</p> }));
@@ -46,7 +46,7 @@ test("authored mechanics retain printing controls and show their deployed Suppor
 
 test("card-local changes never relabel the saved card face and do not block another clean printing", () => {
   const data = { ...state(), draft: { hash: "hash", snapshot: state().live }, localDirtyRecords: { "cards:spear": true } };
-  const { rerender } = render(<CardWorkshop row={card} state={data} field={() => null} unsaved />);
+  const { rerender } = render(<CardWorkshop row={card} state={data} field={() => null} unsaved />, { wrapper });
   expect(screen.getByText("Saved draft · player card face")).toBeInTheDocument();
   expect(screen.getByText(/Local edits are not included in this preview/)).toBeInTheDocument();
   expect(screen.getByLabelText("Collector version")).toBeEnabled();
