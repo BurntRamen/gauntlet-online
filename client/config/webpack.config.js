@@ -29,7 +29,9 @@ module.exports = function createConfig(mode = "production", environment = proces
     loader: require.resolve("babel-loader"),
     options: {
       babelrc: false, configFile: false, cacheDirectory: true,
-      presets: [[require.resolve("@babel/preset-env"), { exclude: ["transform-typeof-symbol"] }], ...(react ? [[require.resolve("@babel/preset-react"), { runtime: "automatic", development: !production }]] : [])],
+      // Use targeted engine bug fixes instead of lowering whole syntax groups.
+      // The existing Browserslist support targets remain authoritative.
+      presets: [[require.resolve("@babel/preset-env"), { bugfixes: true, exclude: ["transform-typeof-symbol"] }], ...(react ? [[require.resolve("@babel/preset-react"), { runtime: "automatic", development: !production }]] : [])],
       plugins: [[require.resolve("@babel/plugin-transform-runtime"), { absoluteRuntime: path.dirname(require.resolve("@babel/runtime/package.json")), version: require("@babel/runtime/package.json").version }]]
     }
   });
