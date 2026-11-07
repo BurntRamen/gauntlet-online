@@ -66,6 +66,20 @@ test("More exposes truthful destinations and customization, traps keyboard focus
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 });
 
+test("closing More preserves focus already moved to the page before the next frame", () => {
+  const frames = [];
+  const raf = jest.spyOn(window, "requestAnimationFrame").mockImplementation(callback => { frames.push(callback); return frames.length; });
+  try {
+    renderShell({ customizable: true, onCustomize: () => {} });
+    fireEvent.click(screen.getAllByRole("button", { name: "More" })[0]);
+    fireEvent.click(screen.getByRole("button", { name: "Customize this page" }));
+    const nextControl = screen.getByRole("button", { name: "Settings", exact: true });
+    nextControl.focus();
+    act(() => frames.splice(0).forEach(callback => callback()));
+    expect(nextControl).toHaveFocus();
+  } finally { raf.mockRestore(); }
+});
+
 test("closing More by backdrop restores body scrolling and entering a destination preserves navigation", () => {
   const { onNavigate } = renderShell();
   const more = screen.getAllByRole("button", { name: "More" })[0];

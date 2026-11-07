@@ -12,7 +12,10 @@ function waitForBufferedAdminResponse(page, predicate) {
       }
 
       try {
-        const response = await route.fetch();
+        // Playwright's API transport shares a keep-alive pool across contexts.
+        // These requests follow long UI operations; do not retain fixture sockets
+        // or replay a mutation whose response was lost.
+        const response = await route.fetch({ headers: { ...await request.allHeaders(), connection: "close" }, maxRetries: 0 });
         const body = await response.body();
         await route.fulfill({ response, body });
         await page.unroute(pattern, handler);
@@ -25,6 +28,9 @@ function waitForBufferedAdminResponse(page, predicate) {
           json: async () => payload
         });
       } catch (error) {
+        // Removing a pending route otherwise releases the original browser
+        // request, which could execute the same mutation a second time.
+        await route.abort("failed").catch(() => {});
         await page.unroute(pattern, handler).catch(() => {});
         reject(error);
       }

@@ -126,9 +126,12 @@ export default function PlayerShell({ serverUrl, destination = "play", navigatio
     setMoreOpen(true);
   };
   const closeMore = React.useCallback((restoreFocus = true) => {
+    const closingFocus = document.activeElement;
     setMoreOpen(false);
     // Wait until React removes inert from the application surface.
     window.requestAnimationFrame(() => {
+      // Keep focus if the player or destination already moved it after closing.
+      if (document.activeElement !== document.body && document.activeElement !== closingFocus) return;
       const target = restoreFocus !== false ? returnFocusRef.current : mainRef.current?.querySelector("[data-cd-workflow-heading]") || titleRef.current;
       target?.focus({ preventScroll: true });
     });
