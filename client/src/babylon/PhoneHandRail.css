@@ -36,11 +36,11 @@
 
 .phone-hand-card {
   position: relative;
-  flex: 0 0 92px;
-  width: 92px;
-  height: 129px;
-  min-width: 92px;
-  min-height: 129px;
+  flex: 0 0 108px;
+  width: 108px;
+  height: 151px;
+  min-width: 108px;
+  min-height: 151px;
   box-sizing: border-box;
   overflow: hidden;
   padding: 0;
@@ -140,13 +140,6 @@
 
 @media (max-width: 600px) and (orientation: portrait) {
   .phone-hand-panel header { padding: 4px 10px; font-size: 13px; line-height: 18px; }
-  .phone-hand-card {
-    flex-basis: 108px;
-    width: 108px;
-    height: 151px;
-    min-width: 108px;
-    min-height: 151px;
-  }
   .phone-hand-type { max-width: 82px; font-size: 10px; line-height: 12px; }
   .phone-hand-selection { padding: 4px 2px; font-size: 12px; line-height: 14px; }
 }
