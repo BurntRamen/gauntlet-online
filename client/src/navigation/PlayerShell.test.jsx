@@ -66,20 +66,6 @@ test("More exposes truthful destinations and customization, traps keyboard focus
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 });
 
-test("closing More preserves focus already moved to the page before the next frame", () => {
-  const frames = [];
-  const raf = jest.spyOn(window, "requestAnimationFrame").mockImplementation(callback => { frames.push(callback); return frames.length; });
-  try {
-    renderShell({ customizable: true, onCustomize: () => {} });
-    fireEvent.click(screen.getAllByRole("button", { name: "More" })[0]);
-    fireEvent.click(screen.getByRole("button", { name: "Customize this page" }));
-    const nextControl = screen.getByRole("button", { name: "Settings", exact: true });
-    nextControl.focus();
-    act(() => frames.splice(0).forEach(callback => callback()));
-    expect(nextControl).toHaveFocus();
-  } finally { raf.mockRestore(); }
-});
-
 test("closing More by backdrop restores body scrolling and entering a destination preserves navigation", () => {
   const { onNavigate } = renderShell();
   const more = screen.getAllByRole("button", { name: "More" })[0];
@@ -92,6 +78,27 @@ test("closing More by backdrop restores body scrolling and entering a destinatio
   fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: /^Matches/ }));
   expect(onNavigate).toHaveBeenCalledWith("matches");
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+});
+
+test("deferred More restoration does not steal focus from a newly opened layout control", () => {
+  const frames = [];
+  const animationFrame = jest.spyOn(window, "requestAnimationFrame").mockImplementation(callback => { frames.push(callback); return frames.length; });
+  function CustomizableShell() {
+    const [editing, setEditing] = React.useState(false);
+    return <PlayerShell onNavigate={() => {}} customizable editing={editing} onCustomize={() => setEditing(true)}>
+      {editing && <select aria-label="Panel options for Ranked Match"><option>Panel options</option><option>Move Earlier</option></select>}
+    </PlayerShell>;
+  }
+  try {
+    render(<CustomizableShell />);
+    fireEvent.click(screen.getAllByRole("button", { name: "More" })[0]);
+    fireEvent.click(screen.getByRole("button", { name: "Customize this page" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    const ranked = screen.getByLabelText("Panel options for Ranked Match");
+    ranked.focus();
+    act(() => frames.splice(0).forEach(callback => callback(0)));
+    expect(ranked).toHaveFocus();
+  } finally { animationFrame.mockRestore(); }
 });
 
 test("focused workflows omit customization while Done Editing remains globally reachable", () => {

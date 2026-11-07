@@ -28,7 +28,7 @@
 .admin-player-profile { min-width:0; border-left:1px solid var(--admin-line); padding-left:24px; }
 .admin-player-profile .admin-facts { grid-template-columns:repeat(auto-fit,minmax(min(130px,100%),1fr)); }
 .admin-player-edit { margin-block:16px; padding:4px 16px 12px; background:#182b38; border-left:3px solid #efc06e; }
-.admin-player-heading h4 { font-size:26px; color:#f4d49d; margin:8px 0; overflow-wrap:anywhere; }
+.admin-player-heading h3 { font-size:26px; color:#f4d49d; margin:8px 0; overflow-wrap:anywhere; }
 .admin-player-heading p { margin:8px 0; }.admin-player-back { display:none; }
 .admin-player-totals { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin:14px 0; color:var(--admin-muted); font-size:12px; }.admin-player-totals p { margin:0; }.admin-player-totals strong { display:block; color:#efc06e; font-size:22px; margin-bottom:4px; }
 .admin-player-empty { padding:24px; color:var(--admin-muted); border:1px dashed var(--admin-line); }
@@ -142,7 +142,7 @@
 @media(max-width:650px) { .admin-context-back { float:none; margin:0 0 8px; font-size:12px; min-height:36px; }.design-header-actions .admin-tags { font-size:11px; }.design-workspace-header h3 { font-size:1.2rem; } }
 
 /* Shared operator surfaces: clear hierarchy without competing panel treatments. */
-.admin-header h3,.admin-title-row h3,.admin-body > h4,.design-header h3,.design-section > h4,.admin-player-heading h4,.workshop-context h4 { font-family:inherit; letter-spacing:-.015em; line-height:1.3; }
+.admin-header h3,.admin-title-row h3,.admin-body > h4,.design-header h3,.design-section > h4,.admin-player-heading h3,.workshop-context h4 { font-family:inherit; letter-spacing:-.015em; line-height:1.3; }
 .admin-header { background:var(--admin-raised); }
 .admin-header p { max-width:52ch; font-size:13px; }
 .admin-header .admin-actions button { background:transparent; border-color:var(--admin-line); }
@@ -156,7 +156,7 @@
 .admin-badge.is-draft { color:#b5deef; border-color:#52798c; background:#254253; }
 .admin-badge.is-unsaved { color:#ffe0a4; border-color:#9b7c44; background:#49381d; }
 .admin-player-heading { padding:16px 18px; border:1px solid var(--admin-line); border-radius:8px; background:var(--admin-surface); }
-.admin-player-heading h4 { margin:6px 0; }
+.admin-player-heading h3 { margin:6px 0; }
 .admin-player-heading p { margin-bottom:0; }
 .admin-draft-bar { border-bottom:1px solid var(--admin-line); margin-bottom:12px; }
 .workshop-context { border:1px solid var(--admin-line); border-left:3px solid var(--admin-accent); background:var(--admin-raised); border-radius:8px; padding:14px 16px; }

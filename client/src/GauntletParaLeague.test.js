@@ -9,7 +9,7 @@ function fixture() {
 function tab(name) { fireEvent.click(within(screen.getByRole("navigation", { name: "Para workspaces" })).getByRole("button", { name, exact: true })); }
 
 test("structured creation sends typed fields with no source or JSON editing", async () => {
-  const props = fixture(); render(<GauntletParaLeague {...props} />);
+  const props = fixture(); props.act.mockImplementation(async (_action, body) => ({ ...props.state, draft: { snapshot: { paraLeague: { ...props.state.live.paraLeague, seasons: [...props.state.live.paraLeague.seasons, body.value] } } } })); render(<GauntletParaLeague {...props} />);
   tab("Seasons"); fireEvent.click(screen.getByRole("button", { name: "New season" }));
   fireEvent.change(screen.getByLabelText("ID"), { target: { value: "second-season" } });
   fireEvent.change(screen.getByLabelText("Name"), { target: { value: "Second season" } });
@@ -18,7 +18,8 @@ test("structured creation sends typed fields with no source or JSON editing", as
   fireEvent.click(screen.getByRole("button", { name: "Save definition to draft" }));
   await waitFor(() => expect(props.act).toHaveBeenCalledWith("para-draft", { operation: "create", domain: "seasons", id: "second-season", value: { id: "second-season", name: "Second season", goldBudget: 3200, status: "draft" } }));
   expect(props.state.live.paraLeague.seasons).toHaveLength(1);
-  await waitFor(() => expect(screen.queryByLabelText("Name")).not.toBeInTheDocument());
+  await waitFor(() => expect(screen.getByLabelText("Name")).toHaveValue("Second season"));
+  expect(screen.getByRole("button", { name: "Save definition to draft" })).toBeDisabled();
 });
 
 test("failed save preserves values; navigation cancellation protects unsaved work", async () => {

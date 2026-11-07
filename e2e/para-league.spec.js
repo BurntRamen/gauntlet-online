@@ -1,4 +1,4 @@
-const { area: adminArea, paraTab, identity } = require("./admin-navigation");
+const { area: adminArea, paraTab, identity, saveDefinition } = require("./admin-navigation");
 const { origin } = require("./admin-urls");
 const { test, expect } = require("@playwright/test");
 const AxeBuilder = require("@axe-core/playwright").default;
@@ -21,12 +21,7 @@ test("operators author Para definitions, simulate, publish and restore without t
   expect((await get("/api/admin/authoring")).live.paraLeague).toBeUndefined();
   const tabs = page.getByRole("navigation", { name: "Para workspaces" });
   const choose = (name) => paraTab(page, name);
-  const save = async () => {
-    const saved = page.waitForResponse(response => response.url().endsWith("/authoring/para-draft") && response.request().method() === "POST", { timeout: 15000 });
-    await page.getByRole("button", { name: "Save definition to draft" }).click();
-    expect((await saved).ok()).toBeTruthy();
-    await expect(page.getByLabel("Name", { exact: true })).toHaveCount(0);
-  };
+  const save = () => saveDefinition(page);
 
   await choose("Seasons");
   await page.getByRole("button", { name: "New season", exact: true }).click();
@@ -68,10 +63,10 @@ test("operators author Para definitions, simulate, publish and restore without t
   await choose("Seasons");
   await page.getByRole("button", { name: /^Browser season browser-season/ }).click();
   await page.getByLabel("Name", { exact: true }).fill("Unsaved edit");
-  await nav.getByRole("button", { name: "Publishing", exact: true }).click();
+  await adminArea(page, "Publishing");
   await page.getByRole("button", { name: "Keep editing", exact: true }).click();
   await expect(page.getByLabel("Name", { exact: true })).toHaveValue("Unsaved edit");
-  await page.getByRole("button", { name: "Close admin", exact: true }).click();
+  await page.getByRole("button", { name: "Back to Gauntlet", exact: true }).click();
   await page.getByRole("button", { name: "Keep editing", exact: true }).click();
   await expect(page.getByLabel("Name", { exact: true })).toHaveValue("Unsaved edit");
   await page.getByLabel("Name", { exact: true }).fill("Browser season");
@@ -80,7 +75,7 @@ test("operators author Para definitions, simulate, publish and restore without t
   await expect(page.getByRole("status")).toHaveText("Draft validation completed.");
   await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
   await expect(page.getByRole("region", { name: "Saved Para catalog preview" })).toContainText("600 Gold or 120 Gems");
-  await nav.getByRole("button", { name: "Publishing", exact: true }).click();
+  await adminArea(page, "Publishing");
   expect((await get("/api/admin/authoring")).publication.provider).toBe("local");
   await page.getByLabel("Release name").fill("Reviewed inactive Season Zero proposals");
   await page.getByRole("button", { name: "Publish release", exact: true }).click();
@@ -98,7 +93,7 @@ test("operators author Para definitions, simulate, publish and restore without t
   expect((await new AxeBuilder({ page }).include(".gauntlet-admin").analyze()).violations).toEqual([]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy();
   await page.screenshot({ path: "artifacts/para-marketplace-mobile.png", fullPage: true });
-  await nav.getByRole("button", { name: "Publishing", exact: true }).click();
+  await adminArea(page, "Publishing");
   const priorRelease = before.authoring.releases.find(release => release.id === before.authoring.activeReleaseId);
   expect(priorRelease).toBeTruthy();
   await page.getByRole("button", { name: `Restore ${priorRelease.label}`, exact: true }).click();

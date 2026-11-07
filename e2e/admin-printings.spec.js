@@ -1,3 +1,4 @@
+const { saveRecord, workspaceView, workspaceSection, destination, previewSavedDraft } = require("./admin-navigation");
 const { openCollection } = require("./player-navigation");
 const { test, expect } = require("./admin-release-test");
 const { waitForBufferedAdminResponse } = require("./buffered-admin-response");
@@ -12,13 +13,14 @@ async function start() {
 async function stop() { if (child && child.exitCode === null) await new Promise((resolve, reject) => { child.once("exit", code => code === 0 ? resolve() : reject(new Error(`Fixture shutdown failed: ${code}`))); child.send("shutdown"); }); }
 test.beforeAll(async () => { fs.mkdirSync(artifactRoot, { recursive: true }); root = fs.mkdtempSync(path.resolve(__dirname, "../.playwright-data/printings-")); await start(); });
 test.afterAll(stop);
-async function section(page, label) { const select = page.getByRole("combobox", { name: "Card Workshop section", exact: true }); if (await select.isVisible()) await select.selectOption({ label }); else await page.getByRole("navigation", { name: "Card Workshop sections", exact: true }).getByRole("button", { name: label, exact: true }).click(); }
+async function section(page, label) { await workspaceSection(page, "Card Workshop", label); }
+
 test("create, upload, organize, publish, own, save, play, revise and recover a printing through the real UI", async ({ page, browser, request, baseURL }) => {
   const login = async name => (await (await request.post(serverUrl + "/api/auth/login", { data: { name, password: "test-password" } })).json()).token;
   const token = await login("simply"), headers = { Authorization: `Bearer ${token}` };
   await page.addInitScript(token => localStorage.setItem("gauntlet_auth_token", token), token);
   const open = async p => { await p.goto(`/admin/gauntlet?workshop=cards&object=${cardId}`); await section(p, "Artwork"); };
-  const selected = async (p, id) => { await p.getByLabel("Collector version", { exact: true }).selectOption(id); };
+  const selected = async (p, id) => { await workspaceView(p, "Preview"); await p.getByLabel("Collector version", { exact: true }).selectOption(id); await workspaceView(p, "Editor"); };
   const status = async () => {
     let lastError;
     for (let attempt = 0; attempt < 4; attempt += 1) {
@@ -46,11 +48,12 @@ test("create, upload, organize, publish, own, save, play, revise and recover a p
     return (await response.json()).game;
   };
   await open(page); const source = await status(), p1 = `${cardId}:standard`;
-  await expect(page.locator(".admin-card-preview img").first()).toBeVisible();
+  await workspaceView(page, "Preview"); await expect(page.locator(".admin-card-preview img").first()).toBeVisible();
+  await destination(page, "Sets");
   await page.getByRole("button", { name: "Create set", exact: true }).click();
   await page.getByLabel("New content name").fill("Printing Browser Edition");
   await page.getByRole("button", { name: "Save new set to draft", exact: true }).click();
-  await expect(page.getByLabel("Selected content", { exact: true }).getByRole("heading", { name: "Printing Browser Edition", exact: true })).toBeVisible();
+  await expect(page.locator(".design-workshop").getByRole("heading", { name: "Printing Browser Edition", exact: true })).toBeVisible();
   const edition = (await status()).draft.snapshot.domains.sets[0].id;
   await open(page); await page.getByRole("button", { name: "Duplicate selected printing" }).click();
   await page.getByLabel("New content name").fill("Rumin Sentry alternate");
@@ -64,7 +67,7 @@ test("create, upload, organize, publish, own, save, play, revise and recover a p
     await picker.getByLabel("Artwork title", { exact: true }).fill("Alternate printing art");
     await picker.getByLabel("Image file").setInputFiles({ name: "printing.png", mimeType: "image/png", buffer: await sharp({ create: { width: 240, height: 320, channels: 3, background: color } }).png().toBuffer() });
     const response = waitForBufferedAdminResponse(page, r => r.url().endsWith("/assets/upload")); await picker.getByRole("button", { name: "Upload new artwork", exact: true }).click(); const uploaded = (await (await response).json()).uploaded;
-    await picker.getByRole("button", { name: "Use selected artwork", exact: true }).click(); const saved = page.waitForResponse(r => r.url().endsWith("/authoring/draft")); await page.getByRole("button", { name: "Save artwork reference to draft", exact: true }).click(); expect((await saved).ok()).toBeTruthy(); await expect(page.getByRole("button", { name: "Save artwork reference to draft", exact: true })).toBeDisabled(); return uploaded;
+    await picker.getByRole("button", { name: "Use selected artwork", exact: true }).click(); const saved = page.waitForResponse(r => r.url().endsWith("/authoring/record")); await saveRecord(page); expect((await saved).ok()).toBeTruthy(); await expect(page.getByRole("region", { name: "Save record changes", exact: true })).toHaveCount(0); return uploaded;
   };
   const b = await upload("#265ed8"); await open(page); await selected(page, p2);
   await expect(page.getByLabel("Draft digital set / edition", { exact: true })).toHaveValue(edition);
@@ -80,14 +83,16 @@ test("create, upload, organize, publish, own, save, play, revise and recover a p
       const pass = session.legalActions.find(action => action.type === "passPriority"); await harness.getByRole("combobox", { name: /^Action/ }).selectOption(pass.id);
       const executed = page.waitForResponse(r => r.url().endsWith("/playtest/command")); await harness.getByRole("button", { name: "Execute selected action" }).click(); expect((await executed).ok()).toBeTruthy();
     }
-    await page.getByRole("button", { name: "Preview saved draft", exact: true }).click(); await page.getByRole("button", { name: "Review release", exact: true }).click();
+    await previewSavedDraft(page); await page.getByRole("button", { name: "Review release", exact: true }).click();
     await page.getByLabel("Release name").fill(label); await page.getByRole("button", { name: "Publish release", exact: true }).click(); const response = page.waitForResponse(r => r.url().endsWith("/authoring/publish"), { timeout: 60000 }); await page.getByRole("button", { name: "Confirm publish", exact: true }).click(); expect((await response).ok()).toBeTruthy(); await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible();
   };
   await publish("Printing browser R1", true); const r1 = (await status()).activeReleaseId;
   // Explicit isolated fixture ownership; Admin creation itself grants nothing.
   const accountFile = path.join(root, "accounts.json"), store = JSON.parse(fs.readFileSync(accountFile, "utf8")), account = store.accounts[0];
   expect(account.stats.collection.collectorVariants?.[p2]).toBeUndefined(); account.stats.collection.collectorVariants = { ...account.stats.collection.collectorVariants, [p2]: 1 }; fs.writeFileSync(accountFile, JSON.stringify(store));
-  await page.goto(baseURL); await openCollection(page, "decks"); await page.getByLabel("Deck faction", { exact: true }).selectOption("rumin");
+  const manifestLoaded = page.waitForResponse(response => response.url() === serverUrl + "/api/game-content", { timeout: 20000 });
+  await page.goto(baseURL);
+  const manifestResponse = await manifestLoaded; expect(manifestResponse.ok()).toBeTruthy(); await manifestResponse.finished(); await openCollection(page, "decks"); await page.getByLabel("Deck faction", { exact: true }).selectOption("rumin");
   await page.getByRole("button", { name: "4 of diamonds — Standard playing card", exact: true }).click(); await page.getByRole("button", { name: "Swap 4 of diamonds for Rumin Sentry", exact: true }).click();
   await page.getByLabel("Rumin Sentry card version", { exact: true }).selectOption(p2); await page.getByLabel("Deck name", { exact: true }).fill("Printing journey deck"); await page.getByRole("button", { name: "Create Deck", exact: true }).click(); await expect(page.getByRole("button", { name: "Save New Version", exact: true })).toBeEnabled();
   const savedDeck = () => JSON.parse(fs.readFileSync(accountFile, "utf8")).accounts[0].stats.savedConstructedDeck; expect(savedDeck().collectorVariantSelections[cardId]).toBe(p2);

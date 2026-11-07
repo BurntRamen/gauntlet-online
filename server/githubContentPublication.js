@@ -247,7 +247,7 @@ function createGitHubContentPublication({ baseline, draftStore = null, runtimeCa
     paraSimulation: async args => core((await load()).state).paraSimulation(args),
     deployedSnapshot: () => ({ id: deployed.id, snapshot: clone(deployed.snapshot) }),
     releaseSnapshot: async id => core((await load()).state).releaseSnapshot(id),
-    create: (args, actor) => operate("create", args, actor), patch: (args, actor) => operate("patch", args, actor), discard: (args) => operate("discard", args), preview: (args) => operate("preview", args),
+    create: (args, actor) => operate("create", args, actor), patch: (args, actor) => operate("patch", args, actor), patchRecord: (args, actor) => operate("patchRecord", args, actor), discard: (args) => operate("discard", args), preview: (args) => operate("preview", args),
     publish, rollback: (args, actor) => publish(args, actor, "rollback"), playtestContent, recordPlaytest, reconcile, cancelPublication };
 }
 module.exports = { createGitHubContentPublication, createGitHubClient, REPOSITORY, DRAFT_BRANCH, DRAFT_PATH, RELEASE_PATH, RELEASE_SCHEMA, blobSha };

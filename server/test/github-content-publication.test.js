@@ -95,7 +95,7 @@ test("public or unverified GitHub storage cannot receive drafts or drive publica
     assert.equal(state.publication.supported, false); assert.match(state.storage, /Live inspection and live playtests remain available/);
     assert.ok(store.active().manifest.cards.length);
     const before = clone(repo.refs.get("main"));
-    for (const method of ["patch", "create", "discard", "preview", "saveNotes", "uploadAsset", "archiveAsset", "studioDraft", "competitionDraft", "paraDraft", "recordPlaytest", "publish", "rollback", "cancelPublication", "reconcile", "playtestContent"]) {
+    for (const method of ["patch", "patchRecord", "create", "discard", "preview", "saveNotes", "uploadAsset", "archiveAsset", "studioDraft", "competitionDraft", "paraDraft", "recordPlaytest", "publish", "rollback", "cancelPublication", "reconcile", "playtestContent"]) {
       await assert.rejects(store[method]({}, "admin"), error => error.status === 503 && /private repository/.test(error.message), method);
     }
     assert.equal(repo.refs.size, 1); assert.equal(repo.refs.get("main"), before);
@@ -438,4 +438,19 @@ test("Para definitions use GitHub drafts and become runtime-active only after th
   assert.equal(deployed.published().snapshot.paraLeague.seasons[0].status, "draft");
   assert.equal(deployed.published().snapshot.domains.decks.at(-1).name, "Mixed release recipe");
   assert.ok(deployed.published().snapshot.paraLeague.products.every(p => p.status !== "active"));
+});
+
+
+test("atomic record edits reach private GitHub storage once and stale revisions never write", async () => {
+  const repo = repository(), store = repo.store(), card = baseline.domains.cards[0];
+  const state = await store.patchRecord({ expectedRevision: 0, domain: "cards", id: card.id, changes: [{ field: "name", value: "Record title" }, { field: "text", value: "Record wording" }] }, "admin-one");
+  assert.equal(state.revision, 1);
+  assert.equal(repo.client.writes.length, 1);
+  assert.equal(state.draft.snapshot.domains.cards[0].name, "Record title");
+  assert.equal(state.draft.snapshot.domains.cards[0].text, "Record wording");
+  await assert.rejects(repo.store().patchRecord({ expectedRevision: 0, domain: "cards", id: card.id, changes: [{ field: "name", value: "Stale name" }] }, "admin-two"), { status: 409 });
+  await assert.rejects(store.patchRecord({ expectedRevision: 1, domain: "cards", id: card.id, changes: [{ field: "name", value: "Must not persist" }, { field: "text", value: 99 }] }, "admin-one"), { status: 422 });
+  assert.equal(repo.client.writes.length, 1);
+  assert.equal((await store.status()).draft.snapshot.domains.cards[0].name, "Record title");
+  assert.equal(store.active().manifest.cards[0].name, card.name);
 });
