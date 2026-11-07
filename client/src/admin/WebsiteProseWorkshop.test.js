@@ -14,3 +14,12 @@ test("a global prose search field opens its exact website surface", () => {
   expect(screen.getByRole("heading", { level: 3, name: "Settings page header" })).toBeInTheDocument();
   expect(screen.queryByText("playPageTitle")).not.toBeInTheDocument();
 });
+
+test("mode copy keeps the release preview while page headers show their own saved values", () => {
+  const props = { state, field: () => null, onTarget: jest.fn(), context: {}, onContext: jest.fn(), preview: <section aria-label="Isolated draft preview">Captured release copy</section> };
+  const { rerender } = render(<WebsiteProseWorkshop {...props} target={{ id: "practice", section: "mode-practice" }} />);
+  expect(screen.getByRole("region", { name: "Isolated draft preview" })).toHaveTextContent("Captured release copy");
+  rerender(<WebsiteProseWorkshop {...props} target={{ id: "practice", section: "play" }} />);
+  expect(screen.queryByRole("region", { name: "Isolated draft preview" })).not.toBeInTheDocument();
+  expect(screen.getByRole("region", { name: "Saved prose preview" })).toHaveTextContent("Saved heading");
+});

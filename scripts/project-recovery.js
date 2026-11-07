@@ -61,7 +61,7 @@ async function main() {
     const { manifest } = recovery.verifyDirectory(directory);
     return { integrityVerified: true, recoveryVerified: false, createdAt: manifest.createdAt, objects: manifest.objects.length };
   }
-  if (command === "export") return recovery.exportProject({ ...adapter(process.env.SUPABASE_URL, process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY), source: process.env.SUPABASE_URL, directory,
+  if (command === "export") return recovery.exportProject({ ...adapter(process.env.SUPABASE_URL, process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY), source: process.env.SUPABASE_URL, directory, buckets: { archives: process.env.MATCH_ARCHIVE_BUCKET, avatars: process.env.ACCOUNT_AVATAR_BUCKET },
     ...(process.env.GAUNTLET_EXPORT_MAX_BYTES ? { maxBytes: Number(process.env.GAUNTLET_EXPORT_MAX_BYTES) } : {}) });
   const target = adapter(process.env.RECOVERY_TARGET_SUPABASE_URL, process.env.RECOVERY_TARGET_SUPABASE_SECRET_KEY);
   if (!process.env.RECOVERY_TARGET_DATABASE_URL) throw new Error("Offline restore requires the isolated project's database-owner connection in RECOVERY_TARGET_DATABASE_URL.");

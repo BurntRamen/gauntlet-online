@@ -34,7 +34,7 @@ node scripts/remote-runtime.js restore-isolated /absolute/private/runtime.json r
 
 Export refuses to overwrite a file. Restore requires a separate `restore-*` store and refuses to replace different existing state. It reads back the restored payload before reporting success. Hash verification proves integrity, not a successful playable recovery. The automated process test additionally starts a new server process and reconnects synthetic game/draft players.
 
-The room export command covers rooms and drafts only. Operational exports and scheduled remote recovery points are described below and in `remote-operational-storage.md`. Account tables, private authoring and object bytes need coordinated independent backups. No production recovery drill has been performed.
+The room export command covers rooms and drafts only. Operational exports and scheduled remote recovery points are described below and in `remote-operational-storage.md`. The [full private project export](project-recovery.md) captures account tables, private authoring, archive indexes and immutable object bytes together. Retain an independent off-project copy. No production recovery drill has been performed.
 
 ## Rollback and incident recovery
 
@@ -49,11 +49,11 @@ node --test server/test/remote-runtime.test.js server/test/remote-room-process.t
 node --test server/test/socket-boundary.test.js server/test/room-state-store.test.js
 ```
 
-The process test uses a local PostgreSQL-compatible database and HTTP fixture, synthetic guests, and separate temporary filesystems. It kills the first process without graceful shutdown, restores both a game and draft, verifies private projections, and rejects an action during a simulated database outage.
+The process test uses a local PostgreSQL-compatible database and HTTP fixture, synthetic guests, and separate temporary filesystems. It kills the first process without graceful shutdown, restores both a game and draft plus exact purchased entitlements and ledger records through production startup, verifies private projections, and rejects an action during a simulated database outage.
 # Remote recovery-point backups
 
 With remote room authority, `GAUNTLET_RUNTIME_BACKUPS=supabase` now schedules verified private Storage recovery points without a persistent Render disk. It captures committed room and operational scopes after the shared writer checkpoint. Scope names, captured revisions and engine contracts travel in the gzip object. Status persists remotely across restarts. The default budget is 128 MiB (`GAUNTLET_BACKUP_MAX_BYTES`), separate from the Supabase project's total quota; at 48 objects or the byte budget the job stops with an actionable capacity error and preserves every existing recovery point. No automatic deletion or paid upgrade occurs.
 
 Use the object key reported in Operations with `node scripts/remote-backups.js download OBJECT_KEY ABSOLUTE_PRIVATE_FILE`, then `verify OBJECT_KEY ABSOLUTE_PRIVATE_FILE`. `restore-isolated OBJECT_KEY ABSOLUTE_PRIVATE_FILE drill-name` restores each scope to a new `restore-drill-name-*` authority, verifies readback, and refuses different pre-existing data. It never activates the restored scopes. Explicitly export and reconcile old recovery points before manually rotating the backup bucket; always retain a verified off-service copy.
 
-Coverage is **active rooms/drafts and configured operational ledgers**, not a full Supabase-project backup. Account rows, private authoring and actual media/archive object bytes need their own backup coverage. Restoring ledger state without the corresponding account grants, match evidence and media can create inconsistencies; perform the complete cutover drill in isolation. Configuration, backup integrity, restore readback and production recovery remain separate facts.
+Scheduled coverage is **active rooms/drafts and configured operational ledgers**. Use the separate [full project export](project-recovery.md) for account rows, private authoring and actual media/archive object bytes. Restoring ledger state without the corresponding account grants, match evidence and media can create inconsistencies; perform the complete cutover drill in isolation. Configuration, backup integrity, restore readback and production recovery remain separate facts.

@@ -10974,8 +10974,14 @@ async function shutdownServer(signal = "shutdown") {
   setTimeout(() => process.exit(1), 10000).unref();
 }
 
+async function initializeRuntimeRecovery() {
+  await contentPublication.verifyMedia();
+  if (remoteOperations) { await remoteOperations.load(); await remoteOperations.save(); }
+  return initializeRoomRecovery();
+}
+
 if (require.main === module) {
-  Promise.resolve(contentPublication.verifyMedia()).then(async()=>{if(remoteOperations){await remoteOperations.load();await remoteOperations.save();}}).then(() => initializeRoomRecovery()).then(async recovery => {
+  initializeRuntimeRecovery().then(async recovery => {
     await runtimeBackupService.initialize?.();
     server.listen(PORT, () => {
       runtimeBackupService.start();
@@ -11041,6 +11047,7 @@ module.exports = {
     finalizeCompletedMatch,
     issueAccountSession,
     initializeRoomRecovery,
+    initializeRuntimeRecovery,
     getSavedConstructedDeck,
     getSavedDraftDeck,
     normalizeDeckLibrary,

@@ -1,12 +1,12 @@
 # Full private project export and isolated recovery
 
-Prepared implementation, not a production recovery claim. Render remains Free. The hourly runtime backup covers rooms and operational ledgers; this export additionally covers account identities and credential hashes, balances and ownership, match consequences/events, archive indexes, private authoring and notes, media reservations, and the actual referenced media/archive bytes.
+Prepared implementation, not a production recovery claim. Render remains Free. The hourly runtime backup covers rooms and operational ledgers; this export additionally covers account identities and credential hashes, balances and ownership, friends and private messages, saved page layouts, current account portraits, match consequences/events, archive indexes, private authoring and notes, media reservations, and the actual referenced portrait/media/archive bytes.
 
 Supabase database backups do not include Storage object bytes. Free projects should keep independent exports. See [Supabase database backup documentation](https://supabase.com/docs/guides/platform/backups).
 
 ## Configure and export
 
-Apply `20261107045019_private_recovery_export.sql` after the existing account, durable-match/private-authoring, runtime and media migrations. Its export RPC is a single PostgreSQL statement snapshot. Client roles cannot call it. Import is deliberately unavailable to the application's service credential: it requires the database owner and retains exclusive table locks, emptiness checks and atomic rollback. It never updates, deletes or truncates existing rows.
+Apply `20261107045019_private_recovery_export.sql` after the existing account, durable-match/private-authoring, runtime and media migrations, plus `server/migrations/command-deck-layouts.sql`. Its export RPC is a single PostgreSQL statement snapshot of fourteen app-owned tables. Missing tables fail explicitly. Client roles cannot call it. Import is deliberately unavailable to the application's service credential: it requires the database owner and retains exclusive table locks, emptiness checks and atomic rollback. It never updates, deletes or truncates existing rows.
 
 From a trusted operator machine, with the backend's `SUPABASE_URL` and `SUPABASE_SECRET_KEY` (or legacy service-role key) supplied privately:
 
@@ -19,7 +19,7 @@ The output directory contains private account credential hashes, hidden game sta
 
 The database JSON is bounded at 128 MiB; each object at 64 MiB; the default full-export budget is 512 MiB. `GAUNTLET_EXPORT_MAX_BYTES` can explicitly choose 128 MiB–4 GiB without purchasing capacity. Over-limit exports fail clearly. Larger installations need a PostgreSQL dump plus object export. There is no automatic deletion. A manifest is written only after all required bytes have passed hash verification. Interrupted directories are incomplete and retained for diagnosis; retry export into a new directory.
 
-Media is immutable, so object copies remain consistent with the captured database even if a later draft changes. Missing **referenced** media or archive objects fail the export. Unreferenced reservations from interrupted uploads are explicitly recorded as missing; they keep their capacity accounting on restore. Orphan bytes without reservations and historical runtime backup files are not part of the authoritative inventory. The repository contains executable code and shipped assets and must also remain available at the matching commit.
+Media is immutable, so object copies remain consistent with the captured database even if a later draft changes. Missing **referenced** media, current portrait or archive objects fail the export. Inline account-portrait fallbacks are preserved and verified in the database snapshot. Stored portraits receive a full export hash checked against their original revision, size and media type. Export reads `ACCOUNT_AVATAR_BUCKET` and `MATCH_ARCHIVE_BUCKET` when configured and records their names; use those same names on the isolated application. Unreferenced reservations from interrupted uploads are explicitly recorded as missing; they keep their capacity accounting on restore. Orphan bytes without reservations, replaced unreferenced profile pictures and historical runtime backup files are not part of the authoritative inventory. The repository contains executable code and shipped assets and must also remain available at the matching commit.
 
 ## Restore to an empty isolated project
 

@@ -5,7 +5,7 @@ begin;
 create or replace function public.export_gauntlet_recovery()
 returns jsonb language plpgsql stable security invoker set search_path='' as $$
 declare
-  names text[] := array['gauntlet_accounts','gauntlet_faction_stats','gauntlet_match_records',
+  names text[] := array['gauntlet_accounts','gauntlet_friends','gauntlet_friend_messages','gauntlet_account_layouts','gauntlet_faction_stats','gauntlet_match_records',
     'gauntlet_match_events','gauntlet_match_consequence_receipts','gauntlet_match_archive_index',
     'gauntlet_private_authoring','gauntlet_runtime_states','gauntlet_runtime_commits',
     'gauntlet_media_capacity','gauntlet_media_objects'];
@@ -38,7 +38,7 @@ grant select,insert on public.gauntlet_recovery_receipts to service_role;
 create or replace function public.restore_gauntlet_recovery(p_id uuid,p_snapshot jsonb)
 returns jsonb language plpgsql security invoker set search_path='' as $$
 declare
-  names text[] := array['gauntlet_accounts','gauntlet_faction_stats','gauntlet_match_records',
+  names text[] := array['gauntlet_accounts','gauntlet_friends','gauntlet_friend_messages','gauntlet_account_layouts','gauntlet_faction_stats','gauntlet_match_records',
     'gauntlet_match_events','gauntlet_match_consequence_receipts','gauntlet_match_archive_index',
     'gauntlet_private_authoring','gauntlet_runtime_states','gauntlet_runtime_commits',
     'gauntlet_media_capacity','gauntlet_media_objects'];

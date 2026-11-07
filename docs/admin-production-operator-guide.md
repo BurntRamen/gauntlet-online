@@ -10,7 +10,7 @@ Player corrections, refunds and operational controls apply **immediately**, with
 
 ## Produce content
 
-Open **Production steps** on a set, card, printing, faction, campaign, encounter, deck or offer. It shows related editing steps, where players see the result, mode/access restrictions, current validation issues and release readiness. These are derived from the selected Live or Saved draft content. A saved definition is not automatically live, mode-eligible or owned by a player.
+Open **Production path** on a set, card, printing, faction, campaign, encounter, deck or offer. It shows related editing steps, where players see the result, mode/access restrictions, current validation issues and release readiness. These are derived from the selected Live or Saved draft content. A saved definition is not automatically live, mode-eligible or owned by a player.
 
 | Job | Operator path | Player result |
 | --- | --- | --- |
