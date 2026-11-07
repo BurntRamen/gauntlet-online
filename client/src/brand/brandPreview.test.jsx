@@ -26,7 +26,8 @@ test.each(['simply', 'BurntRamen'])('%s can choose either brand, and the choice 
  expect(screen.getByRole('radio', { name: 'SuitFire preview' })).toBeChecked();
  fireEvent.click(screen.getByRole('radio', { name: 'Gauntlet Online' }));
  expect(document.title).toBe('Gauntlet Online');
- expect(screen.getByRole('img', { name: 'Gauntlet Online' })).toBeInTheDocument();
+ expect(screen.getByRole('button', { name: 'Gauntlet Online — open Play' })).toBeInTheDocument();
+ expect(screen.queryByRole('img', { name: 'SuitFire' })).not.toBeInTheDocument();
 });
 
 test('logout and account switching restore the public identity and do not copy another account choice', () => {
