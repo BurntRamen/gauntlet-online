@@ -1,3 +1,4 @@
+import { brandText, useBrandPreview } from '../brand/brandPreview';
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useDialoguePlayback } from "../dialoguePlayback";
 import DialoguePlaybackControls, { DialogueVoiceButton } from "../DialoguePlaybackControls";
@@ -325,6 +326,7 @@ function PlayerPlate({
   onOpenAbilities,
   abilitiesOpen = false
 }) {
+  useBrandPreview();
   if (!player) return null;
   const hasPriority = priority === player.id;
   const life = Number(player.life);
@@ -338,7 +340,7 @@ function PlayerPlate({
     : "";
   const neutralIdentity = !player.factionId
     || player.factionId === "basic"
-    || player.factionName === "Basic Gauntlet";
+    || ["Basic Gauntlet", "Basic SuitFire"].includes(player.factionName);
   const initial = neutralIdentity
     ? "G"
     : String(player.factionName || player.name || "G").slice(0, 1).toUpperCase();
@@ -370,7 +372,7 @@ function PlayerPlate({
       <div className="production-player-copy">
         <strong>{player.name}</strong>
         <b className="production-player-color">{Number(player.id) === 1 ? "Blue" : "Red"} · Player {player.id}</b>
-        <span>{player.factionName || "Gauntlet"} · Hand {player.handCount}</span>
+        <span>{player.factionName === "Basic Gauntlet" ? brandText("Basic SuitFire", "Basic Gauntlet") : player.factionName || brandText("SuitFire", "Gauntlet")} · Hand {player.handCount}</span>
         <span className="production-player-piles">
           <b>Deck {player.deckCount ?? 0}</b>
           <button type="button" onClick={onOpenDiscard}
@@ -783,6 +785,7 @@ function MatchLedger({ entries, snapshot, onOpen, onOpenAbilities }) {
 
 function MatchReferencePanel({ kind, snapshot, viewModel, commands, recentEvents = [], onClose,
   playerId, onSelectPlayer, connected = true, abilitiesOnly, onAbilityFilter, onFactionCardClick, obscured = false }) {
+  useBrandPreview();
   const [abilitySearch, setAbilitySearch] = useState("");
   useEffect(() => { if (kind === "log") setAbilitySearch(""); }, [kind]);
   if (!kind) return null;
@@ -938,7 +941,7 @@ function MatchReferencePanel({ kind, snapshot, viewModel, commands, recentEvents
             {shownPlayers.map((player) => (
               <section key={player.id} className={player.id === viewModel?.perspective?.player ? "is-local" : ""}>
                 <span>Player {player.id}</span>
-                <h3>{player.faction?.name || "Basic Gauntlet"}</h3>
+                <h3>{player.faction?.name === "Basic Gauntlet" ? brandText("Basic SuitFire", "Basic Gauntlet") : player.faction?.name || brandText("Basic SuitFire", "Basic Gauntlet")}</h3>
                 {player.faction?.id === "jali" && <p className="production-faction-resource"><strong>Revenants:</strong> {Number(player.revenants || 0)}</p>}
                 {player.faction?.id === "indela" && player.turnData?.indelaRevealedValues?.length > 0 && (
                   <p className="production-faction-resource"><strong>Current omen:</strong> {player.turnData.indelaRevealedValues[0]} · {Number(player.turnData.indelaRevealedValues[0]) % 2 === 0 ? "even" : "odd"}</p>
@@ -1045,6 +1048,7 @@ function MatchResult({
   onOpenReplay,
   onOpenMatches
 }) {
+  useBrandPreview();
   if (viewModel?.phase !== "gameOver") return null;
   const localPlayer = viewModel?.perspective?.player;
   const resultProjection = projectPostMatchResult({ completion, viewModel, playerNum: localPlayer });
@@ -1064,7 +1068,7 @@ function MatchResult({
         <i /><i /><i />
       </div>
       <div className="production-result-crest" aria-hidden="true">{outcome === "win" ? "✦" : outcome === "draw" ? "◇" : "◆"}</div>
-      <span>Gauntlet Match Complete</span>
+      <span>{brandText("SuitFire Match Complete", "Gauntlet Match Complete")}</span>
       <h1>{title}</h1>
       <p>{resultProjection.finalMessage || viewModel.message}</p>
       <dl className="production-result-facts">
@@ -1154,6 +1158,7 @@ function MatchModeMarker({ descriptor }) {
 }
 
 function BroadcastMarker({ broadcast, viewModel }) {
+  useBrandPreview();
   if (!broadcast) return null;
   const participants = broadcast.participants?.length
     ? broadcast.participants
@@ -1165,7 +1170,7 @@ function BroadcastMarker({ broadcast, viewModel }) {
   const score = broadcast.series?.scoreAfter || broadcast.series?.scores || broadcast.series?.playerWins || null;
   return (
     <section className={`production-broadcast-marker ${broadcast.kind || "live"}`} aria-label={`${broadcast.label || "Live broadcast"} match information`}>
-      <div><span>{broadcast.label || "Live Broadcast"}</span><strong>{broadcast.season || "Gauntlet Online"}</strong></div>
+      <div><span>{broadcast.label || "Live Broadcast"}</span><strong>{broadcast.season || brandText("SuitFire", "Gauntlet")}</strong></div>
       <div className="production-broadcast-players">
         {participants.slice(0, 2).map((participant) => (
           <span key={participant.playerNum || participant.participantId}>
@@ -1549,6 +1554,7 @@ export default function ProductionMatchExperience({
   onRendererFailure,
   onSceneMetrics
 }) {
+  useBrandPreview();
   const [update, setUpdate] = useState(null);
   const [authoritativeUpdate, setAuthoritativeUpdate] = useState(null);
   const [playbackState, setPlaybackState] = useState({
@@ -2111,7 +2117,7 @@ export default function ProductionMatchExperience({
     return (
       <main className="production-match-loading" aria-busy="true">
         <span className="production-loading-crest" aria-hidden="true">◇</span>
-        <strong>Preparing the Gauntlet table…</strong>
+        <strong>{brandText("Preparing the SuitFire table…", "Preparing the Gauntlet table…")}</strong>
       </main>
     );
   }

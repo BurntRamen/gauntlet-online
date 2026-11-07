@@ -1,3 +1,4 @@
+import { brandText } from './brand/brandPreview';
 import "./GauntletVisuals.css";
 
 export const FACTION_VISUALS = {
@@ -17,7 +18,7 @@ export const FACTION_VISUALS = {
   mtano: { name: "M'Tano", accent: "#9ccf9b", art: "/assets/gauntlet/mtano-emblem.svg" },
   russo: { name: "Russo", accent: "#b9d7ea", art: "/assets/gauntlet/russo-emblem.svg" },
   xendra: { name: "XenDra", accent: "#a88ad8", art: "" },
-  basic: { name: "Basic Gauntlet", accent: "#d0a863", art: "" }
+  basic: { get name() { return brandText("Basic SuitFire", "Basic Gauntlet"); }, accent: "#d0a863", art: "" }
 };
 
 export function resolveVisualAsset(path) {

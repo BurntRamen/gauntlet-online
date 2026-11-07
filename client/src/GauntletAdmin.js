@@ -1,3 +1,4 @@
+import { brandText } from './brand/brandPreview';
 import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
 import "./GauntletAdmin.css";
 
@@ -47,7 +48,7 @@ function Issues({ issues = [] }) {
 function System({ request, revision, operations }) {
   const state = useAdminData(request, "/api/admin/system", revision);
   return <><State state={state}>{(data) => <><Facts values={{ applicationVersion: data.applicationVersion, backendCommit: data.backendCommit, environment: data.environment, checkedAt: date(data.checkedAt) }} /><h4>Validation and dependencies</h4><Issues issues={data.issues} /><p>{data.validation.message}</p><div className="admin-cards">{Object.entries(data.storage).map(([name, storage]) => <article key={name}><h4>{label(name)}</h4><Facts values={Object.fromEntries(Object.entries(storage).filter(([, value]) => typeof value !== "object"))} />{storage.capabilities && <Json value={storage.capabilities} title="Storage capabilities" />}</article>)}</div><details className="admin-json"><summary>Schema and rules versions</summary><Facts values={data.versions} /></details><details className="admin-json"><summary>Content and runtime boundaries</summary>{data.sources.map((source) => <article className="admin-source" key={source.domain}><h5>{source.domain}</h5><code>{source.source}</code><p>{source.boundary}</p></article>)}<ul className="admin-note">{data.boundaries.map((boundary) => <li key={boundary}>{boundary}</li>)}</ul></details></>}</State>
-    <details className="admin-legacy"><summary>Existing Studio operations and archive recovery</summary><p>Archive recovery requires preview and confirmation.</p>{operations}</details>
+    <details className="admin-legacy"><summary>Studio and archive recovery</summary><p>Archive recovery requires preview and confirmation.</p>{operations}</details>
   </>;
 }
 
@@ -74,7 +75,7 @@ function Matches({ request, revision, onInspectContent }) {
   const [query, setQuery] = useState("");
   const [id, setId] = useState("");
   const [lookup, setLookup] = useState("");
-  return <><p className="admin-lede">Browse completed records and inspect their original evidence.</p>
+  return <><p className="admin-lede">Inspect completed matches and original evidence.</p>
     <form className="admin-actions" onSubmit={(event) => { event.preventDefault(); setId(lookup.trim()); }}><label className="admin-search">Exact match ID<input value={lookup} onChange={(event) => setLookup(event.target.value)} placeholder="UUID, including older records" required /></label><button type="submit">Look up match</button></form>
     <label className="admin-search">Search recent records<input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="ID, participant, mode, faction or encounter" /></label>
     <State state={state}>{(data) => <><p className="admin-note">{data.scope}</p><Issues issues={data.issues} /><MatchList records={data.matches.filter((record) => [record.matchId, record.mode, record.campaign?.title, record.campaign?.chapterId, ...(record.participants || []).flatMap((player) => [player.displayName, player.faction?.name])].join(" ").toLowerCase().includes(query.toLowerCase()))} onInspect={setId} /></>}</State>
@@ -130,8 +131,8 @@ export default function GauntletAdmin({ request, onClose, operations, exitGuard 
   });
   const inspectContent = (domain, id) => selectArea("Content", domain, id);
   const catalog = useAdminData(request, "/api/admin/catalog", revision);
-  return <section className="gauntlet-admin" aria-label="Gauntlet Admin">
-    <header className="admin-header"><div><span className="admin-eyebrow">Private operator workspace</span><h3>Gauntlet Admin</h3><p>Design content, inspect players, and manage releases.</p></div><div className="admin-actions"><button onClick={() => canLeave(() => setRevision(revision + 1))}>Refresh admin</button><button onClick={() => canLeave(() => { clearAdminLocation(); onClose?.(); })}>Close admin</button></div></header>
+  return <section className="gauntlet-admin" aria-label={brandText("SuitFire Admin", "Gauntlet Admin")}>
+    <header className="admin-header"><div><span className="admin-eyebrow">Operator workspace</span><h3>{brandText("SuitFire Admin", "Gauntlet Admin")}</h3><p>Manage content, players, and releases.</p></div><div className="admin-actions"><button onClick={() => canLeave(() => setRevision(revision + 1))}>Refresh admin</button><button onClick={() => canLeave(() => { clearAdminLocation(); onClose?.(); })}>Close admin</button></div></header>
     <Suspense fallback={null}><AdminSearch request={request} onSelect={(target, accepted) => selectArea(target.area, target.domain, target.id, target.section, target.field, accepted)} /></Suspense>
     <nav className="admin-nav" aria-label="Administration sections">{AREAS.map((name, index) => <button key={name} aria-current={area === name ? "page" : undefined} onClick={() => selectArea(name)}><svg className="admin-section-icon" viewBox="0 0 24 24" aria-hidden="true"><path d={ICONS[index] || ICONS[0]} /></svg>{name}</button>)}</nav>
     <div className="admin-body"><div className="admin-title-row" hidden={area === "Content"}><h3>{area}</h3><span className="admin-badge">{authoring ? "Shared draft authoring" : area === "Players" ? "Player profiles" : area === "Competition" ? "Event operations" : area === "Operations" ? "Diagnostics and recovery" : "Current capabilities"}</span></div>

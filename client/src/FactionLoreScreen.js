@@ -1,3 +1,4 @@
+import { brandText, useBrandPreview } from './brand/brandPreview';
 import { useId, useMemo, useState } from "react";
 import { FACTION_VISUALS, getFactionArtwork, getFactionAsset, resolveVisualAsset } from "./GauntletVisuals";
 import "./FactionLoreScreen.css";
@@ -53,6 +54,7 @@ function storyActs(campaign) {
 }
 
 export default function FactionLoreScreen({ manifest, onBack, onOpenCampaign, embedded = false }) {
+  useBrandPreview();
   const headingId = useId();
   const Page = embedded ? "section" : "main";
   const PageHeading = embedded ? "h2" : "h1";
@@ -79,7 +81,7 @@ export default function FactionLoreScreen({ manifest, onBack, onOpenCampaign, em
   const artwork = resolveVisualAsset(getFactionArtwork(faction?.id, campaign.coverImage, faction?.city?.image, faction?.cardImage));
   const leaders = leaderEntries(faction, campaign);
   const acts = storyActs(campaign);
-  const setName = manifest?.draftSets?.find((set) => set.factionIds?.includes(faction?.id))?.name || SET_NAMES[faction?.setId] || "Gauntlet";
+  const setName = manifest?.draftSets?.find((set) => set.factionIds?.includes(faction?.id))?.name || SET_NAMES[faction?.setId] || brandText("SuitFire", "Gauntlet");
 
   return (
     <Page className={embedded ? "faction-lore-page is-embedded" : "faction-lore-page menu-page area-journey"} aria-labelledby={headingId} style={{ "--lore-accent": FACTION_VISUALS[faction?.id]?.accent || "#d6b884" }}>
@@ -87,7 +89,7 @@ export default function FactionLoreScreen({ manifest, onBack, onOpenCampaign, em
         <header className="faction-lore-header" style={{ "--lore-art": `url("${artwork}")` }}>
           <div>
             <span>World Archive</span>
-            <PageHeading id={headingId}>Peoples of Gauntlet</PageHeading>
+            <PageHeading id={headingId}>{brandText("Peoples of SuitFire", "Peoples of Gauntlet")}</PageHeading>
             <p>Homeworlds, defining figures, and the journeys that brought them to Reath.</p>
           </div>
           <button type="button" className="faction-lore-back" onClick={onBack}>{embedded ? "Back to Campaign" : "Back to Journey"}</button>

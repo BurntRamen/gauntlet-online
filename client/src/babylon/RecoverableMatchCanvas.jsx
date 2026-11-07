@@ -1,3 +1,4 @@
+import { brandText, useBrandPreview } from '../brand/brandPreview';
 import { useState } from "react";
 import GauntletMatchCanvas from "./GauntletMatchCanvas";
 import AccessibleMatchControls from "./AccessibleMatchControls";
@@ -6,16 +7,17 @@ import "./RecoverableMatchCanvas.css";
 // Keep the live adapter, HUD and campaign flow mounted when WebGL fails.
 // Only the visual table is replaced; commands still use the same live session.
 export default function RecoverableMatchCanvas(props) {
+  useBrandPreview();
   const [failed, setFailed] = useState(false);
   if (!failed && !props.forceAccessible) {
     return <GauntletMatchCanvas {...props} onRendererError={(error) => {
-      console.error("Gauntlet table rendering failed", error);
+      console.error(brandText("SuitFire table rendering failed", "Gauntlet table rendering failed"), error);
       setFailed(true);
     }} />;
   }
   const { viewModel, commands, interactionLocked, interactionStatus } = props;
   return (
-    <section className="production-table-recovery" aria-label="Gauntlet game table">
+    <section className="production-table-recovery" aria-label={brandText("SuitFire game table", "Gauntlet game table")}>
       <div className="production-table-recovery-notice" role="status">
         <span>{props.forceAccessible ? "Accessible match table" : "The animated table is unavailable. You can keep playing here."}</span>
         {!props.forceAccessible && <button type="button" onClick={() => setFailed(false)}>Retry animated table</button>}

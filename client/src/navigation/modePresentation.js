@@ -9,7 +9,7 @@ const legacyProse = {
 };
 
 function authoredOrDefault(value, legacy, fallback) {
-  return typeof value === "string" && value.trim() && value.trim() !== legacy ? value : fallback;
+  return typeof value === "string" && value.trim() && value.trim().replace(/\bSuitFire\b/g, "Gauntlet") !== legacy ? value : fallback;
 }
 
 /** Resolve explicit authored prose without restoring the old shipped banners. */

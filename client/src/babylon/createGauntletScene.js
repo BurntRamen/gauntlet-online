@@ -1,3 +1,4 @@
+import { brandText } from '../brand/brandPreview';
 import { COMPOSED_CARD_SIZE, paintPublishedCardFace } from "./composedCardFace";
 import { createCollectorFoilMaterial } from "./collectorFoilMaterial";
 import { Camera } from "@babylonjs/core/Cameras/camera.js";
@@ -2050,7 +2051,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
 
   function syncLoadingUi() {
     ui.loading.isVisible = pendingTexturePaths.size > 0;
-    ui.loading.text = pendingTexturePaths.size > 0 ? "Loading Gauntlet card set…" : "";
+    ui.loading.text = pendingTexturePaths.size > 0 ? brandText("Loading SuitFire card set…", "Loading Gauntlet card set…") : "";
   }
 
   function getCachedTexture(path) {
