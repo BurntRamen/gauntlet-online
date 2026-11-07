@@ -4,7 +4,7 @@
   "cardEffectUnavailable": "Mechanic guidance is unavailable for this deployed effect. Inspect its contract below.",
   "cardNoParameters": "This effect has no configurable parameters.",
   "printingOwnership": "Separate appearance entitlement required. A configured deck product may grant it; creation alone never grants ownership or adds a pack entry.",
-  "printingSource": "Existing source printing: its identity and entitlement policy are retained.",
+  "printingSource": "This printing keeps its identity and entitlement policy. Edit its artwork here, or create a separate printing for another edition or finish.",
   "savedCardPreview": "This preview uses saved content. Unsaved form values are not shown.",
   "supportUnresolved": "Save and preview to resolve this mechanic's Support Zone contract.",
   "supportUnsupported": "Unsupported support effect. Select a deployed effect matching this faction and type.",

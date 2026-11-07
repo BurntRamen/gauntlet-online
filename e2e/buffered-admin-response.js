@@ -12,7 +12,10 @@ function waitForBufferedAdminResponse(page, predicate) {
       }
 
       try {
-        const response = await route.fetch();
+        // Long UI steps can outlive the fixture's keep-alive timeout. Use a
+        // fresh transport for intercepted writes; never retry a mutation whose
+        // response was lost, because it may already have committed.
+        const response = await route.fetch({ headers: { ...request.headers(), connection: "close" } });
         const body = await response.body();
         await route.fulfill({ response, body });
         await page.unroute(pattern, handler);
@@ -25,6 +28,7 @@ function waitForBufferedAdminResponse(page, predicate) {
           json: async () => payload
         });
       } catch (error) {
+        await route.abort("failed").catch(() => {});
         await page.unroute(pattern, handler).catch(() => {});
         reject(error);
       }

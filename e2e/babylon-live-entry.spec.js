@@ -795,9 +795,12 @@ test("discard piles and player abilities use a non-overlapping responsive dock w
     })).toBe(true);
     await expect.poll(() => page.evaluate(() =>
       window.__dockOriginalCanvas === document.querySelector("canvas.babylon-match-canvas"))).toBe(true);
-    const boardBounds = await page.getByTestId("battlefield-safe-frame").boundingBox();
-    expect(boardBounds.height).toBeGreaterThan(120);
-    expect(boardBounds.width).toBeGreaterThan(300);
+    // Viewport media queries and the HUD ResizeObserver settle separately.
+    // Keep the same usable-area requirements while waiting for both updates.
+    await expect.poll(async () => (await page.getByTestId("battlefield-safe-frame").boundingBox()).height,
+      { message: `${profile.name} board height` }).toBeGreaterThan(120);
+    await expect.poll(async () => (await page.getByTestId("battlefield-safe-frame").boundingBox()).width,
+      { message: `${profile.name} board width` }).toBeGreaterThan(300);
     await page.screenshot({ path: testInfo.outputPath(`abilities-${profile.name}.png`) });
     await dock.getByRole("button", { name: "Close", exact: true }).click();
     await page.locator(".production-player-plate-bottom").getByRole("button", { name: /^Show .*discard pile/ }).click();
@@ -912,6 +915,7 @@ test("encounter dossiers play exchanges with faction accompaniment and independe
   await page.evaluate(() => {
     window.__campaignMusic = window.__previewMedia.find((clip) => !clip.paused && /\/music\//.test(clip.src));
   });
+  expect(await page.evaluate(() => window.__campaignMusic.src)).toContain("/music/factions/rumin-");
   await dialogue.getByRole("button", { name: "Play exchange" }).click();
   await expect(dialogue.getByRole("button", { name: "Pause", exact: true })).toBeVisible();
   await expect.poll(() => page.evaluate(() => window.__previewMedia.filter((clip) => !clip.paused && window.__voiceAssetPaths.some((path) => clip.src.endsWith(path))).length)).toBe(1);
@@ -971,6 +975,11 @@ test("encounter dossiers play exchanges with faction accompaniment and independe
     return values;
   });
   expect(durations).toEqual([48, 48, 48, 48]);
+  await page.getByRole("tab", { name: /^Sheen/ }).click();
+  await expect.poll(() => page.evaluate(() => window.__previewMedia.filter((clip) => !clip.paused && /\/music\/factions\/sheen-/.test(clip.src)).length)).toBe(1);
+  expect(await page.evaluate(() => window.__campaignMusic.paused)).toBe(true);
+  await page.getByRole("button", { name: "Main Menu", exact: true }).click();
+  await expect.poll(() => page.evaluate(() => window.__previewMedia.filter((clip) => !clip.paused && /music\/menu/.test(clip.src)).length)).toBe(1);
 });
 
 test("normal campaign entry presents the campaign boss through the shared Babylon match", async ({ page, baseURL }) => {

@@ -10,16 +10,18 @@ Qualification date: 7 November 2026. All writes, purchases, repairs, releases an
 | Complete server suite | Initial local run: 624/625 passed. The remaining assertion expected an obsolete FFA error; corrected assertion passed. GitHub CI subsequently passed the complete server step. |
 | Crash recovery through actual production startup | Passed: killed a server during an active game/draft; replacement with a fresh filesystem recovered exact captured state and purchased entitlements/ledger records. Database outage denied further commands. |
 | Full private project recovery | 2 passed against executable PostgreSQL and an isolated object store: fourteen app-owned tables, credentials, portraits, social records, layouts, private drafts, hidden runtime states, canonical archives, lost replies, corrupted/missing bytes, owner-only empty-destination import and atomic rollback. |
-| Main Admin browser matrix | All 25 distinct cases passed across the initial run (18 passed) and seven focused rechecks. Corrected the missing mode-prose preview and stale name-save notice assertion; retained per-action deadlines while allowing full release journeys sufficient time. |
-| Production guide, website header and player repair browser flows | Final recheck in progress. Initial prose publish/player display/rollback and authorized evidence-backed repair flows passed. Guide navigation/resumption passed; accessibility caught a skipped heading level, now corrected. |
-| Extended mechanics/campaign/cosmetic/payment browsers | In progress. |
-| Printing/media and exact deck-product delivery browsers | In progress. |
+| Main Admin browser matrix | All 25 distinct cases passed locally across the initial run and focused rechecks; the complete CI step then passed. Corrected the missing mode-prose preview and stale name-save notice assertion; retained per-action deadlines while allowing full release journeys sufficient time. |
+| Production guide, website header and player repair browser flows | 3/3 passed together after correcting a skipped heading level and readable repair labels. Includes mobile Axe checks, edit guards, filter/section resumption, actual player prose publication/rollback, unauthorized denials, a reviewed repair and retained audit evidence. |
+| Extended mechanics/campaign/cosmetic/payment browsers | All seven journeys covered. Five passed initially; a closed connection in the test interceptor interrupted the modifier save and left a draft that correctly blocked the subsequent publication. The interceptor now closes its transport after each write and never retries mutations. Modifier/payment rechecks passed together with the strengthened Sheen-family creation → engine → publication → actual campaign case (3/3). |
+| Printing/media and exact deck-product delivery browsers | Immutable-media release/rollback/restart passed. The complete printing journey then passed its focused recheck, including ownership, saved deck and captured real-game presentation. Both account-currency and finite-Gold deck purchase/restart journeys passed together; Gems/split-price/refund passed separately. Initial printing/deck runs exceeded a 5-second cold-readiness expectation; these configurations now use the existing main Admin gate's 15-second expectation. |
 | Immutable content validation | Passed: 644 cards, 1,850 immutable references and 1,854 delivery dependencies. |
 | Root qualification checks | 53 covered, including six updated bundle-budget assertions. |
-| Production build | Compiles without warnings; main 178.3/180 KiB, player 758.4/759, initial Admin 18.2/20, total Admin 65.6/66, largest async chunk 274.2/350. |
+| Production build | Compiles without warnings; main 178.4/180 KiB, player 758.4/759, initial Admin 18.3/20, total Admin 65.8/66, largest async chunk 274.2/350. |
 | Dependency audit | Root, server and client runtime clean. One unpatched low-severity Jest dependency produces five tooling-chain entries; see [security check](admin-production-security-check.md). |
 
 The main Admin matrix covers both approved identities, direct unauthorized requests, phone layouts, keyboard use, shared-draft conflicts, stale tests, live/custom testing, asset selection, creation of a set/card, mechanical execution, publication/rollback, earned Gold purchases/refunds, Ranked season terms and actual Para event settlement. It is not a claim of one uninterrupted clean local run.
+
+Final regression rechecks are in progress. A later CI run exposed browser Forward restoring background focus after the unsaved dialog opened; the modal now contains restored/programmatic focus, with a passing regression test. The broader player suite also exposed campaign entry retaining menu music and a transient board measurement during viewport changes. Campaign selection now drives its faction theme while menu ambience is inactive; the responsive check retains its usable-area limits and waits for the HUD resize observer. These fixes require the final compiled browser/CI checks before qualification is closed.
 
 Three additional socket tests cover v2 paid controller choices, persistent reconnect/deadline handling, timeout without payment, duplicate commands and explicit opposing-player semantics in four-player combat. Unit and PostgreSQL tests exercise the remote storage adapter; browser tests exercise the common UI with isolated providers. They are distinct kinds of evidence.
 
@@ -38,7 +40,7 @@ node --test server/test/project-recovery.test.js
 
 ## Visual review
 
-Representative screenshots are generated under `artifacts/`: `admin-production-desktop.png`, `admin-production-phone.png`, `admin-production-player-prose.png` and `admin-production-progress-repair.png`. Desktop production paths and the 390px player repair display were inspected for hierarchy, overflow, readable labels and separation of draft versus immediate actions. Axe checks run on the production guide and player profile. Other browser suites generate engine, campaign, printing and purchase evidence.
+Representative screenshots are retained in [the review gallery](reviews/admin-production/README.md). Browser runs additionally generate `artifacts/admin-production-player-prose.png` and engine, campaign, printing and purchase evidence. Desktop production paths and the 390px workspace/player repair displays were inspected for hierarchy, overflow, readable labels and separation of draft versus immediate actions. Axe checks pass on the production guide and player profile.
 
 ## Not established by these checks
 

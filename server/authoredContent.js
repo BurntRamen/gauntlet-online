@@ -50,7 +50,7 @@ function fieldsFor(domain, row, snapshot) {
   if (domain === "assets" && row?.origin === require("./adminPrintings").ORIGIN) return require("./adminPrintings").fields;
   if (domain === "sets") return authoredCatalog.setFields;
   if (domain === "cards" && row?.origin === "admin-v1") return { ...FIELDS.cards, ...authoredCatalog.cardFields, ...(snapshot ? { factionId: { ...authoredCatalog.cardFields.factionId, options: [...authoredCatalog.cardFields.factionId.options, ...snapshot.domains.factions.filter(f => f.origin === "admin-faction-v1").map(f => ({ id: f.id, name: f.name }))] } } : {}), flavor: { ...text("Flavor text", 1000, false), defaultValue: "", note: "Optional narrative text. No executable behavior." } };
-  if (domain === "assets" && row?.gameplayCardId?.startsWith("auth-card-")) return { art: { ...FIELDS.assets.art, required: true, note: "This new printing requires an immutable image. Select a replacement to change it." } };
+  if (domain === "assets" && row?.gameplayCardId?.startsWith("auth-card-")) return { art: { ...FIELDS.assets.art, required: true, note: "This printing requires an immutable image. Select a replacement to change it." } };
   if (domain === "game" && row.id === "shared-rules") return { handSize: { label: "Hand size", type: "integer", min: 3, max: 12, mechanical: true }, packComposition: require("../shared/duel-rules/packComposition").field };
   if (domain === "game") return { ...FIELDS.game, ...proseFields(row.id) };
   if (domain === "factions" && row.campaignOnly) return { name: FIELDS.factions.name, cardImage: FIELDS.factions.cardImage };

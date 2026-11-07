@@ -1,6 +1,6 @@
 "use strict";
-// Uploaded bytes travel with the existing atomic store / GitHub release file.
-// There is no mutable filesystem name, public draft bucket or second activation.
+// Immutable versions retain legacy embedded bytes or verified private remote
+// references. A release captures exact versions; draft storage is never public.
 const crypto = require("node:crypto");
 const remoteMedia = require("./remoteMediaStore");
 const { processAudio, MAX_AUDIO } = require("./audioUpload");

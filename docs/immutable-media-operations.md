@@ -12,6 +12,8 @@ This implementation is prepared, not deployed. Render stays on Free. Supabase st
 
 The SQL budget is established by the first reservation. To change it, first reconcile actual objects/reservations and the project quota, stop uploads, then update the singleton budget and backend setting together. The configured value must match the database. Do not silently expand the budget after a capacity error.
 
+Optional per-file limits are `GAUNTLET_MEDIA_IMAGE_UPLOAD_BYTES` (1 KiB–3 MiB) and `GAUNTLET_MEDIA_AUDIO_UPLOAD_BYTES` (1 KiB–10 MiB). Defaults are the upper bounds. These can lower accepted upload sizes without changing existing immutable versions; the picker displays the configured limit and the server enforces it. They cannot exceed the decoder safety bounds or expand the shared library budget.
+
 ## Import embedded artwork
 
 An authorized Admin request to `POST /api/admin/authoring/assets/migrate` with the current `expectedRevision` copies retained embedded bytes to content-addressed objects, hashes each readback, then replaces only storage references in the revision-checked private state. Historical snapshots, asset/version IDs, hashes and artwork are unchanged. A stale revision leaves the authoring state untouched. Rerunning at the current revision is safe and deduplicates exact bytes. Objects left by an interrupted import are retained and counted.
