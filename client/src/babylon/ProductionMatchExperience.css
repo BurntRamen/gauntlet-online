@@ -3111,6 +3111,13 @@
 }
 
 @media (max-width: 600px) and (orientation: portrait) {
+  /* Resource rows can make either player plate taller. Fit the scrollable
+     reference dock around the measured HUD instead of reserving 30vh blindly. */
+  .has-phone-hand.has-reference-dock {
+    --reference-dock-height: clamp(96px, calc(100dvh - var(--battlefield-top-reserve) - var(--battlefield-bottom-reserve) - 132px), 220px);
+  }
+  .has-phone-hand.has-reference-dock .production-match-surface { bottom: var(--reference-dock-height); }
+  .has-phone-hand.has-reference-dock .production-reference-panel.is-docked { height: var(--reference-dock-height); }
   .production-player-plate-bottom { padding: 5px; }
   .production-player-plate-top .production-player-piles b { display: none; }
   .production-player-plate-bottom .production-player-piles { grid-column: 1 / -1; }
@@ -3119,6 +3126,7 @@
 
 @media (max-height: 520px) and (orientation: landscape) {
   .has-phone-hand .phone-hand-panel { left: 232px; bottom: 4px; }
+  .has-phone-hand .production-battlefield-safe-frame { left: 232px; }
   .has-phone-hand .production-context-panel {
     left: 4px; right: auto; bottom: 4px; width: 220px; height: 76px; min-height: 0;
     box-sizing: border-box; display: grid; gap: 4px; padding: 5px;
