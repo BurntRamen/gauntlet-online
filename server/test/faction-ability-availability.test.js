@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { createMatch, getActionAvailability, getLegalActions } = require("../../shared/duel-rules");
+const { createMatch, getActionAvailability, getLegalActions, projectForPerspective } = require("../../shared/duel-rules");
 
 function state(factionId) {
   return createMatch({
@@ -35,6 +35,9 @@ test("Zynarth creates a visible Egg, then exposes hatch and sacrifice requiremen
   assert.equal(egg.zynarthEgg, true);
   assert.equal(egg.zynarthUnderling, true);
   assert.equal(egg.token, true);
+  const opponentView = projectForPerspective(game, 2).lanes[0].facedown[1];
+  assert.equal(opponentView.zynarthEgg, true);
+  assert.equal(opponentView.name, "Zynarth Egg");
   assert.ok(getLegalActions(game, 1).some((action) => action.abilityId === "zynarth:hatch:0:worker"));
   const availability = getActionAvailability(game, 1).factionAbilities;
   assert.equal(availability.find((entry) => entry.abilityId.startsWith("zynarth:hatch")).available, true);

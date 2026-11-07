@@ -3979,7 +3979,7 @@ function projectForPerspective(game, perspectivePlayer) {
   projected.lanes.forEach((lane, laneIndex) => {
     if (!lane.support) lane.support = { 1: null, 2: null };
     for (const player of [1, 2]) {
-      if (player !== viewer && lane.facedown[player] && !lane.facedown[player].revealed) {
+      if (player !== viewer && lane.facedown[player] && !lane.facedown[player].revealed && !lane.facedown[player].zynarthEgg) {
         hiddenCardIds.add(lane.facedown[player].id);
         lane.facedown[player] = { id: `hidden-lane-${laneIndex}-p${player}`, hidden: true };
       }

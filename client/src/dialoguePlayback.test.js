@@ -228,6 +228,29 @@ test("falls back to synthesis when a recorded line fails", () => {
   expect(utterances[0].rate).toBeLessThan(0.75);
 });
 
+test("Zynarth recorded dialogue never falls back to a human browser voice", () => {
+  class FakeUtterance { constructor(text) { this.text = text; } }
+  const synth = { speak: jest.fn(), cancel: jest.fn(), getVoices: () => [] };
+  const onChange = jest.fn();
+  const player = createDialoguePlayer({
+    entries: dialogueEntries([
+      "Narrator: The hatchery stirs.",
+      "Broodmother Zalara: Workers shield the eggs."
+    ], [null, "/zalara.mp3"]),
+    factionId: "zynarth",
+    synthesizeMissing: false,
+    AudioCtor: FakeAudio,
+    SpeechCtor: FakeUtterance,
+    speechSynthesis: synth,
+    onChange
+  });
+  players.push(player);
+  player.play();
+  expect(synth.speak).not.toHaveBeenCalled();
+  expect(clips[0].src).toBe("/zalara.mp3");
+  expect(onChange.mock.calls.at(-1)[0]).toMatchObject({ playingIndex: 1, status: "Playing Broodmother Zalara." });
+});
+
 test("voice profiles remain deterministic while distinguishing speakers and factions", () => {
   const voices = [{ name: "David", lang: "en-US" }, { name: "Samantha", lang: "en-US" }];
   const alden = resolveCharacterVoice({ factionId: "astral-vanguard", speaker: "Alden", voices });

@@ -22108,10 +22108,10 @@
           "usage": "card-illustration"
         }
       ],
-      "path": "/assets/gauntlet/releases/24a7379cec2f1544687dd3f0e885bd7535d92981dc68023fb740b7bb4bb259e6.svg",
+      "path": "/assets/gauntlet/releases/1692d5e4ef53a4aa206922395ea9c800dc4849de823e4f312b1f86cc645dba4c.svg",
       "mediaType": "image/svg+xml",
-      "sha256": "24a7379cec2f1544687dd3f0e885bd7535d92981dc68023fb740b7bb4bb259e6",
-      "bytes": 1338
+      "sha256": "1692d5e4ef53a4aa206922395ea9c800dc4849de823e4f312b1f86cc645dba4c",
+      "bytes": 1343
     },
     {
       "id": "asset:mtano-emblem.svg",
@@ -32220,10 +32220,10 @@
           "usage": "clicked"
         }
       ],
-      "path": "/assets/gauntlet/releases/1486fa809b994d45ecb0fd0c5ade450369651f4b559e8a544b795827426f0edc.mp3",
+      "path": "/assets/gauntlet/releases/b40e0218c7cbcc2d482516a2202956dc2549e1e5c2cd3f0191d42936e69f74d1.mp3",
       "mediaType": "audio/mpeg",
-      "sha256": "1486fa809b994d45ecb0fd0c5ade450369651f4b559e8a544b795827426f0edc",
-      "bytes": 77783
+      "sha256": "b40e0218c7cbcc2d482516a2202956dc2549e1e5c2cd3f0191d42936e69f74d1",
+      "bytes": 93005
     },
     {
       "id": "asset:voices/faction-zynarth-commander-critical.mp3",
@@ -32242,10 +32242,10 @@
           "usage": "critical"
         }
       ],
-      "path": "/assets/gauntlet/releases/8a96461ff69abb2e5715439b20d6780705aefc4fa170d369fdf6192f58e76af7.mp3",
+      "path": "/assets/gauntlet/releases/cf69de2c4e39c13c8322be51bebeeb774bf75cec069e4e408a4020e62709a464.mp3",
       "mediaType": "audio/mpeg",
-      "sha256": "8a96461ff69abb2e5715439b20d6780705aefc4fa170d369fdf6192f58e76af7",
-      "bytes": 77783
+      "sha256": "cf69de2c4e39c13c8322be51bebeeb774bf75cec069e4e408a4020e62709a464",
+      "bytes": 80466
     },
     {
       "id": "asset:voices/faction-zynarth-commander-denied.mp3",
@@ -32264,10 +32264,10 @@
           "usage": "denied"
         }
       ],
-      "path": "/assets/gauntlet/releases/32926bffcfb9d3c81d2631262deda402ecb370c0ffcfd74322c96132170eed9b.mp3",
+      "path": "/assets/gauntlet/releases/0a639ef8ef1f60df5ac1a35ba825ce6feae534a88e23cb6afe11eb5a8320f6fc.mp3",
       "mediaType": "audio/mpeg",
-      "sha256": "32926bffcfb9d3c81d2631262deda402ecb370c0ffcfd74322c96132170eed9b",
-      "bytes": 58139
+      "sha256": "0a639ef8ef1f60df5ac1a35ba825ce6feae534a88e23cb6afe11eb5a8320f6fc",
+      "bytes": 61240
     },
     {
       "id": "asset:voices/faction-zynarth-commander-selected.mp3",
@@ -32286,10 +32286,10 @@
           "usage": "selected"
         }
       ],
-      "path": "/assets/gauntlet/releases/6b8b30d419dda8ad5d6485948d6a776de87ede3be0330666e114a4c2c413b8af.mp3",
+      "path": "/assets/gauntlet/releases/f4e1628edcf1d2ff79fa05b10bad5d2edba660de0416fabc837474da4a0e2ab7.mp3",
       "mediaType": "audio/mpeg",
-      "sha256": "6b8b30d419dda8ad5d6485948d6a776de87ede3be0330666e114a4c2c413b8af",
-      "bytes": 55213
+      "sha256": "f4e1628edcf1d2ff79fa05b10bad5d2edba660de0416fabc837474da4a0e2ab7",
+      "bytes": 100946
     },
     {
       "id": "asset:voices/faction-zynarth-commander-wounded.mp3",
@@ -32308,10 +32308,10 @@
           "usage": "wounded"
         }
       ],
-      "path": "/assets/gauntlet/releases/3faf3df5b0715a4c33c1c47c6320c53998215ab81945c76e1bf6ef374736f3ed.mp3",
+      "path": "/assets/gauntlet/releases/622007f35a2ad19a9af3415fab9305749afffd28cd233c03ae0b884c775b9e4a.mp3",
       "mediaType": "audio/mpeg",
-      "sha256": "3faf3df5b0715a4c33c1c47c6320c53998215ab81945c76e1bf6ef374736f3ed",
-      "bytes": 59811
+      "sha256": "622007f35a2ad19a9af3415fab9305749afffd28cd233c03ae0b884c775b9e4a",
+      "bytes": 96767
     },
     {
       "id": "asset:voices/faction-zynarth-general-clicked.mp3",
@@ -32330,10 +32330,10 @@
           "usage": "clickedAudio"
         }
       ],
-      "path": "/assets/gauntlet/releases/061958a6d14301c6e1bc30a25fe3600c906017d076655dd65ba04d45658295cd.mp3",
+      "path": "/assets/gauntlet/releases/c2de188bdf3044c0425ca55fc814ec45ffbfb5c0be7662619554746d407c4423.mp3",
       "mediaType": "audio/mpeg",
-      "sha256": "061958a6d14301c6e1bc30a25fe3600c906017d076655dd65ba04d45658295cd",
-      "bytes": 35987
+      "sha256": "c2de188bdf3044c0425ca55fc814ec45ffbfb5c0be7662619554746d407c4423",
+      "bytes": 68763
     },
     {
       "id": "asset:voices/frumo-ch01-after-01-narrator.mp3",
@@ -37794,6 +37794,48 @@
       "mediaType": "audio/mpeg",
       "sha256": "e0fb6038285bb0feee50ff12a495d05344f93f13f01d271e60558d161dcef3db",
       "bytes": 88651
+    },
+    {
+      "id": "asset:voices/zynarth-ch01-after-04-broodmother-zalara.mp3",
+      "source": "/assets/gauntlet/voices/zynarth-ch01-after-04-broodmother-zalara.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.zynarth.chapters.0.endDialogueAudio.3",
+          "usage": "3"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/552768c4a925968d2396272a0db23953dd4582b9cd8739ca97ae4c955f5e94a3.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "552768c4a925968d2396272a0db23953dd4582b9cd8739ca97ae4c955f5e94a3",
+      "bytes": 99274
+    },
+    {
+      "id": "asset:voices/zynarth-ch01-before-02-broodmother-zalara.mp3",
+      "source": "/assets/gauntlet/voices/zynarth-ch01-before-02-broodmother-zalara.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.zynarth.chapters.0.dialogueAudio.1",
+          "usage": "1"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/97abd8c9ad7083097c58ee4204f6495d2a398c0a71f41f8f8daabbf0f776edab.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "97abd8c9ad7083097c58ee4204f6495d2a398c0a71f41f8f8daabbf0f776edab",
+      "bytes": 86736
+    },
+    {
+      "id": "asset:voices/zynarth-ch01-before-05-broodmother-zalara.mp3",
+      "source": "/assets/gauntlet/voices/zynarth-ch01-before-05-broodmother-zalara.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.zynarth.chapters.0.dialogueAudio.4",
+          "usage": "4"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/6dce26193f8612e5cb7ffb83847705f7e7ee45ebb2377067616749e70ec42d2b.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "6dce26193f8612e5cb7ffb83847705f7e7ee45ebb2377067616749e70ec42d2b",
+      "bytes": 164894
     }
   ],
   "faces": {
@@ -39460,5 +39502,5 @@
     "russo-clubs-king": "/assets/gauntlet/russo-emblem.svg",
     "russo-clubs-ace": "/assets/gauntlet/russo-emblem.svg"
   },
-  "version": "gauntlet-assets-8faafbecf07f5cf76baefb587db5092b97927dfcca7ea75dd7595395613304e2"
+  "version": "gauntlet-assets-b7725a00f212384f98c4fa67be86b4b5a3da458384915c9a595a0e71c2db7db2"
 }

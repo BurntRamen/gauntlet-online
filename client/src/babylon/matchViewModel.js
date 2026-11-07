@@ -41,6 +41,7 @@ function cardSuit(card) {
 
 function cardLabel(card) {
   if (!card) return "Empty";
+  if (card.zynarthEgg) return "Zynarth Egg";
   return `${cardRank(card)}${cardSuit(card)}`;
 }
 
@@ -64,23 +65,27 @@ function normalizeCard(card, { visible = true, factionId = null, id = "hidden" }
   }
 
   const resolvedFactionId = String(factionId || card.factionId || "basic").toLowerCase();
+  const zynarthEgg = Boolean(card.zynarthEgg);
 
   return {
     id: card.id || id,
     visible: true,
     label: cardLabel(card),
-    rank: cardRank(card),
-    suit: cardSuit(card),
-    value: cardValue(card),
-    printedValue: cardValue(card),
+    rank: zynarthEgg ? "EGG" : cardRank(card),
+    suit: zynarthEgg ? "" : cardSuit(card),
+    value: zynarthEgg ? 0 : cardValue(card),
+    printedValue: zynarthEgg ? 0 : cardValue(card),
     valueBreakdown: valueBreakdown(card),
-    artPath: getPlayingCardArtPath(card, resolvedFactionId),
+    artPath: zynarthEgg
+      ? "/assets/gauntlet/factions/zynarth/zynarth-egg-token.svg"
+      : getPlayingCardArtPath(card, resolvedFactionId),
     factionId: resolvedFactionId,
     cardType: String(card.type || "standard").toLowerCase(),
     cardTypeLabel: cardTypeLabel(card),
     combatEligible: isCombatCapableCard(card),
     combatLabel: cardCombatLabel(card),
-    expectsFaceArt: expectsPlayingCardArt(card),
+    expectsFaceArt: zynarthEgg || expectsPlayingCardArt(card),
+    zynarthEgg,
     raw: card
   };
 }

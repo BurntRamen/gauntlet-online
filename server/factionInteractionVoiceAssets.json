@@ -147,14 +147,14 @@
     },
     "zynarth": {
       "commander": {
-        "selected": "/assets/gauntlet/voices/faction-zynarth-commander-selected.mp3?v=6b8b30d419dd",
-        "clicked": "/assets/gauntlet/voices/faction-zynarth-commander-clicked.mp3?v=1486fa809b99",
-        "wounded": "/assets/gauntlet/voices/faction-zynarth-commander-wounded.mp3?v=3faf3df5b071",
-        "critical": "/assets/gauntlet/voices/faction-zynarth-commander-critical.mp3?v=8a96461ff69a",
-        "denied": "/assets/gauntlet/voices/faction-zynarth-commander-denied.mp3?v=32926bffcfb9"
+        "selected": "/assets/gauntlet/voices/faction-zynarth-commander-selected.mp3?v=f4e1628edcf1",
+        "clicked": "/assets/gauntlet/voices/faction-zynarth-commander-clicked.mp3?v=b40e0218c7cb",
+        "wounded": "/assets/gauntlet/voices/faction-zynarth-commander-wounded.mp3?v=622007f35a2a",
+        "critical": "/assets/gauntlet/voices/faction-zynarth-commander-critical.mp3?v=cf69de2c4e39",
+        "denied": "/assets/gauntlet/voices/faction-zynarth-commander-denied.mp3?v=0a639ef8ef1f"
       },
       "general": {
-        "clicked": "/assets/gauntlet/voices/faction-zynarth-general-clicked.mp3?v=061958a6d143"
+        "clicked": "/assets/gauntlet/voices/faction-zynarth-general-clicked.mp3?v=c2de188bdf30"
       }
     },
     "astral-vanguard": {

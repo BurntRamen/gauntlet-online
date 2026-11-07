@@ -56,6 +56,7 @@ export function createDialoguePlayer({
   entries,
   onChange,
   factionId = "default",
+  synthesizeMissing = true,
   AudioCtor = typeof window !== "undefined" ? window.Audio : null,
   SpeechCtor = typeof window !== "undefined" ? window.SpeechSynthesisUtterance : null,
   speechSynthesis = typeof window !== "undefined" ? window.speechSynthesis : null
@@ -126,7 +127,7 @@ export function createDialoguePlayer({
   const play = (startIndex = 0, sequence = true) => {
     stop("");
     if (!settings.enabled) { publish({ status: "Enable sound to hear dialogue." }); return; }
-    const canSpeak = Boolean(SpeechCtor && speechSynthesis?.speak);
+    const canSpeak = Boolean(synthesizeMissing && SpeechCtor && speechSynthesis?.speak);
     if (!AudioCtor && !canSpeak) { publish({ status: "Voice playback unavailable." }); return; }
     if (!entries.some((entry, index) => index >= startIndex && (entry.source || canSpeak) && (sequence || index === startIndex))) {
       publish({ status: "No voice available." });
@@ -261,11 +262,16 @@ export function useDialoguePlayback({ lines, audio, factionId = "default", scope
     return dialogueEntries(transcript, recordings);
   }, [contentKey]);
   const [state, setState] = useState(idleState);
-  const player = useMemo(() => createDialoguePlayer({ entries, factionId, onChange: setState }), [entries, factionId]);
+  // Zynarth dialogue must use the authored insectoid recordings. Browser speech
+  // synthesis made their remaining lines sound human or generically robotic,
+  // which undermined the faction identity. Missing recordings stay silent while
+  // their captions remain visible instead of falling back to an unrelated voice.
+  const synthesizeMissing = factionId !== "zynarth";
+  const player = useMemo(() => createDialoguePlayer({ entries, factionId, synthesizeMissing, onChange: setState }), [entries, factionId, synthesizeMissing]);
   useEffect(() => () => player.stop(""), [player]);
   useEffect(() => {
     player.configure({ enabled, musicSource, musicEnabled, musicVolume });
   }, [player, enabled, musicSource, musicEnabled, musicVolume]);
-  const synthesisAvailable = typeof window !== "undefined" && Boolean(window.speechSynthesis && window.SpeechSynthesisUtterance);
+  const synthesisAvailable = synthesizeMissing && typeof window !== "undefined" && Boolean(window.speechSynthesis && window.SpeechSynthesisUtterance);
   return { ...state, entries, hasAudio: entries.some((entry) => entry.source) || synthesisAvailable, ...player };
 }

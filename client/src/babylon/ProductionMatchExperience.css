@@ -2682,6 +2682,15 @@
     display: none;
   }
 
+  /* Keep the opponent identity rail from wrapping into the battlefield on
+     short phones. Its pile and resource controls are duplicated by the
+     dock/ledger surfaces, while the name, life and crest remain visible. */
+  .production-player-plate-top .production-player-piles,
+  .production-player-plate-top .production-player-resource,
+  .production-player-plate-top .production-player-abilities {
+    display: none;
+  }
+
   .production-context-panel {
     right: 7px;
     bottom: 7px;
