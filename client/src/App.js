@@ -1,3 +1,5 @@
+import { brandText, useBrandPreview, useAccountBrand } from './brand/brandPreview';
+import SuitFireBrand from './brand/SuitFireBrand';
 import { mechanicFamily } from "@gauntlet/duel-rules/factionFamilyContract";
 import { encounterPresentation } from "@gauntlet/duel-rules/encounterContract";
 import { resolveCampaignFactionCards } from "@gauntlet/duel-rules/campaignDeckPlan";
@@ -263,7 +265,7 @@ const MUSIC_TRACKS = {
     tempo: 650,
     wave: "sawtooth"
   },
-  basic: { label: "Basic Gauntlet Theme", pad: [65.41, 87.31, 130.81], notes: [261.63, 293.66, 329.63, 392, 349.23, 293.66, 246.94, 261.63], tempo: 600, wave: "triangle" },
+  basic: { get label() { return brandText("Basic SuitFire Theme", "Basic Gauntlet Theme"); }, pad: [65.41, 87.31, 130.81], notes: [261.63, 293.66, 329.63, 392, 349.23, 293.66, 246.94, 261.63], tempo: 600, wave: "triangle" },
   rumin: {
     label: "The Civic Imperium",
     sources: factionThemeSources("rumin-civic-imperium")
@@ -1115,6 +1117,7 @@ function MenuAudioControl({
 }
 
 function DonateButton({ onUnavailable }) {
+  useBrandPreview();
   function handleDonate() {
     if (DONATE_URL) {
       window.open(DONATE_URL, "_blank", "noopener,noreferrer");
@@ -1123,7 +1126,7 @@ function DonateButton({ onUnavailable }) {
     onUnavailable();
   }
 
-  return <span className="home-support-action"><MenuButton variant="secondary" onClick={handleDonate}>Support Gauntlet</MenuButton></span>;
+  return <span className="home-support-action"><MenuButton variant="secondary" onClick={handleDonate}>{brandText("Support SuitFire", "Support Gauntlet")}</MenuButton></span>;
 }
 
 function HotkeyWindow({ visible, onClose }) {
@@ -1161,6 +1164,7 @@ function HotkeyWindow({ visible, onClose }) {
 }
 
 export function AccountPanel({ account, mode, form, error, notice, onModeChange, onFormChange, onSubmit, onSignOut, onRecoveryEmail }) {
+  useBrandPreview();
   if (account) {
     return (
       <MenuCard title="Account">
@@ -1196,7 +1200,7 @@ export function AccountPanel({ account, mode, form, error, notice, onModeChange,
           : mode === "forgot"
             ? "Enter the recovery email on your account. The message includes your account name and a password-reset link."
             : mode === "reset"
-              ? "Enter a new password for your Gauntlet account."
+              ? brandText("Enter a new password for your SuitFire account.", "Enter a new password for your Gauntlet account.")
               : "Return to your campaign, collection, match history, and ranked record."}
       </p>
       <form
@@ -1259,10 +1263,11 @@ export function AccountPanel({ account, mode, form, error, notice, onModeChange,
 }
 
 function ProgressionPanel({ account, campaigns, onSelectCosmetic }) {
+  useBrandPreview();
   if (!account) {
     return (
       <section className="identity-progression identity-progression-empty">
-        <span>Gauntlet Progression</span>
+        <span>{brandText("SuitFire Progression", "Gauntlet Progression")}</span>
         <h3>Your honors wait in the archive</h3>
         <p>Sign in to unlock titles, card backs, faction badges, achievements, campaign progress, and match history.</p>
       </section>
@@ -1520,6 +1525,7 @@ function normalizeReplacementSuitId(suit) {
 }
 
 function BoosterPackTile({ booster, collectorPack, opening, canOpen, onOpen, onBuyPack }) {
+  useBrandPreview();
   const theme = booster.pool === "all-factions" ? INITIATIVE_PACK_THEME : (PACK_THEMES[booster.factionId] || PACK_THEMES.rumin);
   const factionArt = resolveAssetPath(booster.artPath || `/assets/gauntlet/${booster.factionId}-card.webp`);
   const displayName = booster.displayName || theme.name;
@@ -1538,7 +1544,7 @@ function BoosterPackTile({ booster, collectorPack, opening, canOpen, onOpen, onB
       <span className="booster-pack-crimp booster-pack-crimp-top" />
       <span className="booster-pack-crimp booster-pack-crimp-bottom" />
       <span className="booster-pack-hanger" />
-      <span className="booster-pack-topline">Gauntlet Online</span>
+      <span className="booster-pack-topline">{brandText("SuitFire", "Gauntlet Online")}</span>
       <span className="booster-pack-set">Earned Gameplay Pack</span>
       <strong>{displayName}</strong>
       <span className="booster-pack-subtitle">{subtitle}</span>
@@ -2285,6 +2291,7 @@ function QuickActionButton({ children, className = "", disabled = false, reason 
 }
 
 function LobbySeatGrid({ lobby }) {
+  useBrandPreview();
   const playerNumbers = Object.keys(lobby?.players || {}).map(Number).sort((a, b) => a - b);
   return (
     <div className="app-layout-73">
@@ -2300,7 +2307,7 @@ function LobbySeatGrid({ lobby }) {
               <span style={{ fontSize: 11, fontWeight: "bold", color: seat.connected ? "#166534" : "#991b1b" }}>{seat.connected ? "Connected" : "Open"}</span>
             </div>
             <div className="app-layout-75">{seat.accountName || "Waiting for player"}</div>
-            <div className="app-layout-76">{faction?.name || (lobby.gameMode === "basic" ? "Basic Gauntlet" : "No faction selected")}</div>
+            <div className="app-layout-76">{faction?.name || (lobby.gameMode === "basic" ? brandText("Basic SuitFire", "Basic Gauntlet") : "No faction selected")}</div>
             <div style={{ fontSize: 12, marginTop: 4, color: seat.readyToStart ? "#166534" : occupied ? "#92400e" : "#94a3b8" }}>{seat.readyToStart ? "Ready" : occupied ? "Not ready" : "Empty"}</div>
           </div>
         );
@@ -2421,6 +2428,7 @@ function RoomCodeDisplay({ code, roleLabel, onCopy, color = "#555" }) {
 }
 
 function ShareGameQrCard() {
+  useBrandPreview();
   const [copied, setCopied] = useState(false);
   const gameUrl = PUBLIC_GAME_URL.replace(/\/$/, "");
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=12&data=${encodeURIComponent(gameUrl)}`;
@@ -2438,22 +2446,22 @@ function ShareGameQrCard() {
   return (
     <MenuCard title="Share Game">
       <div className="app-layout-82">
-        <a href={gameUrl} target="_blank" rel="noreferrer" aria-label="Open Gauntlet Online">
+        <a href={gameUrl} target="_blank" rel="noreferrer" aria-label={brandText("Open SuitFire", "Open Gauntlet Online")}>
           <img
             loading="lazy"
             src={qrUrl}
-            alt="QR code for Gauntlet Online"
+            alt={brandText("QR code for SuitFire", "QR code for Gauntlet Online")}
             width="96"
             height="96"
             className="app-layout-83"
           />
         </a>
         <div className="app-layout-84">
-          <p className="app-layout-85">Scan to open Gauntlet Online on another device.</p>
+          <p className="app-layout-85">{brandText("Scan to open SuitFire on another device.", "Scan to open Gauntlet Online on another device.")}</p>
           <input
             readOnly
             value={gameUrl}
-            aria-label="Gauntlet Online site link"
+            aria-label={brandText("SuitFire site link", "Gauntlet Online site link")}
             onFocus={(event) => event.target.select()}
             style={{ ...MENU_THEME.input, width: "100%", boxSizing: "border-box", marginBottom: 8, fontSize: 12 }}
           />
@@ -2741,7 +2749,7 @@ function RulebookPanel() {
       <img
         className="field-rulebook-art"
         src={resolveAssetPath("/assets/gauntlet/field-rulebook.png")}
-        alt="Gauntlet Online Field Rulebook covering setup, priority, attacking, blocking, end turn, and victory rules."
+        alt="Legacy Gauntlet Online Field Rulebook covering setup, priority, attacking, blocking, end turn, and victory rules."
         loading="lazy"
         decoding="async"
       />
@@ -2763,6 +2771,7 @@ function RulebookPanel() {
 }
 
 function TutorialScreen({ embedded = false, onBack, onPlayBasicAi, onPlayFactionAi, canPlayAsPlayer }) {
+  useBrandPreview();
   const lessons = [
     {
       title: "1. Read Priority",
@@ -2790,7 +2799,7 @@ function TutorialScreen({ embedded = false, onBack, onPlayBasicAi, onPlayFaction
     },
     {
       title: "7. Pick a Learning Mode",
-      text: "Basic Mode removes faction powers so you can learn the core Gauntlet loop. Faction Mode adds commander, city, and general effects."
+      text: brandText("Basic Mode removes faction powers so you can learn the core SuitFire loop. Faction Mode adds commander, city, and general effects.", "Basic Mode removes faction powers so you can learn the core Gauntlet loop. Faction Mode adds commander, city, and general effects.")
     }
   ];
 
@@ -2800,7 +2809,7 @@ function TutorialScreen({ embedded = false, onBack, onPlayBasicAi, onPlayFaction
         <header className="tutorial-header" style={{ "--journey-art": `url("${resolveVisualAsset(TUTORIAL_ART)}")` }}>
           <div>
             <div className="tutorial-kicker">Training Protocol</div>
-            <h1>Learn Gauntlet</h1>
+            <h1>{brandText("Learn SuitFire", "Learn Gauntlet")}</h1>
             <p>Follow the rhythm of one complete turn, then practice it against Training AI.</p>
           </div>
           <MenuButton variant="secondary" onClick={onBack}>Main Menu</MenuButton>
@@ -2996,6 +3005,7 @@ function CampaignScreen({ embedded = false, initialFactionId, initialChapterId =
 const DRAFT_PRESENTATION = { MENU_THEME, PACK_THEMES, MenuButton, MenuCard, RoomCodeDisplay, DraftCardTile, getReplacementValue, normalizeReplacementSuitId, getCardRank, getSuitSymbol, limitedDeckSourceLabel };
 
 export default function App() {
+  useBrandPreview();
   const [role, setRole] = useState(null);
   const [player, setPlayer] = useState(null);
   const [game, setGame] = useState(null);
@@ -3010,6 +3020,7 @@ export default function App() {
   const [actionLog, setActionLog] = useState([]);
   const [factionVoice, setFactionVoice] = useState(null);
   const [account, setAccount] = useState(null);
+  useAccountBrand(account);
   const [authToken, setAuthToken] = useState(() => browserStorage.getItem(STORAGE_KEYS.authToken) || "");
   const [authMode, setAuthMode] = useState(INITIAL_PASSWORD_RESET_TOKEN ? "reset" : "login");
   const [authForm, setAuthForm] = useState({ name: "", password: "", email: "", token: INITIAL_PASSWORD_RESET_TOKEN });
@@ -4665,8 +4676,8 @@ export default function App() {
   if (homeArea === "studio" && !game && !lobby) {
     return (
       <main className="admin-page">
-        <button className="admin-back" onClick={() => adminExitGuard.current(() => navigateHomeArea("journey"))}>Back to Gauntlet</button>
-        <Suspense fallback={<SurfaceLoading label="Gauntlet Admin" />}>
+        <button className="admin-back" onClick={() => adminExitGuard.current(() => navigateHomeArea("journey"))}>{brandText("Back to SuitFire", "Back to Gauntlet")}</button>
+        <Suspense fallback={<SurfaceLoading label={brandText("SuitFire Admin", "Gauntlet Admin")} />}>
           <Studio
             serverUrl={SOCKET_URL}
             exitGuard={adminExitGuard}
@@ -4686,14 +4697,10 @@ export default function App() {
     return (
       <main className="gauntlet-loading" style={{ "--loading-art": `url(${resolveAssetPath("/assets/gauntlet/kaiser-gauntlet.webp")})` }}>
         <section className="gauntlet-loading-shell" aria-labelledby="gauntlet-loading-title">
-          <div className="gauntlet-loading-cards" aria-hidden="true">
-            <FactionArtwork factionId="sheen" decorative />
-            <FactionArtwork factionId="rumin" decorative />
-            <FactionArtwork factionId="frumo" decorative />
-          </div>
+          <SuitFireBrand full />
           <div className="gauntlet-loading-copy">
             <span>Battle Net Terminal</span>
-            <h1 id="gauntlet-loading-title">{gameContentError ? "Unable to connect" : "Loading Gauntlet"}</h1>
+            <h1 id="gauntlet-loading-title">{gameContentError ? "Unable to connect" : brandText("Loading SuitFire", "Loading Gauntlet")}</h1>
             <p role="status" className={gameContentError ? "is-error" : ""}>
             {gameContentError || "Checking the server's game-content version..."}
             </p>
@@ -4872,8 +4879,8 @@ export default function App() {
         <div className="lobby-frame menu-frame" style={MENU_THEME.frame}>
         <div className="app-layout-122">
           <div>
-            <div className="app-layout-123">Faction Command</div>
-            <h1 className="app-layout-124">Gauntlet Online</h1>
+            <SuitFireBrand full />
+            <h1 className="app-layout-124">{brandText("SuitFire", "Gauntlet Online")}</h1>
           </div>
           <div className="app-layout-125">
             <HelperToggle enabled={showHelperLabels} onToggle={() => setShowHelperLabels((value) => !value)} light />
@@ -4887,7 +4894,7 @@ export default function App() {
           </div>
         </div>
         {copyNotice && <div className="app-layout-114">{copyNotice}</div>}
-        <details className="lobby-share"><summary>Share Gauntlet · site QR code</summary><ShareGameQrCard /></details>
+        <details className="lobby-share"><summary>{brandText("Share SuitFire · site QR code", "Share Gauntlet · site QR code")}</summary><ShareGameQrCard /></details>
         {account && <p className="app-layout-126"><strong>Account:</strong> {account.name}</p>}
         {error && <div className="app-layout-115"><strong>Error:</strong> {error}</div>}
         <MenuCard className="lobby-command-panel" title="Table Command">
@@ -4953,7 +4960,7 @@ export default function App() {
             {isBasicMode && (
               <>
                 <MenuCard title="Basic Mode">
-                  <p className="app-layout-127">No faction cards, no faction powers, and no faction bonuses. Just the core Gauntlet combat rules.</p>
+                  <p className="app-layout-127">{brandText("No faction cards, no faction powers, and no faction bonuses. Just the core SuitFire combat rules.", "No faction cards, no faction powers, and no faction bonuses. Just the core Gauntlet combat rules.")}</p>
                 </MenuCard>
                 {lobbyReadyBar}
               </>
@@ -5440,7 +5447,7 @@ export default function App() {
         <div className="ffa-root app-layout-138" >
           <div className="app-layout-139">
             <div>
-              <h2 className="app-layout-127">Gauntlet Online</h2>
+              <h2 className="app-layout-127">{brandText("SuitFire", "Gauntlet Online")}</h2>
               <div className="app-layout-140">Free-for-all - Turn {game.turn} - {game.phase} - Priority Player {game.priority}</div>
             </div>
             <div className="app-layout-141">
@@ -8216,7 +8223,7 @@ export default function App() {
       `}</style>
       <div className="match-top-frame">
         <div className="gauntlet-logo-panel">
-          <h2>Gauntlet<br />Online</h2>
+          <h2>{brandText("SuitFire", "Gauntlet Online")}</h2>
           <div className={`focus-priority-chip${isMyPriority ? " is-active" : ""}`}>Turn {game.turn} / {isMyPriority ? "Your priority" : `${getGamePlayerName(game, game.priority)} acting`}</div>
         </div>
         <div className={`top-opponent-panel${game.campaign ? " has-story" : ""}`}>
@@ -8338,8 +8345,7 @@ export default function App() {
                 </div>
               </SectionCard>}
               {isBasicGame && <SectionCard className="power-section" borderColor={myTheme.border} background="rgba(255,255,255,0.96)" style={{ padding: 8, marginBottom: 6 }}>
-                <strong>Basic Mode:</strong> Core Gauntlet rules only. No faction powers or faction bonuses.
-              </SectionCard>}
+                <strong>Basic Mode:</strong>{brandText(" Core SuitFire rules only. No faction powers or faction bonuses.\n              ", " Core Gauntlet rules only. No faction powers or faction bonuses.\n              ")}</SectionCard>}
 
               <div className="bottom-player-panel">
                 <div className="bottom-left-actions">
@@ -8458,7 +8464,7 @@ export default function App() {
             <aside className="focus-match-drawer" role="dialog" aria-modal="true" aria-label={`${matchDrawer} drawer`}>
               <header>
                 <div>
-                  <span>Gauntlet Match</span>
+                  <span>{brandText("SuitFire Match", "Gauntlet Match")}</span>
                   <h2>{matchDrawer === "events" ? "Combat Log" : matchDrawer === "faction" ? `${me?.faction?.name || "Faction"} Powers` : matchDrawer === "chapter" ? game.campaign?.title || "Chapter" : matchDrawer === "menu" ? "Match Menu" : "Match Details"}</h2>
                 </div>
                 <button type="button" onClick={() => setMatchDrawer(null)} aria-label="Close drawer">Close</button>

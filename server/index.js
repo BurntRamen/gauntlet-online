@@ -1,3 +1,4 @@
+const { accountBrand } = require("./brandPreview");
 const { handSize: configuredHandSize, SUITS: PLAYING_SUITS, VALUES: PLAYING_VALUES } = require("../shared/duel-rules/gameConfig");
 const encounterDefaults = require("./encounterDefinitions.json");
 const { campaignDifficulty } = require("../shared/duel-rules/encounterContract");
@@ -1897,6 +1898,7 @@ function publicAccount(account) {
   return {
     id: account.id,
     name: account.name,
+    brandPreview: accountBrand(account),
     createdAt: account.createdAt,
     lastLoginAt: account.lastLoginAt || null,
     identity: { recoveryEmailConfigured: Boolean(normalizePrivateIdentity(stats).email) },

@@ -915,7 +915,7 @@ test("later Bizi missions keep the new interface through boss actions", async ({
   expect(errors).toEqual([]);
 });
 
-test("encounter dossiers play exchanges with faction accompaniment and independent line previews", async ({ page, baseURL }) => {
+test("encounter dossiers preserve the selected music with independent line previews", async ({ page, baseURL }) => {
   await page.addInitScript((voicePaths) => {
     window.__voiceAssetPaths = voicePaths;
     const BrowserAudio = window.Audio;
@@ -941,7 +941,7 @@ test("encounter dossiers play exchanges with faction accompaniment and independe
   await expect.poll(() => page.evaluate(() => window.__previewMedia.filter((clip) => !clip.paused && window.__voiceAssetPaths.some((path) => clip.src.endsWith(path))).length)).toBe(1);
   expect(await page.evaluate(() => !window.__campaignMusic.paused && window.__previewMedia.filter((clip) => clip === window.__campaignMusic).length === 1)).toBe(true);
   expect(await page.evaluate(() => window.__previewMedia.filter((clip) => /dossiers/.test(clip.src)).length)).toBe(0);
-  await expect.poll(() => page.evaluate(() => window.__previewMedia.filter((clip) => !clip.paused && /music\/menu|menu_room_ambience/.test(clip.src)).length)).toBe(0);
+  await expect.poll(() => page.evaluate(() => window.__previewMedia.filter((clip) => !clip.paused && /menu_room_ambience/.test(clip.src)).length)).toBe(0);
   await dialogue.getByRole("button", { name: "Pause", exact: true }).click();
   expect(await page.evaluate(() => window.__previewMedia.filter((clip) => !clip.paused && window.__voiceAssetPaths.some((path) => clip.src.endsWith(path))).length)).toBe(0);
   expect(await page.evaluate(() => window.__campaignMusic.paused)).toBe(false);

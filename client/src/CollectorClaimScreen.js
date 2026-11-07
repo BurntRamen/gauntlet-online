@@ -1,3 +1,4 @@
+import { brandText, useBrandPreview } from './brand/brandPreview';
 import { useEffect, useState } from "react";
 import { resolveVisualAsset } from "./GauntletVisuals";
 import CollectorCardPresentation from "./CollectorCardPresentation";
@@ -29,6 +30,7 @@ export default function CollectorClaimScreen({
   onOpenCollection,
   onDismiss
 }) {
+  useBrandPreview();
   const [claim, setClaim] = useState(null);
   const [loading, setLoading] = useState(false);
   const [redeeming, setRedeeming] = useState(false);
@@ -186,7 +188,7 @@ export default function CollectorClaimScreen({
           </>
         )}
 
-        <button type="button" className="collector-claim-dismiss" onClick={onDismiss}>Return to Gauntlet</button>
+        <button type="button" className="collector-claim-dismiss" onClick={onDismiss}>{brandText("Return to SuitFire", "Return to Gauntlet")}</button>
       </section>
     </main>
   );

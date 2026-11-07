@@ -1,3 +1,4 @@
+import { brandText, useBrandPreview } from '../brand/brandPreview';
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getPlayingCardArtPath } from "../cardArt";
 import CollectorCardPresentation from "../CollectorCardPresentation";
@@ -42,6 +43,7 @@ function ReplayCard({ card, role }) {
 }
 
 function ReplayActionLayer({ action }) {
+  useBrandPreview();
   if (!action) return null;
   const values = action.values || {};
   const facts = [
@@ -54,7 +56,7 @@ function ReplayActionLayer({ action }) {
   return (
     <section className={`replay-action-layer kind-${action.kind}`} aria-live="polite" aria-atomic="true">
       <div className="replay-action-copy">
-        <span>{action.actorName || "Gauntlet broadcast"} · Turn {action.turn || 0}</span>
+        <span>{action.actorName || brandText("SuitFire broadcast", "Gauntlet broadcast")} · Turn {action.turn || 0}</span>
         <h2>{action.summary || action.label}</h2>
         {facts.length > 0 && <p>{facts.join(" · ")}</p>}
       </div>

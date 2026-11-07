@@ -1,3 +1,4 @@
+import { brandText } from '../brand/brandPreview';
 import {
   expectsPlayingCardArt,
   getPlayingCardArtPath,
@@ -159,7 +160,7 @@ function normalizePlayer(game, playerNumber, { isLocal = false, visibleHand = fa
     profile: source.profile || null,
     isLocal,
     factionId: faction.id || "basic",
-    factionName: faction.name || "Basic Gauntlet"
+    factionName: faction.name || brandText("Basic SuitFire", "Basic Gauntlet")
   };
 }
 
