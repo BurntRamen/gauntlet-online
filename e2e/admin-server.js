@@ -70,6 +70,12 @@ if (process.env.GAUNTLET_ASSET_FIXTURE_ROOT) {
     room.game = result.state; rooms.saveRooms([...rooms.loadRooms(), room]); res.json({ roomCode: room.roomCode, game: room.game });
   });
   if (process.env.GAUNTLET_PRINTING_FIXTURE) app.post("/api/admin/fixture/capture-printing-match", (req, res) => {
+    // A reset can lose the acknowledgement after a match was saved. Repeating
+    // the same test request must return that capture, not create another match.
+    const captureId = req.body?.captureId;
+    if (typeof captureId !== "string" || !captureId || captureId.length > 128) return res.status(400).json({ error: "A fixture capture ID is required." });
+    const captured = rooms.loadRooms().find(room => room.printingCaptureId === captureId && room.printingCaptureAccountId === req.gauntletAdminAccount.id);
+    if (captured) return res.set("X-Gauntlet-Fixture-Replayed", "true").json({ game: captured.game });
     const stats = JSON.parse(fs.readFileSync(process.env.ACCOUNT_DATA_FILE, "utf8")).accounts.find(account => account.id === req.gauntletAdminAccount.id).stats;
     const saved = __test.getSavedConstructedDeck(stats);
     const room = { roomCode: "PRINT" + (rooms.loadRooms().length + 1), lobby: { gameMode: "factions", players: { 1: { factionId: "rumin", savedConstructedDeck: saved }, 2: { factionId: "sheen" } } } };
@@ -83,7 +89,14 @@ if (process.env.GAUNTLET_ASSET_FIXTURE_ROOT) {
     room.game.priority = 1; room.game.startingPriorityThisTurn = 1;
     const result = require("../shared/duel-rules").applyCommand(room.game, { type: "declareHandAttack", player: 1, cardId: card.id, paymentCardIds: [payment.id] });
     if (!result.accepted) return res.status(422).json({ error: result.rejectionReason });
-    room.game = result.state; rooms.saveRooms([...rooms.loadRooms(), room]); res.json({ game: room.game });
+    room.game = result.state;
+    room.printingCaptureId = captureId;
+    room.printingCaptureAccountId = req.gauntletAdminAccount.id;
+    rooms.saveRooms([...rooms.loadRooms(), room]);
+    // Test-only fault injection: lose the response after persistence. A retry
+    // takes the replay branch above, so this drops only the first response.
+    if (req.get("X-Gauntlet-Fixture-Drop-Capture-Response") === "once") return res.socket.destroy();
+    res.json({ game: room.game });
   });
   app.get("/api/admin/fixture/image-matches", (req, res) => res.json({ rooms: rooms.loadRooms().map(room => ({ roomCode: room.roomCode, game: room.game, publicState: require("../shared/match-history/replay").buildPublicReplaySnapshot(room.game) })) }));
 }

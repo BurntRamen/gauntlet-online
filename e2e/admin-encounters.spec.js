@@ -1,3 +1,4 @@
+const { saveRecord, previewSavedDraft } = require("./admin-navigation");
 const { openCampaign } = require("./player-navigation");
 const { test, expect } = require("./admin-release-test");
 const { waitForBufferedAdminResponse } = require("./buffered-admin-response");
@@ -11,10 +12,10 @@ test("an operator creates a playable encounter and a player starts it from the p
   const created = await (await pending).json(), encounter = created.draft.snapshot.domains.encounters.at(-1); expect(encounter.origin).toBe("admin-encounter-v1");
   await page.goto("/admin/gauntlet?workshop=encounters&object=" + encounter.id + "&section=story");
   await page.getByLabel("Draft story", { exact: true }).fill("Face a Rumin challenger in a battle of careful timing.");
-  pending = page.waitForResponse(r => r.url().endsWith("/authoring/draft") && r.request().method() === "PATCH"); await page.getByRole("button", { name: "Save story to draft", exact: true }).click(); expect((await pending).status()).toBe(200);
+  pending = page.waitForResponse(r => r.url().endsWith("/authoring/record") && r.request().method() === "PATCH"); await saveRecord(page); expect((await pending).status()).toBe(200);
   await page.goto("/admin/gauntlet?workshop=encounters&object=" + encounter.id + "&section=setup");
   await page.getByLabel("Boss Life", { exact: true }).fill("23"); await page.getByLabel("Attacks Per Turn", { exact: true }).fill("1");
-  pending = waitForBufferedAdminResponse(page, r => r.url().endsWith("/authoring/draft") && r.request().method() === "PATCH"); await page.getByRole("button", { name: "Save encounter mechanics to draft", exact: true }).click();
+  pending = waitForBufferedAdminResponse(page, r => r.url().endsWith("/authoring/record") && r.request().method() === "PATCH"); await saveRecord(page);
   const configured = await (await pending).json(); Object.assign(encounter, configured.draft.snapshot.domains.encounters.find(e => e.id === encounter.id));
   await page.goto("/admin/gauntlet?workshop=encounters&object=" + encounter.id + "&section=test");
   const harness = page.getByRole("region", { name: "Real engine playtest" }); await harness.getByRole("combobox", { name: "Test content", exact: true }).selectOption("draft");
@@ -22,7 +23,7 @@ test("an operator creates a playable encounter and a player starts it from the p
   const session = (await (await pending).json()).playtest; expect(session.game.campaign.chapterId).toBe(encounter.id);
   const pass = session.legalActions.find(a => a.type === "passPriority"); await harness.getByRole("combobox", { name: "Action", exact: true }).selectOption(pass.id);
   pending = page.waitForResponse(r => r.url().endsWith("/playtest/command")); await harness.getByRole("button", { name: "Execute selected action", exact: true }).click(); expect((await pending).status()).toBe(200);
-  await page.getByRole("button", { name: "Preview saved draft", exact: true }).click(); await page.getByRole("button", { name: "Review release", exact: true }).click(); await page.getByLabel("Release name").fill("Playable additional encounter"); await page.getByRole("button", { name: "Publish release", exact: true }).click(); await page.getByRole("button", { name: "Confirm publish", exact: true }).click(); await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible();
+  await previewSavedDraft(page); await page.getByRole("button", { name: "Review release", exact: true }).click(); await page.getByLabel("Release name").fill("Playable additional encounter"); await page.getByRole("button", { name: "Publish release", exact: true }).click(); await page.getByRole("button", { name: "Confirm publish", exact: true }).click(); await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible();
   await page.goto("/"); await openCampaign(page, "Rumin");
   const chapter = page.locator(".campaign-chapter").filter({ has: page.getByRole("heading", { name: encounter.title, exact: true }) }); await expect(chapter.getByRole("button", { name: "Begin Battle", exact: true })).toBeEnabled();
   await expect(chapter.locator(".campaign-boss-line")).toContainText(encounter.setup.bossLife + " life / " + encounter.setup.attacksPerTurn + " attacks per turn");

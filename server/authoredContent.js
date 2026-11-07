@@ -125,9 +125,16 @@ const validAsset = assets.validAssetReference;
 function validateAuthoredContent(snapshot, baseline, catalogCards) {
   const studioErrors = require("./mechanicAuthoring").validate(snapshot || {});
   if (studioErrors.length) return { valid: false, errors: studioErrors, warnings: [] };
+  return validateAuthoredFields(snapshot, baseline, catalogCards);
+}
+
+// Record saves need field errors even when an unrelated mechanic is invalid.
+// Publication keeps its existing fail-fast validation above. Schema callbacks
+// stay within this helper so nested catalog validation cannot skip field checks.
+function validateAuthoredFields(snapshot, baseline, catalogCards) {
   if (snapshot?.assetVersions !== undefined && !require("./authoredAssets").validateVersions(snapshot.assetVersions)) return { valid: false, errors: [{ message: "Invalid immutable image version metadata." }], warnings: [] };
-  if (snapshot?.schemaVersion === require("./adminSuiteContent").SCHEMA) return require("./adminSuiteContent").validate(snapshot, baseline, (value, base) => authoredCatalog.validateCatalog(value, base, validateAuthoredContent));
-  if (snapshot?.schemaVersion === authoredCatalog.SCHEMA) return authoredCatalog.validateCatalog(snapshot, baseline, validateAuthoredContent);
+  if (snapshot?.schemaVersion === require("./adminSuiteContent").SCHEMA) return require("./adminSuiteContent").validate(snapshot, baseline, (value, base) => authoredCatalog.validateCatalog(value, base, validateAuthoredFields));
+  if (snapshot?.schemaVersion === authoredCatalog.SCHEMA) return authoredCatalog.validateCatalog(snapshot, baseline, validateAuthoredFields);
   const errors = [], warnings = [];
   const issue = (domain, id, field, message) => errors.push({ domain, id, field, message });
   if (!snapshot || snapshot.schemaVersion !== SCHEMA) return { valid: false, errors: [{ field: "schemaVersion", message: "Unsupported authored-content schema." }], warnings };
@@ -212,6 +219,22 @@ function validateAuthoredContent(snapshot, baseline, catalogCards) {
     }
   }
   return { valid: errors.length === 0, errors, warnings };
+}
+
+// Validate this record and its mechanic dependencies without letting another
+// record's invalid reference hide errors or prevent an independent correction.
+function validateAuthoredRecord(snapshot, baseline, domain, id) {
+  const errors = validateAuthoredFields(snapshot, baseline).errors.filter(issue => !issue.domain || issue.domain === domain && (issue.id == null || issue.id === id));
+  const row = snapshot.domains[domain]?.find(item => item.id === id);
+  const authoredEffect = domain === "cards" && row?.effect?.id === require("../shared/duel-rules/mechanicContract").ID;
+  const modifierId = domain === "encounters" && row?.ruleModifierId;
+  if (authoredEffect || modifierId) {
+    const studio = snapshot.studio && { ...snapshot.studio };
+    if (Array.isArray(studio?.mechanics)) studio.mechanics = studio.mechanics.filter(item => item?.id === row.effect?.mechanicId);
+    if (Array.isArray(studio?.modifiers)) studio.modifiers = studio.modifiers.filter(item => item?.id === modifierId);
+    errors.push(...require("./mechanicAuthoring").validate({ ...snapshot, studio, domains: { cards: authoredEffect ? [row] : [], encounters: modifierId ? [row] : [] } }));
+  }
+  return errors;
 }
 
 // Typed presentation contract. IDs, rules, deck slots and effect dispatch remain
@@ -319,4 +342,4 @@ function pinGameContent(game, resolved) {
   return game;
 }
 
-module.exports = { SCHEMA, FIELDS, clone, hash, fieldsFor, fieldValue, createAuthoredBaseline, validateAuthoredContent, resolveEngineContent, pinGameContent };
+module.exports = { SCHEMA, FIELDS, clone, hash, fieldsFor, fieldValue, createAuthoredBaseline, validateAuthoredContent, validateAuthoredRecord, resolveEngineContent, pinGameContent };

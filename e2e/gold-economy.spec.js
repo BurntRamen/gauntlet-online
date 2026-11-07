@@ -1,5 +1,5 @@
 const { navigatePlayer } = require("./player-navigation");
-const { area: adminArea, paraTab, identity } = require("./admin-navigation");
+const { area: adminArea, paraTab, identity, saveDefinition } = require("./admin-navigation");
 const { origin, clientOrigin } = require("./admin-urls");
 const { test, expect } = require("./admin-release-test"), AxeBuilder = require("@axe-core/playwright").default;
 const fs = require("node:fs"), path = require("node:path");
@@ -16,34 +16,30 @@ test("Admin authors and publishes a usable Gold product; player earns, buys, rea
   const fill = (name, value) => page.getByLabel(name, { exact: true }).fill(value);
   const select = (name, value) => page.getByLabel(name, { exact: true }).selectOption(value);
   const dates = async () => { await fill("Start", "2026-01-01T00:00"); await fill("End", "2099-01-01T00:00"); };
-  const save = async () => {
-    const saved = page.waitForResponse(response => response.url().endsWith("/authoring/para-draft") && response.request().method() === "POST", { timeout: 15000 });
-    await page.getByRole("button", { name: "Save definition to draft" }).click();
-    expect((await saved).ok()).toBeTruthy();
-    await expect(page.getByLabel("Name", { exact: true })).toHaveCount(0);
-  };
+  const save = () => saveDefinition(page);
   const publish = async (name) => {
     await page.getByRole("button", { name: "Validate draft", exact: true }).click(); await page.getByRole("button", { name: "Preview saved draft", exact: true }).click(); await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible();
-    await nav.getByRole("button", { name: "Publishing", exact: true }).click(); await fill("Release name", name);
+    await adminArea(page, "Publishing"); await fill("Release name", name);
     await page.getByRole("button", { name: "Publish release", exact: true }).click(); await page.getByRole("button", { name: "Confirm publish", exact: true }).click();
     await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible();
   };
-  await area(); await choose("Seasons"); await page.getByRole("button", { name: "New season", exact: true }).click();
-  await identity(page, "gold-browser-season"); await fill("Name", "Gold release test season"); await dates();
-  await page.getByLabel("classic", { exact: true }).check(); await fill("Public rules version", "gold-browser-v1"); await fill("Gold cap per eligible account", "1000"); await save();
-  for (const [id, name, condition, gold] of [["gold-browser-welcome", "Welcome to Gold", "welcome", "700"], ["gold-browser-training", "Verified training", "faction-training", "300"]]) {
-    await choose("Gold Awards"); await page.getByRole("button", { name: "New Gold award", exact: true }).click();
-    await identity(page, id); await fill("Name", name); await select("Season", "gold-browser-season"); await select("State", "active"); await select("Verified milestone", condition); await fill("Gold amount", gold); await dates(); await save();
-  }
-  await choose("Entitlements"); await page.getByRole("button", { name: "New entitlement", exact: true }).click();
-  await identity(page, "gold-browser-analysis-access"); await fill("Name", "Personal match analysis"); await select("Category", "analytics"); await select("Acquisition provenance", "commercial");
-  await select("Existing content asset", "service:match-analysis-v1"); await fill("Rights evidence reference", "First-party service using this account's canonical match records"); await select("Fulfillment availability", "available"); await save();
-  await choose("Marketplace"); await page.getByRole("button", { name: "New product", exact: true }).click();
-  await identity(page, "gold-browser-analysis"); await fill("Name", "Personal match analysis"); await select("Category", "analytics"); await select("Availability", "active"); await dates();
-  await page.getByLabel("Personal match analysis", { exact: true }).check(); await fill("Gold price", "200"); await save();
-  await publish("Operational Gold and match analysis"); const release = (await get("/api/admin/authoring")).activeReleaseId;
-  const context = await browser.newContext({ baseURL: clientOrigin }); const player = await context.newPage();
+  let context;
   try {
+    await area(); await choose("Seasons"); await page.getByRole("button", { name: "New season", exact: true }).click();
+    await identity(page, "gold-browser-season"); await fill("Name", "Gold release test season"); await dates();
+    await page.getByLabel("classic", { exact: true }).check(); await fill("Public rules version", "gold-browser-v1"); await fill("Gold cap per eligible account", "1000"); await save();
+    for (const [id, name, condition, gold] of [["gold-browser-welcome", "Welcome to Gold", "welcome", "700"], ["gold-browser-training", "Verified training", "faction-training", "300"]]) {
+      await choose("Gold Awards"); await page.getByRole("button", { name: "New Gold award", exact: true }).click();
+      await identity(page, id); await fill("Name", name); await select("Season", "gold-browser-season"); await select("State", "active"); await select("Verified milestone", condition); await fill("Gold amount", gold); await dates(); await save();
+    }
+    await choose("Entitlements"); await page.getByRole("button", { name: "New entitlement", exact: true }).click();
+    await identity(page, "gold-browser-analysis-access"); await fill("Name", "Personal match analysis"); await select("Category", "analytics"); await select("Acquisition provenance", "commercial");
+    await select("Existing content asset", "service:match-analysis-v1"); await fill("Rights evidence reference", "First-party service using this account's canonical match records"); await select("Fulfillment availability", "available"); await save();
+    await choose("Marketplace"); await page.getByRole("button", { name: "New product", exact: true }).click();
+    await identity(page, "gold-browser-analysis"); await fill("Name", "Personal match analysis"); await select("Category", "analytics"); await select("Availability", "active"); await dates();
+    await page.getByLabel("Personal match analysis", { exact: true }).check(); await fill("Gold price", "200"); await save();
+    await publish("Operational Gold and match analysis"); const release = (await get("/api/admin/authoring")).activeReleaseId;
+    context = await browser.newContext({ baseURL: clientOrigin }); const player = await context.newPage();
     await login(player, false); await navigatePlayer(player, "profile", "library");
     const library = player.locator(".cd-setup-content").getByRole("region", { name: "Gold & Library", exact: true });
     await library.getByRole("button", { name: "Claim Welcome to Gold · 700 Gold", exact: true }).click(); await expect(library).toContainText("700 Gold · Published");
@@ -74,9 +70,18 @@ test("Admin authors and publishes a usable Gold product; player earns, buys, rea
     expect((await new AxeBuilder({ page }).include(".economy-console").analyze()).violations).toEqual([]);
     await library.getByRole("button", { name: "Refresh Gold & Library" }).click(); await expect(library).toContainText("1000 Gold · Published"); await expect(library.getByRole("button", { name: /^Open Personal/ })).toHaveCount(0);
   } finally {
-    await context.close();
-    // Restore the configuration baseline so the pre-existing Para browser suite
-    // continues to prove the inactive-seed flow against its original context.
-    const state = await get("/api/admin/authoring"); const r = await request.post(origin + "/api/admin/authoring/rollback", { headers, data: { expectedRevision: state.revision, releaseId: before.activeReleaseId } }); expect(r.ok()).toBeTruthy();
+    try { await context?.close(); } finally {
+      // Include setup failures: a saved Gold draft must not leak into a later
+      // journey and get published before the inactive-seed flow runs.
+      let state = await get("/api/admin/authoring");
+      if (state.draft) {
+        const discarded = await request.post(origin + "/api/admin/authoring/discard", { headers, data: { expectedRevision: state.revision } });
+        expect(discarded.ok()).toBeTruthy(); state = await discarded.json();
+      }
+      if (state.activeReleaseId !== before.activeReleaseId) {
+        const restored = await request.post(origin + "/api/admin/authoring/rollback", { headers, data: { expectedRevision: state.revision, releaseId: before.activeReleaseId } });
+        expect(restored.ok()).toBeTruthy();
+      }
+    }
   }
 });

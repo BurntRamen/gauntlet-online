@@ -8,11 +8,10 @@ const budgets = Object.freeze({
   mainGzip: 180 * KIB,
   adminEntryGzip: 20 * KIB,
   // Every named lazy workshop shares this total; splitting grants no extra allowance.
-  // Production steps, resumable navigation, prose, progress repairs, audio,
-  // pack controls and v2 decision editing measure 65.6 KiB together (previous
-  // printing milestone: 60.4). Bound the expanded Admin suite at 66 KiB;
-  // initial entry, main, player and largest-chunk ceilings remain unchanged.
-  adminGzip: 66 * KIB,
+  // The operator workspace uses 71.3 KiB after shared-editor consolidation.
+  // Allow 75 KiB for the complete lazy Admin workspace; its 20 KiB initial
+  // entry and every player-facing ceiling remain unchanged.
+  adminGzip: 75 * KIB,
   largestAsyncGzip: 350 * KIB,
   // Priority guidance, unified combat-payment controls, and voiced campaign cinematics add 4.5 KiB gzip.
   // Paid support authority, projection, adapters and ordered playback add <5 KiB.

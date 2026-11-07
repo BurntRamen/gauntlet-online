@@ -1,5 +1,5 @@
 const { navigatePlayer } = require("./player-navigation");
-const { area: adminArea, paraTab, identity } = require("./admin-navigation");
+const { area: adminArea, paraTab, identity, saveDefinition } = require("./admin-navigation");
 const { origin, clientOrigin } = require("./admin-urls");
 const { test, expect } = require("@playwright/test");
 const AxeBuilder = require("@axe-core/playwright").default;
@@ -21,12 +21,7 @@ test("Admin publication becomes a free human event with durable Prestige and ins
   await adminArea(page, "Para League & Economy");
   const tabs = page.getByRole("navigation", { name: "Para workspaces" });
   const choose = (name) => paraTab(page, name);
-  const save = async () => {
-    const saved = page.waitForResponse(response => response.url().endsWith("/authoring/para-draft") && response.request().method() === "POST", { timeout: 15000 });
-    await page.getByRole("button", { name: "Save definition to draft" }).click();
-    expect((await saved).ok()).toBeTruthy();
-    await expect(page.getByLabel("Name", { exact: true })).toHaveCount(0);
-  };
+  const save = () => saveDefinition(page);
   const preview = async () => {
     const pending = page.waitForResponse(response => response.url().endsWith("/authoring/preview") && response.request().method() === "POST", { timeout: 15000 });
     await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
@@ -55,7 +50,7 @@ test("Admin publication becomes a free human event with durable Prestige and ins
   await createEvent("runtime-invitational", "Runtime Invitational", 2, "invitational");
   await page.getByRole("button", { name: "Validate draft", exact: true }).click();
   await preview();
-  const publish = async (name) => { await nav.getByRole("button", { name: "Publishing", exact: true }).click(); await page.getByLabel("Release name").fill(name); await page.getByRole("button", { name: "Publish release", exact: true }).click(); await page.getByRole("button", { name: "Confirm publish", exact: true }).click(); await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible(); };
+  const publish = async (name) => { await adminArea(page, "Publishing"); await page.getByLabel("Release name").fill(name); await page.getByRole("button", { name: "Publish release", exact: true }).click(); await page.getByRole("button", { name: "Confirm publish", exact: true }).click(); await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible(); };
   await publish("Browser official runtime event"); const release = (await get("/api/admin/authoring")).activeReleaseId;
   const contexts = await Promise.all([browser.newContext(), browser.newContext()]);
   try {

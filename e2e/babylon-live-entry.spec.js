@@ -762,110 +762,104 @@ test("resolution changes preserve framing and saved light mode updates the exist
 
 test("discard piles and player abilities use a non-overlapping responsive dock without restarting the table", async ({ page, browser, baseURL }, testInfo) => {
   test.setTimeout(120000);
-  // Both players have resource counters. A random training opponent could omit
-  // the extra row and hide the cramped portrait layout this test must cover.
-  const guestContext = await browser.newContext();
-  const guestPage = await guestContext.newPage();
-  await prepareGuest(page, baseURL, "Dock Reviewer");
-  const roomCode = await createFactionRoom(page);
-  await prepareGuest(guestPage, baseURL, "Dock Opponent");
-  await joinRoom(guestPage, roomCode);
-  await chooseLobbyFaction(page, "Jali");
-  await chooseLobbyFaction(guestPage, "Jali");
-  await page.getByRole("button", { name: "Confirm Start" }).click();
-  await guestPage.getByRole("button", { name: "Confirm Start" }).click();
-  const match = page.getByTestId("production-babylon-match");
-  const canvas = page.locator("canvas.babylon-match-canvas");
-  await expect(canvas).toBeVisible();
-  await expect(page.locator(".production-player-resource")).toHaveCount(2);
-  // The second player established a real lobby; its renderer is not needed
-  // while the reviewing player rotates through four screen sizes.
-  await guestContext.close();
-  await page.evaluate(() => { window.__dockOriginalCanvas = document.querySelector("canvas.babylon-match-canvas"); });
-  const profiles = [
-    { name: "desktop", width: 1440, height: 900 },
-    { name: "tablet", width: 1024, height: 768 },
-    { name: "phone-portrait", width: 390, height: 844 },
-    { name: "short-landscape", width: 844, height: 390 }
-  ];
-  for (const profile of profiles) {
-    await page.setViewportSize({ width: profile.width, height: profile.height });
-    await page.locator(".production-player-plate-bottom").getByRole("button", { name: "Faction abilities" }).click();
-    const dock = page.getByRole("dialog", { name: "Faction abilities" });
-    await expect(dock).toBeVisible();
-    await expect(dock).not.toHaveAttribute("aria-modal", "true");
-    await expect(page.locator(".production-faction-actions")).toHaveCount(0);
-    await expect.poll(() => page.evaluate(() => {
-      const dock = document.querySelector(".production-reference-panel.is-docked").getBoundingClientRect();
-      return [...document.querySelectorAll("[data-testid='battlefield-safe-frame'], .phone-hand-panel, .production-player-plate, .production-context-panel")]
-        .filter((element) => element.getBoundingClientRect().height > 0)
-        .every((element) => {
-          const rect = element.getBoundingClientRect();
-          return rect.right <= dock.left + 1 || rect.left >= dock.right - 1
-            || rect.bottom <= dock.top + 1 || rect.top >= dock.bottom - 1;
-        });
-    })).toBe(true);
-    await expect.poll(() => page.evaluate(() =>
-      window.__dockOriginalCanvas === document.querySelector("canvas.babylon-match-canvas"))).toBe(true);
-    // Viewport media queries and the HUD ResizeObserver settle separately.
-    // Keep the same usable-area requirements while waiting for both updates.
-    await expect.poll(async () => (await page.getByTestId("battlefield-safe-frame").boundingBox()).height,
-      { message: `${profile.name} board height` }).toBeGreaterThan(120);
-    await expect.poll(async () => (await page.getByTestId("battlefield-safe-frame").boundingBox()).width,
-      { message: `${profile.name} board width` }).toBeGreaterThan(300);
-    await expect.poll(() => page.evaluate(() => {
-      const board = document.querySelector("[data-testid='battlefield-safe-frame']").getBoundingClientRect();
-      return [...document.querySelectorAll(".phone-hand-panel, .production-player-plate, .production-context-panel")].every(element => {
-        const rect = element.getBoundingClientRect();
-        return !rect.height || rect.right <= board.left + 1 || rect.left >= board.right - 1
-          || rect.bottom <= board.top + 1 || rect.top >= board.bottom - 1;
-      });
-    }), { message: `${profile.name} board stays clear of player controls` }).toBe(true);
-    await page.screenshot({ path: testInfo.outputPath(`abilities-${profile.name}.png`) });
-    await dock.getByRole("button", { name: "Close", exact: true }).click();
-    await page.locator(".production-player-plate-bottom").getByRole("button", { name: /^Show .*discard pile/ }).click();
-    const discard = page.getByRole("dialog", { name: "Discard piles" });
-    await expect(discard).toBeVisible();
-    await expect(discard).toContainText("No discarded cards.");
-    await discard.getByRole("button", { name: /^Dock Opponent ·/ }).click();
-    await expect(discard.getByRole("button", { name: /^Dock Opponent ·/ })).toHaveAttribute("aria-pressed", "true");
-    await page.screenshot({ path: testInfo.outputPath(`discard-${profile.name}.png`) });
-    await page.keyboard.press("Escape");
-    await expect(discard).toHaveCount(0);
-    await expect(match).not.toHaveClass(/has-reference-dock/);
-  }
-  // The dev-only capture hook provides projected public pile anchors, not cards
-  // or server state. Pointer input still goes through the real Babylon picker.
-  await page.setViewportSize({ width: 1440, height: 900 });
-  const captureAvailable = await canvas.evaluate((element) => !!element.__gauntletCaptureControl);
-  if (captureAvailable) {
-    await expect.poll(() => canvas.evaluate((element) =>
-      element.__gauntletCaptureControl.snapshot().discardPickTargets?.length)).toBe(2);
-    for (const pile of ["localdiscard", "opponentdiscard"]) {
-      for (const surface of ["well", "counter"]) {
-        await expect.poll(() => canvas.evaluate((element) => {
-          const metrics = element.__gauntletCaptureControl.snapshot();
-          const rect = element.getBoundingClientRect();
-          const [width, height] = metrics.renderSize.split("x").map(Number);
-          return Math.abs(width - rect.width / metrics.hardwareScalingLevel) < 3
-            && Math.abs(height - rect.height / metrics.hardwareScalingLevel) < 3;
-        })).toBe(true);
-        await canvas.evaluate(async () => {
-          await new Promise(requestAnimationFrame);
-          await new Promise(requestAnimationFrame);
-        });
-        const target = await canvas.evaluate((element, { pile, surface }) => {
-          const anchor = element.__gauntletCaptureControl.snapshot().discardPickTargets.find((target) => target.pile === pile)[surface];
-          const rect = element.getBoundingClientRect();
-          return { x: rect.left + anchor.x * rect.width, y: rect.top + anchor.y * rect.height };
-        }, { pile, surface });
-        await page.mouse.click(target.x, target.y);
-        const discard = page.getByRole("dialog", { name: "Discard piles" });
-        await expect(discard, `Pointer click on ${pile} ${surface} at ${JSON.stringify(target)}`).toBeVisible();
-        await discard.getByRole("button", { name: "Close", exact: true }).click();
+  const opponent = await connectSeedClient();
+  try {
+    await prepareGuest(page, baseURL, "Dock Reviewer");
+    const roomCode = await createFactionRoom(page);
+    const assigned = waitForEvent(opponent, "assign");
+    opponent.emit("joinRoom", { roomCode, guestName: "Dock Opponent" });
+    await assigned;
+    // Both Jali plates carry the additional resource row. Use the normal
+    // opponent protocol without a second software-rendered canvas competing
+    // with the player view whose geometry and canvas identity are under test.
+    await chooseLobbyFaction(page, "Jali");
+    const selected = waitForEvent(opponent, "lobbyState", lobby =>
+      lobby.players[1]?.factionId === "jali" && lobby.players[2]?.factionId === "jali");
+    opponent.emit("selectFaction", { factionId: "jali" });
+    await selected;
+    await page.getByRole("button", { name: "Confirm Start" }).click();
+    const started = waitForEvent(opponent, "state", state => state.phase === "priority");
+    opponent.emit("startGame");
+    await started;
+    await expect(page.locator(".production-player-resource")).toHaveCount(2);
+    const match = page.getByTestId("production-babylon-match");
+    const canvas = page.locator("canvas.babylon-match-canvas");
+    await expect(canvas).toBeVisible();
+    await page.evaluate(() => { window.__dockOriginalCanvas = document.querySelector("canvas.babylon-match-canvas"); });
+    const profiles = [
+      { name: "desktop", width: 1440, height: 900 },
+      { name: "tablet", width: 1024, height: 768 },
+      { name: "phone-portrait", width: 390, height: 844 },
+      { name: "short-landscape", width: 844, height: 390 }
+    ];
+    for (const profile of profiles) {
+      await page.setViewportSize({ width: profile.width, height: profile.height });
+      await page.locator(".production-player-plate-bottom").getByRole("button", { name: "Faction abilities" }).click();
+      const dock = page.getByRole("dialog", { name: "Faction abilities" });
+      await expect(dock).toBeVisible();
+      await expect(dock).not.toHaveAttribute("aria-modal", "true");
+      await expect(page.locator(".production-faction-actions")).toHaveCount(0);
+      await expect.poll(() => page.evaluate(() => {
+        const dock = document.querySelector(".production-reference-panel.is-docked").getBoundingClientRect();
+        return [...document.querySelectorAll("[data-testid='battlefield-safe-frame'], .phone-hand-panel, .production-player-plate, .production-context-panel")]
+          .filter((element) => element.getBoundingClientRect().height > 0)
+          .every((element) => {
+            const rect = element.getBoundingClientRect();
+            return rect.right <= dock.left + 1 || rect.left >= dock.right - 1
+              || rect.bottom <= dock.top + 1 || rect.top >= dock.bottom - 1;
+          });
+      })).toBe(true);
+      await expect.poll(() => page.evaluate(() =>
+        window.__dockOriginalCanvas === document.querySelector("canvas.babylon-match-canvas"))).toBe(true);
+      await page.screenshot({ path: testInfo.outputPath(`abilities-${profile.name}.png`) });
+      await expect.poll(async () => (await page.getByTestId("battlefield-safe-frame").boundingBox())?.height || 0).toBeGreaterThan(120);
+      await expect.poll(async () => (await page.getByTestId("battlefield-safe-frame").boundingBox())?.width || 0).toBeGreaterThan(300);
+
+      await dock.getByRole("button", { name: "Close", exact: true }).click();
+      await page.locator(".production-player-plate-bottom").getByRole("button", { name: /^Show .*discard pile/ }).click();
+      const discard = page.getByRole("dialog", { name: "Discard piles" });
+      await expect(discard).toBeVisible();
+      await expect(discard).toContainText("No discarded cards.");
+      await discard.getByRole("button", { name: /^Dock Opponent ·/ }).click();
+      await expect(discard.getByRole("button", { name: /^Dock Opponent ·/ })).toHaveAttribute("aria-pressed", "true");
+      await page.screenshot({ path: testInfo.outputPath(`discard-${profile.name}.png`) });
+      await page.keyboard.press("Escape");
+      await expect(discard).toHaveCount(0);
+      await expect(match).not.toHaveClass(/has-reference-dock/);
+    }
+    // The dev-only capture hook provides projected public pile anchors, not cards
+    // or server state. Pointer input still goes through the real Babylon picker.
+    await page.setViewportSize({ width: 1440, height: 900 });
+    const captureAvailable = await canvas.evaluate((element) => !!element.__gauntletCaptureControl);
+    if (captureAvailable) {
+      await expect.poll(() => canvas.evaluate((element) =>
+        element.__gauntletCaptureControl.snapshot().discardPickTargets?.length)).toBe(2);
+      for (const pile of ["localdiscard", "opponentdiscard"]) {
+        for (const surface of ["well", "counter"]) {
+          await expect.poll(() => canvas.evaluate((element) => {
+            const metrics = element.__gauntletCaptureControl.snapshot();
+            const rect = element.getBoundingClientRect();
+            const [width, height] = metrics.renderSize.split("x").map(Number);
+            return Math.abs(width - rect.width / metrics.hardwareScalingLevel) < 3
+              && Math.abs(height - rect.height / metrics.hardwareScalingLevel) < 3;
+          })).toBe(true);
+          await canvas.evaluate(async () => {
+            await new Promise(requestAnimationFrame);
+            await new Promise(requestAnimationFrame);
+          });
+          const target = await canvas.evaluate((element, { pile, surface }) => {
+            const anchor = element.__gauntletCaptureControl.snapshot().discardPickTargets.find((target) => target.pile === pile)[surface];
+            const rect = element.getBoundingClientRect();
+            return { x: rect.left + anchor.x * rect.width, y: rect.top + anchor.y * rect.height };
+          }, { pile, surface });
+          await page.mouse.click(target.x, target.y);
+          const discard = page.getByRole("dialog", { name: "Discard piles" });
+          await expect(discard, `Pointer click on ${pile} ${surface} at ${JSON.stringify(target)}`).toBeVisible();
+          await discard.getByRole("button", { name: "Close", exact: true }).click();
+        }
       }
     }
-  }
+  } finally { opponent.disconnect(); }
 });
 
 test("later Bizi missions keep the new interface through boss actions", async ({ page, request, baseURL }) => {

@@ -1929,12 +1929,16 @@ export default function ProductionMatchExperience({
       handRailRef.current.layoutProfile = bounds.height >= bounds.width ? "portrait" : "short-landscape";
       const panel = root.querySelector(".phone-hand-panel");
       const sideHand = phoneHandActive && window.innerWidth > window.innerHeight && window.innerHeight <= 520;
-      // Short landscape places the player plates/actions in a left column.
-      // Only the hand lies below the board in that layout.
-      const controls = (sideHand ? [".phone-hand-panel"] : [".production-player-plate-bottom", ".production-context-panel"])
+      const controls = [".production-player-plate-bottom", ".production-context-panel"]
         .map((selector) => root.querySelector(selector)?.getBoundingClientRect());
+      if (sideHand && panel) controls.push(panel.getBoundingClientRect());
       const hudHeight = Math.max(0, ...controls.filter(Boolean).map((rect) => bounds.bottom - rect.top)) + 4;
       if (phoneHandActive && hudHeight > 4) root.style.setProperty("--phone-hud-reserve", Math.ceil(hudHeight) + "px");
+      // In short landscape the player plates occupy the left column; only
+      // the hand rail below the board needs to reserve vertical table space.
+      if (sideHand && panel) root.style.setProperty("--battlefield-bottom-reserve",
+        Math.ceil(bounds.bottom - panel.getBoundingClientRect().top + 4) + "px");
+      else if (phoneHandActive) root.style.removeProperty("--battlefield-bottom-reserve");
       if (!phoneHandActive && hudHeight > 4 && update?.source !== "replay")
         root.style.setProperty("--battlefield-bottom-reserve",
           (desktopPanels || (bounds.width >= 1366 && bounds.height > 520) ? 8 : Math.ceil(hudHeight)) + "px");

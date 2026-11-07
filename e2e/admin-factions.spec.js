@@ -1,3 +1,4 @@
+const { saveRecord, previewSavedDraft } = require("./admin-navigation");
 const { openCampaign } = require("./player-navigation");
 const { test, expect } = require("./admin-release-test");
 const { waitForBufferedAdminResponse } = require("./buffered-admin-response");
@@ -13,9 +14,9 @@ test("operator creates a Sheen-family faction, configures its actual mechanic, p
   const result = await (await pending).json(), faction = result.draft.snapshot.domains.factions.at(-1), encounter = result.draft.snapshot.domains.encounters.at(-1);
   expect(faction.family).toBe("sheen");
   await page.getByLabel("Parameters Large Attack Bonus", { exact: true }).fill("6");
-  pending = page.waitForResponse(r => r.url().endsWith("/authoring/draft") && r.request().method() === "PATCH"); await page.getByRole("button", { name: "Save faction mechanics to draft", exact: true }).click(); expect((await pending).status()).toBe(200);
+  pending = page.waitForResponse(r => r.url().endsWith("/authoring/record") && r.request().method() === "PATCH"); await saveRecord(page); expect((await pending).status()).toBe(200);
   await page.goto("/admin/gauntlet?workshop=characters&object=" + faction.id + ":commander"); await page.getByLabel("Draft name", { exact: true }).fill("Glass Marshal");
-  pending = page.waitForResponse(r => r.url().endsWith("/authoring/draft") && r.request().method() === "PATCH"); await page.getByRole("button", { name: "Save name to draft", exact: true }).click(); expect((await pending).status()).toBe(200);
+  pending = page.waitForResponse(r => r.url().endsWith("/authoring/record") && r.request().method() === "PATCH"); await saveRecord(page); expect((await pending).status()).toBe(200);
   await page.goto("/admin/gauntlet?workshop=encounters&object=" + encounter.id + "&section=test");
   const harness = page.getByRole("region", { name: "Real engine playtest" }); await harness.getByRole("combobox", { name: "Test content", exact: true }).selectOption("draft");
   page.once("dialog", d => d.accept()); pending = waitForBufferedAdminResponse(page, r => r.url().endsWith("/authoring/playtest")); await harness.getByRole("button", { name: "Start " + encounter.title + " playtest", exact: true }).click();
@@ -24,7 +25,7 @@ test("operator creates a Sheen-family faction, configures its actual mechanic, p
   expect(session.game.players[1].faction.mechanics.parameters.largeAttackBonus).toBe(6);
   await harness.getByRole("combobox", { name: "Action", exact: true }).selectOption(session.legalActions.find(a => a.type === "passPriority").id);
   pending = page.waitForResponse(r => r.url().endsWith("/playtest/command")); await harness.getByRole("button", { name: "Execute selected action", exact: true }).click(); expect((await pending).status()).toBe(200);
-  await page.getByRole("button", { name: "Preview saved draft", exact: true }).click(); await page.getByRole("button", { name: "Review release", exact: true }).click(); await page.getByLabel("Release name").fill("Glass Dynasty campaign"); await page.getByRole("button", { name: "Publish release", exact: true }).click(); await page.getByRole("button", { name: "Confirm publish", exact: true }).click(); await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible();
+  await previewSavedDraft(page); await page.getByRole("button", { name: "Review release", exact: true }).click(); await page.getByLabel("Release name").fill("Glass Dynasty campaign"); await page.getByRole("button", { name: "Publish release", exact: true }).click(); await page.getByRole("button", { name: "Confirm publish", exact: true }).click(); await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible();
   await page.goto("/"); await openCampaign(page, "Glass Dynasty");
   const chapter = page.locator(".campaign-chapter").filter({ has: page.getByRole("heading", { name: encounter.title, exact: true }) }); await expect(chapter.getByRole("button", { name: "Begin Battle", exact: true })).toBeEnabled();
   await chapter.screenshot({ path: "artifacts/phase2-faction-campaign.png" }); await chapter.getByRole("button", { name: "Begin Battle", exact: true }).click();

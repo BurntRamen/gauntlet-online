@@ -1,0 +1,22 @@
+{
+  "fixture": "e2e/admin-server.js",
+  "backend": "http://127.0.0.1:4138",
+  "client": "http://127.0.0.1:3138",
+  "capturedAt": "2026-11-07T04:23:39.598Z",
+  "browser": "Playwright Chromium",
+  "reducedMotion": "reduce",
+  "reviewViewport": "1366x768",
+  "responsiveViewports": [
+    "1920x1080",
+    "1280x720",
+    "768x1024",
+    "390x844",
+    "683x384"
+  ],
+  "zoomReflow": "683x384 is the CSS viewport equivalent of a 1366x768 screen at 200%; this does not claim native browser zoom was exercised.",
+  "externalNetwork": "All non-loopback HTTP(S) origins blocked by the test context.",
+  "buildAssets": [
+    "static/css/main.7c9cf493.css",
+    "static/js/main.a9ebadf1.js"
+  ]
+}

@@ -1,7 +1,8 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import GauntletAdmin from "./GauntletAdmin";
+import { chooseBrand, setAccountBrand } from "./brand/brandPreview";
 
-jest.mock("./GauntletAuthoring", () => ({ __esModule: true, default: ({ area }) => <p>Authoring area: {area}</p> }));
+jest.mock("./GauntletAuthoring", () => ({ __esModule: true, default: ({ area, catalog }) => <><p>Authoring area: {area}</p><span>{catalog ? "Catalog ready" : "Catalog loading"}</span></> }));
 
 beforeAll(() => Object.defineProperty(global.crypto, "randomUUID", { configurable: true, value: () => "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" }));
 const id = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
@@ -25,12 +26,58 @@ const respond = async (path) => {
 };
 const request = jest.fn();
 beforeEach(() => { window.history.replaceState({}, "", "/"); request.mockReset().mockImplementation(respond); jest.spyOn(window, "scrollTo").mockImplementation(() => {}); });
-afterEach(() => jest.restoreAllMocks());
+afterEach(() => { setAccountBrand(null); jest.restoreAllMocks(); });
 function select(area) {
   fireEvent.click(within(screen.getByRole("navigation", { name: "Administration sections" })).getByText(({ Design: "Content", Matches: "Operations", System: "Operations" })[area] || area));
   if (area === "Matches" && screen.queryByRole("button", { name: "Match evidence" })) fireEvent.click(screen.getByRole("button", { name: "Match evidence" }));
   if (area === "System") fireEvent.click(screen.getByRole("button", { name: "Health" }));
 }
+
+test("the redesigned shell follows the eligible account's optional brand and clears it for public use", async () => {
+  setAccountBrand({ id: "admin-brand-preview", brandPreview: "suitfire" });
+  chooseBrand("suitfire");
+  const view = render(<GauntletAdmin request={request} onClose={() => {}} />);
+  await screen.findByRole("heading", { name: "Make your next move." });
+  expect(screen.getByRole("region", { name: "SuitFire Admin" })).toBeVisible();
+  expect(screen.getByText("SUITFIRE")).toBeVisible();
+  expect(screen.getAllByRole("button", { name: /Back to SuitFire/ })).toHaveLength(2);
+  expect(request).not.toHaveBeenCalledWith("/api/admin/catalog");
+  setAccountBrand(null);
+  view.rerender(<GauntletAdmin request={request} onClose={() => {}} />);
+  expect(screen.getByRole("region", { name: "Gauntlet Admin" })).toBeVisible();
+  expect(screen.getByText("GAUNTLET")).toBeVisible();
+  expect(screen.getAllByRole("button", { name: /Back to Gauntlet/ })).toHaveLength(2);
+});
+
+test.each(["Content", "Players"])("Home defers the catalog until %s needs it, then navigation retains it and Refresh reloads it", async area => {
+  const catalogReads = () => request.mock.calls.filter(([path]) => path === "/api/admin/catalog").length;
+  const ready = () => screen.findByText(area === "Content" ? "Catalog ready" : "Player A");
+  render(<GauntletAdmin request={request} onClose={() => {}} />);
+  await screen.findByRole("heading", { name: "Make your next move." });
+  expect(catalogReads()).toBe(0);
+  fireEvent.click(screen.getByText("Refresh admin"));
+  await screen.findByRole("heading", { name: "Make your next move." });
+  expect(catalogReads()).toBe(0);
+  select(area);
+  await waitFor(() => expect(catalogReads()).toBe(1));
+  await ready();
+  select("Home");
+  await screen.findByRole("heading", { name: "Make your next move." });
+  select(area);
+  await ready();
+  expect(catalogReads()).toBe(1);
+  fireEvent.click(screen.getByText("Refresh admin"));
+  await waitFor(() => expect(catalogReads()).toBe(2));
+  await ready();
+});
+
+test.each(["Content", "Players"])("a direct %s entry requests its catalog without visiting Home", async area => {
+  window.history.replaceState({}, "", `/admin/gauntlet?area=${area}`);
+  render(<GauntletAdmin request={request} onClose={() => {}} />);
+  await waitFor(() => expect(request).toHaveBeenCalledWith("/api/admin/catalog"));
+  await screen.findByText(area === "Content" ? "Catalog ready" : "Player A");
+  expect(request).not.toHaveBeenCalledWith("/api/admin/home");
+});
 
 test("provides seven modular areas with content, player state and original match evidence", async () => {
   render(<GauntletAdmin request={request} onClose={() => {}} />);
@@ -91,36 +138,46 @@ test("player edits retain typed metadata on failure and protect section navigati
     return data.players ? { ...data, players: data.players.map((player) => ({ ...player, name: playerName })) } : data;
   });
   const exitGuard = { current: () => true };
-  const confirm = jest.spyOn(window, "confirm").mockReturnValue(false);
-  try {
-    render(<GauntletAdmin request={editorRequest} exitGuard={exitGuard} onClose={() => {}} />);
-    select("Players");
-    fireEvent.click(await screen.findByRole("button", { name: "View player Player A" }));
-    expect(screen.queryByLabelText("Player name")).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Edit player name" }));
-    expect(screen.getByRole("button", { name: "Save player name" })).toBeDisabled();
-    fireEvent.change(screen.getByLabelText("Player name"), { target: { value: "Player B" } });
-    fireEvent.change(screen.getByLabelText("Correction reason"), { target: { value: "Support requested correction" } });
-    select("Matches");
-    expect(screen.getByLabelText("Player name")).toHaveValue("Player B");
-    expect(exitGuard.current()).toBe(false);
-    fireEvent.click(screen.getByRole("button", { name: "Refresh admin" }));
-    expect(screen.getByLabelText("Player name")).toHaveValue("Player B");
-    fireEvent.click(screen.getByRole("button", { name: "Save player name" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent("changed elsewhere");
-    expect(screen.getByLabelText("Player name")).toHaveValue("Player B");
-    failSave = false;
-    fireEvent.click(screen.getByRole("button", { name: "Save player name" }));
-    await screen.findByRole("heading", { name: "Player B" });
-    expect(screen.getByRole("status")).toHaveTextContent("Player correction saved");
-    expect(screen.queryByLabelText("Player name")).not.toBeInTheDocument();
-    expect(exitGuard.current()).toBe(true);
-  } finally { confirm.mockRestore(); }
+  render(<GauntletAdmin request={editorRequest} exitGuard={exitGuard} onClose={() => {}} />);
+  select("Players");
+  fireEvent.click(await screen.findByRole("button", { name: "View player Player A" }));
+  expect(screen.queryByLabelText("Player name")).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Edit player name" }));
+  expect(screen.getByRole("button", { name: "Save player name" })).toBeDisabled();
+  fireEvent.change(screen.getByLabelText("Player name"), { target: { value: "Player B" } });
+  fireEvent.change(screen.getByLabelText("Correction reason"), { target: { value: "Support requested correction" } });
+  fireEvent.click(screen.getByRole("button", { name: "Navigation", exact: true }));
+  expect(screen.getByRole("dialog", { name: "Workspace navigation" })).toBeVisible();
+  select("Matches");
+  expect(screen.queryByRole("dialog", { name: "Workspace navigation" })).not.toBeInTheDocument();
+  expect(screen.getByRole("dialog")).toHaveTextContent("immediately");
+  fireEvent.click(screen.getByRole("button", { name: "Keep editing" }));
+  expect(screen.getByLabelText("Player name")).toHaveValue("Player B");
+  act(() => expect(exitGuard.current()).toBe(false));
+  fireEvent.click(screen.getByRole("button", { name: "Keep editing" }));
+  const options = screen.getByLabelText("Workspace options");
+  fireEvent.click(options);
+  expect(options.closest("details")).toHaveAttribute("open");
+  fireEvent.click(screen.getByText("Refresh admin"));
+  expect(options.closest("details")).not.toHaveAttribute("open");
+  expect(screen.getByRole("dialog")).toBeVisible();
+  fireEvent.click(screen.getByRole("button", { name: "Keep editing" }));
+  expect(options).toHaveFocus();
+  expect(screen.getByLabelText("Player name")).toHaveValue("Player B");
+  fireEvent.click(screen.getByRole("button", { name: "Save player name" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("changed elsewhere");
+  expect(screen.getByLabelText("Player name")).toHaveValue("Player B");
+  failSave = false;
+  fireEvent.click(screen.getByRole("button", { name: "Save player name" }));
+  await screen.findByRole("heading", { name: "Player B" });
+  expect(screen.getByRole("status")).toHaveTextContent("Player metadata saved");
+  expect(screen.queryByLabelText("Player name")).not.toBeInTheDocument();
+  act(() => expect(exitGuard.current()).toBe(true));
 });
 
-test("Players protects browser Back before a workshop has mounted and resolves discard once", async () => {
+test("Players protects browser Back before a workshop has mounted and resumes only an accepted discard", async () => {
   const go = jest.spyOn(window.history, "go").mockImplementation(() => {});
-  const confirm = jest.spyOn(window, "confirm").mockReturnValue(false);
+  const back = jest.spyOn(window.history, "back").mockImplementation(() => {});
   const downstream = jest.fn(), onClose = jest.fn();
   window.addEventListener("popstate", downstream);
   try {
@@ -137,19 +194,22 @@ test("Players protects browser Back before a workshop has mounted and resolves d
     expect(screen.getByLabelText("Player name")).toHaveValue("Player B");
     fireEvent(window, new PopStateEvent("popstate", { state: {} }));
     expect(downstream).not.toHaveBeenCalled();
-    expect(confirm).toHaveBeenCalledTimes(1);
-    confirm.mockReturnValue(true);
+    fireEvent.click(screen.getByRole("button", { name: "Keep editing" }));
+    expect(back).not.toHaveBeenCalled();
     fireEvent(window, new PopStateEvent("popstate", { state: null }));
-    expect(confirm).toHaveBeenCalledTimes(2);
+    fireEvent.click(screen.getByRole("button", { name: "Discard local edits and continue" }));
+    expect(onClose).not.toHaveBeenCalled();
+    fireEvent(window, new PopStateEvent("popstate", { state: {} }));
+    expect(back).toHaveBeenCalledTimes(1);
+    fireEvent(window, new PopStateEvent("popstate", { state: null }));
     expect(onClose).toHaveBeenCalledTimes(1);
     expect(downstream).toHaveBeenCalledTimes(1);
     expect(screen.queryByLabelText("Player name")).not.toBeInTheDocument();
   } finally {
     window.removeEventListener("popstate", downstream);
-    go.mockRestore(); confirm.mockRestore();
+    go.mockRestore(); back.mockRestore();
   }
 });
-
 test("returning from Design preserves the match filter and page scroll", async () => {
   const scrollDescriptor = Object.getOwnPropertyDescriptor(window, "scrollY");
   try {
@@ -158,6 +218,7 @@ test("returning from Design preserves the match filter and page scroll", async (
     fireEvent.change(await screen.findByLabelText("Search recent records"), { target: { value: "Player A" } });
     Object.defineProperty(window, "scrollY", { configurable: true, value: 720 });
     select("Design");
+    await screen.findByText("Catalog ready");
     Object.defineProperty(window, "scrollY", { configurable: true, value: 140 });
     fireEvent.click(screen.getByRole("button", { name: "Return to match inspection" }));
     expect(screen.getByLabelText("Search recent records")).toHaveValue("Player A");

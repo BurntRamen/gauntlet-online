@@ -1,6 +1,8 @@
 import Help from "./admin/AuthoringHelp";
 import { useEffect, useRef, useState } from "react";
 import GauntletContractFields from "./GauntletContractFields";
+import WorkshopShell, { WorkshopSection } from "./admin/WorkshopShell";
+import { PrivateImage } from "./admin/PrivateAsset";
 
 const SECTIONS = { story: "Identity / Story", setup: "Opponent / Setup", mechanics: "Mechanics", deck: "Deck / Cards", assets: "Presentation / Assets", validation: "Validation", preview: "Preview", test: "Playtest" };
 
@@ -20,8 +22,8 @@ export function EncounterSetupFields({ value, onChange, ...props }) {
   const baseKeys = Object.keys(value || {}).filter((key) => !["bossAbility", "playerAdditions", "bossAdditions"].includes(key));
   return <div className="encounter-setup-sections">
     <section aria-label="Opponent setup controls"><h5>Opponent / Setup</h5><Help className="admin-note" topic="EncounterWorkshop1" />{render(baseKeys)}</section>
-    <section aria-label="Encounter mechanics controls"><h5>Mechanics</h5><Help className="admin-note" topic="EncounterWorkshop2" />{render(["bossAbility"])}{value?.bossAbility?.id && <button type="button" onClick={() => props.onInspect?.("encounter-mechanics", value.bossAbility.id)}>Inspect this encounter rule</button>}</section>
-    <section aria-label="Encounter card additions controls"><h5>Deck / Cards</h5><Help className="admin-note" topic="EncounterWorkshop3" />{render(["playerAdditions", "bossAdditions"])}</section>
+    <section aria-label="Encounter mechanics controls" id="workshop-mechanics" tabIndex={-1}><h5>Mechanics</h5><Help className="admin-note" topic="EncounterWorkshop2" />{render(["bossAbility"])}{value?.bossAbility?.id && <button type="button" onClick={() => props.onInspect?.("encounter-mechanics", value.bossAbility.id)}>Inspect this encounter rule</button>}</section>
+    <section aria-label="Encounter card additions controls" id="workshop-deck" tabIndex={-1}><h5>Deck / Cards</h5><Help className="admin-note" topic="EncounterWorkshop3" />{render(["playerAdditions", "bossAdditions"])}</section>
     <Help className="admin-note" topic="EncounterWorkshopNote1" />
   </div>;
 }
@@ -35,16 +37,16 @@ export function encounterSessionStatus(session, state) {
 
 export default function EncounterWorkshop({ row, state, unsaved, session, list, search, field, preview, playtest, onInspect, onReview, onSelectList, context, onContext, section, onSection, busy }) {
   const guide = state.guide || {};
-  const [showList, setShowList] = useState(false);
+
   const [localSection, setActiveSection] = useState(context?.section || "story");
   const activeSection = SECTIONS[section] ? section : localSection;
   const group = ["mechanics", "deck"].includes(activeSection) ? "setup" : activeSection;
-  const workspace = useRef(null);
+
   const latestContext = useRef({ context, onContext, row });
   latestContext.current = { context, onContext, row };
   useEffect(() => {
     const saved = latestContext.current.context;
-    setShowList(false);
+
     setActiveSection(saved?.encounterId === row?.id && SECTIONS[saved.section] ? saved.section : "story");
     const frame = requestAnimationFrame(() => { if (saved?.encounterId === row?.id && Number.isFinite(saved.scroll)) window.scrollTo(0, saved.scroll); });
     return () => cancelAnimationFrame(frame);
@@ -65,45 +67,35 @@ export default function EncounterWorkshop({ row, state, unsaved, session, list, 
   const jump = (id) => {
     if (!SECTIONS[id]) return;
     if (onSection) { onSection(id); return; }
-    setShowList(false); setActiveSection(id);
+ setActiveSection(id);
     requestAnimationFrame(() => { focusWorkshop("workshop-" + id); onContext?.({ encounterId: row?.id, section: id, scroll: window.scrollY }); });
   };
-  return <section ref={workspace} className={"encounter-workshop " + (row && !showList ? "has-selection" : "")} aria-label="Encounter Workshop">
-    <header className="workshop-context" tabIndex={-1} id="workshop-context">
-      <span className="admin-eyebrow">Encounter Workshop</span>
-      <h4>{row ? [campaign?.commanderName || "Campaign not recorded", chapterIndex >= 0 ? "Chapter " + (chapterIndex + 1) : row.order ? "Additional encounter " + row.order : "Chapter not recorded", row.title].join(" › ") : "Choose an encounter"}</h4>
-      {row && <><p>{opponent?.name || "Opponent not recorded"} · {faction?.name || "Faction not recorded"}</p><div className="admin-tags">
-        <span>{unsaved ? "Unsaved local values" : state.draft ? "Shared draft" : "Live content"}</span>
-        <span>{state.validation?.valid ? "Saved values valid" : "Validation errors"}</span>
-        <span>{state.draft?.previewedHash === state.draft?.hash && state.draft ? "Previewed revision " + (state.draft.previewedRevision ?? "not recorded") : "Preview needed"}</span>
-        <span>{encounterSessionStatus(session, state)}</span>
-      </div>{session && <p className="admin-note">Testing {testLabel}{testedId !== row.id ? " · another subject; this session has not changed with your selection." : "."}</p>}</>}
-
-      {row && <nav className="admin-actions" aria-label="Workshop sections">
-        <label className="workshop-jump">Jump to section<select disabled={busy} value={activeSection} onChange={(event) => jump(event.target.value)}>{Object.entries(SECTIONS).map(([id, label]) => <option key={id} value={id}>{label}</option>)}</select></label>
-        <div className="workshop-section-buttons">{Object.entries(SECTIONS).filter(([id]) => !["mechanics", "deck"].includes(id)).map(([id, label]) => <button type="button" disabled={busy} key={id} aria-pressed={group === id} onClick={() => jump(id)}>{label}</button>)}</div>
-        <button type="button" disabled={busy} onClick={onReview}>Review release</button>
-        <button type="button" disabled={busy} className="workshop-list-toggle" onClick={() => onSelectList ? onSelectList(() => setShowList(true)) : setShowList(true)}>Encounter list</button>
-      </nav>}
-    </header>
-    <section className="workshop-list" aria-label="Encounter selection">{search}<div onClick={(event) => { if (event.target.closest("button[aria-pressed]")) setShowList(false); }}>{list}</div></section>
-    {row && <><div className="workshop-editor" hidden={["preview", "test"].includes(group)}>
-      <section hidden={group !== "story"} id="workshop-story" tabIndex={-1}><h4>Identity / Story</h4>{["title", "status", "order", "playableName", "story", "beforeBattle", "afterBattle", "dialogue", "endDialogue"].map((name) => field(name))}</section>
-      <section hidden={group !== "setup"} id="workshop-setup" tabIndex={-1}><h4>Opponent / Setup</h4><p>Opponent: {opponent ? <button type="button" onClick={() => onInspect("characters", opponent.id)}>{opponent.name}</button> : "Not recorded"}<br />Effective player faction: {faction ? <button type="button" onClick={() => onInspect("factions", faction.id)}>{faction.name}</button> : "Not recorded"}</p>
-        <p className="admin-note">{guide.encounterObjective}</p><details><summary>Other objective types · unavailable</summary><p>{guide.unavailableObjectives}</p></details>
+  const sourceLabel = state.draft ? "Saved draft" : "Live content";
+  const description = row ? [campaign?.commanderName || "Campaign not recorded", chapterIndex >= 0 ? "Chapter " + (chapterIndex + 1) : row.order ? "Additional encounter " + row.order : null, opponent?.name].filter(Boolean).join(" · ") : "Choose an encounter to shape its story, setup and player briefing.";
+  return <WorkshopShell name="Encounter Workshop" title={row?.title || "Choose an encounter"} description={description} selectionId={row?.id} search={search} list={list} busy={busy} onSelectList={onSelectList}
+    sections={row && Object.entries(SECTIONS)} section={activeSection} onSection={jump}
+    status={row && <><span>{unsaved ? "Unsaved changes in this browser" : sourceLabel}</span><span>{state.validation?.valid ? "Saved values valid" : "Validation needs attention"}</span></>}
+    actions={<button type="button" disabled={busy} onClick={onReview}>Review release</button>}
+    preview={row && !["preview", "test"].includes(group) && <WorkshopSection title="Briefing preview" id="encounter-briefing"><p className="admin-preview-source">{sourceLabel} · player briefing</p>{unsaved && <Help topic="workspaceEncounterWorkshop1" className="admin-note" />}{preview || <p className="admin-note">{guide.previewHelp || "Save a valid draft to preview the player briefing."}</p>}</WorkshopSection>}>
+    {row && <>{session && <p className="admin-note">Testing {testLabel}{testedId !== row.id ? " · another subject; this session has not changed with your selection." : "."}</p>}
+      <div hidden={group !== "story"}><WorkshopSection title="Identity / Story" id="workshop-story"><Help topic="workspaceEncounterWorkshop2" className="admin-note" />{["title", "status", "order", "playableName", "story", "beforeBattle", "afterBattle", "dialogue", "endDialogue"].map((name) => field(name))}</WorkshopSection></div>
+      <div hidden={group !== "setup"}><WorkshopSection title="Opponent / Setup" id="workshop-setup"><div className="admin-record-summary"><p>Opponent: {opponent ? <button type="button" onClick={() => onInspect("characters", opponent.id)}>{opponent.name}</button> : "Not recorded"}</p><p>Player faction: {faction ? <button type="button" onClick={() => onInspect("factions", faction.id)}>{faction.name}</button> : "Not recorded"}</p></div>
+        <p className="admin-note">{guide.encounterObjective}</p>{guide.unavailableObjectives && <details><summary>Unavailable objectives</summary><p>{guide.unavailableObjectives}</p></details>}
         {field("aiProfile")}{field("ruleModifierId")}{field("opponentDeckId")}{row.opponentDeckId && <button type="button" onClick={() => onInspect("decks", row.opponentDeckId)}>Inspect assigned opponent recipe</button>}
         {field("setup", { renderContract: (props) => <EncounterSetupFields {...props} /> })}
-        <details><summary>Technical · identity and routing</summary><pre className="admin-protected">{JSON.stringify({ encounter: row.id, campaign: row.campaignId, opponent: row.opponentId, deck: row.deckId, nextEncounter: row.nextEncounterId, branches: row.branches }, null, 2)}</pre></details>
-      </section>
-      <section hidden={group !== "assets"} id="workshop-assets" tabIndex={-1}><h4>Presentation / Assets</h4>{field("image")}{row.image && <img className="admin-art-preview" src={source(row.image)} alt="Saved encounter scene" loading="lazy" />}
+        <details className="admin-json"><summary>Technical · identity and routing</summary><pre className="admin-protected">{JSON.stringify({ encounter: row.id, campaign: row.campaignId, opponent: row.opponentId, deck: row.deckId, nextEncounter: row.nextEncounterId, branches: row.branches }, null, 2)}</pre></details>
+      </WorkshopSection></div>
+      <div hidden={group !== "assets"}><WorkshopSection title="Presentation / Assets" id="workshop-assets">{field("image")}{row.image && <PrivateImage className="admin-art-preview" src={source(row.image)} alt="Saved encounter scene" loading="lazy" />}
         <p className="admin-note">{portrait ? "Faction commander portrait comes from this character definition:" : "No faction commander portrait recorded."}</p>
-        {portrait && <>{portrait.image && <img className="workshop-portrait" src={source(portrait.image)} alt={portrait.name} loading="lazy" />}<button type="button" onClick={() => onInspect("characters", portrait.id)}>Open {portrait.name} portrait definition</button></>}
+        {portrait && <>{portrait.image && <PrivateImage className="workshop-portrait" src={source(portrait.image)} alt={portrait.name} loading="lazy" />}<button type="button" onClick={() => onInspect("characters", portrait.id)}>Open {portrait.name} portrait definition</button></>}
         {["dialogueAudio", "endDialogueAudio"].map((key) => <div key={key}>{field(key)}{(row[key] || []).map((audio, index) => audio && <label className="workshop-audio" key={index}>{key === "dialogueAudio" ? "Opening" : "Closing"} voice {index + 1}<audio controls preload="none" aria-label={(key === "dialogueAudio" ? "Opening" : "Closing") + " voice " + (index + 1)} src={source(audio)} /></label>)}</div>)}
-      </section>
-      <section hidden={group !== "validation"} id="workshop-validation" tabIndex={-1}><h4>Validation</h4><p>Saved revision {state.revision} · {!errors.filter(selectedIssue).length ? "No errors for this encounter" : "Encounter needs attention"}. {unsaved && guide.unsavedReadiness}</p>
+      </WorkshopSection></div>
+      <div hidden={group !== "validation"}><WorkshopSection title="Validation" id="workshop-validation"><p>{!errors.filter(selectedIssue).length ? "No errors for this encounter" : "Encounter needs attention"}. {unsaved && "Save local changes before validating again."}</p>
         {[["Errors", errors.filter(selectedIssue)], ["Warnings", warnings.filter(selectedIssue)]].map(([label, entries]) => <div key={label}><h5>{label} · {entries.length}</h5>{entries.map((entry, index) => <p key={index}>{entry.message} <button type="button" onClick={() => jump(entry.field === "setup" ? "setup" : ["image", "dialogueAudio", "endDialogueAudio"].includes(entry.field) ? "assets" : "story")}>Go to {entry.field}</button></p>)}</div>)}
-        {elsewhere.length > 0 && <details><summary>{elsewhere.length} validation issue{elsewhere.length === 1 ? "" : "s"} elsewhere in the shared draft</summary>{elsewhere.map((entry, index) => <p key={index}>{entry.message}{entry.domain && entry.id && <button type="button" onClick={() => onInspect(entry.domain, entry.id)}>Open related content</button>}</p>)}</details>}
-      </section>
-    </div><section className="workshop-testing" hidden={!["preview", "test"].includes(group)} aria-label="Encounter preview and playtest"><section hidden={group !== "preview"} id="workshop-preview" tabIndex={-1}><h4>Presentation preview</h4>{preview || <p className="admin-note">{guide.previewHelp}</p>}</section><div hidden={group !== "test"}>{playtest}</div></section></>}
-  </section>;
+        {elsewhere.length > 0 && <details><summary>{elsewhere.length} validation issue{elsewhere.length === 1 ? "" : "s"} elsewhere in the shared draft</summary>{elsewhere.map((entry, index) => <p key={index}>{entry.message}{entry.domain && entry.id && <button type="button" onClick={() => onInspect(entry.domain, entry.id, entry.field)}>Open related content</button>}</p>)}</details>}
+      </WorkshopSection></div>
+      <div hidden={group !== "preview"}><WorkshopSection title="Presentation preview" id="workshop-preview"><p className="admin-preview-source">{sourceLabel} · player briefing</p>{group === "preview" && (preview || <p className="admin-note">{guide.previewHelp}</p>)}</WorkshopSection></div>
+      <div hidden={group !== "test"}><WorkshopSection title="Playtest" id="workshop-test"><p className="admin-note">{encounterSessionStatus(session, state)}{state.draft && <> · {state.draft.previewedHash === state.draft.hash ? "Saved draft preview is current" : "Saved draft preview still needed"}</>}</p>{playtest}</WorkshopSection></div>
+    </>}
+  </WorkshopShell>;
 }

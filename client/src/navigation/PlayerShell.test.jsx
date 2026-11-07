@@ -80,6 +80,27 @@ test("closing More by backdrop restores body scrolling and entering a destinatio
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 });
 
+test("deferred More restoration does not steal focus from a newly opened layout control", () => {
+  const frames = [];
+  const animationFrame = jest.spyOn(window, "requestAnimationFrame").mockImplementation(callback => { frames.push(callback); return frames.length; });
+  function CustomizableShell() {
+    const [editing, setEditing] = React.useState(false);
+    return <PlayerShell onNavigate={() => {}} customizable editing={editing} onCustomize={() => setEditing(true)}>
+      {editing && <select aria-label="Panel options for Ranked Match"><option>Panel options</option><option>Move Earlier</option></select>}
+    </PlayerShell>;
+  }
+  try {
+    render(<CustomizableShell />);
+    fireEvent.click(screen.getAllByRole("button", { name: "More" })[0]);
+    fireEvent.click(screen.getByRole("button", { name: "Customize this page" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    const ranked = screen.getByLabelText("Panel options for Ranked Match");
+    ranked.focus();
+    act(() => frames.splice(0).forEach(callback => callback(0)));
+    expect(ranked).toHaveFocus();
+  } finally { animationFrame.mockRestore(); }
+});
+
 test("focused workflows omit customization while Done Editing remains globally reachable", () => {
   const onDoneEditing = jest.fn();
   const { rerender } = renderShell({ customizable: false });
