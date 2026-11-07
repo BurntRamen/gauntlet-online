@@ -6,6 +6,19 @@ const { releaseReview, compareSnapshots } = require("../adminReleaseReview");
 const old = require("./fixtures/content-v2/authored-baseline-v1.json");
 const baseline = createAuthoredBaseline({ domains: { decks: old.domains.decks }, game: { modes: old.domains.game } });
 
+test("review identifies the authors of included fields and preserves their evidence in the immutable release", () => {
+  const store = createContentPublication({ baseline, memory: true });
+  const patch = (field, value, actor, revert = false) => store.patch({ expectedRevision: store.status().revision, domain: "game", id: "practice", field, value, revert }, actor);
+  patch("heroTitle", "Reviewed heading", "first-operator"); patch("heroDescription", "Reviewed introduction", "second-operator");
+  const review = releaseReview(store.status());
+  assert.deepEqual(new Set(review.contributors), new Set(["first-operator", "second-operator"])); assert.equal(review.unattributed, 0);
+  patch("heroTitle", undefined, "second-operator", true);
+  assert.deepEqual(releaseReview(store.status()).contributors, ["second-operator"]);
+  store.preview({ expectedRevision: store.status().revision });
+  const published = store.publish({ expectedRevision: store.status().revision, label: "Authored prose" }, "first-operator");
+  assert.ok(store.releaseSnapshot(published.activeReleaseId).contributions.some(row => row.actorId === "second-operator" && row.field === "heroDescription"));
+});
+
 test("Para definitions participate in exact-hash review and rollback removals", () => {
   const store = createContentPublication({ baseline, memory: true });
   const original = store.status().activeReleaseId;

@@ -85,6 +85,7 @@ function encounterPresentation(chapter, manifest = {}) {
   complexity.push(`Scripted attack bonuses, in order: ${Array.from({ length: setup.attacksPerTurn }, (_, i) => `+${bossAttackBonus(setup, i + 1)}`).join(" · ")}. Attacks use the normal priority window.`);
   if (setup.bossAbility?.healAtTurnStart) complexity.push(`Opponent gains ${setup.bossAbility.healAtTurnStart} life at turn start.`);
   if (modifier) complexity.push(require("./ruleModifierContract").explain(modifier));
+  if (chapter.aiProfile === "support-first") complexity.push("Opponent prepares affordable support before scripted attacks, spending the same action budget.");
   return { difficulty, complexity };
 }
 module.exports = { ENCOUNTER_CONTRACT_VERSION, validateEncounterSetup, campaignDifficulty, encounterPresentation, bossAttackBase, bossAttackBonus, bossAbilityIds: Object.keys(bossHandlers), parameterRules };

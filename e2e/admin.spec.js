@@ -260,7 +260,7 @@ test("only admins can save player metadata, with unsaved-change protection and p
   expect((await new AxeBuilder({ page }).include(".gauntlet-admin").analyze()).violations).toEqual([]);
   await profile.getByRole("button", { name: "Save player name" }).click();
   await expect(profile.getByRole("heading", { name: "Visitor Updated" })).toBeVisible();
-  await expect(page.getByRole("status")).toHaveText("Player metadata saved.");
+  await expect(page.getByRole("status")).toHaveText("Player correction saved.");
   await page.reload();
   await nav.getByRole("button", { name: "Players", exact: true }).click();
   await expect(page.getByRole("button", { name: "View player Visitor Updated", exact: true })).toBeVisible();
@@ -295,7 +295,7 @@ test("operator edits, validates, previews, publishes and restores a shared conte
   await page.getByRole("button", { name: "Save title to draft", exact: true }).click();
   await expect(page.getByText("3 saved field changes", { exact: true })).toBeVisible();
   await otherContent(page, "Website prose");
-  await page.getByRole("button", { name: "Inspect Practice privately", exact: true }).click();
+  await page.getByRole("button", { name: /Practice privately · mode copy/ }).click();
   await page.getByLabel("Draft mode description").fill("Practice with a reviewed content release.");
   await page.getByRole("button", { name: "Save mode description to draft" }).click();
   await expect(page.getByText("4 saved field changes", { exact: true })).toBeVisible();
@@ -856,7 +856,7 @@ test("workshop metadata, relationships, review and test APIs keep the stable-ID 
   await page.goto("/admin/gauntlet");
   const visitor = await signIn(page, request, "Visitor");
   const headers = { Authorization: "Bearer " + visitor };
-  for (const path of ["/api/admin/workshops/search?q=story", "/api/admin/workshops", "/api/admin/workshops/relationships", "/api/admin/workshops/presentation", "/api/admin/workshops/review", "/api/admin/authoring/playtest/scenario-spec"]) {
+  for (const path of ["/api/admin/workshops/search?q=story", "/api/admin/workshops", "/api/admin/workshops/relationships", "/api/admin/workshops/presentation", "/api/admin/workshops/review", "/api/admin/workshops/production?domain=cards&id=rumin-vault-shield-bearer", "/api/admin/authoring/playtest/scenario-spec"]) {
     expect((await request.get(origin + path)).status()).toBe(401);
     expect((await request.get(origin + path, { headers, maxRetries: 2 })).status()).toBe(403);
   }

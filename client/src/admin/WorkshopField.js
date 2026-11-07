@@ -20,12 +20,12 @@ export default function WorkshopField({ state, domain, row, field, buffer, busy,
   const disabled = busy || !state.writable || structuralLock;
   const update = next => onEdit(next, saved);
   let contract = row[field];
-  const catalogType = ["modifier-reference", "choice", "catalog-flags", "card-list", "printing-edition", "deck-reference", "deck-composition", "offer-prices", "offer-sale"].includes(definition.type);
+  const catalogType = ["pack-composition", "modifier-reference", "choice", "catalog-flags", "card-list", "printing-edition", "deck-reference", "deck-composition", "offer-prices", "offer-sale"].includes(definition.type);
   if (definition.type === "object" || catalogType) { try { contract = JSON.parse(value); } catch { contract = value; } }
   const selectedEffect = field === "effect" && state.workshopMetadata?.cardEffects?.find(effect => effect.id === contract?.id);
   const save = event => {
     event.preventDefault();
-    const parsed = definition.type === "object" || ["catalog-flags", "card-list", "deck-composition", "offer-prices", "offer-sale"].includes(definition.type) ? JSON.parse(value) : definition.type === "integer" ? Number(value) : ["lines", "assets"].includes(definition.type) ? value === "" ? (Array.isArray(row[field]) && row[field].length === 1 && row[field][0] === null ? [null] : []) : value.split("\n").map((line, index) => definition.type === "assets" && line === "" && row[field]?.[index] === null ? null : line) : value;
+    const parsed = definition.type === "object" || ["pack-composition", "catalog-flags", "card-list", "deck-composition", "offer-prices", "offer-sale"].includes(definition.type) ? JSON.parse(value) : definition.type === "integer" ? Number(value) : ["lines", "assets"].includes(definition.type) ? value === "" ? (Array.isArray(row[field]) && row[field].length === 1 && row[field][0] === null ? [null] : []) : value.split("\n").map((line, index) => definition.type === "assets" && line === "" && row[field]?.[index] === null ? null : line) : value;
     onSave(parsed);
   };
   return <form id={`admin-field-${field}`} className={`admin-field ${changed ? "is-changed" : ""}`} onSubmit={save}>

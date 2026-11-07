@@ -14,15 +14,21 @@ export function PrivateAssetProvider({ request, children }) {
   }, [request]);
   return <Assets.Provider value={context}>{children}</Assets.Provider>;
 }
-function useImage(path) {
+function useImage(path, enabled = true) {
   const load = useContext(Assets), [result, setResult] = useState(null);
   const privateImage = path?.startsWith("/api/admin/authoring/assets/");
   useEffect(() => {
     let active = true;
-    if (privateImage && load) load(path).then(src => { if (active) setResult({ path, src }); }).catch(() => { if (active) setResult({ path, error: true }); });
+    if (enabled && privateImage && load) load(path).then(src => { if (active) setResult({ path, src }); }).catch(() => { if (active) setResult({ path, error: true }); });
     return () => { active = false; };
-  }, [path, privateImage, load]);
+  }, [path, privateImage, load, enabled]);
   return privateImage ? result?.path === path ? result : {} : { src: path };
+}
+export function PrivateAudio({ src, label }) {
+  const [requested, setRequested] = useState(false), result = useImage(src, requested);
+  if (result.error) return <p role="alert">Audio unavailable · retrieval failed</p>;
+  if (src?.startsWith("/api/admin/") && !requested) return <button type="button" onClick={() => setRequested(true)}>Load private audio preview</button>;
+  return result.src ? <audio controls preload="none" src={result.src} aria-label={label} /> : <span role="status">Loading private audio…</span>;
 }
 export function PrivateImage({ src, alt, ...props }) {
   const result = useImage(src);

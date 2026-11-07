@@ -760,15 +760,27 @@ test("resolution changes preserve framing and saved light mode updates the exist
   expect(await page.evaluate(() => window.__themeOriginalCanvas === document.querySelector("canvas.babylon-match-canvas"))).toBe(true);
 });
 
-test("discard piles and player abilities use a non-overlapping responsive dock without restarting the table", async ({ page, baseURL }, testInfo) => {
+test("discard piles and player abilities use a non-overlapping responsive dock without restarting the table", async ({ page, browser, baseURL }, testInfo) => {
   test.setTimeout(120000);
-  await prepareGuest(page, baseURL, "Dock Reviewer", "");
-  await page.getByRole("button", { name: /^Factions vs AI\b/ }).click();
-  await chooseLobbyFaction(page, "Rumin");
+  // Both players have resource counters. A random training opponent could omit
+  // the extra row and hide the cramped portrait layout this test must cover.
+  const guestContext = await browser.newContext();
+  const guestPage = await guestContext.newPage();
+  await prepareGuest(page, baseURL, "Dock Reviewer");
+  const roomCode = await createFactionRoom(page);
+  await prepareGuest(guestPage, baseURL, "Dock Opponent");
+  await joinRoom(guestPage, roomCode);
+  await chooseLobbyFaction(page, "Jali");
+  await chooseLobbyFaction(guestPage, "Jali");
   await page.getByRole("button", { name: "Confirm Start" }).click();
+  await guestPage.getByRole("button", { name: "Confirm Start" }).click();
   const match = page.getByTestId("production-babylon-match");
   const canvas = page.locator("canvas.babylon-match-canvas");
   await expect(canvas).toBeVisible();
+  await expect(page.locator(".production-player-resource")).toHaveCount(2);
+  // The second player established a real lobby; its renderer is not needed
+  // while the reviewing player rotates through four screen sizes.
+  await guestContext.close();
   await page.evaluate(() => { window.__dockOriginalCanvas = document.querySelector("canvas.babylon-match-canvas"); });
   const profiles = [
     { name: "desktop", width: 1440, height: 900 },
@@ -795,17 +807,28 @@ test("discard piles and player abilities use a non-overlapping responsive dock w
     })).toBe(true);
     await expect.poll(() => page.evaluate(() =>
       window.__dockOriginalCanvas === document.querySelector("canvas.babylon-match-canvas"))).toBe(true);
-    const boardBounds = await page.getByTestId("battlefield-safe-frame").boundingBox();
-    expect(boardBounds.height).toBeGreaterThan(120);
-    expect(boardBounds.width).toBeGreaterThan(300);
+    // Viewport media queries and the HUD ResizeObserver settle separately.
+    // Keep the same usable-area requirements while waiting for both updates.
+    await expect.poll(async () => (await page.getByTestId("battlefield-safe-frame").boundingBox()).height,
+      { message: `${profile.name} board height` }).toBeGreaterThan(120);
+    await expect.poll(async () => (await page.getByTestId("battlefield-safe-frame").boundingBox()).width,
+      { message: `${profile.name} board width` }).toBeGreaterThan(300);
+    await expect.poll(() => page.evaluate(() => {
+      const board = document.querySelector("[data-testid='battlefield-safe-frame']").getBoundingClientRect();
+      return [...document.querySelectorAll(".phone-hand-panel, .production-player-plate, .production-context-panel")].every(element => {
+        const rect = element.getBoundingClientRect();
+        return !rect.height || rect.right <= board.left + 1 || rect.left >= board.right - 1
+          || rect.bottom <= board.top + 1 || rect.top >= board.bottom - 1;
+      });
+    }), { message: `${profile.name} board stays clear of player controls` }).toBe(true);
     await page.screenshot({ path: testInfo.outputPath(`abilities-${profile.name}.png`) });
     await dock.getByRole("button", { name: "Close", exact: true }).click();
     await page.locator(".production-player-plate-bottom").getByRole("button", { name: /^Show .*discard pile/ }).click();
     const discard = page.getByRole("dialog", { name: "Discard piles" });
     await expect(discard).toBeVisible();
     await expect(discard).toContainText("No discarded cards.");
-    await discard.getByRole("button", { name: /^Training AI ·/ }).click();
-    await expect(discard.getByRole("button", { name: /^Training AI ·/ })).toHaveAttribute("aria-pressed", "true");
+    await discard.getByRole("button", { name: /^Dock Opponent ·/ }).click();
+    await expect(discard.getByRole("button", { name: /^Dock Opponent ·/ })).toHaveAttribute("aria-pressed", "true");
     await page.screenshot({ path: testInfo.outputPath(`discard-${profile.name}.png`) });
     await page.keyboard.press("Escape");
     await expect(discard).toHaveCount(0);
@@ -912,6 +935,7 @@ test("encounter dossiers preserve the selected music with independent line previ
   await page.evaluate(() => {
     window.__campaignMusic = window.__previewMedia.find((clip) => !clip.paused && /\/music\//.test(clip.src));
   });
+  expect(await page.evaluate(() => window.__campaignMusic.src)).toContain("/music/factions/rumin-");
   await dialogue.getByRole("button", { name: "Play exchange" }).click();
   await expect(dialogue.getByRole("button", { name: "Pause", exact: true })).toBeVisible();
   await expect.poll(() => page.evaluate(() => window.__previewMedia.filter((clip) => !clip.paused && window.__voiceAssetPaths.some((path) => clip.src.endsWith(path))).length)).toBe(1);
@@ -971,6 +995,11 @@ test("encounter dossiers preserve the selected music with independent line previ
     return values;
   });
   expect(durations).toEqual([48, 48, 48, 48]);
+  await page.getByRole("tab", { name: /^Sheen/ }).click();
+  await expect.poll(() => page.evaluate(() => window.__previewMedia.filter((clip) => !clip.paused && /\/music\/factions\/sheen-/.test(clip.src)).length)).toBe(1);
+  expect(await page.evaluate(() => window.__campaignMusic.paused)).toBe(true);
+  await page.getByRole("button", { name: "Main Menu", exact: true }).click();
+  await expect.poll(() => page.evaluate(() => window.__previewMedia.filter((clip) => !clip.paused && /music\/menu/.test(clip.src)).length)).toBe(1);
 });
 
 test("normal campaign entry presents the campaign boss through the shared Babylon match", async ({ page, baseURL }) => {

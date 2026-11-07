@@ -211,7 +211,7 @@ function createParaRuntime({ filename, publication, now = () => new Date().toISO
       return { automaticMembership: true, lifetimePrestige, summary: `Para member · ${lifetimePrestige} lifetime Prestige · Official runs completed: ${results.length}` };
     } catch { return { summary: "Para record temporarily unavailable." }; }
   }
-  return { enabled: true, status: () => ({ enabled: true, databaseVersion: 1, storage: "Private SQLite WAL on configured persistent volume" }),
+  return { enabled: true, persistence: require("./sqliteRuntimeSnapshot").createSqliteRuntimeSnapshot(db,"para"), status: () => ({ enabled: true, databaseVersion: 1, storage: "Private operational records; inspect Operations for the configured persistence and recovery status." }),
     sync, enroll, withdraw, canPlay, reserve, settle, failed, recover, operate, view, inspect, profile, event,
     denied: (id, eventId, reason) => transaction(() => audit("registration-blocked", id, { eventId: String(eventId).slice(0, 80), reason: String(reason).slice(0, 500) })),
     content: (id) => { const e = event(id); if (e.release.snapshot.engine.compatibilityHash !== publication.published().snapshot.engine.compatibilityHash) fail("Pinned event requires a compatible engine deployment.", 503); return resolveEngineContent(e.release.snapshot, e.release.id); }, close: () => db.close() };

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { readWorkshopPreferences, saveWorkshopPreferences } from "./workshopPreferences";
 
 const domains = new Set(["encounters", "cards", "sets", "rule-modifiers", "mechanics", "card-effects", "faction-effects", "encounter-mechanics", "game", "modes", "campaigns", "factions", "decks", "offers", "characters", "assets", "asset-library"]);
 export function workshopTarget(value, fallback = { domain: "encounters", id: null }) {
@@ -12,9 +13,10 @@ export function targetFromLocation(fallback) {
 
 // One editing buffer belongs to the active object. Navigation stores context,
 // never form values; server draft revisions remain the save authority.
-export default function useWorkshopContext({ initialTarget, dirty, busy, onDiscard, onBusy, onNavigate, beforeNavigate, onExit }) {
+export default function useWorkshopContext({ initialTarget, dirty, busy, onDiscard, onBusy, onNavigate, beforeNavigate, onExit, label }) {
   const [target, setTarget] = useState(() => targetFromLocation(initialTarget));
-  const [contexts, setContexts] = useState({});
+  const [contexts, setContexts] = useState(() => Object.fromEntries(Object.entries(readWorkshopPreferences().contexts).filter(([domain]) => domains.has(domain)).map(([domain, value]) => [domain, { ...value, target: workshopTarget(value.target, null) }])));
+  useEffect(() => { saveWorkshopPreferences(contexts, target, label); }, [contexts, target, label]);
   const [pending, setPending] = useState(null);
   const [backCount, setBackCount] = useState(0);
   const current = useRef({});

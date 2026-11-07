@@ -1,6 +1,9 @@
-export default function ModuleHome({ data, onSelect }) {
+import { readWorkshopPreferences } from "./workshopPreferences";
+export default function ModuleHome({ data, onSelect, onInspect }) {
+  const recent = readWorkshopPreferences().recent;
   return <>
     <p className="admin-lede">Manage the game from saved definitions to verified player outcomes.</p>
+    {onInspect && <section className="admin-preview"><h4>Continue production</h4><p className="admin-note">Recent objects on this browser. Saved definitions come from the shared draft; local unsaved text is never restored.</p><div className="admin-actions">{(Array.isArray(recent) ? recent : []).map((row, index) => <button key={index} onClick={() => onInspect(row.target.domain, row.target.id, row.target.section, row.target.field)}>{row.label}</button>)}</div><div className="admin-actions">{[["sets", "Set & cards"], ["factions", "Faction & campaign"], ["decks", "Recipe & product"], ["modes", "Website prose"]].map(([domain, label]) => <button key={domain} onClick={() => onInspect(domain, null)}>{label}</button>)}</div></section>}
     <div className="admin-counts">
       <button onClick={() => onSelect("Competition")}><strong>{data.seasons?.length ?? "—"}</strong><span>Season definitions</span></button>
       <button onClick={() => onSelect("Store & Economy")}><strong>{data.storefront.accountProducts === null ? "Unavailable" : data.storefront.accountProducts + data.storefront.digitalProducts}</strong><span>Published offers · runtime gates apply</span></button>

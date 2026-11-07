@@ -2,6 +2,15 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import CatalogControls, { CatalogField } from "./CatalogControls";
 const state = { live: { domains: { cards: [], sets: [{ id: "set-one", name: "Example set", status: "active" }] } } };
 const effects = [{ id: "coin-scale-spear", factionId: "rumin", cardType: "armament", label: "Blade", description: "Adds value when armed." }];
+test("pack controls keep suit guarantees fixed and only change the chosen slot or wild chance", () => {
+  const recipe = require("../../../shared/duel-rules/packComposition").defaults, onChange = jest.fn();
+  render(<CatalogField definition={{ type: "pack-composition", label: "Pack composition" }} value={recipe} onChange={onChange} />);
+  expect(screen.getAllByRole("combobox")).toHaveLength(9);
+  fireEvent.change(screen.getByLabelText("Slot 5"), { target: { value: "mythic" } });
+  expect(onChange).toHaveBeenLastCalledWith({ ...recipe, slots: recipe.slots.map((slot, i) => i === 4 ? "mythic" : slot) });
+  fireEvent.change(screen.getByRole("spinbutton"), { target: { value: "30" } });
+  expect(onChange).toHaveBeenLastCalledWith({ ...recipe, wildMythicPercent: 30 });
+});
 test("creation uses a guided effect contract and never sends a chosen identity or ownership", () => {
   const onCreate = jest.fn();
   render(<CatalogControls creation={{ domain: "cards" }} value={{ name: "New blade" }} state={state} effects={effects} onEdit={jest.fn()} onCreate={onCreate} />);

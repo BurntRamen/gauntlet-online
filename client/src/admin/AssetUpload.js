@@ -1,7 +1,8 @@
 import Help from "./AuthoringHelp";
 import { useRef, useState } from "react";
 
-export default function AssetUpload({ selected, onUpload, onDone }) {
+export default function AssetUpload({ selected, onUpload, onDone, media = "image", limits }) {
+  const audio = media === "audio", maxBytes = (audio ? limits?.maxAudioUploadBytes : limits?.maxUploadBytes) || (audio ? 10 : 3) * 1024 * 1024;
   const attempt = useRef(null);
   const [replacement, setReplacement] = useState(false);
   const [title, setTitle] = useState("");
@@ -13,11 +14,11 @@ export default function AssetUpload({ selected, onUpload, onDone }) {
   const pending = !!phase && phase !== "Uploaded";
   async function upload(event) {
     event.preventDefault(); setError("");
-    if (!file || file.size > 3 * 1024 * 1024) { setError("Choose an image up to 3 MiB."); return; }
-    setPhase("Reading image…");
+    if (!file || file.size > maxBytes) { setError(`Choose ${audio ? "PCM WAV audio" : "an image"} up to ${(maxBytes/1048576).toFixed(2)} MiB.`); return; }
+    setPhase("Reading file…");
     try {
       const data = await new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(reader.result.split(",")[1]); reader.onerror = () => reject(new Error("This file could not be read.")); reader.readAsDataURL(file); });
-      setPhase("Uploading · validating and processing image…");
+      setPhase("Uploading · validating media and verifying storage…");
       const input = { title, description, notes, data, ...(replacement ? { assetId: selected.assetId } : {}) };
       const key = JSON.stringify(input);
       if (attempt.current?.key !== key) attempt.current = { key, requestId: crypto.randomUUID() };
@@ -26,14 +27,14 @@ export default function AssetUpload({ selected, onUpload, onDone }) {
       setPhase("Uploaded"); onDone(result.uploaded.id);
     } catch (failure) { setError(failure.message); setPhase(""); }
   }
-  return <details className="asset-upload"><summary>Upload artwork</summary><form onSubmit={upload}>
-    <Help topic="AssetUpload1" />
+  return <details className="asset-upload"><summary>{audio ? "Upload audio" : "Upload artwork"}</summary><form onSubmit={upload}>
+    {audio ? <p>PCM WAV · mono or stereo · up to 10 MiB and 10 minutes. Metadata is removed. Uploading does not publish or assign the recording.</p> : <Help topic="AssetUpload1" />}
     {selected?.assetId && !selected.archived && <label><input type="checkbox" checked={replacement} disabled={pending} onChange={event => { setReplacement(event.target.checked); if (event.target.checked) { setTitle(selected.label); setDescription(selected.description || ""); setNotes(selected.notes || ""); } }} />New version of {selected.label}. Existing references keep their current version.</label>}
-    <label>Artwork title<input required maxLength={160} value={title} disabled={pending} onChange={event => setTitle(event.target.value)} /></label>
+    <label>{audio ? "Audio title" : "Artwork title"}<input required maxLength={160} value={title} disabled={pending} onChange={event => setTitle(event.target.value)} /></label>
     <label>Description<textarea aria-label="Description" maxLength={1000} value={description} disabled={pending} onChange={event => setDescription(event.target.value)} /></label>
     <label>Attribution / source notes<textarea aria-label="Attribution / source notes" maxLength={2000} value={notes} disabled={pending} onChange={event => setNotes(event.target.value)} /></label>
-    <label>Image file<input type="file" accept="image/png,image/jpeg,image/webp" disabled={pending} onChange={event => setFile(event.target.files[0])} /></label>
-    <button className="admin-primary" disabled={pending || !file || !title.trim()}>{replacement ? "Upload new version" : "Upload new artwork"}</button>
+    <label>{audio ? "Audio file" : "Image file"}<input type="file" accept={audio ? "audio/wav,.wav" : "image/png,image/jpeg,image/webp"} disabled={pending} onChange={event => setFile(event.target.files[0])} /></label><small>Current upload limit: {(maxBytes/1048576).toFixed(2)} MiB.</small>
+    <button className="admin-primary" disabled={pending || !file || !title.trim()}>{replacement ? "Upload new version" : audio ? "Upload new audio" : "Upload new artwork"}</button>
     {phase && <p role="status">{phase}{phase === "Uploaded" ? " · Select this exact version, save the field, then review and publish separately." : ""}</p>}{error && <p role="alert">{error}</p>}
   </form></details>;
 }

@@ -2851,7 +2851,7 @@ function TutorialScreen({ embedded = false, onBack, onPlayBasicAi, onPlayFaction
   );
 }
 
-function CampaignScreen({ embedded = false, initialFactionId, initialChapterId = "", manifest, onBack, onStartChapter, onEnableGuest, canPlayAsPlayer, account, campaigns, audioEnabled }) {
+function CampaignScreen({ embedded = false, initialFactionId, initialChapterId = "", manifest, onBack, onStartChapter, onEnableGuest, canPlayAsPlayer, account, campaigns, audioEnabled, onFactionChange }) {
   const campaignPresentation = getModePresentation("campaign", manifest.modeMetadata, {
     title: "Faction Campaigns",
     description: "Choose your commander. Explore their story, chapter by chapter, and earn faction cards along the way."
@@ -2861,6 +2861,7 @@ function CampaignScreen({ embedded = false, initialFactionId, initialChapterId =
   const [selectedFactionId, setSelectedFactionId] = useState(initialFactionId || campaignEntries[0]?.[0] || "rumin");
   const [briefingChapterId, setBriefingChapterId] = useState(initialChapterId);
   const [activeFactionId, activeCampaign] = campaignEntries.find(([factionId]) => factionId === selectedFactionId) || campaignEntries[0] || [];
+  useEffect(() => { onFactionChange?.(activeFactionId); }, [activeFactionId, onFactionChange]);
   const activeTheme = getFactionTheme(activeFactionId);
   const completedChapters = (activeCampaign?.chapters || []).filter(chapter => campaignProgress[activeFactionId]?.includes(chapter.id)).map(chapter => chapter.id);
   const nextChapterIndex = activeCampaign?.chapters?.findIndex((chapter) => !completedChapters.includes(chapter.id)) ?? -1;
@@ -3074,6 +3075,7 @@ export default function App() {
   });
   const [showTutorial, setShowTutorial] = useState(false);
   const [showCampaign, setShowCampaign] = useState(false);
+  const [campaignMusicFaction, setCampaignMusicFaction] = useState(null);
   const [showCollection, setShowCollection] = useState(false);
   const unsavedDeckRef = useRef(false);
   const setDeckDirty = useCallback((dirty) => { unsavedDeckRef.current = dirty; }, []);
@@ -3128,7 +3130,7 @@ export default function App() {
     musicStopRef.current?.duck?.(scale, durationMs);
   }, []);
   const playMenuCue = useMenuAudio({
-    active: menuAudioActive && !dialogueActive,
+    active: menuAudioActive && !showCampaign && !dialogueActive,
     settings: effectiveMenuAudioSettings,
     onDuck: duckMenuMusic
   });
@@ -3280,7 +3282,7 @@ export default function App() {
   }, [factionVoice]);
 
   const activeMusicTrack = !game || role === "spectator" || !player
-    ? menuMusicTrack
+    ? showCampaign && MUSIC_TRACKS[campaignMusicFaction] ? campaignMusicFaction : menuMusicTrack
     : game.gameMode === "basic"
       ? "basic"
       : game.players[player]?.faction?.id || "menu";
@@ -4746,6 +4748,7 @@ export default function App() {
   if (!role && !lobby) {
     const openCampaign = (factionId, chapterId = "") => {
       playMenuCue("panelOpen");
+      setCampaignMusicFaction(factionId);
       setShowCampaign({ factionId, chapterId });
     };
     const openCollection = (view = "catalog") => { playMenuCue("panelOpen"); setShowCollection(view); };
@@ -4756,6 +4759,7 @@ export default function App() {
     let workflow = null;
     if (showCampaign) workflow = <CampaignScreen manifest={gameContent} onEnableGuest={() => setPlayAsGuest(true)} embedded key={showCampaign.factionId || "campaign"}
       initialFactionId={showCampaign.factionId} initialChapterId={showCampaign.chapterId}
+      onFactionChange={setCampaignMusicFaction}
       onBack={() => setShowCampaign(false)} onStartChapter={startCampaignChapter} canPlayAsPlayer={canPlayAsPlayer}
       account={account} campaigns={gameContent.campaigns} audioEnabled={!accountSoundMuted && !menuAudioSettings.masterMuted}
       />;

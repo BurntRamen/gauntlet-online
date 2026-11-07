@@ -41,3 +41,14 @@ test("an older backend cannot accidentally treat modifier creation as a mechanic
   render(<MechanicStudio kind="modifiers" state={{ ...state, capabilities: { mechanicStudio: 1 } }} act={jest.fn()} onDirty={jest.fn()} />);
   expect(screen.getByRole("button", { name: "Create modifier" })).toBeDisabled(); expect(screen.getByRole("status")).toHaveTextContent("does not support");
 });
+
+test("version two exposes automatic controller choices with adjacent cost and mode explanations", () => {
+  const row = { ...definition, interpreter: 2, abilities: [contract.ability("placed", 2)] }, act = jest.fn();
+  render(<MechanicStudio state={{ ...state, capabilities: { mechanicStudio: 2 }, live: { studio: { mechanics: [row] } } }} initialId={row.id} act={act} onDirty={jest.fn()} />);
+  fireEvent.change(screen.getByLabelText("Ability 1 decision"), { target: { value: "optional" } });
+  fireEvent.change(screen.getByLabelText("Ability 1 Payment value"), { target: { value: "3" } });
+  expect(screen.getByText(/You may resolve this ability, or decline/)).toBeInTheDocument();
+  expect(screen.getByText(/Free-for-All:.*support placement/)).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Save mechanic to draft" }));
+  expect(act).toHaveBeenCalledWith("studio-draft", expect.objectContaining({ value: expect.objectContaining({ interpreter: 2, abilities: [expect.objectContaining({ decision: "optional", cost: expect.objectContaining({ payment: 3 }) })] }) }));
+});

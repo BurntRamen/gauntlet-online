@@ -36,6 +36,44 @@ async function patch(body, auth = token(0), id = ids[2]) {
 }
 const edit = (name = "New Visitor", expectedName = "Visitor") => ({ expectedName, metadata: { name }, reason: "Support requested name correction" });
 
+test("name retries return the captured result exactly once and reject key reuse", async () => {
+  const input = { ...edit(), key: crypto.randomUUID() };
+  assert.equal((await patch(input)).status, 200);
+  assert.equal((await patch(input)).status, 200);
+  assert.equal(read()[2].stats.operatorAudit.length, 1);
+  assert.equal((await patch({ ...input, reason: "A different support request" })).status, 409);
+  assert.equal(read()[2].stats.operatorAudit.length, 1);
+});
+
+test("evidence repairs are admin-only, exact-reviewed, idempotent and never replay balances or rewards", async () => {
+  const seeded = structuredClone(accounts);
+  seeded[2].stats = { ...seeded[2].stats, economy: { gold: 3, timetwisters: 9 }, collection: { packCredits: 0 }, progression: { campaign: { rumin: ["already-cleared"] } }, matchConsequenceReceipts: {
+    "saved-match:player": { result: "win", goldDelta: 100, boosterCreditDelta: 1, campaign: { factionId: "rumin", chapterId: "missing-clear", outcome: "cleared" }, achievementsUnlocked: [{ id: "first-campaign-clear", name: "Campaigner" }], cosmeticsUnlocked: [{ bucket: "cardBacks", id: "campaignMap" }] },
+    "lost-match:player": { result: "loss", campaign: { factionId: "rumin", chapterId: "not-cleared", outcome: "not-cleared" } }
+  } };
+  fs.writeFileSync(process.env.ACCOUNT_DATA_FILE, JSON.stringify({ accounts: seeded }));
+  const route = `${origin}/api/admin/players/${ids[2]}/repair`;
+  const call = async (body, auth = token(0)) => {
+    const response = await fetch(route, { method: body ? "POST" : "GET", headers: { "Content-Type": "application/json", ...(auth ? { Authorization: `Bearer ${auth}` } : {}) }, ...(body ? { body: JSON.stringify(body) } : {}) });
+    return { status: response.status, body: await response.json() };
+  };
+  for (const auth of [null, token(2)]) { assert.equal((await call(null, auth)).status, auth ? 403 : 401); assert.equal((await call({}, auth)).status, auth ? 403 : 401); }
+  const preview = (await call()).body;
+  assert.equal(preview.changes.length, 3); assert.equal(preview.stats, undefined);
+  const input = { action: preview.action, expectedHash: preview.hash, key: crypto.randomUUID(), reason: "Recover missing recorded campaign facts" };
+  assert.equal((await call({ ...input, expectedHash: "0".repeat(64) })).status, 409);
+  assert.equal((await call({ ...input, accountId: ids[0] })).status, 400);
+  const applied = await call(input, token(1)); assert.equal(applied.status, 200); assert.equal(applied.body.alreadyApplied, false);
+  const retried = await call(input, token(1)); assert.equal(retried.status, 200); assert.equal(retried.body.alreadyApplied, true); assert.equal(retried.body.receipt.id, applied.body.receipt.id);
+  assert.equal((await call({ ...input, reason: "Changed terms with same key" }, token(1))).status, 409);
+  const current = read(); assert.deepEqual(current.slice(0, 2), seeded.slice(0, 2));
+  assert.deepEqual(current[2].stats.economy, seeded[2].stats.economy); assert.deepEqual(current[2].stats.collection, seeded[2].stats.collection);
+  assert.deepEqual(current[2].stats.progression.campaign.rumin, ["already-cleared", "missing-clear"]);
+  assert.deepEqual(current[2].stats.matchConsequenceReceipts, seeded[2].stats.matchConsequenceReceipts);
+  assert.equal(current[2].id, ids[2]); assert.equal(current[2].stats.operatorAudit.length, 1);
+  assert.equal((await call()).body.changes.length, 0);
+});
+
 test("metadata writes reject guests, ordinary players and forged sessions server-side", async () => {
   for (const [auth, status] of [[null, 401], [token(2), 403], [`${token(0)}tampered`, 401], [__test.issueAccountSession(structuredClone(accounts[0]), 0).token, 401]]) {
     const response = await patch(edit(), auth);

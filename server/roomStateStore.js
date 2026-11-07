@@ -39,6 +39,7 @@ function cloneRoomForStorage(roomState) {
 
 function prepareRecoveredRoom(roomState, now = Date.now()) {
   if (!isRecoverableRoom(roomState)) return null;
+  require("./encounterAiProfiles").validateCaptured(roomState.game?.campaign || roomState.lobby?.campaign);
   const recoveredRoom = cloneRoomForStorage(roomState);
   const recoveredAt = new Date(now).toISOString();
   recoveredRoom.lifecycle = recoveredRoom.lifecycle || {};

@@ -3,6 +3,7 @@ import GauntletAdmin from "./GauntletAdmin";
 
 jest.mock("./GauntletAuthoring", () => ({ __esModule: true, default: ({ area }) => <p>Authoring area: {area}</p> }));
 
+beforeAll(() => Object.defineProperty(global.crypto, "randomUUID", { configurable: true, value: () => "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" }));
 const id = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const record = { matchId: id, mode: "campaign", recordVersion: 2, contentVersion: "content-v1", participants: [{ playerNum: 1, displayName: "Player A", faction: { name: "Rumin" }, result: "win", deck: { deckVersionId: "deck-v1" } }], campaign: { title: "First battle" }, auditEvents: [{ sequence: 1, turn: 1, eventType: "game_completed", publicPayload: { message: "Player 1 wins." }, stateChecksum: "checksum" }], leagueEvidence: [] };
 const catalog = {
@@ -81,7 +82,7 @@ test("player edits retain typed metadata on failure and protect section navigati
   const editorRequest = jest.fn(async (path, options) => {
     if (path.endsWith("/metadata")) {
       expect(options.method).toBe("PATCH");
-      expect(JSON.parse(options.body)).toEqual({ expectedName: "Player A", metadata: { name: "Player B" }, reason: "Support requested correction" });
+      expect(JSON.parse(options.body)).toEqual({ key: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", expectedName: "Player A", metadata: { name: "Player B" }, reason: "Support requested correction" });
       if (failSave) throw new Error("This player's name changed elsewhere.");
       playerName = "Player B";
       return { player: { id, name: playerName } };
@@ -111,7 +112,7 @@ test("player edits retain typed metadata on failure and protect section navigati
     failSave = false;
     fireEvent.click(screen.getByRole("button", { name: "Save player name" }));
     await screen.findByRole("heading", { name: "Player B" });
-    expect(screen.getByRole("status")).toHaveTextContent("Player metadata saved");
+    expect(screen.getByRole("status")).toHaveTextContent("Player correction saved");
     expect(screen.queryByLabelText("Player name")).not.toBeInTheDocument();
     expect(exitGuard.current()).toBe(true);
   } finally { confirm.mockRestore(); }

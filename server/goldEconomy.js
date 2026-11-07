@@ -291,7 +291,7 @@ function createGoldEconomy({ filename, publication, legacyGoldImport = false, ge
     });
   }
   const payments = require("./paymentLedger").createPaymentLedger({ transaction, execute, rows, get, put, owned, audit, now, id, gemsEnabled, moveGems, prepareDelivery });
-  return { enabled: true, payments, status: () => status, wallet: (account) => transaction(() => {
+  return { enabled: true, persistence: require("./sqliteRuntimeSnapshot").createSqliteRuntimeSnapshot(db,"gold"), payments, status: () => status, wallet: (account) => transaction(() => {
     // Keep login and existing runs usable until their promised rewards settle.
     // New legacy runs are closed by the route layer before migration starts.
     if (!get("openings", account.id) && pendingLegacyRuns(account)) return { source: "legacy-event-settlement", daily: { quests: [] } };

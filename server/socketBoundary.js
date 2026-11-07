@@ -26,7 +26,7 @@ function validPayload(event, payload) {
 // Serialize operations on a connection so asynchronous identity/storage work
 // cannot race a second room entry or disconnect. Never let a client exception
 // become an unhandled rejection that terminates the process.
-function createSocketBoundary(socket, { getRoomForSocket, onError = console.error }) {
+function createSocketBoundary(socket, { getRoomForSocket, onError = console.error, run = work => work(), output = send => send() }) {
   let queue = Promise.resolve();
   return function onClientEvent(event, handler) {
     socket.on(event, (...args) => {
@@ -53,8 +53,12 @@ function createSocketBoundary(socket, { getRoomForSocket, onError = console.erro
           return;
         }
         try {
-          await handler(...args);
+          await run(() => handler(...args.map(arg => typeof arg === "function" ? (...values) => output(() => arg(...values)) : arg)));
         } catch (error) {
+          if (error.code === "RUNTIME_UNAVAILABLE" || error.code === "RUNTIME_CAPACITY") {
+            reject(error.code, "Durable storage could not confirm this action. Reconnect to check its result; do not start another game until recovery completes.");
+            return;
+          }
           if (error.code === "CONTENT_DECK_UNAVAILABLE") {
             reject(error.code, "Your saved deck contains a card that is no longer legal in constructed play. Edit or choose another deck. Your collection and saved deck are retained.");
             return;
