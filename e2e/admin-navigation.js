@@ -1,3 +1,4 @@
+const { expect } = require("@playwright/test");
 async function navigation(page) {
   await page.getByRole("region", { name: "Gauntlet Admin", exact: true }).waitFor({ state: "visible" });
   const nav = page.getByRole("navigation", { name: "Administration sections" });
@@ -57,6 +58,18 @@ async function workspaceSection(page, workshop, label) {
 async function saveRecord(page, recordName) {
   await page.getByRole("region", { name: "Save record changes", exact: true }).getByRole("button", { name: recordName ? `Save changes to ${recordName}` : /^Save changes/ }).click();
 }
+async function saveDefinition(page) {
+  const name = page.getByLabel("Name", { exact: true });
+  const expectedName = await name.inputValue();
+  const button = page.getByRole("button", { name: "Save definition to draft", exact: true });
+  const saved = page.waitForResponse(response => response.url().endsWith("/authoring/para-draft") && response.request().method() === "POST");
+  await button.click();
+  expect((await saved).ok()).toBeTruthy();
+  await expect(name).toHaveValue(expectedName);
+  await expect(button).toBeDisabled();
+  await page.getByRole("button", { name: "Close definition", exact: true }).click();
+  await expect(name).toHaveCount(0);
+}
 async function refreshAdmin(page) {
   await page.getByRole("button", { name: "Refresh admin", exact: true }).isVisible() || await page.getByLabel("Workspace options", { exact: true }).click();
   await page.getByRole("button", { name: "Refresh admin", exact: true }).click();
@@ -73,4 +86,4 @@ async function identity(page, value) {
   await page.getByText("Advanced · permanent identity", { exact: true }).click();
   await page.getByLabel("ID", { exact: true }).fill(value);
 }
-module.exports = { area, paraTab, identity, navigation, destination, workspaceSection, workspaceView, saveRecord, refreshAdmin };
+module.exports = { area, paraTab, identity, navigation, destination, workspaceSection, workspaceView, saveRecord, saveDefinition, refreshAdmin };

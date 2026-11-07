@@ -50,8 +50,8 @@ The native browser zoom check is `node e2e/admin-native-zoom.cjs`. It requires t
 
 | Check | Result |
 | --- | --- |
-| Production client build, lint, compile and asset pruning | Passed; final isolated-port rebuild at `232ee6e`, including current main `6498387` |
-| Full client tests | 118 suites, 919 tests passed |
+| Production client build, lint, compile and asset pruning | Passed with the structured-editor heading repair and explicit isolated backend; includes current main `6498387` |
+| Full client tests | 118 suites, 919 tests passed; 33 affected tests passed after the structured-heading repair |
 | Full server tests | 589 passed, zero failures or skips; run started at `db4e157` with bounded file concurrency, 28.2 minutes |
 | Subsequent record-validation repair | 49 affected server tests passed for `232ee6e`, plus 3 final schema/malformed-data checks; all 11 record-save cases covered |
 | Qualification tests | 53 passed |
@@ -61,7 +61,7 @@ The native browser zoom check is `node e2e/admin-native-zoom.cjs`. It requires t
 | Native 200% browser zoom | Passed: actual 200% page zoom, keyboard focus, zero Axe violations and 1366×768 full-surface capture |
 | Bundle checks | Main, player, initial Admin entry and largest async chunk passed; aggregate Admin budget failed |
 
-The aggregate lazy Admin JavaScript is **74.4 KiB gzip against the unchanged 61.0 KiB limit**. This is a merge blocker. The draft PR must remain unmerged until that budget is met; the limits were not relaxed. Passing budgets are main 177.4/180.0 KiB, player JavaScript 752.9/759.0 KiB, initial Admin entry 14.3/20.0 KiB, and largest async chunk 274.2/350.0 KiB.
+The aggregate lazy Admin JavaScript is **74.5 KiB gzip against the unchanged 61.0 KiB limit**. This is a merge blocker. The draft PR must remain unmerged until that budget is met; the limits were not relaxed. Passing budgets are main 177.4/180.0 KiB, player JavaScript 752.9/759.0 KiB, initial Admin entry 14.3/20.0 KiB, and largest async chunk 274.2/350.0 KiB.
 
 Responsive coverage uses 1920 × 1080, 1280 × 720, 768 × 1024, 390 × 844, and 683 × 384 CSS pixels, with reduced motion enabled, overflow checks, drawer keyboard behavior, accessible names and zero Axe violations at all five sizes. The phone journey edits a field, switches sections and preview modes without losing the buffer, saves, and verifies the shared draft response. The 683 × 384 viewport is a reflow simulation. Separately, real browser page zoom changed the measured viewport from 1366 × 768 at device pixel ratio 1 to 683 × 384 at device pixel ratio 2, with `visualViewport.scale` remaining 1; [native zoom metrics](after/native-zoom.json) distinguish that check from viewport emulation.
 

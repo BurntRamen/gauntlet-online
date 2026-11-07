@@ -1,5 +1,5 @@
 const { navigatePlayer } = require("./player-navigation");
-const { area: adminArea, paraTab, identity } = require("./admin-navigation");
+const { area: adminArea, paraTab, identity, saveDefinition } = require("./admin-navigation");
 const { origin, clientOrigin } = require("./admin-urls");
 const { test, expect } = require("./admin-release-test"), AxeBuilder = require("@axe-core/playwright").default;
 const fs = require("node:fs"), path = require("node:path");
@@ -16,15 +16,10 @@ test("Admin authors and publishes a usable Gold product; player earns, buys, rea
   const fill = (name, value) => page.getByLabel(name, { exact: true }).fill(value);
   const select = (name, value) => page.getByLabel(name, { exact: true }).selectOption(value);
   const dates = async () => { await fill("Start", "2026-01-01T00:00"); await fill("End", "2099-01-01T00:00"); };
-  const save = async () => {
-    const saved = page.waitForResponse(response => response.url().endsWith("/authoring/para-draft") && response.request().method() === "POST", { timeout: 15000 });
-    await page.getByRole("button", { name: "Save definition to draft" }).click();
-    expect((await saved).ok()).toBeTruthy();
-    await expect(page.getByLabel("Name", { exact: true })).toHaveCount(0);
-  };
+  const save = () => saveDefinition(page);
   const publish = async (name) => {
     await page.getByRole("button", { name: "Validate draft", exact: true }).click(); await page.getByRole("button", { name: "Preview saved draft", exact: true }).click(); await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible();
-    await nav.getByRole("button", { name: "Publishing", exact: true }).click(); await fill("Release name", name);
+    await adminArea(page, "Publishing"); await fill("Release name", name);
     await page.getByRole("button", { name: "Publish release", exact: true }).click(); await page.getByRole("button", { name: "Confirm publish", exact: true }).click();
     await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible();
   };

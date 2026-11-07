@@ -71,7 +71,7 @@ test("create, upload, organize, publish, own, save, play, revise and recover a p
       const pass = session.legalActions.find(action => action.type === "passPriority"); await harness.getByRole("combobox", { name: /^Action/ }).selectOption(pass.id);
       const executed = page.waitForResponse(r => r.url().endsWith("/playtest/command")); await harness.getByRole("button", { name: "Execute selected action" }).click(); expect((await executed).ok()).toBeTruthy();
     }
-    await page.getByRole("button", { name: "Preview saved draft", exact: true }).click(); await page.getByRole("button", { name: "Review release", exact: true }).click();
+    await page.getByRole("button", { name: "Preview saved draft", exact: true }).click(); await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible(); await page.getByRole("button", { name: "Review release", exact: true }).click();
     await page.getByLabel("Release name").fill(label); await page.getByRole("button", { name: "Publish release", exact: true }).click(); const response = page.waitForResponse(r => r.url().endsWith("/authoring/publish"), { timeout: 60000 }); await page.getByRole("button", { name: "Confirm publish", exact: true }).click(); expect((await response).ok()).toBeTruthy(); await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible();
   };
   await publish("Printing browser R1", true); const r1 = (await status()).activeReleaseId;

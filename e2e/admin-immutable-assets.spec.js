@@ -78,7 +78,7 @@ test("Admin uploads A/B, publishes, renders pinned matches, rolls back, restarts
   expect(hash(Buffer.from((await draftImage.getAttribute("src")).split(",")[1], "base64"))).toBe(a.sha256);
   await page.screenshot({ path: path.join(artifactRoot, "draft-match.png") });
   const publish = async label => {
-    await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
+    await page.getByRole("button", { name: "Preview saved draft", exact: true }).click(); await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible();
     await page.getByRole("button", { name: "Review release", exact: true }).click();
     await page.getByLabel("Release name").fill(label);
     await page.getByRole("button", { name: "Publish release", exact: true }).click();

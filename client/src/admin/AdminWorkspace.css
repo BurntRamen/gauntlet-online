@@ -344,3 +344,8 @@
 .admin-workspace .admin-field-tools { display:block; }
 .admin-workspace .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
 .admin-workspace .admin-finder kbd { opacity:1; color:#bccada; border-color:#54647a; }
+
+/* Structured editors sit directly beneath the area heading. */
+.admin-workspace h3.admin-section-heading { font-size:17px; margin:24px 0 12px; }
+.admin-workspace h4.admin-section-heading { font-size:14px; margin:18px 0 8px; }
+.admin-workspace .admin-editor > h3.admin-section-heading { margin-top:0; }
