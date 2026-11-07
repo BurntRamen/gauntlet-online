@@ -760,21 +760,27 @@ test("resolution changes preserve framing and saved light mode updates the exist
   expect(await page.evaluate(() => window.__themeOriginalCanvas === document.querySelector("canvas.babylon-match-canvas"))).toBe(true);
 });
 
-test("discard piles and player abilities use a non-overlapping responsive dock without restarting the table", async ({ page, browser, baseURL }, testInfo) => {
+test("discard piles and player abilities use a non-overlapping responsive dock without restarting the table", async ({ page, baseURL }, testInfo) => {
   test.setTimeout(120000);
-  const opponentContext = await browser.newContext();
+  const opponent = await connectSeedClient();
   try {
-    const opponentPage = await opponentContext.newPage();
     await prepareGuest(page, baseURL, "Dock Reviewer");
     const roomCode = await createFactionRoom(page);
-    await prepareGuest(opponentPage, baseURL, "Dock Opponent");
-    await joinRoom(opponentPage, roomCode);
-    // Both Jali plates carry the additional resource row. A random AI faction
-    // previously exercised this cramped layout only on some CI runs.
+    const assigned = waitForEvent(opponent, "assign");
+    opponent.emit("joinRoom", { roomCode, guestName: "Dock Opponent" });
+    await assigned;
+    // Both Jali plates carry the additional resource row. Use the normal
+    // opponent protocol without a second software-rendered canvas competing
+    // with the player view whose geometry and canvas identity are under test.
     await chooseLobbyFaction(page, "Jali");
-    await chooseLobbyFaction(opponentPage, "Jali");
+    const selected = waitForEvent(opponent, "lobbyState", lobby =>
+      lobby.players[1]?.factionId === "jali" && lobby.players[2]?.factionId === "jali");
+    opponent.emit("selectFaction", { factionId: "jali" });
+    await selected;
     await page.getByRole("button", { name: "Confirm Start" }).click();
-    await opponentPage.getByRole("button", { name: "Confirm Start" }).click();
+    const started = waitForEvent(opponent, "state", state => state.phase === "priority");
+    opponent.emit("startGame");
+    await started;
     await expect(page.locator(".production-player-resource")).toHaveCount(2);
     const match = page.getByTestId("production-babylon-match");
     const canvas = page.locator("canvas.babylon-match-canvas");
@@ -853,7 +859,7 @@ test("discard piles and player abilities use a non-overlapping responsive dock w
         }
       }
     }
-  } finally { await opponentContext.close(); }
+  } finally { opponent.disconnect(); }
 });
 
 test("later Bizi missions keep the new interface through boss actions", async ({ page, request, baseURL }) => {
