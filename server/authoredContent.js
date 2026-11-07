@@ -38,18 +38,20 @@ const FIELDS = {
 FIELDS.encounters.setup = { label: "Encounter mechanics", type: "object", mechanical: true, abilityIds: encounterContract.bossAbilityIds, rules: encounterAuthoring.rules, abilityLabels: encounterAuthoring.abilityLabels, note: "Save setup, ability and card additions together. Displayed ability text does not change the selected rule. Timing and routing are read-only." };
 FIELDS.encounters.opponentDeckId = { label: "Authored opponent deck", type: "deck-reference", maxLength: 180, required: false, defaultValue: "", mechanical: true, note: "Replaces the opponent composition. Clear legacy boss additions first. Setup, scripted attacks, progression and rewards stay separate." };
 FIELDS.encounters.ruleModifierId = { label: "Starting-state rule modifier", type: "modifier-reference", maxLength: 80, required: false, defaultValue: "", mechanical: true, note: "Optional campaign override. Its player/opponent life and hand size replace encounter life and global hand size. Standard and official competitions are unaffected." };
+FIELDS.encounters.aiProfile = require("./encounterAiProfiles").field;
 FIELDS.cards.effect = { label: "Card effect", type: "object", mechanical: true, options: effects.cardEffectDefinitions(), note: "Select a deployed effect for this faction and card type. Declared parameters remain supported; Rumin armaments also support bounded structured composition." };
 FIELDS.factions.mechanics = { label: "Faction mechanics", type: "object", mechanical: true, options: effects.factionEffectDefinitions(), note: "Only supported parameters are editable. Activation costs, timing, targeting and counters remain engine-controlled." };
 function fieldsFor(domain, row, snapshot) {
+  if (domain === "campaigns" && row?.origin === "admin-faction-v1") return { ...FIELDS.campaigns, pitch: { ...FIELDS.campaigns.pitch, required: false, note: "Write approved campaign copy. Blank displays no introduction; creation never generates lore." } };
   if (domain === "factions" && row?.origin === "admin-faction-v1") return { ...FIELDS.factions, ...require("./adminFactions").fields };
-  if (domain === "encounters" && row?.origin === require("./adminEncounters").ORIGIN) return { ...FIELDS.encounters, ...require("./adminEncounters").fields };
+  if (domain === "encounters" && row?.origin === require("./adminEncounters").ORIGIN) return { ...FIELDS.encounters, ...Object.fromEntries(["story", "beforeBattle", "afterBattle"].map(key => [key, { ...FIELDS.encounters[key], required: false, note: "Write approved narrative. Blank shows no copy; no filler is generated." }])), ...require("./adminEncounters").fields };
   if (domain === "decks" && row?.origin === require("./adminDecks").ORIGIN) return require("./adminDecks").fields;
   if (domain === "offers") return require("./adminDeckOffers").fields;
   if (domain === "assets" && row?.origin === require("./adminPrintings").ORIGIN) return require("./adminPrintings").fields;
   if (domain === "sets") return authoredCatalog.setFields;
   if (domain === "cards" && row?.origin === "admin-v1") return { ...FIELDS.cards, ...authoredCatalog.cardFields, ...(snapshot ? { factionId: { ...authoredCatalog.cardFields.factionId, options: [...authoredCatalog.cardFields.factionId.options, ...snapshot.domains.factions.filter(f => f.origin === "admin-faction-v1").map(f => ({ id: f.id, name: f.name }))] } } : {}), flavor: { ...text("Flavor text", 1000, false), defaultValue: "", note: "Optional narrative text. No executable behavior." } };
-  if (domain === "assets" && row?.gameplayCardId?.startsWith("auth-card-")) return { art: { ...FIELDS.assets.art, required: true, note: "This new printing requires an immutable image. Select a replacement to change it." } };
-  if (domain === "game" && row.id === "shared-rules") return { handSize: { label: "Hand size", type: "integer", min: 3, max: 12, mechanical: true } };
+  if (domain === "assets" && row?.gameplayCardId?.startsWith("auth-card-")) return { art: { ...FIELDS.assets.art, required: true, note: "This printing requires an immutable image. Select a replacement to change it." } };
+  if (domain === "game" && row.id === "shared-rules") return { handSize: { label: "Hand size", type: "integer", min: 3, max: 12, mechanical: true }, packComposition: require("../shared/duel-rules/packComposition").field };
   if (domain === "game") return { ...FIELDS.game, ...proseFields(row.id) };
   if (domain === "factions" && row.campaignOnly) return { name: FIELDS.factions.name, cardImage: FIELDS.factions.cardImage };
   if (domain !== "characters") return FIELDS[domain] || {};
@@ -66,7 +68,11 @@ function createAuthoredBaseline(catalog) {
     domains.campaigns.push({ id, factionId: id, commanderName: campaign.commanderName, pitch: campaign.pitch, coverImage: campaign.coverImage || "", encounterIds: campaign.chapters.map((chapter) => chapter.id) });
     campaign.chapters.forEach((chapter, index) => {
       const encounter = { id: chapter.id, campaignId: id, factionId: id, deckId: `${chapter.id}:decks`, opponentId: `${chapter.id}:opponent`, nextEncounterId: campaign.chapters[index + 1]?.id || null, branches: [] };
-      for (const [key, field] of Object.entries(FIELDS.encounters)) encounter[key] = clone(chapter[key] ?? (field.type === "lines" || field.type === "assets" ? [] : ""));
+      for (const [key, field] of Object.entries(FIELDS.encounters)) {
+        // Optional authored extensions keep legacy snapshots and release hashes intact.
+        if (key === "aiProfile" && chapter[key] === undefined) continue;
+        encounter[key] = clone(chapter[key] ?? field.defaultValue ?? (field.type === "lines" || field.type === "assets" ? [] : ""));
+      }
       encounter.setup = clone(chapter.setup || encounterDefaults[chapter.id]);
       domains.encounters.push(encounter);
       domains.characters.push({ id: encounter.opponentId, kind: "opponent", factionId: id, encounterId: chapter.id, name: chapter.opponentName });
@@ -164,6 +170,8 @@ function validateAuthoredFields(snapshot, baseline, catalogCards) {
           if (canonicalJson(value ?? null) !== canonicalJson(original[key] ?? null) || Object.hasOwn(row, key) !== Object.hasOwn(original, key)) issue(domain, row.id, key, "Engine-controlled identity, reference or derived value cannot be changed.");
           continue;
         }
+        if (field.type === "pack-composition") { if (!require("../shared/duel-rules/packComposition").valid(value)) issue(domain, row.id, key, "Use 13 supported slots, four fixed suit guarantees and a 0–100% wild mythic roll."); continue; }
+        if (field.type === "choice") { if (!field.options.some(option => (option.id ?? option) === value)) issue(domain, row.id, key, "Choose a supported value from this field's options."); continue; }
         if (field.type === "object" || field.type === "integer") {
           const valid = domain === "cards" ? effects.validateCardEffect(value, row)
             : domain === "factions" ? effects.validateFactionMechanics(value, row.id)
@@ -269,11 +277,14 @@ function resolveEngineContent(snapshot, releaseId) {
   manifest.presentationAssets = Object.fromEntries(require("./presentationAssetManifest.json").map(row => [row.source, row.path]));
   for (const offer of manifest.deckOffers) offer.cardBack = manifest.presentationAssets[({ classic: "/assets/gauntlet/match/gauntlet-card-back-official.jpg", arenaCircuit: "/assets/gauntlet/card-backs/arena-circuit-v1.webp", victorGold: "/assets/gauntlet/card-backs/victor-gold-v1.webp", campaignMap: "/assets/gauntlet/card-backs/campaign-map-v1.webp" })[offer.cardBackId]];
   manifest.gameConfig = { version: 1, startingLife: config.STARTING_LIFE, handSize: domains.game.find((row) => row.id === "shared-rules").handSize };
+  manifest.packComposition = clone(domains.game.find(row => row.id === "shared-rules").packComposition || require("../shared/duel-rules/packComposition").defaults);
+  manifest.websiteProse = require("./websiteProse").projectProse(domains);
   manifest.trainingOpponent = { name: characters.get("training-ai").name, opponentKind: "training-ai" };
   manifest.assetManifest = { version: assets.assetManifest.version, entries: clone([...assets.assetManifest.entries, ...versions.map(row => assets.assetEntry(row.id, versions, releaseId))]) };
   manifest.contentBinding = { authoredRelease: releaseId, rulesVersion: duel.RULES_VERSION, cardEffectContractVersion: effects.CARD_EFFECT_CONTRACT_VERSION, factionEffectContractVersion: effects.FACTION_EFFECT_CONTRACT_VERSION, encounterContractVersion: encounterContract.ENCOUNTER_CONTRACT_VERSION, assetManifestVersion: assets.assetManifest.version, gameConfigVersion: config.GAME_CONFIG_VERSION };
-  if (domains.factions.some(f => f.origin === "admin-faction-v1")) manifest.contentBinding.factionFamilyVersion = "gauntlet.faction-families.v1";
-  if (domains.cards.some(card => card.effect?.id === require("../shared/duel-rules/mechanicContract").ID)) manifest.contentBinding.mechanicVersion = require("../shared/duel-rules/mechanicContract").VERSION;
+  if (domains.encounters.some(row => row.aiProfile === "support-first")) manifest.contentBinding.encounterAiVersion = require("./encounterAiProfiles").VERSION;
+  if (domains.factions.some(f => f.origin === "admin-faction-v1")) manifest.contentBinding.factionFamilyVersion = domains.factions.some(f => f.origin === "admin-faction-v1" && f.family !== "rumin") ? "gauntlet.faction-families.v2" : "gauntlet.faction-families.v1";
+  if (domains.cards.some(card => card.effect?.id === require("../shared/duel-rules/mechanicContract").ID)) manifest.contentBinding.mechanicVersion = domains.cards.some(card => card.effect?.id === "authored-mechanic" && card.effect.version === 2) ? require("../shared/duel-rules/mechanicContract").VERSION2 : require("../shared/duel-rules/mechanicContract").VERSION;
   if (domains.cards.some(card => card.effect?.id === composition.ID)) manifest.contentBinding.compositionVersion = composition.VERSION;
   const source = registry.getPublicGameContent();
   for (const card of manifest.cards) {

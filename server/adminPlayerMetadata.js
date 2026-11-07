@@ -10,7 +10,7 @@ function createPlayerMetadataEditor({ useSupabase, request, accountFile, normali
   return async function edit(id, input, actorId) {
     if (!UUID.test(id)) throw failure(400, "Invalid player.");
     if (!UUID.test(actorId || "")) throw failure(400, "An authorized operator identity is required.");
-    if (!input || Array.isArray(input) || Object.keys(input).some((key) => !["expectedName", "metadata", "reason"].includes(key))
+    if (!input || Array.isArray(input) || Object.keys(input).some((key) => !["expectedName", "metadata", "reason", "key"].includes(key)) || (input.key !== undefined && !UUID.test(input.key))
       || typeof input.expectedName !== "string" || !input.metadata || Array.isArray(input.metadata)
       || Object.keys(input.metadata).length !== 1 || typeof input.metadata.name !== "string"
       || typeof input.reason !== "string" || input.reason.trim().length < 8 || input.reason.length > 1000) {
@@ -20,11 +20,20 @@ function createPlayerMetadataEditor({ useSupabase, request, accountFile, normali
     if (!validName(name)) throw failure(400, "Player name must be 3–24 characters using letters, numbers, spaces, hyphens or underscores.");
     const conflict = () => failure(409, "This player's name changed elsewhere. Refresh the profile before saving again.");
     const taken = () => failure(409, "That player name is already taken.");
-    const audited = stats => ({ ...stats, operatorAudit: [...(stats?.operatorAudit || []), { id: crypto.randomUUID(), action: "player-name", actorId, accountId: id, before: input.expectedName, after: name, reason: input.reason.trim(), at: new Date().toISOString() }] });
+    const fingerprint = crypto.createHash("sha256").update(JSON.stringify([id, input.expectedName, name, input.reason.trim()])).digest("hex");
+    const operationKey = `${actorId}:${input.key || fingerprint}`;
+    const priorResult = stats => {
+      const prior = stats?.operatorAudit?.find(entry => entry.operationKey === operationKey);
+      if (!prior) return null;
+      if (prior.fingerprint !== fingerprint) throw failure(409, "This request key already records a different correction. Refresh before starting another correction.");
+      return { id, name: prior.after };
+    };
+    const audited = stats => ({ ...stats, operatorAudit: [...(stats?.operatorAudit || []), { id: crypto.randomUUID(), action: "player-name", actorId, accountId: id, operationKey, fingerprint, before: input.expectedName, after: name, reason: input.reason.trim(), at: new Date().toISOString() }] });
     if (useSupabase()) {
       if (await request("rpc/gauntlet_account_write_capability", { method: "POST", body: "{}" }) !== 1) throw failure(503, "Audited metadata changes require the account revision guard.");
       const rows = await request(`gauntlet_accounts?id=eq.${id}&select=id,name,stats`);
       if (!rows?.length) throw failure(404, "Player not found.");
+      const prior = priorResult(rows[0].stats); if (prior) return prior;
       if (rows[0].name !== input.expectedName) throw conflict();
       try {
         const saved = await request(`gauntlet_accounts?id=eq.${id}&name=eq.${encodeURIComponent(JSON.stringify(input.expectedName))}&select=id,name`, {
@@ -43,6 +52,7 @@ function createPlayerMetadataEditor({ useSupabase, request, accountFile, normali
     if (!Array.isArray(store.accounts)) throw failure(503, "Player metadata is temporarily unavailable.");
     const player = store.accounts.find((account) => account.id === id);
     if (!player) throw failure(404, "Player not found.");
+    const prior = priorResult(player.stats); if (prior) return prior;
     if (player.name !== input.expectedName) throw conflict();
     if (store.accounts.some((account) => account.id !== id && normalizeName(account.name).toLowerCase() === name.toLowerCase())) throw taken();
     player.name = name;

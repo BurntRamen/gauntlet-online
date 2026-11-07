@@ -19,7 +19,7 @@ export default function WorkshopField({ state, domain, row, field, buffer, busy,
   const disabled = busy || !state.writable || structuralLock;
   const update = next => onEdit(next, saved);
   let contract = row[field];
-  const catalogType = ["modifier-reference", "choice", "catalog-flags", "card-list", "printing-edition", "deck-reference", "deck-composition", "offer-prices", "offer-sale"].includes(definition.type);
+  const catalogType = ["pack-composition", "modifier-reference", "choice", "catalog-flags", "card-list", "printing-edition", "deck-reference", "deck-composition", "offer-prices", "offer-sale"].includes(definition.type);
   if (definition.type === "object" || catalogType) { try { contract = JSON.parse(value); } catch { contract = value; } }
   const selectedEffect = field === "effect" && state.workshopMetadata?.cardEffects?.find(effect => effect.id === contract?.id);
   const controlProps = { "aria-label": `Draft ${definition.label.toLowerCase()}`, value, disabled, onChange: event => update(event.target.value) };

@@ -67,9 +67,9 @@ function System({ request, revision, operations }) {
 }
 
 
-function Overview({ request, revision, onSelect }) {
+function Overview({ request, revision, onSelect, onInspect }) {
   const state = useAdminData(request, "/api/admin/home", revision);
-  return <State state={state}>{data => <Suspense fallback={<p>Loading overview…</p>}><ModuleHome data={data} onSelect={onSelect} /></Suspense>}</State>;
+  return <State state={state}>{data => <Suspense fallback={<p>Loading overview…</p>}><ModuleHome data={data} onSelect={onSelect} onInspect={onInspect} /></Suspense>}</State>;
 }
 
 function MatchList({ records, onInspect }) {

@@ -41,6 +41,35 @@ function repository() {
   const store = (extra = {}) => createGitHubContentPublication({ baseline, token: "test-only-token", client, deployedCommit: original, releaseFile: "missing-test-release.json", ...extra });
   return { client, store, refs, trees, pulls };
 }
+
+test("checked data-only activation commits before serving, recovers lost replies, rolls back and preserves captured games", async () => {
+  const repo = repository(); let privateValue = null, version = 0, loseReply = false;
+  const draftStore = { async load() { return privateValue && { state: clone(privateValue), version }; }, async save(expected, state) {
+    assert.equal(expected, version); privateValue = clone(state); version++;
+    if (loseReply && state.runtimeActivation) { loseReply = false; throw Object.assign(new Error("Lost activation reply"), { status: 503 }); }
+  } };
+  const options = { draftStore, dataOnly: true };
+  let store = repo.store(options), original = store.active(), state = await store.status();
+  state = await store.patch({ expectedRevision: state.revision, domain: "cards", id: baseline.domains.cards[0].id, field: "name", value: "Data-only name" }, "operator");
+  state = await store.preview({ expectedRevision: state.revision });
+  state = await store.publish({ expectedRevision: state.revision, label: "Data release" }, "operator");
+  assert.equal(state.pending.phase, "checks"); assert.equal(store.active().releaseId, original.releaseId);
+  repo.client.ready = true; loseReply = true;
+  await assert.rejects(store.reconcile(), /Lost activation reply/);
+  assert.equal(store.active().releaseId, original.releaseId, "unknown write does not claim successful activation");
+  state = await store.status(); const released = store.active();
+  assert.equal(state.pending, null); assert.equal(state.publication.dataOnly, true);
+  assert.equal(released.manifest.cards[0].name, "Data-only name"); assert.equal(original.manifest.cards[0].name, baseline.domains.cards[0].name);
+  store = repo.store(options); await store.verifyMedia(); assert.equal(store.active().releaseId, released.releaseId, "restart resolves the committed runtime pointer without new code");
+  state = await store.status(); state = await store.rollback({ expectedRevision: state.revision, releaseId: original.releaseId }, "operator");
+  assert.equal(state.pending, null); assert.equal(store.active().releaseId, original.releaseId); assert.equal(released.manifest.cards[0].name, "Data-only name", "existing captures are immutable");
+  assert.equal(repo.client.writes.filter(w => w.filename === DRAFT_PATH).length, 0);
+  const before = clone(privateValue); repo.client.unexpectedFile = true;
+  state = await store.patch({ expectedRevision: state.revision, domain: "cards", id: baseline.domains.cards[0].id, field: "name", value: "Needs code" }, "operator");
+  state = await store.preview({ expectedRevision: state.revision });
+  await assert.rejects(store.publish({ expectedRevision: state.revision, label: "Blocked by code" }, "operator"), /source code/);
+  assert.equal(privateValue.runtimeActivation.releaseId, before.runtimeActivation.releaseId);
+});
 test("live content reads reuse the deployed catalog and isolate callers across delivery origins", t => {
   const assets = require("../contentAssets");
   const originalOrigin = assets.getDeliveryOrigin();

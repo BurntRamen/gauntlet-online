@@ -30,8 +30,8 @@ test("guided printing creation sends only the owner and presentation inputs", ()
   expect(create).toHaveBeenCalledWith({ domain: "assets", gameplayCardId: "card", sourceId: "p2", name: "Copy", edition: "edition", collectorNumber: "003" });
 });
 test("asset capacity explains retained byte and version counts, remaining space and prerequisites", () => {
-  render(<AssetCapacity provider="github" value={{ storedBytes: 1048576, remainingBytes: 5242880, versionCount: 3, remainingVersions: 497, uniqueBlobCount: 2, encodedBytes: 1400000, metadataBytes: 400, statePayloadBytes: 2000000 }} />);
-  expect(screen.getByText(/1.00 \/ 6 MiB · 3 \/ 500/)).toBeInTheDocument();
+  render(<AssetCapacity provider="github" value={{ storedBytes: 1048576, maxBytes: 6291456, remainingBytes: 5242880, versionCount: 3, maxVersions: 500, remainingVersions: 497, uniqueBlobCount: 2, encodedBytes: 1400000, metadataBytes: 400, statePayloadBytes: 2000000 }} />);
+  expect(screen.getByText(/1.00 \/ 6.00 MiB · 3 \/ 500/)).toBeInTheDocument();
   expect(screen.getByText(/5.00 MiB and 497 versions remaining/)).toBeInTheDocument();
   expect(screen.getByText(/private repository/)).toBeInTheDocument();
 });

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import UnsavedChangesDialog from "./UnsavedChangesDialog";
 
 const passLeave = action => { action?.(); return true; };
-function PlayerMetadataEditor({ player, request, guard, onSaved }) {
+function PlayerMetadataEditor({ player, request, guard, onSaved, name, label }) {
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(player.name);
   const [expectedName, setExpectedName] = useState(player.name);
@@ -10,11 +10,13 @@ function PlayerMetadataEditor({ player, request, guard, onSaved }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [conflict, setConflict] = useState(null);
+  const [repair, setRepair] = useState(null);
+  const retry = useRef(null);
   const [departure, setDeparture] = useState(false);
   const pendingAction = useRef(null), pending = useRef(false), input = useRef(null), form = useRef(null);
   useEffect(() => { if (editing) input.current?.focus(); }, [editing]);
   const dirty = editing && (value !== expectedName || reason !== "");
-  function reset() { setEditing(false); setValue(player.name); setExpectedName(player.name); setReason(""); setError(""); setConflict(null); }
+  function reset() { setRepair(null); retry.current = null; setEditing(false); setValue(player.name); setExpectedName(player.name); setReason(""); setError(""); setConflict(null); }
   function leave(action) {
     if (pending.current) return false;
     if (dirty) { pendingAction.current = action; setDeparture(true); return false; }
@@ -33,14 +35,15 @@ function PlayerMetadataEditor({ player, request, guard, onSaved }) {
     if (!form.current?.reportValidity()) { setError("Complete a valid player name and correction reason before saving. Choose Keep editing to review the fields."); return false; }
     pending.current = true; setBusy(true); setError("");
     try {
-      await request(`/api/admin/players/${encodeURIComponent(player.id)}/metadata`, {
-        method: "PATCH", body: JSON.stringify({ expectedName, metadata: { name: value }, reason })
-      });
+      const terms = repair ? { action: repair.action, expectedHash: repair.hash, reason } : { expectedName, metadata: { name: value }, reason };
+      const signature = JSON.stringify(terms);
+      if (retry.current?.signature !== signature) retry.current = { signature, key: crypto.randomUUID() };
+      await request(`/api/admin/players/${encodeURIComponent(player.id)}/${repair ? "repair" : "metadata"}`, { method: repair ? "POST" : "PATCH", body: JSON.stringify({ ...terms, key: retry.current.key }) });
       pending.current = false; guard.current = passLeave;
-      setEditing(false); onSaved(); return true;
+      setEditing(false); setRepair(null); onSaved(); return true;
     } catch (failure) {
       setError(failure.message);
-      if (failure.status === 409) {
+      if (failure.status === 409 && !repair) {
         try {
           const result = await request(`/api/admin/players?offset=0&limit=25&q=${encodeURIComponent(player.id)}`);
           const latest = result.players?.find(row => row.id === player.id);
@@ -50,17 +53,24 @@ function PlayerMetadataEditor({ player, request, guard, onSaved }) {
       return false;
     } finally { pending.current = false; setBusy(false); }
   }
+  async function inspectRepair() {
+    if (pending.current) return;
+    pending.current = true; setBusy(true); setError("");
+    try { setRepair(await request(`/api/admin/players/${encodeURIComponent(player.id)}/repair`)); setEditing(true); }
+    catch (failure) { setError(failure.message); }
+    finally { pending.current = false; setBusy(false); }
+  }
   const discard = () => { const action = pendingAction.current; pendingAction.current = null; guard.current = passLeave; setDeparture(false); reset(); action?.(); };
   const saveAndContinue = async () => { const action = pendingAction.current; if (await save()) { pendingAction.current = null; setDeparture(false); action?.(); } };
   return <>{editing ? <form ref={form} className="admin-player-edit" onSubmit={save} aria-label="Edit player metadata">
-    <label className="admin-search">Player name<input ref={input} value={value} disabled={busy} minLength={3} maxLength={24} pattern={"[A-Za-z0-9 _\\-]{3,24}"} required aria-describedby="player-name-help" onChange={event => setValue(event.target.value)} /></label>
-    <p id="player-name-help" className="admin-note">This is also the name used to sign in. Changes save directly to this account.</p>
-    <label className="admin-search">Correction reason<input value={reason} disabled={busy} minLength={8} maxLength={1000} required onChange={event => setReason(event.target.value)} /></label>
+    {repair ? <section aria-label="Proposed account repair"><h4>Restore recorded progress</h4><p>{repair.boundary}</p><p>{repair.evidenceCount} saved {repair.evidenceCount === 1 ? "receipt" : "receipts"} inspected · {repair.changes.length} missing {repair.changes.length === 1 ? "fact" : "facts"}</p>{repair.changes.map((change, i) => <details key={i}><summary>{change.path.startsWith("progression.campaign.") ? "Campaign clears · " + name("factions", change.path.split(".").at(-1)) : change.path.startsWith("progression.achievements.") ? "Achievement · " + label(change.path.split(".").at(-1)) : "Earned cosmetics · " + label(change.path.split(".").at(-1))}</summary><p>Recorded in {change.receipt}</p><pre>{JSON.stringify({ field: change.path, before: change.before, after: change.after }, null, 2)}</pre></details>)}{!repair.changes.length && <p>No repair is needed from the available evidence.</p>}<p className="admin-note">Applying this repair changes the account immediately and records your reason. It does not enter the shared content draft.</p></section> : <><label className="admin-search">Player name<input ref={input} value={value} disabled={busy} minLength={3} maxLength={24} pattern={"[A-Za-z0-9 _\\-]{3,24}"} required aria-describedby="player-name-help" onChange={(event) => setValue(event.target.value)} /></label>
+    <p id="player-name-help" className="admin-note">This is also the name used to sign in. Changes save directly to this account.</p></>}
+    <label className="admin-search">Correction reason<input ref={repair ? input : undefined} value={reason} disabled={busy} minLength={8} maxLength={1000} required onChange={event => setReason(event.target.value)} /></label>
     {error && <p role="alert" className="admin-alert">{error}</p>}
     {conflict && <section className="admin-alert" aria-label="Player name conflict"><h4>The account changed elsewhere</h4><dl className="design-facts"><div><dt>Latest account name</dt><dd>{conflict}</dd></div><div><dt>Your correction</dt><dd>{value}</dd></div></dl><button type="button" onClick={() => { setExpectedName(conflict); setConflict(null); setError(""); }}>Use latest name as correction baseline</button><p className="admin-note">Review both names before retrying. Your correction and reason are retained.</p></section>}
-    <div className="admin-actions"><button className="admin-primary" type="submit" disabled={busy || !dirty || !!conflict}>{busy ? "Saving…" : "Save player name"}</button><button type="button" disabled={busy} onClick={() => leave()}>Cancel</button></div>
-  </form> : <button onClick={() => setEditing(true)}>Edit player name</button>}
-  {departure && <UnsavedChangesDialog onKeep={() => { setDeparture(false); pendingAction.current = null; }} onDiscard={discard} onSave={saveAndContinue} saving={busy} error={error} saveDisabledReason={conflict ? "Compare the latest account name before retrying this correction." : undefined} saveLabel={`Saves the player name correction for ${player.name} immediately, with its reason. This does not create a content draft.`} />}
+    <div className="admin-actions"><button className="admin-primary" type="submit" disabled={busy || !dirty || !!conflict || (repair && !repair.changes.length)}>{busy ? "Saving…" : repair ? "Apply reviewed repair now" : "Save player name"}</button><button type="button" disabled={busy} onClick={() => leave()}>Cancel</button></div>
+  </form> : <><div className="admin-actions"><button disabled={busy} onClick={() => setEditing(true)}>Edit player name</button><button disabled={busy} onClick={inspectRepair}>Review missing progress</button></div>{error && <p role="alert">{error}</p>}</>}
+  {departure && <UnsavedChangesDialog onKeep={() => { setDeparture(false); pendingAction.current = null; }} onDiscard={discard} onSave={saveAndContinue} saving={busy} error={error} saveDisabledReason={conflict ? "Compare the latest account name before retrying this correction." : undefined} saveLabel={`Saves the reviewed ${repair ? "progress repair" : "name correction"} for ${player.name} immediately, with its reason. This does not create a content draft.`} />}
   </>;
 }
 function PurchaseEvidence({ player, Facts, Json, date, label }) {
@@ -78,7 +88,7 @@ function PurchaseEvidence({ player, Facts, Json, date, label }) {
   </>;
 }
 function SupportEvidence({ player, Json, date, label }) {
-  return <><h4>Audited corrections</h4>{player.corrections?.length ? <ol className="admin-support-timeline">{player.corrections.map(row => <li key={row.id}><strong>{label(row.action)}</strong><small>{date(row.at)}</small><p>{row.before} → {row.after}</p><p>{row.reason}</p><details><summary>Operator identity</summary><code>{row.actorId}</code></details></li>)}</ol> : <p>No audited corrections recorded.</p>}
+  return <><h4>Audited corrections</h4>{player.corrections?.length ? <ol className="admin-support-timeline">{player.corrections.map(row => <li key={row.id}><strong>{label(row.action)}</strong><small>{date(row.at)}</small>{typeof row.before === "object" || typeof row.after === "object" ? <Json value={{ before: row.before, after: row.after, evidence: row.evidence }} title="Recorded correction and evidence" /> : <p>{row.before} → {row.after}</p>}<p>{row.reason}</p><details><summary>Operator identity</summary><code>{row.actorId}</code></details></li>)}</ol> : <p>No audited corrections recorded.</p>}
     <h4>Match evidence</h4>{player.matchReferences?.length ? <div className="admin-table-wrap"><table className="design-table"><thead><tr><th>Completed</th><th>Record</th><th>Evidence</th></tr></thead><tbody>{player.matchReferences.map((match, index) => <tr key={match.matchId || index}><td>{date(match.completedAt)}</td><td>{match.recordVersion ? `Version ${match.recordVersion}` : "Version not recorded"}</td><td><Json value={match} title="Match reference" />{match.matchId && <a href={`/?match=${encodeURIComponent(match.matchId)}&replay=1`} target="_blank" rel="noreferrer">Open recorded replay</a>}</td></tr>)}</tbody></table></div> : <p>No match evidence references recorded for this player.</p>}
   </>;
 }
@@ -93,7 +103,7 @@ function PlayerProfile({ player, catalog, onBack, request, guard, onSaved, Facts
   return <section className="admin-player-profile" aria-label="Selected player">
     <button className="admin-player-back" onClick={onBack}>Back to player list</button>
     <header className="admin-player-heading"><span className="admin-player-avatar" aria-hidden="true">{player.name.slice(0, 2).toUpperCase()}</span><div><span className="admin-eyebrow">Player profile</span><h3 ref={heading} tabIndex={-1}>{player.name}</h3><p className="admin-note">Last seen {date(player.lastSeenAt)}</p></div></header>
-    <p className="admin-note">Profile corrections affect this account immediately and are recorded in Support history.</p><PlayerMetadataEditor player={player} request={request} guard={guard} onSaved={onSaved} />
+    <p className="admin-note">Profile corrections affect this account immediately and are recorded in Support history.</p><PlayerMetadataEditor player={player} request={request} guard={guard} onSaved={onSaved} name={name} label={label} />
     <nav className="admin-subnav" aria-label="Player details">{["Summary", "Campaigns", "Collection", "Decks", "Purchases", "Support history", "Technical"].map((item) => <button key={item} aria-pressed={section === item} onClick={() => setSection(item)}>{item}</button>)}</nav>
     {section === "Purchases" && <PurchaseEvidence player={player} Facts={Facts} Json={Json} date={date} label={label} />}
     {section === "Support history" && <SupportEvidence player={player} Json={Json} date={date} label={label} />}

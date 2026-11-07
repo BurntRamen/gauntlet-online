@@ -154,6 +154,8 @@ test("live draft joins from Draft, reconnects a waiting player, and blocks late 
     await guest.getByLabel("Room code").fill(roomCode);
     await guest.getByRole("button", { name: "Join as Player" }).click();
     await expect(page.getByRole("button", { name: "Start Draft" })).toBeEnabled();
+    // Establish the guest's lazy-loaded lobby before testing transport recovery.
+    await expect(guest.getByText("Waiting for Player 1 to start the draft.", { exact: true })).toBeVisible();
     await guestContext.setOffline(true);
     await expect(page.getByText("Disconnected", { exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Start Draft" })).toBeDisabled();

@@ -52,18 +52,20 @@ function createGitHubClient({ token, fetchImpl = fetch }) {
   return { request, readFile, putFile };
 }
 
-function createGitHubContentPublication({ baseline, draftStore = null, runtimeCapabilities = () => ({ enabled: false }), economyCapabilities = () => ({ enabled: false }), token = process.env.GAUNTLET_GITHUB_TOKEN || process.env.GITHUB_TOKEN || process.env.GH_TOKEN || "", client = createGitHubClient({ token }), deployedCommit = process.env.RENDER_GIT_COMMIT || "", releaseFile = path.join(__dirname, "../", RELEASE_PATH), deployedRelease }) {
+function createGitHubContentPublication({ baseline, draftStore = null, mediaStore = null, dataOnly = false, runtimeCapabilities = () => ({ enabled: false }), economyCapabilities = () => ({ enabled: false }), token = process.env.GAUNTLET_GITHUB_TOKEN || process.env.GITHUB_TOKEN || process.env.GH_TOKEN || "", client = createGitHubClient({ token }), deployedCommit = process.env.RENDER_GIT_COMMIT || "", releaseFile = path.join(__dirname, "../", RELEASE_PATH), deployedRelease }) {
+  if (dataOnly && !draftStore) throw new Error("Data-only activation requires private revision-guarded authoring storage.");
   const seed = createContentPublication({ baseline, runtimeCapabilities, economyCapabilities, memory: true });
   const initial = seed.exportState();
   const packaged = deployedRelease || (fs.existsSync(releaseFile) ? JSON.parse(fs.readFileSync(releaseFile, "utf8")) : null);
   if (packaged) {
     if (packaged.schemaVersion !== RELEASE_SCHEMA || packaged.id !== `gauntlet-content-${hash(packaged.snapshot)}` || packaged.sha256 !== hash(packaged.snapshot) || !validateAuthoredContent(packaged.snapshot, baseline).valid) throw new Error("The packaged GitHub content release is incompatible or corrupt.");
     imageAssets.validatePackage(packaged.assetPackage, packaged.snapshot);
+    if (packaged.assetPackage?.schemaVersion === "gauntlet.asset-package.v2" && !mediaStore) throw new Error("This content release requires the private immutable media store.");
     initial.assetBlobs = clone(packaged.assetPackage?.blobs || {});
     const { schemaVersion, assetPackage, ...release } = packaged;
     initial.releases[release.id] = release; initial.activeReleaseId = release.id;
   }
-  const deployed = initial.releases[initial.activeReleaseId];
+  let deployed = initial.releases[initial.activeReleaseId], servedAssetPackage = packaged?.assetPackage;
   // The deployed release cannot change until restart. Resolving its full asset
   // catalog on every read blocks room entry, especially for populated decks.
   // Delivery origin is set when the server starts listening, so include it in
@@ -71,7 +73,7 @@ function createGitHubContentPublication({ baseline, draftStore = null, runtimeCa
   let activeCache;
   function resolvedActive() {
     const origin = require("./contentAssets").getDeliveryOrigin();
-    if (!activeCache || activeCache.origin !== origin) {
+    if (!activeCache || activeCache.origin !== origin || activeCache.resolved.releaseId !== deployed.id) {
       const resolved = resolveEngineContent(deployed.snapshot, deployed.id);
       activeCache = { origin, resolved,
         cards: new Map(resolved.manifest.cards.map(card => [card.id, card])),
@@ -80,7 +82,28 @@ function createGitHubContentPublication({ baseline, draftStore = null, runtimeCa
     return activeCache;
   }
   const active = () => clone(resolvedActive().resolved);
-  const core = (state) => createContentPublication({ baseline, runtimeCapabilities, economyCapabilities, memory: true, initialState: state });
+  const core = (state) => createContentPublication({ baseline, mediaStore, runtimeCapabilities, economyCapabilities, memory: true, initialState: state });
+  async function activateCaptured(state) {
+    const activation = state.runtimeActivation;
+    if (!dataOnly || !activation) return;
+    const release = state.releases?.[activation.releaseId];
+    if (!release || activation.contentHash !== hash(release.snapshot) || !/^[a-f0-9]{40}$/.test(activation.gitCommit || "")) fail(503, "Invalid captured runtime activation; restore its verified private record.");
+    core({ ...clone(state), activeReleaseId: release.id, draft: null });
+    if (deployed.id === release.id && servedAssetPackage) return;
+    const pack = imageAssets.packageAssets(state, release.snapshot);
+    if (mediaStore) await mediaStore.verify(pack.versions, pack.blobs);
+    // Prepare and validate the full next view before one synchronous pointer swap.
+    const resolved = resolveEngineContent(release.snapshot, release.id);
+    const next = { origin: require("./contentAssets").getDeliveryOrigin(), resolved,
+      cards: new Map(resolved.manifest.cards.map(card => [card.id, card])), variants: new Map(resolved.manifest.collectorVariants.map(variant => [variant.variantId, variant])) };
+    deployed = clone(release); servedAssetPackage = pack; activeCache = next;
+  }
+  async function sourceCompatible(main) {
+    if (!deployedCommit || main === deployedCommit) return true;
+    if (!dataOnly) return false;
+    const comparison = await client.request(`compare/${deployedCommit}...${main}`);
+    return Array.isArray(comparison.files) && comparison.files.length <= 1 && comparison.files.every(file => file.filename === RELEASE_PATH && file.status !== "removed");
+  }
   async function mainHead() { return (await client.request("git/ref/heads/main")).object.sha; }
   async function load() {
     const privateDraft = draftStore ? await draftStore.load() : null;
@@ -108,7 +131,8 @@ function createGitHubContentPublication({ baseline, draftStore = null, runtimeCa
       state.revision += 1;
     }
     core(state); // Validate release hashes, compatibility and the active pointer.
-    if (state.pending?.releaseId === deployed.id) delete state.pending;
+    await activateCaptured(state);
+    if (!dataOnly && state.pending?.releaseId === deployed.id) delete state.pending;
     if (!state.pending && state.activeReleaseId !== deployed.id) fail(409, "The saved draft belongs to another deployed release. Wait for deployment or reconcile its GitHub history.");
     return { state, sha: file?.sha || null, branchExists: !!branch, privateVersion: privateDraft?.version || 0 };
   }
@@ -120,8 +144,8 @@ function createGitHubContentPublication({ baseline, draftStore = null, runtimeCa
     const view = core(state).status();
     return { ...view, writable: !!token && privateStorageReady && !state.pending, provider: "github", draftStorage: draftStore ? "supabase-private" : "github", privateStorageReady,
       authoringError: !privateStorageReady && token ? "Private editing and publication are unavailable. Case must configure private Supabase authoring storage. Live inspection and live tests remain available." : null,
-      storage: !privateStorageReady ? "Private draft editing is unavailable. Configure private Supabase authoring storage; this repository is public or unverified. Live inspection and live playtests remain available." : draftStore ? "Private drafts, uploads and notes in Supabase. Published releases use GitHub checks and deployment." : "Shared drafts and release history in private GitHub storage. Publishing waits for checks and deployment.",
-      publication: { provider: "github", supported: privateStorageReady, activeReleaseId: deployed.id, github: "installed", deployment: state.pending ? state.pending.phase : "active-on-this-server", message: "Private drafts publish through reviewed pull requests and deployment. The running release remains active until deployment completes." },
+      storage: dataOnly && privateStorageReady ? "Private drafts and immutable releases in Supabase. Checked GitHub content merges activate without an application restart; code changes require deployment." : !privateStorageReady ? "Private draft editing is unavailable. Configure private Supabase authoring storage; this repository is public or unverified. Live inspection and live playtests remain available." : draftStore ? "Private drafts, uploads and notes in Supabase. Published releases use GitHub checks and deployment." : "Shared drafts and release history in private GitHub storage. Publishing waits for checks and deployment.",
+      publication: { provider: "github", supported: privateStorageReady, dataOnly, activeReleaseId: deployed.id, github: "installed", deployment: state.pending ? state.pending.phase : "active-on-this-server", message: dataOnly ? "Content-only releases pass GitHub checks and merge, then activate through the private database without restarting games. Engine changes still require deployment." : "Private drafts publish through reviewed pull requests and deployment. The running release remains active until deployment completes." },
       activeReleaseId: deployed.id, live: clone(deployed.snapshot), pending: clone(state.pending || null),
       connectionRequired: !token, repositoryUrl: `https://github.com/${REPOSITORY}` };
   }
@@ -155,8 +179,8 @@ function createGitHubContentPublication({ baseline, draftStore = null, runtimeCa
     const loaded = await load();
     if (loaded.state.pending) return reconcile();
     const main = await mainHead();
-    if (deployedCommit && main !== deployedCommit) fail(409, "Production is not running the current main commit. Wait for that deployment before publishing content.");
-    const store = core(loaded.state); store[method](args, actorId);
+    if (!await sourceCompatible(main)) fail(409, dataOnly ? "Production is not running the current source code. Wait for that deployment before publishing content." : "Production is not running the current main commit. Wait for that deployment before publishing content.");
+    const store = core(loaded.state); await store[method](args, actorId);
     const state = store.exportState();
     state.pending = { releaseId: state.activeReleaseId, branch: `codex/gauntlet-content-${state.activeReleaseId.slice(-16)}-${state.revision}`, baseCommit: main, phase: "preparing", requestedBy: actorId, operation: method, draftBefore: clone(loaded.state.draft) };
     await save(loaded, state, `Gauntlet Admin: prepare ${method}`);
@@ -188,6 +212,7 @@ function createGitHubContentPublication({ baseline, draftStore = null, runtimeCa
     const release = state.releases[pending.releaseId];
     if (!release || !/^codex\/gauntlet-content-[a-f0-9]{16}-\d+$/.test(pending.branch) || !/^[a-f0-9]{40}$/.test(pending.baseCommit)) fail(503, "Invalid GitHub publication record.");
     const pack = imageAssets.packageAssets(state, release.snapshot);
+    if (mediaStore) await mediaStore.verify(pack.versions, pack.blobs);
     const payload = { schemaVersion: RELEASE_SCHEMA, ...clone(release), ...(pack.versions.length ? { assetPackage: pack } : {}) };
     let branch = await client.request(`git/ref/heads/${pending.branch}`, { missing: true });
     if (!branch) {
@@ -205,11 +230,11 @@ function createGitHubContentPublication({ baseline, draftStore = null, runtimeCa
     if (comparison.files?.length !== 1 || comparison.files[0].filename !== RELEASE_PATH || comparison.files[0].status === "removed") fail(409, "A content publication may change only its release file. Review unexpected branch changes in GitHub.");
     const pulls = await client.request(`pulls?state=all&head=${encode(`BurntRamen:${pending.branch}`)}&base=main`);
     let pr = pulls.find((item) => item.head.ref === pending.branch && item.base.ref === "main");
-    if (!pr) pr = await client.request("pulls", { method: "POST", body: { title: `Gauntlet content: ${release.label}`, head: pending.branch, base: "main", body: `Publish validated Gauntlet content ${release.id}.\n\nThe exact draft passed server validation, saved preview, and any required real-engine playtest. The release file includes exact image versions and verified bytes for current and retained releases. Requested by approved account ${pending.requestedBy}.` } });
+    if (!pr) pr = await client.request("pulls", { method: "POST", body: { title: `Gauntlet content: ${release.label}`, head: pending.branch, base: "main", body: `Publish validated Gauntlet content ${release.id}.\n\nThe exact draft passed server validation, saved preview, and any required real-engine playtest. The release file includes exact media versions and verified embedded bytes or immutable private-storage references for current and retained releases. Requested by approved account ${pending.requestedBy}.` } });
     pr = await client.request(`pulls/${pr.number}`);
     if (pr.head.sha !== branch.object.sha || pr.base.ref !== "main") fail(409, "The pull request head changed. Refresh and review it before publishing.");
     pending.pullRequestNumber = pr.number; pending.url = `https://github.com/${REPOSITORY}/pull/${pr.number}`; pending.headCommit = pr.head.sha;
-    if (pr.merged) pending.phase = "deploying";
+    if (pr.merged) pending.phase = dataOnly ? "activating" : "deploying";
     else if (pr.state === "closed") pending.phase = "closed";
     else {
       const checks = await client.request(`commits/${pr.head.sha}/check-runs?per_page=100`);
@@ -222,21 +247,39 @@ function createGitHubContentPublication({ baseline, draftStore = null, runtimeCa
       if (failed) pending.phase = "checks-failed";
       else if (waiting) pending.phase = "checks";
       else {
-        try { const merged = await client.request(`pulls/${pr.number}/merge`, { method: "PUT", body: { sha: pr.head.sha, merge_method: "merge" } }); pending.phase = merged.merged ? "deploying" : "merge-blocked"; }
+        try { const merged = await client.request(`pulls/${pr.number}/merge`, { method: "PUT", body: { sha: pr.head.sha, merge_method: "merge" } }); pending.phase = merged.merged ? dataOnly ? "activating" : "deploying" : "merge-blocked"; }
         catch (error) { if (error.status !== 409) throw error; pending.phase = "merge-blocked"; }
+      }
+    }
+    if (dataOnly && pending.phase === "activating") {
+      const main = await mainHead(), liveFile = await client.readFile(main, RELEASE_PATH);
+      if (!liveFile || hash(liveFile.value) !== hash(payload)) fail(409, "Main no longer contains the exact reviewed release. Reconcile it before activation.");
+      if (!await sourceCompatible(main)) {
+        pending.phase = "deploying"; // The candidate remains recoverable while its source deploys.
+      } else {
+        state.runtimeActivation = { releaseId: release.id, contentHash: hash(release.snapshot), gitCommit: main, at: new Date().toISOString(), by: pending.requestedBy };
+        delete state.pending; state.revision += 1;
+        await save(loaded, state, "Gauntlet Admin: activate checked content release");
+        await activateCaptured(state);
+        return project(state);
       }
     }
     if (hash(pending) !== beforePending) { state.revision += 1; await save(loaded, state, `Gauntlet Admin: publication ${pending.phase}`); }
     return project(state);
   }
   return { active, published: () => clone(deployed),
+    verifyMedia: async () => { if (dataOnly) await load(); if (mediaStore) { await mediaStore.ensurePrivate(); await mediaStore.verify(servedAssetPackage?.versions || [], servedAssetPackage?.blobs || {}); } },
     saveNotes: (args, actor) => operate("saveNotes", args, actor),
     uploadAsset: (args, actor) => operate("uploadAsset", args, actor), archiveAsset: args => operate("archiveAsset", args),
+    migrateAssets: (args, actor) => operate("migrateAssets", args, actor),
+    assetStorageUsage: () => mediaStore ? mediaStore.capacity() : load().then(({ state }) => imageAssets.capacity(state)),
     privateAsset: async id => core((await load()).state).privateAsset(id),
     publicAsset: (id, digest) => {
-      const row = packaged?.assetPackage?.versions.find(row => row.id === id && row.sha256 === digest);
+      const row = servedAssetPackage?.versions.find(row => row.id === id && row.sha256 === digest);
       if (!row) fail(404, "Published image version not found.");
-      return { mediaType: row.mediaType, sha256: row.sha256, body: imageAssets.verifiedBytes(row, packaged.assetPackage.blobs) };
+      const body = imageAssets.readBytes(row, servedAssetPackage.blobs, mediaStore);
+      const project = bytes => ({ mediaType: row.mediaType, sha256: row.sha256, body: bytes });
+      return body?.then ? body.then(project) : project(body);
     },
     status: async () => project((await load()).state, await hasPrivateStorage()),
     lookupCard: id => clone(resolvedActive().cards.get(id) || null), lookupVariant: id => clone(resolvedActive().variants.get(id) || null),

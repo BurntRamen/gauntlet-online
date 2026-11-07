@@ -13,11 +13,16 @@ const mechanicStudio = require("./mechanicAuthoring");
 const STORE_SCHEMA = "gauntlet.content-store.v1";
 const releaseId = (snapshot) => `gauntlet-content-${hash(snapshot)}`;
 function fail(status, message) { const error = new Error(message); error.status = status; throw error; }
+function contribution(state, actorId, domain, id, field = "*") {
+  if (!actorId) return;
+  const entries = state.draft.contributions || [];
+  state.draft.contributions = [...entries.filter(row => !(row.domain === domain && row.id === id && row.field === field)), { domain, id, field, actorId, at: new Date().toISOString() }];
+}
 
 // One atomic state file is the transaction boundary: snapshot insertion, pointer
 // activation and draft removal either all commit, or none do. A separate exclusive
 // lock and revision checks prevent lost updates across operators/processes.
-function createContentPublication({ baseline, directory = ".", writable = true, memory = false, initialState = null, provider = "local", runtimeCapabilities = () => ({ enabled: false }), economyCapabilities = () => ({ enabled: false }) }) {
+function createContentPublication({ baseline, directory = ".", writable = true, memory = false, initialState = null, provider = "local", mediaStore = null, runtimeCapabilities = () => ({ enabled: false }), economyCapabilities = () => ({ enabled: false }) }) {
   const filename = path.join(directory, "content-state.json");
   const lockfile = path.join(directory, "content-state.lock");
   const initialId = releaseId(baseline);
@@ -77,6 +82,7 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
       } finally { fs.closeSync(lock); fs.unlinkSync(lockfile); }
     }
     if (!state.releases[state.activeReleaseId] || !compatible(state.releases[state.activeReleaseId])) fail(503, "Active content is incompatible with this engine deployment.");
+    if (!mediaStore && Object.values(state.assetBlobs || {}).some(value => typeof value !== "string")) fail(503, "Configure the immutable media provider before loading remote media references.");
     for (const row of state.releases[state.activeReleaseId].snapshot.assetVersions || []) imageAssets.verifiedBytes(row, state.assetBlobs);
     return state;
   }
@@ -153,10 +159,10 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
       guide: require("./adminAuthoringGuide"),
       encounterSummaries: require("./encounterAuthoring").summaries(state.draft?.snapshot || live.snapshot),
       assetLibrary: [...require("./digitalDelivery").deliveryOptions(), ...imageAssets.entries(state)],
-      assetCapacity: imageAssets.capacity(state),
+      assetCapacity: imageAssets.capacity(state, mediaStore),
       live: clone(live.snapshot), draft: state.draft ? { ...clone(state.draft), hash: hash(state.draft.snapshot) } : null, changes: changes(state), validation,
       studio: mechanicStudio.metadata(state.draft?.snapshot || live.snapshot),
-      capabilities: { factionCreation: 1, encounterCreation: 1, ruleModifiers: 1, mechanicStudio: 1, catalogCreation: 1, imageUploads: 1, printingCreation: 1, authoredDecks: 1, deckOffers: 1, privateNotes: 1 },
+      capabilities: { factionCreation: 1, encounterCreation: 1, ruleModifiers: 1, mechanicStudio: 2, catalogCreation: 1, imageUploads: 1, audioUploads: 1, remoteMedia: mediaStore ? 1 : 0, printingCreation: 1, authoredDecks: 1, deckOffers: 1, privateNotes: 1 },
       competition: { fields: competition.FIELDS, sourceEvents: require("./events").EVENT_DEFINITIONS, sourceSeason: require("./seasons").ACTIVE_SEASON,
         preview: validation.valid ? Object.fromEntries(["ranked", "events"].map(domain => [domain, ((state.draft?.snapshot || live.snapshot).competition?.[domain] || []).map(row => domain === "ranked" ? competition.season(row, "preview") : { ...competition.event(row, "preview"), availability: { label: row.status } })])) : null },
       privateNotes: clone(state.privateNotes || {}),
@@ -224,6 +230,7 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
       }
       if (domain === "cards" && row.origin === "admin-v1" && field === "suit") row.replacementSuit = row.suit;
       state.draft.updatedAt = new Date().toISOString(); state.draft.updatedBy = actorId; state.draft.previewedHash = null; state.draft.previewedRevision = null; state.draft.playtestedHash = null;
+      contribution(state, actorId, domain, id, field);
   }
   function patch(input, actorId) {
     return transaction(input.expectedRevision, state => applyField(state, input, actorId));
@@ -241,10 +248,11 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
   function create({ expectedRevision, ...input }, actorId) {
     return transaction(expectedRevision, state => {
       if (!state.draft) state.draft = { baseReleaseId: state.activeReleaseId, snapshot: clone(state.releases[state.activeReleaseId].snapshot) };
-      catalog.createObject(state.draft.snapshot, input);
+      const created = catalog.createObject(state.draft.snapshot, input);
       imageAssets.attachVersions(state.draft.snapshot, state);
       const validation = validateAuthoredContent(state.draft.snapshot, baseline);
       if (!validation.valid) fail(422, validation.errors.map(issue => issue.message).join(" "));
+      contribution(state, actorId, input.domain, created.id);
       Object.assign(state.draft, { updatedBy: actorId, updatedAt: new Date().toISOString(), previewedHash: null, previewedRevision: null, playtestedHash: null });
     });
   }
@@ -306,6 +314,8 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
         } else fail(400, "Unknown Para draft operation.");
       }
       state.draft.updatedBy = actorId; state.draft.updatedAt = new Date().toISOString();
+      if (operation === "seed") for (const [kind, rows] of Object.entries(snapshot.paraLeague)) { if (Array.isArray(rows)) for (const row of rows) contribution(state, actorId, `para:${kind}`, row.id); }
+      else contribution(state, actorId, `para:${domain}`, id);
       Object.assign(state.draft, { updatedBy: actorId, updatedAt: new Date().toISOString(), previewedHash: null, previewedRevision: null, playtestedHash: null });
     });
   }
@@ -315,7 +325,7 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
     const config = (state.draft?.snapshot || state.releases[state.activeReleaseId].snapshot).paraLeague || paraLeague.emptyConfig();
     return { revision: state.revision, ...paraLeague.simulate(config, input) };
   }
-  function studioDraft({ expectedRevision, operation, id, value, sourceId, kind = "mechanics" }, actorId) {
+  function studioDraft({ expectedRevision, operation, id, value, sourceId, kind = "mechanics", interpreter }, actorId) {
     return transaction(expectedRevision, state => {
       if (!Object.hasOwn(mechanicStudio.kinds, kind)) fail(400, "Choose a supported Studio registry.");
       state.draft ||= { baseReleaseId: state.activeReleaseId, snapshot: clone(state.releases[state.activeReleaseId].snapshot), previewedHash: null };
@@ -324,17 +334,19 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
         const source = rows.find(row => row.id === sourceId);
         if (operation === "duplicate" && !source) fail(404, "Choose an existing definition to duplicate.");
         if (rows.length >= 100) fail(422, "The release supports at most 100 definitions per Studio registry.");
-        rows.push(mechanicStudio.create(source, kind));
+        rows.push(mechanicStudio.create(source, kind, interpreter));
       } else {
         const index = rows.findIndex(row => row.id === id);
         if (index < 0) fail(404, "Definition not found.");
         if (operation === "archive") rows[index].status = "archived";
         else if (operation === "update" && value?.id === id) {
+          if (value.interpreter !== rows[index].interpreter) fail(422, "Duplicate the definition to change interpreter versions. Existing card references retain their contract.");
           const errors = mechanicStudio.kinds[kind].errors(value);
           if (errors.length) fail(422, errors.join(" "));
           rows[index] = clone(value);
         } else fail(400, "Choose a supported Studio operation.");
       }
+      contribution(state, actorId, `studio:${kind}`, ["create", "duplicate"].includes(operation) ? rows.at(-1).id : id);
       Object.assign(state.draft, { updatedBy: actorId, updatedAt: new Date().toISOString(), previewedHash: null, previewedRevision: null, playtestedHash: null });
     });
   }
@@ -354,6 +366,7 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
         rows[index] = clone(value);
       } else fail(400, "Unsupported competition operation.");
       if (rows.length > 200 || Buffer.byteLength(JSON.stringify(config)) > 512000) fail(422, "Competition catalog capacity exceeded.");
+      contribution(state, actorId, `competition:${domain}`, ["create", "duplicate"].includes(operation) ? rows.at(-1).id : id);
       state.draft.updatedBy = actorId; state.draft.updatedAt = new Date().toISOString(); state.draft.previewedHash = null; state.draft.playtestedHash = null;
     });
   }
@@ -379,7 +392,7 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
       const snapshot = state.draft.snapshot, id = releaseId(snapshot), timestamp = new Date().toISOString();
       imageAssets.packageAssets(state, snapshot); // Verify exact retained and required bytes before changing the pointer.
       // Publishing identical content reuses its original immutable release.
-      if (!state.releases[id]) state.releases[id] = { id, sha256: hash(snapshot), label: label.trim(), createdAt: timestamp, createdBy: actorId, snapshot: clone(snapshot), ...(snapshot.assetVersions?.length ? { assetDependencies: require("./releaseAssetDependencies").version } : {}) };
+      if (!state.releases[id]) state.releases[id] = { id, sha256: hash(snapshot), label: label.trim(), createdAt: timestamp, createdBy: actorId, contributions: clone(state.draft.contributions || []), snapshot: clone(snapshot), ...(snapshot.assetVersions?.length ? { assetDependencies: require("./releaseAssetDependencies").version } : {}) };
       state.activations.push({ action: "publish", from: state.activeReleaseId, to: id, at: timestamp, by: actorId });
       state.activeReleaseId = id; state.draft = null;
     });
@@ -424,9 +437,10 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
     const state = read(), prior = imageAssets.priorUpload(state, input, actor);
     if (prior) return { ...project(state), uploaded: prior };
     if (input?.expectedRevision !== read().revision) fail(409, "Content changed. Refresh before uploading.");
-    const processed = await imageAssets.processUpload(input);
+    const processed = await imageAssets.processUpload(input,mediaStore?.uploadLimits);
+    if (mediaStore) processed.reference = await mediaStore.put(processed.metadata, Buffer.from(processed.data, "base64"));
     let uploaded;
-    const result = transaction(input.expectedRevision, state => { uploaded = imageAssets.insert(state, input, processed, actor); });
+    const result = transaction(input.expectedRevision, state => { uploaded = imageAssets.insert(state, input, processed, actor, mediaStore); });
     return { ...result, uploaded };
   }
   function archiveAsset({ expectedRevision, assetId, archived }) {
@@ -439,20 +453,44 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
   function privateAsset(id) {
     const state = read(), row = state.uploads?.flatMap(asset => asset.versions).find(row => row.id === id);
     if (!row) fail(404, "Image version not found.");
-    return { mediaType: row.mediaType, data: imageAssets.verifiedBytes(row, state.assetBlobs).toString("base64"), sha256: row.sha256 };
+    const body = imageAssets.readBytes(row, state.assetBlobs, mediaStore);
+    const project = bytes => ({ mediaType: row.mediaType, data: bytes.toString("base64"), sha256: row.sha256 });
+    return body?.then ? body.then(project) : project(body);
   }
   function publicAsset(id, digest) {
     const state = read(), row = Object.values(state.releases).flatMap(release => release.snapshot.assetVersions || []).find(row => row.id === id && row.sha256 === digest);
     if (!row) fail(404, "Published image version not found.");
-    return { mediaType: row.mediaType, body: imageAssets.verifiedBytes(row, state.assetBlobs), sha256: row.sha256 };
+    const body = imageAssets.readBytes(row, state.assetBlobs, mediaStore);
+    const project = bytes => ({ mediaType: row.mediaType, body: bytes, sha256: row.sha256 });
+    return body?.then ? body.then(project) : project(body);
   }
-  return { published, paraDraft, paraSimulation, competitionDraft, studioDraft, saveNotes, uploadAsset, archiveAsset, privateAsset, publicAsset, exportState: () => clone(read()), releaseSnapshot, active, lookupCard, lookupVariant, lookupSet, status: () => project(read()), create, patch, patchRecord, discard, preview, publish, rollback, playtestContent, recordPlaytest };
+  async function migrateAssets({ expectedRevision }) {
+    if (!mediaStore) fail(503, "Configure immutable object storage before importing embedded media.");
+    const state = read();
+    if (state.revision !== expectedRevision) fail(409, "Refresh before importing media.");
+    const versions = [...(state.uploads || []).flatMap(asset => asset.versions), ...Object.values(state.releases).flatMap(release => release.snapshot.assetVersions || [])];
+    const replacements = {};
+    for (const row of versions) if (typeof state.assetBlobs?.[row.sha256] === "string" && !replacements[row.sha256]) replacements[row.sha256] = await mediaStore.put(row, imageAssets.verifiedBytes(row, state.assetBlobs));
+    if (!Object.keys(replacements).length) return project(state);
+    return transaction(expectedRevision, next => { Object.assign(next.assetBlobs, replacements); });
+  }
+  const verifiedActivation = action => mediaStore ? async (...args) => {
+    const state = read();
+    const versions = [...(state.draft?.snapshot.assetVersions || []), ...Object.values(state.releases).flatMap(release => release.snapshot.assetVersions || [])];
+    await mediaStore.verify(versions, state.assetBlobs || {});
+    return action(...args); // The original transaction rechecks the reviewed revision.
+  } : action;
+  return { published, paraDraft, paraSimulation, competitionDraft, studioDraft, saveNotes, uploadAsset, migrateAssets,
+    assetStorageUsage: () => mediaStore ? mediaStore.capacity() : imageAssets.capacity(read()),
+    verifyMedia: async () => { if (mediaStore) { const state = read(); await mediaStore.ensurePrivate(); await mediaStore.verify(Object.values(state.releases).flatMap(release => release.snapshot.assetVersions || []), state.assetBlobs || {}); } },
+    archiveAsset, privateAsset, publicAsset, exportState: () => clone(read()), releaseSnapshot, active, lookupCard, lookupVariant, lookupSet, status: () => project(read()), create, patch, patchRecord, discard, preview, publish: verifiedActivation(publish), rollback: verifiedActivation(rollback), playtestContent, recordPlaytest };
 }
 
 function registerContentPublicationRoutes(app, publication) {
-  app.get("/api/content-assets/:id/:digest.webp", async (req, res) => {
+  app.get("/api/content-assets/:id/:digest.:extension", async (req, res) => {
     try {
       const asset = await publication.publicAsset(req.params.id, req.params.digest);
+      if (req.params.extension !== (asset.mediaType === "audio/wav" ? "wav" : "webp")) return res.status(404).end();
       res.set({ "Content-Type": asset.mediaType, "Content-Length": asset.body.length, "Cache-Control": "public, max-age=31536000, immutable", "X-Content-Type-Options": "nosniff", "ETag": '"' + asset.sha256 + '"' });
       res.send(asset.body);
     } catch (error) { res.set("Cache-Control", "no-store").status(error.status || 503).json({ error: error.status ? error.message : "Published artwork unavailable." }); }
@@ -466,6 +504,8 @@ function registerContentPublicationRoutes(app, publication) {
     ["patch", "authoring/record", (req) => publication.patchRecord(req.body, req.gauntletAdminAccount.id)],
     ["patch", "authoring/notes", (req) => publication.saveNotes(req.body, req.gauntletAdminAccount.id)],
     ["post", "authoring/assets/upload", (req) => publication.uploadAsset(req.body, req.gauntletAdminAccount.id)],
+    ["post", "authoring/assets/migrate", req => publication.migrateAssets(req.body, req.gauntletAdminAccount.id)],
+    ["get", "authoring/assets-usage", () => publication.assetStorageUsage()],
     ["post", "authoring/assets/archive", (req) => publication.archiveAsset(req.body)],
     ["get", "authoring/assets/:id", (req) => publication.privateAsset(req.params.id)],
     ["post", "authoring/create", (req) => publication.create(req.body, req.gauntletAdminAccount.id)],

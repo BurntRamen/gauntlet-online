@@ -163,6 +163,27 @@ test("campaign bosses retain their authored attacks and shared action budget", t
   assert.deepEqual(__test.chooseSemanticTrainingAiCommand(room.game), { type: "passPriority" });
 });
 
+test("captured support-first encounter profile pays through the real engine before returning to scripted pressure", async t => {
+  const room = roomFor(t, [card("sheen-harmony-ward"), card("neutral-think"), pitch("reserve", 6)]);
+  room.game.campaign = { aiProfile: "support-first", aiContractVersion: "gauntlet.encounter-ai.v1", actionsPerTurn: 2, bossActionsThisTurn: 0, minAttackValue: 3, maxAttackValue: 3 };
+  const before = structuredClone(room.game), command = __test.chooseSemanticTrainingAiCommand(room.game);
+  assert.equal(command.type, "playSupport"); assert.deepEqual(command.paymentCardIds, ["neutral-think"]);
+  assert.deepEqual(room.game, before, "selection and payment preview have no effects");
+  assert.deepEqual(__test.chooseSemanticTrainingAiCommand(JSON.parse(JSON.stringify(room.game))), command);
+  assert.equal((await __test.applySemanticAutomatedCommand(room, command)).accepted, true);
+  assert.equal(room.game.lanes[0].support[2].id, "sheen-harmony-ward");
+  assert.equal(room.game.paymentLog.at(-1).total, 4);
+  assert.equal(room.game.campaign.bossActionsThisTurn, 1, "Support consumes the existing shared action budget");
+  room.game.priority = 2;
+  assert.equal(__test.chooseSemanticTrainingAiCommand(room.game).type, "declareCampaignBossAttack");
+  room.game.campaign.actionsPerTurn = 1;
+  assert.equal(__test.chooseSemanticTrainingAiCommand(room.game).type, "passPriority");
+  const recovered = require("../roomStateStore").prepareRecoveredRoom(room);
+  assert.equal(recovered.game.campaign.aiProfile, "support-first");
+  recovered.game.campaign.aiContractVersion = "unknown";
+  assert.throws(() => require("../roomStateStore").prepareRecoveredRoom(recovered), /compatible server/);
+});
+
 test("AI payment selection respects an opponent's printed Indela tax before blocking", async t => {
   const room = roomFor(t, [pitch("block", 2), pitch("insufficient", 2), pitch("enough", 3)]);
   room.game.players[1].faction = { id: "indela" };

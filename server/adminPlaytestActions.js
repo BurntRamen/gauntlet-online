@@ -11,7 +11,7 @@ const optionalFields = { "forum-ledger-payment": "forumLedgerPaymentCardId", "je
   "sandstorm-processor": "useSandstormProcessor", "beli-awakened": "useBeliAwakenedBonus", "constanti-sunforge": "sunforgeAccelerationToSpend",
   "voltaric-ultimatum": "useVoltaricUltimatum", "focus-prime-signal": "primeSignalBonus", "acceleration-blockers": "accelerationBlockerCardIds",
   "deckhand-diver-peek": "useDeckhandDiverPeek", "last-gamble-choice": "lastGambleChoice", "meerus-free-attack": "useMeerusFreeAttack" };
-function actionPlayer(game) { return game.phase === "end" ? engine.currentPlacementPlayer(game) : game.priority; }
+function actionPlayer(game) { return game.mechanicQueue?.[0]?.player || (game.phase === "end" ? engine.currentPlacementPlayer(game) : game.priority); }
 function paymentModifiers(game, action, player) {
   const existing = (action.optionalPaymentModifiers || []).map(option => ({ ...option, commandField: optionalFields[option.id] || null }));
   if (!action.payment) return existing;

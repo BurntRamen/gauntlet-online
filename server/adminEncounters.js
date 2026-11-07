@@ -21,8 +21,8 @@ function create(snapshot, input, editable, initialTemplate) {
   const id = `auth-encounter-${crypto.randomUUID()}`;
   const row = { id, origin: ORIGIN, campaignId: campaign.id, factionId: campaign.factionId, deckId: "standard", opponentId: `${id}:opponent`, nextEncounterId: null, branches: [],
     ...Object.fromEntries(Object.entries(editable).map(([key, spec]) => [key, structuredClone(source?.[key] ?? (key === "setup" ? template.setup : spec.defaultValue ?? (["lines", "assets"].includes(spec.type) ? [] : "")))])),
-    title: input.name.trim(), story: source?.story || "A new challenge awaits.", playableName: source?.playableName || template.playableName,
-    beforeBattle: source?.beforeBattle || "The encounter begins.", afterBattle: source?.afterBattle || "The encounter is complete.", status: "active",
+    title: input.name.trim(), story: source?.story || "", playableName: source?.playableName || template.playableName,
+    beforeBattle: source?.beforeBattle || "", afterBattle: source?.afterBattle || "", status: "active",
     order: Math.max(0, ...snapshot.domains.encounters.filter(e => e?.origin === ORIGIN && e.campaignId === campaign.id).map(e => e.order)) + 1 };
   if (!source) row.setup.bossAbility.name = row.setup.bossAbility.title;
   snapshot.domains.encounters.push(row);
@@ -40,10 +40,11 @@ function errors(snapshot, editable) {
     orders.add(orderKey);
     if (!["active", "archived"].includes(row.status)) add("encounters", row, "status", "Choose active or archived availability.");
     for (const [key, spec] of Object.entries(editable)) {
-      const value = row[key];
+      const value = row[key] === undefined ? spec.defaultValue : row[key];
+      if (spec.type === "choice") { if (!spec.options.some(option => (option.id ?? option) === value)) add("encounters", row, key, "Choose a supported encounter profile."); continue; }
       if (key === "setup") { if (!validateEncounterSetup(value, snapshot.domains.cards, row.factionId)) add("encounters", row, key, "Use a supported encounter setup, ability and eligible cards."); continue; }
       const list = ["lines", "assets"].includes(spec.type) ? value : [value];
-      if (!Array.isArray(list) || list.length > (spec.maxItems || 1) || list.some(v => !(v === null && spec.type === "assets") && (typeof v !== "string" || v.length > spec.maxLength || spec.required && !v.trim() || /[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(v)))) add("encounters", row, key, "Use the supported text length and required fields.");
+      if (!Array.isArray(list) || list.length > (spec.maxItems || 1) || list.some(v => !(v === null && spec.type === "assets") && (typeof v !== "string" || v.length > spec.maxLength || spec.required && !["story", "beforeBattle", "afterBattle"].includes(key) && !v.trim() || /[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(v)))) add("encounters", row, key, "Use the supported text length and required fields.");
       else if (["asset", "assets"].includes(spec.type) && list.some(v => !validAssetReference(v, spec.media, snapshot.assetVersions))) add("encounters", row, key, "Choose a verified immutable asset.");
     }
     for (const [lines, audio] of [["dialogue", "dialogueAudio"], ["endDialogue", "endDialogueAudio"]]) if (row[audio]?.length && row[audio].length !== row[lines]?.length) add("encounters", row, audio, "Voice-file count must match dialogue lines, or clear all voice files.");

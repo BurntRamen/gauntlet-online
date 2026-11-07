@@ -265,12 +265,12 @@ test("Para HTTP lifecycle and simulation preserve account, deck and canonical ma
   assert.deepEqual(fs.readFileSync(process.env.MATCH_DATA_FILE), matchBytes);
 });
 
-test("Free-For-All rejects two-player authored mechanics before creating match state", () => {
+test("Free-For-All rejects unqualified authored mechanics before creating match state", () => {
   const resolved = structuredClone(__test.contentPublication.active());
   const card = resolved.manifest.cards[0]; card.effect = { id: "authored-mechanic" };
   const room = { roomCode: "unsupported-authored-ffa", lobby: { gameMode: "freeForAll", players: { 1: { factionId: card.factionId, savedConstructedDeck: { cards: [{ gameplayCardId: card.id }] } } } } };
   const before = structuredClone(room);
-  assert.throws(() => __test.createFreeForAllGameFromLobby(room, resolved), /two-player authored mechanic/);
+  assert.throws(() => __test.createFreeForAllGameFromLobby(room, resolved), /mechanic definition must validate/);
   assert.deepEqual(room, before);
 });
 

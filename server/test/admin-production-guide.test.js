@@ -1,0 +1,35 @@
+const test = require("node:test"), assert = require("node:assert/strict");
+const { createAuthoredBaseline, hash } = require("../authoredContent"), { createContentPublication } = require("../contentPublication"), { selectWorkshopSnapshot } = require("../adminWorkshopData"), { productionGuide } = require("../adminProductionGuide");
+const old = require("./fixtures/content-v2/authored-baseline-v1.json");
+const baseline = createAuthoredBaseline({ domains: { decks: old.domains.decks }, game: { modes: old.domains.game } });
+test("production paths connect exact set/card/printing owners, explicit distribution and shared release readiness", () => {
+  const store = createContentPublication({ baseline, memory: true });
+  let status = store.create({ expectedRevision: 0, domain: "sets", name: "Fixture set" }, "first");
+  const set = status.draft.snapshot.domains.sets[0];
+  status = store.create({ expectedRevision: status.revision, domain: "cards", name: "Fixture card", setId: set.id, effectId: "coin-scale-spear" }, "second");
+  const before = structuredClone(status), selection = selectWorkshopSnapshot(status, { source: "draft" }), guide = productionGuide(status, selection, { domain: "sets", id: set.id });
+  assert.equal(guide.hash, selection.hash); assert.equal(guide.savedState, "Saved draft definition"); assert.equal(guide.readiness.ready, false);
+  assert.equal(guide.steps.find(step => step.label === "Gameplay cards").create.defaults.setId, set.id);
+  assert.equal(guide.steps.find(step => step.label === "Distribution").state, "not-selected");
+  assert.ok(guide.steps.find(step => step.label === "Artwork and printings").targets.length);
+  for (const step of guide.steps) for (const target of step.targets) assert.ok(status.draft.snapshot.domains[target.domain].some(row => row.id === target.id), target.id);
+  assert.deepEqual(status, before); assert.equal(store.status().revision, status.revision);
+  assert.throws(() => productionGuide(status, selection, { domain: "accounts", id: "private" }), { status: 400 });
+  assert.throws(() => productionGuide(status, selection, { domain: "cards", id: "missing" }), { status: 404 });
+  assert.throws(() => selectWorkshopSnapshot(status, { source: "draft", hash: "stale" }), { status: 409 });
+});
+test("campaign and product paths distinguish configuration, runtime purchase authority and player access", () => {
+  const store = createContentPublication({ baseline, memory: true });
+  let status = store.create({ expectedRevision: 0, domain: "decks", name: "Fixture deck", factionId: "rumin" }, "admin");
+  const deck = status.draft.snapshot.domains.decks.at(-1);
+  let selection = selectWorkshopSnapshot(status, { source: "draft" }), guide = productionGuide(status, selection, { domain: "decks", id: deck.id });
+  assert.equal(guide.steps.find(step => step.label === "Product and cosmetics").create.defaults.templateId, deck.id);
+  status = store.create({ expectedRevision: status.revision, domain: "offers", name: "Fixture offer", templateId: deck.id }, "admin");
+  selection = selectWorkshopSnapshot(status, { source: "draft" });
+  guide = productionGuide(status, selection, { domain: "offers", id: status.draft.snapshot.domains.offers.at(-1).id });
+  assert.equal(guide.steps.find(step => step.label === "Availability and grants").state, "not-selected");
+  assert.match(guide.steps.at(-1).detail, /services must be ready separately/);
+  guide = productionGuide(status, selection, { domain: "campaigns", id: baseline.domains.campaigns[0].id });
+  assert.ok(guide.steps.find(step => step.label === "Ordered encounters").targets.length);
+  assert.equal(guide.url, "/?page=campaign");
+});

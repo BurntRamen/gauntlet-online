@@ -2,6 +2,19 @@ const test = require("node:test"), assert = require("node:assert/strict");
 const authored = require("../authoredContent"), encounters = require("../adminEncounters");
 const old = require("./fixtures/content-v2/authored-baseline-v1.json");
 const baseline = () => authored.createAuthoredBaseline({ domains: { decks: old.domains.decks }, game: { modes: old.domains.game } });
+
+test("encounter AI profiles are bounded authored choices, captured in release and briefing, without custom objectives", () => {
+  const snapshot = baseline(), live = structuredClone(snapshot), row = snapshot.domains.encounters[0];
+  row.aiProfile = "support-first";
+  assert.equal(authored.validateAuthoredContent(snapshot, live).valid, true);
+  const resolved = authored.resolveEngineContent(snapshot, "profile-fixture");
+  const chapter = resolved.manifest.campaigns[row.factionId].chapters.find(chapter => chapter.id === row.id);
+  assert.equal(chapter.aiProfile, "support-first");
+  assert.equal(resolved.manifest.contentBinding.encounterAiVersion, "gauntlet.encounter-ai.v1");
+  assert.match(require("../../shared/duel-rules/encounterContract").encounterPresentation(chapter, resolved.manifest).complexity.join(" "), /prepares affordable support/);
+  row.aiProfile = "arbitrary-script"; assert.equal(authored.validateAuthoredContent(snapshot, live).valid, false);
+  row.aiProfile = "scripted-pressure"; row.objective = "survive-10"; assert.equal(authored.validateAuthoredContent(snapshot, live).valid, false);
+});
 test("new encounters have permanent linked identities, reusable real setup, ordered discovery and retained source chapters", () => {
   const snapshot = baseline(), originals = structuredClone(snapshot), campaign = snapshot.domains.campaigns.find(c => c.id === "rumin");
   const one = encounters.create(snapshot, { domain: "encounters", name: "Additional challenge", campaignId: campaign.id }, authored.FIELDS.encounters);

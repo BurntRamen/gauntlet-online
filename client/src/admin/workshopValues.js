@@ -1,7 +1,7 @@
 export const displayValue = value => Array.isArray(value) ? value.join("\n") : value && typeof value === "object" ? JSON.stringify(value, null, 2) : String(value ?? "");
 
 export function parseFieldValue(value, definition, saved) {
-  if (["object", "catalog-flags", "card-list", "deck-composition", "offer-prices", "offer-sale"].includes(definition.type)) return JSON.parse(value);
+  if (["object", "catalog-flags", "card-list", "deck-composition", "offer-prices", "offer-sale", "pack-composition"].includes(definition.type)) return JSON.parse(value);
   if (definition.type === "integer") {
     if (value === "" || !Number.isSafeInteger(Number(value))) throw new Error(`${definition.label} needs a whole number.`);
     return Number(value);

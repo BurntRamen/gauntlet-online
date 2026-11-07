@@ -28,11 +28,15 @@ function workshopMetadata(selection) {
   ].map(key => [key, snapshot.engine[key]])) };
   if (snapshot.domains.cards.some(card => card.effect?.id === composition.ID)) bindings.compositionVersion = composition.VERSION;
   return { version: 1, ...identity, studio: require("./mechanicAuthoring").metadata(snapshot), cardEffects: cardAuthoringDefinitions(), ...rulesAuthoringData(snapshot),
-    bindings: clone(bindings), capabilities: { liveTests: true, customScenarios: 1, commandPreview: true, livePresentation: true, relationships: true, releaseReview: true } };
+    bindings: clone(bindings), capabilities: { productionGuide: true, liveTests: true, customScenarios: 1, commandPreview: true, livePresentation: true, relationships: true, releaseReview: true } };
 }
 
 function registerAdminWorkshopRoutes(app, { publication }) {
   for (const [path, operation] of [
+    ["/production", async req => {
+      const status = await readWorkshopStatus(publication, req.query?.source);
+      return require("./adminProductionGuide").productionGuide(status, selectWorkshopSnapshot(status, req.query), req.query);
+    }],
     ["/search", async req => {
       validateSearchQuery(req.query);
       return searchAdmin(req.query?.kind === "menus" || (!req.query?.q && req.query?.kind !== "prose") ? null : await readAuthoringStatus(publication), req.query);

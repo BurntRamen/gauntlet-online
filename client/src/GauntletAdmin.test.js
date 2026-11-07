@@ -4,6 +4,7 @@ import { chooseBrand, setAccountBrand } from "./brand/brandPreview";
 
 jest.mock("./GauntletAuthoring", () => ({ __esModule: true, default: ({ area, catalog }) => <><p>Authoring area: {area}</p><span>{catalog ? "Catalog ready" : "Catalog loading"}</span></> }));
 
+beforeAll(() => Object.defineProperty(global.crypto, "randomUUID", { configurable: true, value: () => "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" }));
 const id = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const record = { matchId: id, mode: "campaign", recordVersion: 2, contentVersion: "content-v1", participants: [{ playerNum: 1, displayName: "Player A", faction: { name: "Rumin" }, result: "win", deck: { deckVersionId: "deck-v1" } }], campaign: { title: "First battle" }, auditEvents: [{ sequence: 1, turn: 1, eventType: "game_completed", publicPayload: { message: "Player 1 wins." }, stateChecksum: "checksum" }], leagueEvidence: [] };
 const catalog = {
@@ -128,7 +129,7 @@ test("player edits retain typed metadata on failure and protect section navigati
   const editorRequest = jest.fn(async (path, options) => {
     if (path.endsWith("/metadata")) {
       expect(options.method).toBe("PATCH");
-      expect(JSON.parse(options.body)).toEqual({ expectedName: "Player A", metadata: { name: "Player B" }, reason: "Support requested correction" });
+      expect(JSON.parse(options.body)).toEqual({ key: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", expectedName: "Player A", metadata: { name: "Player B" }, reason: "Support requested correction" });
       if (failSave) throw new Error("This player's name changed elsewhere.");
       playerName = "Player B";
       return { player: { id, name: playerName } };

@@ -7,7 +7,7 @@ const labels = { bossLife: "Boss life", attacksPerTurn: "Attacks per turn", minA
   chapterNumber: "Attack progression offset", bossAbility: "Boss ability", healAtTurnStart: "Turn-start healing", evenBonus: "Even attack bonus", tier: "Ability tier",
   playerAdditions: "Player card additions", bossAdditions: "Opponent card additions", armBonus: "Armed attack bonus", fourthAttackBonus: "Fourth attack bonus", largeAttackBonus: "Large attack bonus", id: "Selected rule", version: "Contract version" };
 const categories = ["Story", "Presentation", "Mechanics", "Game configuration", "Store"];
-const categoryOf = (domain, field, spec) => domain === "offers" ? "Store" : domain === "game" && field === "handSize" ? "Game configuration" : spec.mechanical ? "Mechanics"
+const categoryOf = (domain, field, spec) => domain === "offers" ? "Store" : domain === "game" && ["handSize", "packComposition"].includes(field) ? "Game configuration" : spec.mechanical ? "Mechanics"
   : ["asset", "assets"].includes(spec.type) || ["cards", "assets", "factions", "characters"].includes(domain) ? "Presentation" : "Story";
 const equal = (a, b) => hash(a ?? null) === hash(b ?? null);
 
@@ -86,7 +86,13 @@ function releaseReview(status, targetRelease = null) {
   const previewed = !!contentHash && status.draft?.previewedHash === contentHash;
   const engineTested = !!contentHash && status.draft?.playtestedHash === contentHash;
   const ready = !targetRelease && saved && validated && previewed && (!engineTestRequired || engineTested) && !!status.writable && !status.pending;
-  return { version: 1, revision: status.revision, hash: contentHash, groups,
+  const contributions = targetRelease?.contributions || status.draft?.contributions || [], authors = new Set(); let unattributed = 0;
+  for (const group of groups) for (const change of group.changes) {
+    const records = contributions.filter(row => row.domain === change.domain && row.id === change.id);
+    const record = records.find(row => row.field === change.field) || records.find(row => row.field === "*");
+    if (record) { change.contributor = { actorId: record.actorId, at: record.at }; authors.add(record.actorId); } else unattributed++;
+  }
+  return { version: 1, revision: status.revision, hash: contentHash, groups, contributors: [...authors], unattributed,
     readiness: { saved, validated, previewed, engineTestRequired, engineTested, ready,
       phase: status.pending?.phase || (ready ? "ready" : status.draft ? "draft" : "live"),
       engineTestLabel: "Accepted engine action recorded", writable: !!status.writable, connectionRequired: !!status.connectionRequired },

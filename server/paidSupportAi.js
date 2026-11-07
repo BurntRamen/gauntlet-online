@@ -47,9 +47,9 @@ function combatChoices(game, action, command) {
 }
 
 function chooseSupport(game, legalActions) {
-  // Campaign bosses keep their authored action sequence and budget. Legacy
-  // matches keep their original placement strategy and rules.
-  if (!enabled(game) || game.campaign) return null;
+  // Only the captured opt-in profile prepares paid support before boss pressure.
+  // Legacy campaigns and matches keep their original placement strategy.
+  if (!enabled(game) || game.campaign && game.campaign.aiProfile !== "support-first") return null;
   const ai = game.players[2];
   const combatIds = new Set(legalActions.filter(action => action.type === "declareHandAttack").map(action => action.cardId));
   const committed = game.lanes.some(lane => lane.facedown[2]);

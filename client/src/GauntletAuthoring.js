@@ -1,5 +1,5 @@
 import { HelpProvider } from "./admin/AuthoringHelp";
-import { PrivateAssetProvider, PrivateImage } from "./admin/PrivateAsset";
+import { PrivateAssetProvider, PrivateImage, PrivateAudio } from "./admin/PrivateAsset";
 import useWorkshopContext from "./admin/useWorkshopContext";
 import UnsavedChangesDialog from "./admin/UnsavedChangesDialog";
 import "./admin/TestHarness.css";
@@ -25,6 +25,8 @@ import ReleaseReview from "./admin/ReleaseReview";
 import RelatedContent from "./admin/RelatedContent";
 import GauntletParaLeague from "./GauntletParaLeague";
 import CompetitionWorkshop from "./admin/CompetitionWorkshop";
+import WebsiteProseWorkshop from "./admin/WebsiteProseWorkshop";
+import ProductionGuide from "./admin/ProductionGuide";
 const ENGINE_DOMAINS = ["rule-modifiers", "mechanics", "card-effects", "faction-effects", "encounter-mechanics", "game"];
 function domainRows(state, domain) {
   const snapshot = state?.draft?.snapshot || state?.live;
@@ -155,7 +157,9 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
   // Refresh retains local values and their original expected revision.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.id, request]);
-  function inspect(nextDomain, id, field) {
+  function inspect(nextDomain, id, field, explicitField) {
+    const explicitSection = arguments.length >= 4 ? field : null;
+    if (arguments.length >= 4) field = explicitField;
     if (nextDomain.startsWith("competition:") || nextDomain.startsWith("para:")) return leave(() => {
       const [kind, definitionDomain] = nextDomain.split(":");
       const economy = kind === "para" && ["awards", "products", "entitlements"].includes(definitionDomain);
@@ -165,7 +169,7 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
     nextDomain = ({ "studio:mechanics": "mechanics", "studio:modifiers": "rule-modifiers" })[nextDomain] || nextDomain;
     const saved = context.target.domain === nextDomain && context.target.id === id ? context.target : context.contexts[nextDomain]?.target;
     const section = !field ? saved?.id === id ? saved.section : null : nextDomain === "cards" ? field === "effect" ? "mechanics" : "identity" : nextDomain === "encounters" ? field === "setup" || field === "opponentDeckId" || field === "ruleModifierId" ? "setup" : /audio|image|art/i.test(field) ? "assets" : "story" : nextDomain === "decks" ? field === "composition" ? "composition" : "details" : nextDomain === "offers" ? "details" : null;
-    context.navigate({ section, field, domain: nextDomain === "game" && id && id !== "shared-rules" ? "modes" : nextDomain, id });
+    context.navigate({ section: explicitSection || section, field, domain: nextDomain === "game" && id && id !== "shared-rules" ? "modes" : nextDomain, id });
   }
   useEffect(() => {
     let active = true;
@@ -177,13 +181,13 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
     let active = true;
     const timer = setInterval(async () => {
       try {
-        const deploying = state.pending.phase === "deploying";
+        const deploying = state.pending.phase === "deploying" && !state.publication?.dataOnly;
         const result = await request(deploying ? "/api/admin/authoring" : "/api/admin/authoring/reconcile", deploying ? undefined : { method: "POST", body: "{}" });
         if (active) { setState(result); if (!result.pending) onPublished(); }
       } catch (failure) { if (active) setError(failure.message); }
     }, 10000);
     return () => { active = false; clearInterval(timer); };
-  }, [state?.pending, state?.connectionRequired, request, onPublished]);
+  }, [state?.pending, state?.connectionRequired, state?.publication?.dataOnly, request, onPublished]);
   async function act(action, body = {}) {
     setBusy(true); setError(""); setNotice("");
     try {
@@ -270,12 +274,13 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
   const presentation = previewContent && row && <Preview source={source} suit={suit} variantId={variantId} guide={guide} preview={previewContent} domain={domain} row={row} catalog={catalog} onClose={() => { setPreview(null); setResolvedView(null); }} />;
   const playtest = <GauntletPlaytest printingId={domain === "cards" ? snapshot.domains.assets.find(item => item.id === variantId && item.gameplayCardId === row?.id)?.id || row?.defaultVariantId : undefined} request={request} state={state} row={row} domain={domain} disabled={busy || unsaved || !metadata?.capabilities?.liveTests} onAuthoring={setState} session={session} onSession={setSession} onInspect={inspect} onBusy={setBusy} onRefresh={refresh} subjectTarget={context.target} metadata={metadata} scenario={scenario} onScenario={value => { setScenario(value); setScenarioDirty(true); }} onScenarioStarted={() => setScenarioDirty(false)} />;
   const reviewRelease = () => onNavigate("Publishing");
-  const Editor = ({ decks: DeckWorkshop, offers: OfferWorkshop, cards: CardWorkshop, encounters: EncounterWorkshop })[domain] || (ENGINE_DOMAINS.includes(domainChoice) && area !== "Game" ? EngineWorkshop : null);
+  const Editor = domainChoice === "modes" ? WebsiteProseWorkshop : ({ decks: DeckWorkshop, offers: OfferWorkshop, cards: CardWorkshop, encounters: EncounterWorkshop })[domain] || (ENGINE_DOMAINS.includes(domainChoice) && area !== "Game" ? EngineWorkshop : null);
   const editorProps = {
     row, state: { ...state, localDirtyRecords, workshopMetadata: metadata, relationshipData: relationships, previewContent }, busy, unsaved, search, list, playtest,
     field: renderField, onInspect: inspect, onReview: reviewRelease, preview: presentation,
     section: context.target.section, onSection: section => context.navigate({ ...context.target, section }), context: context.context, onContext: context.remember
   };
+  if (domainChoice === "modes") Object.assign(editorProps, { target: context.target, onTarget: context.navigate });
   if (domain === "cards") Object.assign(editorProps, { suit, onSuit: setSuit, variantId, onVariantChange: setVariantId,
     onCreatePrinting: sourceId => leave(() => setCreation({ domain: "assets", gameplayCardId: row.id, ...(sourceId ? { sourceId } : {}) })) });
   if (["decks", "offers"].includes(domain)) editorProps.fields = Object.keys(fields).map(renderField);
@@ -286,7 +291,7 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
     <WorkshopNavigation target={context.target} focusRequest={initialDomain} ready={area !== "Publishing"} />
     {context.pending && <UnsavedChangesDialog onKeep={context.cancel} onDiscard={context.discard} onSave={context.saveAndContinue} saving={context.saving || busy} saveLabel={saveScope} saveDisabledReason={saveDisabledReason} error={context.saveError}>{groups.length + Number(notesDirty) > 1 && <div className="admin-actions">{groups.map(group => <button disabled={busy || hasConflict} key={group.key} onClick={() => saveRecord(group)}>Save {group.label}</button>)}{notesDirty && <button disabled={busy || hasConflict} onClick={saveNotes}>Save private notes only</button>}</div>}</UnsavedChangesDialog>}
     {(area === "Publishing" || context.backCount > 0) && <button className="admin-context-back" onClick={area === "Publishing" ? () => context.navigate(context.target) : context.back}>Back to previous view</button>}
-    {assetPicker && <AssetPicker capacity={state.assetCapacity} provider={state.provider} request={request} busy={busy} onUpload={state.writable && state.capabilities?.imageUploads ? body => act("assets/upload", body) : null} onArchive={state.writable ? body => act("assets/archive", body) : null} library={state.assetLibrary || []} relationships={relationships} {...assetPicker} onSelect={value => { assetPicker.onSelect(value); bufferRevision.current = assetPicker.baseRevision; setAssetPicker(null); }} onClose={() => { if (!busy) setAssetPicker(null); }} />}
+    {assetPicker && <AssetPicker capacity={state.assetCapacity} provider={state.provider} request={request} busy={busy} onMigrate={state.writable && state.capabilities?.remoteMedia ? () => act("assets/migrate", {}) : null} onUpload={state.writable && state.capabilities?.[assetPicker.media === "audio" ? "audioUploads" : "imageUploads"] ? body => act("assets/upload", body) : null} onArchive={state.writable ? body => act("assets/archive", body) : null} library={state.assetLibrary || []} relationships={relationships} {...assetPicker} onSelect={value => { assetPicker.onSelect(value); bufferRevision.current = assetPicker.baseRevision; setAssetPicker(null); }} onClose={() => { if (!busy) setAssetPicker(null); }} />}
 
     {groups.length > 0 && <section className="admin-record-save" aria-label="Save record changes">{groups.map(group => <div key={group.key}><div><strong>{group.label}</strong><p className="admin-note">{group.edits.length} unsaved field{group.edits.length === 1 ? "" : "s"}: {group.edits.map(edit => edit.definition.label).join(", ")}. Saves only this record to the shared draft.</p></div><button className="admin-primary" disabled={busy || !state.writable} onClick={() => saveRecord(group)}>{busy ? "Saving…" : "Save changes"}<span className="sr-only"> to {group.label}</span></button></div>)}{notesDirty && <p className="admin-note">{help.workspacePrivateNotes}</p>}</section>}
     {unavailableEdits.length > 0 && <div className="admin-alert"><p role="alert">{saveDisabledReason}</p><details><summary>Retained local values</summary><pre>{JSON.stringify(Object.fromEntries(unavailableEdits), null, 2)}</pre></details></div>}
@@ -304,10 +309,11 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
       <section className="admin-recovery" aria-label="Release recovery"><h4>Release history and rollback</h4><div className="admin-releases">{[...state.releases].reverse().map((release) => <article className="admin-source" key={release.id}><h5>{release.label} {release.id === state.activeReleaseId && <span className="admin-badge">Active</span>}</h5><p className="admin-note">{new Date(release.createdAt).toLocaleString()} · {release.compatible ? "Compatible" : "Engine incompatible"}</p>{release.rollbackBlocked && <p className="admin-note">{release.rollbackBlocked}</p>}<details className="admin-json"><summary>Advanced / Technical · release identity</summary><code>{release.id}</code><p className="admin-note">SHA-256 {release.sha256}</p></details><button disabled={busy} onClick={async () => { try { const value = await request(`/api/admin/workshops/releases/${encodeURIComponent(release.id)}/review`); setReview(current => ({ ...current, comparison: value })); } catch (failure) { setError(failure.message); } }}>Compare with live</button><button disabled={busy || unsaved || !state.writable || !!state.draft || !release.compatible || !!release.rollbackBlocked || release.id === state.activeReleaseId} onClick={() => setConfirm({ action: "rollback", releaseId: release.id, label: release.label })}>Restore {release.label}</button></article>)}</div>
       <details className="admin-json"><summary>Activation history</summary><pre>{JSON.stringify(state.activations, null, 2)}</pre></details></section>
     </> : <>
+      {metadata?.capabilities?.productionGuide && <ProductionGuide request={request} domain={domain} id={row?.id} source={source} hash={state.draft?.hash || metadata?.hash} revision={state.revision} busy={busy} onInspect={inspect} onReview={reviewRelease} onCreate={next => leave(() => setCreation(next))} />}
       {Editor ? <Editor key={Editor === EngineWorkshop ? paraEditor : undefined} {...editorProps} /> : <>
       <WorkshopShell name={domain === "asset-library" ? "Media Workshop" : (DOMAINS[domain] || "Content") + " Workshop"} title={row ? contentName(row) : "Choose an item"} selectionId={row?.id} busy={busy} search={search} list={list} status={<span>{unsaved ? "Unsaved in this browser" : state.draft ? "Saved draft" : "Live content"}</span>} actions={<>{domain === "asset-library" && <button onClick={() => setAssetPicker({ value: row?.id, media: row?.mediaType?.startsWith("audio/") ? "audio" : "image", clearLabel: null, baseRevision: state.revision, onSelect: id => inspect("asset-library", id) })}>Browse & upload media</button>}<button onClick={reviewRelease}>Review release</button></>} preview={presentation}>
         {row ? <><WorkshopSection id="workshop-details" title={domain === "asset-library" ? "Asset details" : "Record details"}><Validation guide={guide} validation={state.validation} domain={domain} id={row.id} />
-          {domain === "asset-library" ? <><p>{row.description || row.source}</p>{row.mediaType?.startsWith("image/") ? <PrivateImage src={row.path} alt={contentName(row)} className="admin-art-preview" /> : <audio controls preload="none" src={row.path} />}<WorkshopFacts values={{ "File type": row.mediaType, Version: row.version || "Immutable source", Dimensions: row.width ? row.width + " × " + row.height : "Not recorded", Availability: row.archived ? "Archived · references retained" : row.stage || "Available" }} /></> : !Object.keys(fields).length && <p>{guide.readOnly}</p>}
+          {domain === "asset-library" ? <><p>{row.description || row.source}</p>{row.mediaType?.startsWith("image/") ? <PrivateImage src={row.path} alt={contentName(row)} className="admin-art-preview" /> : <PrivateAudio src={row.path} label={contentName(row)} />}<WorkshopFacts values={{ "File type": row.mediaType, Version: row.version || "Immutable source", Dimensions: row.width ? row.width + " × " + row.height : "Not recorded", Availability: row.archived ? "Archived · references retained" : row.stage || "Available" }} /></> : !Object.keys(fields).length && <p>{guide.readOnly}</p>}
           {Object.keys(fields).map(renderField)}
           {domain === "sets" && <EditionPrintings state={state} setId={row.id} onInspect={inspect} />}
           </WorkshopSection><details className="admin-json"><summary>Advanced / Technical · identity and source</summary><code>{row.id}</code><p className="admin-note">Source boundary: {catalog?.domains[domain]?.find(entry => entry.id === row.id)?.source || "Versioned content contract"} · Draft revision: {state.revision}</p><p className="admin-note">{guide.engineHelp}</p><pre>{JSON.stringify(Object.fromEntries(Object.entries(row).filter(([key]) => !Object.hasOwn(fields, key))), null, 2)}</pre></details>

@@ -27,6 +27,11 @@ const accounts = ["simply", "Burnt Ramen", "Visitor"].map((name, index) => ({
   passwordHash: crypto.pbkdf2Sync("test-password", "admin-browser-fixture", 150000, 32, "sha256").toString("hex"),
   createdAt: "2026-10-02T12:00:00Z", stats: { ...(process.env.GAUNTLET_PURPOSE_FIXTURE || process.env.GAUNTLET_GEM_FIXTURE === "true" ? { economy: { gold: 100, timetwisters: 10 } } : process.env.GAUNTLET_ASSET_FIXTURE_ROOT ? { collection: { gameplayEntitlements: { "rumin-vault-shield-bearer": 1 } } } : {}), progression: { campaign: { rumin: ["brothers-of-destiny"] } } }
 }));
+if (process.env.GAUNTLET_PRODUCTION_FIXTURE === "true") {
+  // A synthetic lost projection with its durable consequence evidence retained.
+  accounts[2].stats.progression.campaign.rumin = [];
+  accounts[2].stats.matchConsequenceReceipts = { "isolated-clear": { result: "win", campaign: { factionId: "rumin", chapterId: "brothers-of-destiny", outcome: "cleared" } } };
+}
 // Local Phase 2 fixtures have cleared the source campaign, so a newly authored
 // additional encounter can exercise the ordinary player unlock and start path.
 if (process.env.GAUNTLET_PHASE2_FIXTURE === "true") for (const account of accounts) account.stats.progression.campaign = Object.fromEntries(Object.entries(require("../server/gameContent").getPublicGameContent().campaigns).map(([id, campaign]) => [id, campaign.chapters.map(c => c.id)]));

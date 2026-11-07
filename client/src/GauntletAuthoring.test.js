@@ -25,6 +25,7 @@ function reviewProjection() {
       ready: saved && validated && previewed && state.writable && !state.pending } };
 }
 beforeEach(() => {
+  localStorage.clear();
   window.history.replaceState({}, "", "/");
   jest.spyOn(window, "scrollTo").mockImplementation(() => {});
   const domains = { campaigns: [{ id: "rumin", commanderName: "Campaign", pitch: "Live story" }], encounters: [], factions: [], cards: [{ id: "card-one", factionId: "rumin", type: "servitor", rarity: "common", name: "First card", text: "Engine effect wording", value: 3 }], decks: [], characters: [], assets: [], game: [{ id: "practice", name: "Practice", description: "Practice description" }] };
@@ -189,7 +190,7 @@ test("structured fields show live/draft values, save cross-domain changes, and r
   expect(state.live.domains.cards[0].name).toBe("First card");
   expect(screen.getByLabelText("Draft name")).toHaveValue("Edited card");
   await selectOther("Website prose");
-  fireEvent.click(await screen.findByRole("button", { name: "Inspect Practice" }));
+  fireEvent.click(await screen.findByRole("button", { name: /Practice · mode copy/ }));
   fireEvent.change(await screen.findByLabelText("Draft mode name"), { target: { value: "New practice" } });
   fireEvent.click(screen.getByRole("button", { name: /^Save changes to/ }));
   await screen.findByText("2 saved field changes");

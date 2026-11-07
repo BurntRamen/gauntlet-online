@@ -5,8 +5,13 @@ export default function UnsavedChangesDialog({ onKeep, onDiscard, onSave, saving
   const dialog = useRef(null);
   useEffect(() => {
     const trigger = document.activeElement;
-    dialog.current?.querySelector("button")?.focus();
-    return () => { if (trigger?.isConnected) trigger.focus(); };
+    const focusFirst = () => dialog.current?.querySelector("button")?.focus({ preventScroll: true });
+    // History traversal may restore background focus after this effect runs.
+    // Keep both browser-restored and programmatic focus inside the modal.
+    const contain = event => { if (dialog.current && !dialog.current.contains(event.target)) focusFirst(); };
+    document.addEventListener("focusin", contain);
+    focusFirst();
+    return () => { document.removeEventListener("focusin", contain); if (trigger?.isConnected) trigger.focus(); };
   }, []);
   return <div className="admin-modal-backdrop"><section ref={dialog} className="admin-modal" role="dialog" aria-modal="true" aria-labelledby="unsaved-heading" onKeyDown={(event) => {
     if (event.key === "Escape") { event.preventDefault(); if (!saving) onKeep(); }

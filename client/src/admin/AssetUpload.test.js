@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import AssetUpload from "./AssetUpload";
 import AssetPicker from "./AssetPicker";
+import AssetCapacity from "./AssetCapacity";
 
 test("upload is explicit, bounded and keeps its retry identity after an uncertain result", async () => {
   Object.defineProperty(global, "crypto", { configurable: true, value: { randomUUID: () => "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" } });
@@ -15,6 +16,30 @@ test("upload is explicit, bounded and keeps its retry identity after an uncertai
   await waitFor(() => expect(done).toHaveBeenCalledWith("version-a"));
   expect(upload.mock.calls[0][0].requestId).toBe(upload.mock.calls[1][0].requestId);
   expect(upload.mock.calls[0][0].assetId).toBeUndefined();
+});
+
+test("audio preview is explicit, authenticated and never autoplays", async () => {
+  const asset = { id:"audio-version-a", assetId:"audio-a", version:1, label:"Dialogue", path:"/api/admin/authoring/assets/audio-version-a", mediaType:"audio/wav", durationMs:1000, bytes:16044, stage:"Uploaded · private" };
+  const request = jest.fn().mockResolvedValue({ mediaType:"audio/wav",data:"eA==" });
+  const { container } = render(<AssetPicker media="audio" library={[asset]} value={asset.id} request={request} onUpload={jest.fn()} onSelect={jest.fn()} onClose={jest.fn()} />);
+  expect(request).not.toHaveBeenCalled();
+  expect(screen.getByText(/1.0 seconds · PCM WAV/)).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button",{ name:"Load private audio preview" }));
+  await waitFor(()=>expect(container.querySelector("audio")).not.toBeNull());
+  expect(request).toHaveBeenCalledWith(asset.path);
+  expect(container.querySelector("audio")).toHaveAttribute("preload","none");
+  expect(container.querySelector("audio")).not.toHaveAttribute("autoplay");
+  fireEvent.click(screen.getByText("Upload audio"));
+  expect(screen.getByLabelText("Audio file")).toHaveAttribute("accept","audio/wav,.wav");
+});
+
+test("capacity distinguishes authoring references from measured remote usage", async () => {
+  const request=jest.fn().mockResolvedValue({storedBytes:100,reservedBytes:200,maxBytes:1048576,remainingBytes:1048376,usageSource:"Private bucket objects and database reservations"});
+  render(<AssetCapacity request={request} value={{provider:"supabase-immutable-media-v1",storedBytes:0,maxBytes:1048576,remainingBytes:1048576,versionCount:0,maxVersions:5000,remainingVersions:5000,encodedBytes:0,metadataBytes:10,statePayloadBytes:100,uniqueBlobCount:0,usageSource:"References only"}} />);
+  fireEvent.click(screen.getByRole("button",{name:"Refresh storage usage"}));
+  await screen.findByText(/Private bucket objects and database reservations/);
+  expect(request).toHaveBeenCalledWith("/api/admin/authoring/assets-usage");
+  expect(screen.getByText(/including interrupted uploads/)).toBeInTheDocument();
 });
 
 test("replacement chooses the logical asset; private media is fetched with the admin request", async () => {

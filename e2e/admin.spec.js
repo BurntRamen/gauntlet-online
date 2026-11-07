@@ -285,7 +285,7 @@ test("operator edits, validates, previews, publishes and restores a shared conte
   await saveRecord(page);
   await expect(page.getByText("3 saved field changes", { exact: true })).toBeVisible();
   await otherContent(page, "Website prose");
-  await page.getByRole("button", { name: "Inspect Practice privately", exact: true }).click();
+  await page.getByRole("button", { name: /Practice privately · mode copy/ }).click();
   await page.getByLabel("Draft mode description").fill("Practice with a reviewed content release.");
   await saveRecord(page);
   await expect(page.getByText("4 saved field changes", { exact: true })).toBeVisible();
@@ -856,7 +856,7 @@ test("workshop metadata, relationships, review and test APIs keep the stable-ID 
   await page.goto("/admin/gauntlet");
   const visitor = await signIn(page, request, "Visitor");
   const headers = { Authorization: "Bearer " + visitor };
-  for (const path of ["/api/admin/workshops/search?q=story", "/api/admin/workshops", "/api/admin/workshops/relationships", "/api/admin/workshops/presentation", "/api/admin/workshops/review", "/api/admin/authoring/playtest/scenario-spec"]) {
+  for (const path of ["/api/admin/workshops/search?q=story", "/api/admin/workshops", "/api/admin/workshops/relationships", "/api/admin/workshops/presentation", "/api/admin/workshops/review", "/api/admin/workshops/production?domain=cards&id=rumin-vault-shield-bearer", "/api/admin/authoring/playtest/scenario-spec"]) {
     expect((await request.get(origin + path)).status()).toBe(401);
     expect((await request.get(origin + path, { headers, maxRetries: 2 })).status()).toBe(403);
   }
@@ -1035,7 +1035,6 @@ test("Admin search opens exact prose editors, guards local edits, and publishes 
   await expect(page.getByText("1 saved field change", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
   await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible();
-  await workspaceView(page, "Preview");
   await expect(page.getByRole("region", { name: "Isolated draft preview", exact: true }).getByRole("heading", { name: "A browser-reviewed practice heading.", exact: true })).toBeVisible();
   await page.getByRole("navigation", { name: "Administration sections" }).getByRole("button", { name: "Publishing", exact: true }).click();
   await page.getByLabel("Release name").fill("Browser prose search");

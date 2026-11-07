@@ -19,7 +19,7 @@ async function edit() {
 test("profile sections preserve corrections and failed departure save retains input until acknowledged", async () => {
   let failure = true;
   const request = jest.fn(async (path, options) => {
-    if (path.endsWith("/metadata")) { expect(JSON.parse(options.body)).toEqual({ expectedName: "First player", metadata: { name: "Corrected name" }, reason: "Requested by account owner" }); if (failure) throw new Error("Save unavailable"); return {}; }
+    if (path.endsWith("/metadata")) { expect(JSON.parse(options.body)).toEqual({ expectedName: "First player", metadata: { name: "Corrected name" }, reason: "Requested by account owner", key: expect.stringMatching(/^[a-f0-9-]{36}$/) }); if (failure) throw new Error("Save unavailable"); return {}; }
     return { players: profiles, hasMore: false };
   });
   render(<Players {...makeProps(request)} />); await edit();

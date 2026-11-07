@@ -22,8 +22,9 @@ test("editable parameters bind to their faction and shared configuration stays b
   expect(screen.getByText("0–8")).toBeVisible();
   field.mockClear();
   rerender(<EngineWorkshop state={state} field={field} target={{ domain: "game", id: "shared-rules" }} />);
-  expect(field).toHaveBeenCalledTimes(1);
+  expect(field).toHaveBeenCalledTimes(2);
   expect(field).toHaveBeenCalledWith("handSize", { domain: "game", row: shared });
+  expect(field).toHaveBeenCalledWith("packComposition", { domain: "game", row: shared });
   expect(screen.getByText("42")).toBeVisible();
   expect(screen.getByText("52")).toBeVisible();
 });

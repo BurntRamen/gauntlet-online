@@ -7,6 +7,23 @@ const { proseFields } = require("../websiteProse");
 const fixture = require("./fixtures/content-v2/authored-baseline-v1.json");
 const baseline = createAuthoredBaseline({ domains: { decks: fixture.domains.decks }, game: { modes: fixture.domains.game } });
 
+test("every registered website surface has an authored owner, preview, exact release and rollback", () => {
+  const store = createContentPublication({ baseline, memory: true }), original = store.status().activeReleaseId;
+  for (const surface of require("../websiteProse").surfaces) {
+    for (const part of ["Title", "Description"]) store.patch({ expectedRevision: store.status().revision, domain: "game", id: surface.owner, field: `${surface.id}Page${part}`, value: `Reviewed ${surface.name} ${part}` }, "admin");
+  }
+  const review = releaseReview(store.status()); assert.equal(review.readiness.engineTestRequired, false);
+  const preview = store.preview({ expectedRevision: store.status().revision }).preview;
+  for (const surface of require("../websiteProse").surfaces) {
+    assert.equal(preview.manifest.websiteProse[surface.id].title, `Reviewed ${surface.name} Title`);
+    assert.equal(store.active().manifest.websiteProse[surface.id].title, surface.title);
+  }
+  store.publish({ expectedRevision: store.status().revision, label: "Landing copy" }, "admin");
+  assert.deepEqual(store.active().manifest.websiteProse, preview.manifest.websiteProse);
+  store.rollback({ expectedRevision: store.status().revision, releaseId: original }, "admin");
+  assert.equal(store.active().manifest.websiteProse.play.title, "Ready to play?");
+});
+
 test("page prose location notes point editors to the current player destinations", () => {
   for (const [mode, location] of Object.entries({ practice: "Learn & Rules → Practice", freeForAll: "Play → Join a Table", ranked: "Compete → Ranked", draft: "Draft", campaign: "Campaign" })) {
     for (const field of ["heroTitle", "heroDescription"]) {

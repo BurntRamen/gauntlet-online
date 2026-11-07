@@ -760,7 +760,7 @@ test("resolution changes preserve framing and saved light mode updates the exist
   expect(await page.evaluate(() => window.__themeOriginalCanvas === document.querySelector("canvas.babylon-match-canvas"))).toBe(true);
 });
 
-test("discard piles and player abilities use a non-overlapping responsive dock without restarting the table", async ({ page, baseURL }, testInfo) => {
+test("discard piles and player abilities use a non-overlapping responsive dock without restarting the table", async ({ page, browser, baseURL }, testInfo) => {
   test.setTimeout(120000);
   const opponent = await connectSeedClient();
   try {
@@ -929,6 +929,7 @@ test("encounter dossiers preserve the selected music with independent line previ
   await page.evaluate(() => {
     window.__campaignMusic = window.__previewMedia.find((clip) => !clip.paused && /\/music\//.test(clip.src));
   });
+  expect(await page.evaluate(() => window.__campaignMusic.src)).toContain("/music/factions/rumin-");
   await dialogue.getByRole("button", { name: "Play exchange" }).click();
   await expect(dialogue.getByRole("button", { name: "Pause", exact: true })).toBeVisible();
   await expect.poll(() => page.evaluate(() => window.__previewMedia.filter((clip) => !clip.paused && window.__voiceAssetPaths.some((path) => clip.src.endsWith(path))).length)).toBe(1);
@@ -988,6 +989,11 @@ test("encounter dossiers preserve the selected music with independent line previ
     return values;
   });
   expect(durations).toEqual([48, 48, 48, 48]);
+  await page.getByRole("tab", { name: /^Sheen/ }).click();
+  await expect.poll(() => page.evaluate(() => window.__previewMedia.filter((clip) => !clip.paused && /\/music\/factions\/sheen-/.test(clip.src)).length)).toBe(1);
+  expect(await page.evaluate(() => window.__campaignMusic.paused)).toBe(true);
+  await page.getByRole("button", { name: "Main Menu", exact: true }).click();
+  await expect.poll(() => page.evaluate(() => window.__previewMedia.filter((clip) => !clip.paused && /music\/menu/.test(clip.src)).length)).toBe(1);
 });
 
 test("normal campaign entry presents the campaign boss through the shared Babylon match", async ({ page, baseURL }) => {
