@@ -53,9 +53,9 @@ The native browser zoom check is `node e2e/admin-native-zoom.cjs`. It requires t
 | Check | Result |
 | --- | --- |
 | Production client build, lint, compile and asset pruning | Passed after shared-editor consolidation with the explicit isolated backend; final release also reconciles optional appearance update `2ef9f1cc` |
-| Full client tests | 121 suites, 935 tests passed after shared-editor consolidation and versioned guidance |
+| Full client tests | 123 suites, 947 tests passed in CI on `4364535d`; the later focus-race repair has a separate deterministic regression |
 | Deferred catalog loading | 9 affected client tests passed, including first Content/Players access, direct links, navigation reuse and explicit refresh; final full-suite CI also includes the four new regressions |
-| Full server tests | 597 passed, zero failures in CI on `646d2dea`, including the new guidance compatibility contract; the superseded run was canceled only after main advanced |
+| Full server tests | 599 passed, zero failures in CI on `4364535d`, including guidance compatibility and the upstream appearance eligibility tests |
 | Main reconciliation | 59 affected client tests passed across Admin, Studio, access, registry editing, match inspection, appearance eligibility, and PlayerShell; compiled appearance/dirty-exit smoke passed |
 | Versioned guidance and workshop projections | 6 affected server tests passed, including authenticated writable and read-only outage responses, private access, and complete client guidance |
 | Focused record-validation regressions | 49 affected server tests passed for `232ee6e`, plus 3 final schema/malformed-data checks; all 11 record-save cases covered |
@@ -63,7 +63,7 @@ The native browser zoom check is `node e2e/admin-native-zoom.cjs`. It requires t
 | Client toolchain tests | 4 passed after consolidation |
 | Strict match-asset report | Passed; no cutover blockers or checksum mismatches |
 | Focused redesign browser suite | 12 unique journeys passed on current main; final screenshots and preference coverage refreshed |
-| Existing admin browser suites | All 37 unique journeys passed across the five configurations, including targeted reruns after navigation, heading and response-synchronization fixes |
+| Existing admin browser suites | All 37 unique journeys passed together in CI on `4364535d`: core Admin 25, printing/assets 2, authored deck purchase/restart 2, mechanics/campaign/cosmetics/payment 7, Gems 1 |
 | Native 200% browser zoom | Passed: actual 200% page zoom, keyboard focus, zero Axe violations and 1366×768 full-surface capture |
 | Bundle checks | All five limits passed: aggregate Admin 71.3/75, main 178.7/180, player 755.0/759, initial Admin entry 14.4/20, largest async 274.2/350 KiB gzip |
 
@@ -78,6 +78,8 @@ Cold Home also defers the full private catalog until an authoring workspace or P
 The corrected Gold/Para release pair passed together after a CI trace revealed a click before the save response body completed. The helper now waits for the completed response, enabled editor, and saved editor/shell states. Cleanup covers setup failures too, preventing a failed Gold setup from leaving a draft in the next journey. Purchase, ownership, archive, refund, seed and rollback assertions remain intact.
 
 Main advanced to `2ef9f1cc` during release checks. The reconciled build preserves its optional account-scoped SuitFire choice and the redesigned Admin shell. The [compiled appearance smoke](after/appearance-smoke.json) used a disposable local fixture with the allowlisted account identity, selected the appearance through Settings, reloaded it, and verified Admin labels plus Keep/Discard on dirty exit. Switching back restored Gauntlet branding; a public guest retained the default appearance and had no Admin access. No authoring mutation or revision change occurred.
+
+The broader player suite exposed a delayed focus-restoration race in the existing More sheet: its animation-frame callback could focus More after the operator had focused a newly revealed layout selector, swallowing the next arrow-key action. The callback now restores focus only when closing the sheet left focus unclaimed. A deterministic regression failed before the fix and passed afterward; native select behavior and the browser's exact movement assertion remain unchanged. The affected shell/layout suites passed 25 tests, and all 13 unchanged compiled Command Deck journeys passed with zero failures, retries or skipped tests. The loading measurements above precede this small focus-only repair and retain their exact build filenames and limitations.
 
 Record saves require `PATCH /api/admin/authoring/record`, and the updated guidance requires `guide.workspaceVersion: 1`. Deploy the server before or with the client. During a mixed-version rollout, the client explicitly reports that the Admin update is deploying and withholds editors until refreshed compatible guidance arrives; the compatibility regression verifies recovery. Final-head CI and both frontend/backend production revisions must be checked before calling the release live.
 
