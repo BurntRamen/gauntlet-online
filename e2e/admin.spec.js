@@ -386,7 +386,11 @@ test("manifest-picked faction and portrait artwork previews load immutable draft
       await page.getByLabel("Draft " + field, { exact: true }).fill(artwork.id);
       await saveRecord(page);
       await expect(page.getByText(/saved to the shared draft. Live content is unchanged./)).toBeVisible();
+      const previewSaved = page.waitForResponse(response => response.url().endsWith("/authoring/preview") && response.request().method() === "POST");
       await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
+      expect((await previewSaved).ok()).toBeTruthy();
+      await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible();
+      await expect(page.locator(".admin-save-context")).not.toHaveText("Working…");
       await workspaceView(page, "Preview");
       const preview = page.getByRole("region", { name: "Isolated draft preview" });
       const image = preview.getByRole("img", { name, exact: true });
@@ -711,6 +715,7 @@ test("card workshop previews and executes a custom live scenario without creatin
   await expect(card.getByRole("heading", { name: "Displayed wording", exact: true })).toBeVisible();
   await cardSection(page, "Mechanics");
   await expect(card.getByRole("heading", { name: "Mechanics", exact: true })).toBeVisible();
+  await workspaceView(page, "Preview");
   await card.getByLabel("Preview suit").selectOption("hearts");
   await expect(card.getByLabel("Preview suit")).toHaveValue("hearts");
   await expect.poll(() => card.locator(".admin-card-preview img").first().evaluate(img => img.complete && img.naturalWidth > 0)).toBeTruthy();
@@ -1144,6 +1149,7 @@ test("Admin creates a set and new card, executes its mechanics, publishes and sa
   expect(publicContent.content.cards.find(c => c.id === card.id).effect.parameters.armBonus).toBe(2);
   await page.goto("/admin/gauntlet?workshop=cards&object=" + card.id);
   await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole("button", { name: "Back to list", exact: true }).click();
   await page.getByRole("button", { name: "Duplicate card", exact: true }).click();
   await expect(page.getByLabel("New content name")).toHaveValue("Browser lifecycle blade copy");
   await page.getByLabel("New content name").fill("Unpublished mobile copy");

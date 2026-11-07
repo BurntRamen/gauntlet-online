@@ -104,7 +104,7 @@ function AdminWorkspace({ request, onClose, operations, exitGuard, environment }
   const operator = useOperatorPreferences();
   const [area, setArea] = useState(() => { const params = new URLSearchParams(window.location.search); return AREAS.includes(params.get("area")) ? params.get("area") : params.has("workshop") && targetFromLocation() ? "Content" : "Home"; });
   const [drawer, setDrawer] = useState(false), [editing, setEditing] = useState(null);
-  const rail = useRef(null), drawerTrigger = useRef(null);
+  const rail = useRef(null), drawerTrigger = useRef(null), utilityMenu = useRef(null);
   useEffect(() => { if (drawer) rail.current?.querySelector("button")?.focus(); }, [drawer]);
   const rememberedDomain = editing?.domain, rememberedId = editing?.id, rememberedName = editing?.name, remember = operator.remember;
   useEffect(() => { if (rememberedId && rememberedName) remember({ domain: rememberedDomain, id: rememberedId, name: rememberedName }); }, [rememberedDomain, rememberedId, rememberedName, remember]);
@@ -117,7 +117,16 @@ function AdminWorkspace({ request, onClose, operations, exitGuard, environment }
   const [revision, setRevision] = useState(0);
   const guard = useRef(action => { action?.(); return true; });
   const playerGuard = useRef(action => { action?.(); return true; });
-  const canLeave = action => playerGuard.current(() => guard.current(action));
+  const dismissMenus = () => {
+    if (drawer) { setDrawer(false); drawerTrigger.current?.focus(); }
+    if (utilityMenu.current?.open) { utilityMenu.current.open = false; utilityMenu.current.querySelector("summary")?.focus(); }
+  };
+  const canLeave = action => { dismissMenus(); return playerGuard.current(() => guard.current(action)); };
+  useEffect(() => {
+    const outside = event => { if (utilityMenu.current?.open && !utilityMenu.current.contains(event.target)) utilityMenu.current.open = false; };
+    document.addEventListener("pointerdown", outside);
+    return () => document.removeEventListener("pointerdown", outside);
+  }, []);
   const [authoringArea, setAuthoringArea] = useState(() => ["Content", "Publishing", "Store & Economy", "Competition"].includes(area) ? area : null);
   const historyExit = useRef(onClose);
   historyExit.current = onClose;
@@ -183,7 +192,7 @@ function AdminWorkspace({ request, onClose, operations, exitGuard, environment }
       <div className="admin-location"><span>Studio</span><span aria-hidden="true">/</span><strong>{area === "Content" ? destination[0] : area}</strong></div>
       <AdminSearch request={request} onSelect={(target, accepted) => selectArea(target.area, target.domain, target.id, target.section, target.field, accepted)} />
       <span className={`admin-save-context ${editing?.unsaved ? "has-local" : ""}`}>{authoring && editing ? editing.loading ? "Loading authoring…" : editing.busy ? "Working…" : editing.unsaved ? "Unsaved in this browser" : editing.liveOnly ? "Shared draft unavailable" : ["draft", "Saved draft"].includes(editing.source) ? "Saved to shared draft" : "Live content" : "Server-authorized"}</span>
-      <details className="admin-utilities"><summary aria-label="Workspace options">•••</summary><div><strong>Workspace preferences</strong><label>Density<select aria-label="Density" value={operator.preferences.density} onChange={event => operator.update({ density: event.target.value })}><option value="comfortable">Comfortable</option><option value="compact">Compact</option></select></label><label><input type="checkbox" checked={operator.preferences.focus} onChange={event => operator.update({ focus: event.target.checked })} /> Focus on editor</label><label>Preview<select aria-label="Preview visibility" value={operator.preferences.preview == null ? "auto" : String(operator.preferences.preview)} onChange={event => operator.update({ preview: event.target.value === "auto" ? null : event.target.value === "true" })}><option value="auto">Automatic on wide screens</option><option value="true">Show preview</option><option value="false">Keep editor visible</option></select></label><button onClick={operator.reset}>Reset preferences</button><button onClick={() => canLeave(() => setRevision(value => value + 1))}>Refresh admin</button></div></details>
+      <details ref={utilityMenu} className="admin-utilities" onKeyDown={event => { if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); dismissMenus(); } }}><summary aria-label="Workspace options">•••</summary><div><strong>Workspace preferences</strong><label>Density<select aria-label="Density" value={operator.preferences.density} onChange={event => operator.update({ density: event.target.value })}><option value="comfortable">Comfortable</option><option value="compact">Compact</option></select></label><label><input type="checkbox" checked={operator.preferences.focus} onChange={event => operator.update({ focus: event.target.checked })} /> Focus on editor</label><label>Preview<select aria-label="Preview visibility" value={operator.preferences.preview == null ? "auto" : String(operator.preferences.preview)} onChange={event => operator.update({ preview: event.target.value === "auto" ? null : event.target.value === "true" })}><option value="auto">Automatic on wide screens</option><option value="true">Show preview</option><option value="false">Keep editor visible</option></select></label><button onClick={operator.reset}>Reset preferences</button><button onClick={() => canLeave(() => setRevision(value => value + 1))}>Refresh admin</button></div></details>
       <button className="admin-return" onClick={() => canLeave(() => { clearAdminLocation(); onClose?.(); })}>Back to Gauntlet <span aria-hidden="true">↗</span></button>
     </header>
     <div className="admin-body" id="admin-workspace-content" tabIndex={-1}>
@@ -192,7 +201,7 @@ function AdminWorkspace({ request, onClose, operations, exitGuard, environment }
       {workspace[area] && <nav className="admin-subnav" aria-label={`${area} workspaces`}>{({ Competition: ["Para definitions", "Ranked & Gauntlet", "Results"], "Store & Economy": ["Products", "Gold & Rewards"], Operations: ["Health", "Match evidence"] })[area].map(value => <button key={value} aria-pressed={workspace[area] === value} onClick={() => selectWorkspace(value)}>{value}</button>)}</nav>}
       {area === "Content" && matchesOpened && <button onClick={() => selectArea("Matches")}>Return to match inspection</button>}
       {area === "Home" && <Overview request={request} revision={revision} onSelect={selectArea} />}
-      {authoringArea && <div hidden={!authoring}><Suspense fallback={<p role="status">Opening your workspace…</p>}><GauntletAuthoring request={request} area={authoringArea} initialDomain={contentDomain} revision={revision} catalog={catalog.data} onStatus={setEditing} onPublished={() => setRevision((value) => value + 1)} guard={guard} onNavigate={selectArea} beforeNavigate={action => playerGuard.current(action)} onExit={onClose} /></Suspense></div>}
+      {authoringArea && <div hidden={!authoring}><Suspense fallback={<p role="status">Opening your workspace…</p>}><GauntletAuthoring request={request} area={authoringArea} initialDomain={contentDomain} revision={revision} catalog={catalog.data} onStatus={setEditing} onPublished={() => setRevision((value) => value + 1)} guard={guard} onNavigate={selectArea} beforeNavigate={action => { dismissMenus(); return playerGuard.current(action); }} onExit={onClose} /></Suspense></div>}
       {area === "Players" && <Suspense fallback={<p>Loading players…</p>}><Players request={request} revision={revision} catalog={catalog.data} guard={playerGuard} useData={useAdminData} State={State} Facts={Facts} Json={Json} date={date} label={label} /></Suspense>}
       {matchesOpened && <div hidden={area !== "Operations" || workspace.Operations !== "Match evidence"}><Matches request={request} revision={revision} onInspectContent={inspectContent} /></div>}
       {area === "Competition" && workspace.Competition === "Results" && <Suspense fallback={<p role="status">Loading competition…</p>}><Competition request={request} revision={revision} useData={useAdminData} State={State} Json={Json} label={label} /></Suspense>}
