@@ -9,8 +9,8 @@
   "modelId": "eleven_multilingual_v2",
   "outputFormat": "mp3_44100_128",
   "clientOutput": "client/public/assets/gauntlet/voices/faction-zynarth-commander-critical.mp3",
-  "generatedAt": "2026-10-13T19:59:28.402Z",
-  "publishedAt": "2026-10-13T19:59:37.293Z",
-  "bytes": 57722,
-  "sha256": "7d4057374a300a6f6887e4e3559a75a29e084357b509793b8ecd364705ddf2bc"
+  "generatedAt": "2026-10-30T17:27:32.947Z",
+  "publishedAt": "2026-10-30T17:28:03.699Z",
+  "bytes": 77783,
+  "sha256": "8a96461ff69abb2e5715439b20d6780705aefc4fa170d369fdf6192f58e76af7"
 }

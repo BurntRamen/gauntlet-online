@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "russo",
+  "role": "general",
+  "event": "clicked",
+  "line": "Keep the shared hearth alive through the longest night.",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "clientOutput": "client/public/assets/gauntlet/voices/faction-russo-general-clicked.mp3",
+  "generatedAt": "2026-10-30T17:27:30.700Z",
+  "publishedAt": "2026-10-30T17:28:03.688Z",
+  "bytes": 48526,
+  "sha256": "8ba4507f529b8a88300c5968da4609fe564be1218a2a60b48e7dc6593ed3064c"
+}

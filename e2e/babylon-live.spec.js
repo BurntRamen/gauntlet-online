@@ -118,7 +118,10 @@ async function openPlayer(context, baseURL, duel, playerNumber, location = "", e
   });
   const page = await context.newPage();
   await page.goto(`${baseURL}${location}`);
-  if (expectProduction) await expect(page.getByTestId("production-babylon-match")).toBeVisible();
+  // CI traces show the second SwiftShader scene initializing just after 30s
+  // while the first keeps rendering. Limit the extra allowance to startup.
+  if (expectProduction) await expect(page.getByTestId("production-babylon-match"))
+    .toBeVisible({ timeout: softwareGraphics ? 60000 : 10000 });
   return page;
 }
 

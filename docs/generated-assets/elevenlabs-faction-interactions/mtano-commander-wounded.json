@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "mtano",
+  "role": "commander",
+  "event": "wounded",
+  "line": "Twenty-one life. Carry the lesson to every terrace.",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "clientOutput": "client/public/assets/gauntlet/voices/faction-mtano-commander-wounded.mp3",
+  "generatedAt": "2026-10-30T17:27:26.572Z",
+  "publishedAt": "2026-10-30T17:28:03.666Z",
+  "bytes": 59811,
+  "sha256": "d7f991d94566ac1535d421d493ff61016d1d142f557a0d7757a42bdaf1727432"
+}

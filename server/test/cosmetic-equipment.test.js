@@ -65,6 +65,25 @@ test("expiry, category mismatch and changed asset metadata cannot present unowne
   for (const invalid of [{ ...active, state: "expired" }, { ...active, state: "revoked" }, { ...active, term: { ...active.term, category: "deck-box" } }, { ...active, term: { ...active.term, delivery: { ...active.term.delivery, sha256: "changed" } } }]) assert.deepEqual(equipment.selected(account, [invalid]), {});
 });
 
+test("gem-store character portrait grants equip into the animated portrait destination", () => {
+  const image = assetManifest.entries.find(a => a.mediaType.startsWith("image/"));
+  assert.ok(image, "an immutable first-party portrait asset is available");
+  const config = para.emptyConfig();
+  config.entitlements.push({ ...para.newDefinition("entitlements"), id: "portrait-entitlement", name: "Reath Command Frame", category: "character-portrait", asset: image.id, provenance: "commercial", fulfillment: "available", rightsReference: "First-party character portrait" });
+  config.products.push({ ...para.newDefinition("products"), id: "portrait-product", name: "Reath Command Frame", category: "character-portrait", status: "active", pricing: "gems", gemPrice: 75, entitlements: ["portrait-entitlement"], startsAt: "2020-01-01T00:00:00.000Z", endsAt: "2099-01-01T00:00:00.000Z" });
+  assert.equal(para.validateConfig(config).valid, true, "portrait cosmetics can be published with a Gem price");
+  assert.equal(require("../digitalDelivery").resolveDelivery(config.entitlements[0], false).kind, "image");
+  const grant = { id: "portrait-grant", state: "active", expiresAt: null, term: {
+    name: "Reath Command Frame", category: "character-portrait", asset: image.id,
+    delivery: { kind: "image", sha256: image.sha256 }
+  } };
+  assert.equal(equipment.SLOTS[grant.term.category], "portrait");
+  const stats = equipment.prepareSelection({ stats: {} }, { slot: "portrait", entitlementId: grant.id }, grant);
+  const selected = equipment.selected({ stats }, [grant]);
+  assert.equal(selected.portrait.name, "Reath Command Frame");
+  assert.equal(selected.portrait.url, image.path);
+});
+
 test("legacy progression and saved recipes cannot re-equip a back after its last ownership contribution is removed", () => {
   const stats = { progression: { cosmetics: { unlockedCardBacks: ["classic", "campaignMap"], selectedCardBack: "campaignMap" } } };
   __test.saveConstructedDeckToLibrary(stats, { name: "Back ownership", factionId: "rumin", cardQuantities: {}, cardBackId: "campaignMap" });

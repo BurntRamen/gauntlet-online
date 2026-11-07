@@ -9,8 +9,8 @@
   "modelId": "eleven_multilingual_v2",
   "outputFormat": "mp3_44100_128",
   "clientOutput": "client/public/assets/gauntlet/voices/faction-rumin-commander-critical.mp3",
-  "generatedAt": "2026-10-13T19:58:41.411Z",
-  "publishedAt": "2026-10-13T19:59:37.084Z",
-  "bytes": 52288,
-  "sha256": "6ab951a5d964d3fd10e4037dfb9a32e8a1bf1689403baf651e7782877de88621"
+  "generatedAt": "2026-10-30T17:26:57.403Z",
+  "publishedAt": "2026-10-30T17:28:03.536Z",
+  "bytes": 56885,
+  "sha256": "9a54105ce6b4f79a25344f8bcb110951899a7821de8f7b2fe28aadffd743279d"
 }

@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "approvalRequired": true,
+  "creator": "ElevenLabs Music API",
+  "jobId": "mercaw-many-star-accord-aftermath",
+  "kind": "music",
+  "modelId": "music_v2_5",
+  "prompt": "Original complete three-minute instrumental faction theme for the Mercaw of Gauntlet. Compose a full song with separate aerie motifs entering from different registers, an inventive syncopated development, a spacious uncertain middle section, a thrilling moment of voluntary convergence, and a broad pluralistic outro; do not repeat a short loop. Evoke migrating sky cities and a contentious federation: bright brass fragments, agile strings, hand percussion, wind rush, resonant plucked metal, and independent themes that choose a shared pulse. Energetic, inventive, and civic rather than nationalistic. No lyrics, no recognizable melody, no oversized trailer ending. Companion arrangement direction: Create a genuinely distinct three-minute alliance and aftermath arrangement. Let separate motifs negotiate, cooperate, and leave visible scars in a reflective but forward-looking resolution. Do not quote the first track's melody; use a new tempo, harmonic center, and a complete beginning-middle-end arc rather than a loop.",
+  "parameters": {
+    "music_length_ms": 180000,
+    "force_instrumental": true
+  },
+  "references": {},
+  "generationId": "hviZlONyKpLFrq6qMkSo",
+  "generatedAt": "2026-10-30T17:38:20.658Z",
+  "publishedAt": "2026-10-30T17:40:07.254Z",
+  "clientOutput": "client/public/assets/gauntlet/music/factions/mercaw-many-star-accord-v4.mp3",
+  "contentMimeType": "audio/mpeg",
+  "bytes": 4320620,
+  "sha256": "a4a82f98b95230691d2cd1789209107d515ab720144d7b10daf84e600e5a5eac"
+}

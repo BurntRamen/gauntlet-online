@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "mtano",
+  "role": "commander",
+  "event": "critical",
+  "line": "Ten life. The watershed survives through us.",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "clientOutput": "client/public/assets/gauntlet/voices/faction-mtano-commander-critical.mp3",
+  "generatedAt": "2026-10-30T17:27:26.950Z",
+  "publishedAt": "2026-10-30T17:28:03.668Z",
+  "bytes": 50198,
+  "sha256": "34c50ef6fd5f40f6e459a5a45ce238d89e39fe9740a3c8ecd546cff10231bae4"
+}

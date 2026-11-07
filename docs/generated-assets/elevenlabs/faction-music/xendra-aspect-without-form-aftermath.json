@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "approvalRequired": true,
+  "creator": "ElevenLabs Music API",
+  "jobId": "xendra-aspect-without-form-aftermath",
+  "kind": "music",
+  "modelId": "music_v2_5",
+  "prompt": "Original complete three-minute instrumental faction theme for the Xen'Dra of Gauntlet. Compose a full song with a distant resonant opening, a development where repeated intervals change apparent meaning, an abstract nearly formless middle passage, a transformed return that feels perceived from another angle, and an unresolved vast outro; do not repeat a short loop. Expansion through changing which aspects of reality can be perceived: deep resonant tones, impossible spatial echoes, bowed metal, reversed breath textures, distant harmonic voices without words, and patient low-frequency resonance. Abstract, vast, patient, and unsettling; beauty and dread remain simultaneous. No lyrics, no recognizable melody, no jump scares, no conventional villain march, no trailer climax. Companion arrangement direction: Create a genuinely distinct three-minute alliance and aftermath arrangement. Let separate motifs negotiate, cooperate, and leave visible scars in a reflective but forward-looking resolution. Do not quote the first track's melody; use a new tempo, harmonic center, and a complete beginning-middle-end arc rather than a loop.",
+  "parameters": {
+    "music_length_ms": 180000,
+    "force_instrumental": true
+  },
+  "references": {},
+  "generationId": "odHY95Z0lXVMbGGDgYlY",
+  "generatedAt": "2026-10-30T17:36:52.665Z",
+  "publishedAt": "2026-10-30T17:40:07.197Z",
+  "clientOutput": "client/public/assets/gauntlet/music/factions/xendra-aspect-without-form-v4.mp3",
+  "contentMimeType": "audio/mpeg",
+  "bytes": 4320620,
+  "sha256": "06205e191050ac0db91244d15576dc414d263531ea4f8142761c46464a98728d"
+}

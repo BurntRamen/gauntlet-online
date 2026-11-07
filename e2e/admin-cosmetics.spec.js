@@ -25,7 +25,7 @@ test("operator publishes owned equipment; player acquires, equips and sees profi
   await page.getByRole("button", { name: "Publish release", exact: true }).click(); await page.getByRole("button", { name: "Confirm publish", exact: true }).click(); await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible();
   const saveDeck = await request.post(origin + "/api/collection/save-constructed-deck", { headers, data: { name: "Museum recipe", factionId: "rumin", cardQuantities: {} } }); expect(saveDeck.status()).toBe(200);
   await page.goto("/"); await navigatePlayer(page, "profile", "library");
-  const library = page.getByRole("region", { name: "Gold & Library", exact: true });
+  const library = page.locator(".cd-setup-content").getByRole("region", { name: "Gold & Library", exact: true });
   await library.getByRole("button", { name: "Review Museum collection · 0 Gold", exact: true }).click(); await library.getByRole("button", { name: "Confirm purchase · 0 Gold", exact: true }).click();
   for (const [, name, , destination] of choices) {
     await library.getByRole("combobox", { name: destination, exact: true }).selectOption({ label: `${name} · Permanent` });

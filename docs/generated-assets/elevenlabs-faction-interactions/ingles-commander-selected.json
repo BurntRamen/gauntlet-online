@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "ingles",
+  "role": "commander",
+  "event": "selected",
+  "line": "The charter is open. Take your place.",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "clientOutput": "client/public/assets/gauntlet/voices/faction-ingles-commander-selected.mp3",
+  "generatedAt": "2026-10-30T17:27:19.863Z",
+  "publishedAt": "2026-10-30T17:28:03.633Z",
+  "bytes": 39749,
+  "sha256": "616ca9e9930a9e8a1e257dac75e1230f9372c4227069b1d7b35ab2a5b0c6109c"
+}

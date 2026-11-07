@@ -118,43 +118,42 @@ describe("dialogue preview playback", () => {
   });
   afterEach(() => { window.Audio = originalAudio; });
 
-  test("offers exchanges alongside line previews, with pause/resume and chapter-change cleanup", () => {
+  test("offers exchanges over the existing music, with pause/resume and chapter-change cleanup", () => {
     const props = { title: "Opening", lines: ["A: Hello.", "B: Welcome."], audio: ["/a.mp3", "/b.mp3"], factionId: "rumin" };
     const { rerender, unmount } = render(<CampaignBriefingDialogue {...props} scopeKey="one" />);
     fireEvent.click(screen.getByRole("button", { name: "Play exchange" }));
     expect(screen.getByRole("button", { name: "Stop A voice" })).toHaveAttribute("aria-pressed", "true");
-    expect(clips[0].src).toContain("rumin-reverie.wav");
+    expect(clips.map((clip) => clip.src)).toEqual(["/a.mp3"]);
     fireEvent.click(screen.getByRole("button", { name: "Pause" }));
     expect(clips[0].pause).toHaveBeenCalled();
     fireEvent.click(screen.getByRole("button", { name: "Resume" }));
-    act(() => clips[1].onended());
+    act(() => clips[0].onended());
     expect(screen.getByRole("button", { name: "Stop B voice" })).toHaveAttribute("aria-pressed", "true");
     // Identical transcript arrays from a refreshed snapshot must not interrupt speech.
     rerender(<CampaignBriefingDialogue {...props} lines={[...props.lines]} scopeKey="one" />);
-    expect(clips[2].pause).not.toHaveBeenCalled();
+    expect(clips[1].pause).not.toHaveBeenCalled();
     rerender(<CampaignBriefingDialogue {...props} scopeKey="two" />);
-    expect(clips[2].pause).toHaveBeenCalled();
-    expect(clips[0].pause).toHaveBeenCalledTimes(2);
+    expect(clips[1].pause).toHaveBeenCalled();
     expect(screen.getByRole("button", { name: "Play exchange" })).toBeEnabled();
     fireEvent.click(screen.getByRole("button", { name: "Play B voice" }));
     expect(clips.at(-1).src).toBe("/b.mp3");
-    expect(clips).toHaveLength(4);
+    expect(clips).toHaveLength(3);
     unmount();
-    expect(clips[3].pause).toHaveBeenCalled();
+    expect(clips[2].pause).toHaveBeenCalled();
   });
 
-  test("switches between opening and ending previews without overlapping voices or beds", () => {
+  test("switches between opening and ending previews without overlapping voices", () => {
     renderBriefing({ completed: true, chapter: { ...chapter, endDialogueAudio: ["/ending.mp3"] } });
     const opening = within(screen.getByRole("region", { name: "Voices before the battle" }));
     const ending = within(screen.getByRole("region", { name: "Voices after the battle" }));
     fireEvent.click(opening.getByRole("button", { name: "Play exchange" }));
-    const previousEnded = clips[1].onended;
+    const previousEnded = clips[0].onended;
     fireEvent.click(ending.getByRole("button", { name: "Play exchange" }));
     expect(clips[0].pause).toHaveBeenCalled();
-    expect(clips[1].pause).toHaveBeenCalled();
     expect(opening.getByRole("button", { name: "Play exchange" })).toBeEnabled();
     act(previousEnded);
-    expect(clips).toHaveLength(4);
+    expect(clips).toHaveLength(2);
+    expect(clips[1].src).toBe("/ending.mp3");
   });
 
   test("keeps a clear disabled exchange control for unrecorded or muted passages", () => {

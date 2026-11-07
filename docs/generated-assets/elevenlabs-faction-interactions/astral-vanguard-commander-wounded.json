@@ -9,8 +9,8 @@
   "modelId": "eleven_multilingual_v2",
   "outputFormat": "mp3_44100_128",
   "clientOutput": "client/public/assets/gauntlet/voices/faction-astral-vanguard-commander-wounded.mp3",
-  "generatedAt": "2026-10-13T19:59:33.692Z",
-  "publishedAt": "2026-10-13T19:59:37.317Z",
-  "bytes": 62737,
-  "sha256": "69a078b66ab39118a722415e82e1a34208a64151f714110b845de9acba899579"
+  "generatedAt": "2026-10-30T17:27:35.582Z",
+  "publishedAt": "2026-10-30T17:28:03.709Z",
+  "bytes": 70260,
+  "sha256": "96142aa79e27d34b23c2a9aff58adec651f25f155e7bbf56891edfa4cd9e70cd"
 }

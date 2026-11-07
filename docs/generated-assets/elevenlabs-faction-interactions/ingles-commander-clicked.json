@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "ingles",
+  "role": "commander",
+  "event": "clicked",
+  "line": "No voice stands above the common promise.",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "clientOutput": "client/public/assets/gauntlet/voices/faction-ingles-commander-clicked.mp3",
+  "generatedAt": "2026-10-30T17:27:20.331Z",
+  "publishedAt": "2026-10-30T17:28:03.635Z",
+  "bytes": 42674,
+  "sha256": "2972a501667ece9855ed337479a2e1114e5a3c74a61d9b45d64f24868e396e0b"
+}

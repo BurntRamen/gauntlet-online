@@ -7,10 +7,14 @@ const registry = require("../server/gameContent");
 const root = path.resolve(__dirname, "../client/public");
 const output = path.resolve(__dirname, "../server/contentAssetManifest.json");
 const refs = new Map();
+function withoutVersionQuery(source) {
+  return typeof source === "string" ? source.replace(/\?v=[a-f0-9]+$/i, "") : source;
+}
 function add(source, usage, object) {
-  if (!source?.startsWith("/assets/gauntlet/")) return;
-  if (!refs.has(source)) refs.set(source, { source, associations: [] });
-  refs.get(source).associations.push({ object, usage });
+  const canonicalSource = withoutVersionQuery(source);
+  if (!canonicalSource?.startsWith("/assets/gauntlet/")) return;
+  if (!refs.has(canonicalSource)) refs.set(canonicalSource, { source: canonicalSource, associations: [] });
+  refs.get(canonicalSource).associations.push({ object, usage });
 }
 function visit(value, location) {
   if (typeof value === "string") add(value, location.split(".").pop(), location);

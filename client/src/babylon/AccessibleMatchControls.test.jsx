@@ -23,3 +23,17 @@ test("hidden cards cannot be activated for inspection", () => {
       hand: [{ id: "redacted", label: "Face-down card", visible: false }] }} />);
   expect(screen.getByRole("button", { name: /Face-down/ })).toBeDisabled();
 });
+
+test("faction abilities display their purpose or the exact reason they are unavailable", () => {
+  render(<AccessibleMatchControls commands={{ activateAbility: jest.fn() }}
+    viewModel={{ perspective: { player: 1 }, selection: {}, lanes: [], hand: [], interactions: { abilities: [
+      { id: "zynarth:hatch", label: "Zalara · hatch an Egg", available: false,
+        intent: "Hatch one Egg.", reason: "Zalara needs an Egg in one of your lanes." },
+      { id: "astral:stage:card-1", label: "Myra Cross · stage a card", available: true,
+        intent: "Put one hand card on top of your deck." }
+    ] } }} />);
+  expect(screen.getByText("Zalara needs an Egg in one of your lanes.")).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Zalara · hatch an Egg" })).toBeDisabled();
+  expect(screen.getByText("Put one hand card on top of your deck.")).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Myra Cross · stage a card" })).toBeEnabled();
+});

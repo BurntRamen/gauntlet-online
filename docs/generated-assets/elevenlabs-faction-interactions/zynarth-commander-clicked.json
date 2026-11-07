@@ -9,8 +9,8 @@
   "modelId": "eleven_multilingual_v2",
   "outputFormat": "mp3_44100_128",
   "clientOutput": "client/public/assets/gauntlet/voices/faction-zynarth-commander-clicked.mp3",
-  "generatedAt": "2026-10-13T19:59:26.185Z",
-  "publishedAt": "2026-10-13T19:59:37.283Z",
-  "bytes": 48527,
-  "sha256": "0120c3eb1c4e414dc5d462505139ba066adeaaa19ab3e41615121a07fedfa7a1"
+  "generatedAt": "2026-10-30T17:27:31.882Z",
+  "publishedAt": "2026-10-30T17:28:03.693Z",
+  "bytes": 77783,
+  "sha256": "1486fa809b994d45ecb0fd0c5ade450369651f4b559e8a544b795827426f0edc"
 }

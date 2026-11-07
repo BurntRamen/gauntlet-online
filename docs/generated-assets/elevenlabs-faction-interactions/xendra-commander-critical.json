@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "xendra",
+  "role": "commander",
+  "event": "critical",
+  "line": "Ten. The smallest opening admits an infinite horizon.",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "clientOutput": "client/public/assets/gauntlet/voices/faction-xendra-commander-critical.mp3",
+  "generatedAt": "2026-10-30T17:27:43.499Z",
+  "publishedAt": "2026-10-30T17:28:03.739Z",
+  "bytes": 128774,
+  "sha256": "9740c5c917d405ea92c4e71a2759022efde0d48ecbebf648128e62b62b6dbcfc"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "mtano",
+  "role": "commander",
+  "event": "clicked",
+  "line": "Listen before the water changes course.",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "clientOutput": "client/public/assets/gauntlet/voices/faction-mtano-commander-clicked.mp3",
+  "generatedAt": "2026-10-30T17:27:25.935Z",
+  "publishedAt": "2026-10-30T17:28:03.663Z",
+  "bytes": 36823,
+  "sha256": "42eed009a226b5ec967526b29c968b7a29a8f283835b55a429be3054b9613e29"
+}

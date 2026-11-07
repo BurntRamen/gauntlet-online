@@ -9,8 +9,8 @@
   "modelId": "eleven_multilingual_v2",
   "outputFormat": "mp3_44100_128",
   "clientOutput": "client/public/assets/gauntlet/voices/faction-frumo-commander-wounded.mp3",
-  "generatedAt": "2026-10-13T19:58:51.475Z",
-  "publishedAt": "2026-10-13T19:59:37.129Z",
-  "bytes": 76112,
-  "sha256": "c66c4139e10ac2b01c46efe12e0acfda2da3982b1cee07a8992cb9c986a7cd7e"
+  "generatedAt": "2026-10-30T17:27:03.483Z",
+  "publishedAt": "2026-10-30T17:28:03.562Z",
+  "bytes": 73185,
+  "sha256": "e41e3a4febd29b1980fdc13c3c225497410585c87437260b7c2d4cd4e9a46c9f"
 }

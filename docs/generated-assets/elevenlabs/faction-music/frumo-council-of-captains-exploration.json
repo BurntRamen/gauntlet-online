@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "approvalRequired": true,
+  "creator": "ElevenLabs Music API",
+  "jobId": "frumo-council-of-captains-exploration",
+  "kind": "music",
+  "modelId": "music_v2_5",
+  "prompt": "Original complete three-minute instrumental faction theme for the Frumo of Gauntlet. Compose a full song with a submerged civic opening, restless privateer momentum, a bright revolutionary crest, a cold sparse passage of imperial overreach, and a hard-won communal return; do not repeat a short loop. The ocean homeworld Pelagos should shape every phrase: low water percussion, shell horn, bowed bass, nimble folk strings, distant pressure resonance, and rolling rhythms that feel like crews coordinating across separate vessels. Express freedom, wager, charismatic command, disaster, and the restored Council of Captains. Maritime and amphibious without becoming a comic sea shanty. No lyrics, no recognizable melody, no trailer climax. Companion arrangement direction: Create a genuinely distinct three-minute exploration and identity arrangement. Begin with unfamiliar territory and reveal the faction's signature instruments gradually. Keep the core philosophy recognizable without quoting the first track's melody; use a new tempo, harmonic center, and complete beginning-middle-end arc.",
+  "parameters": {
+    "music_length_ms": 180000,
+    "force_instrumental": true
+  },
+  "references": {},
+  "generationId": "Ehqe1fID5mzNYnVVyzhP",
+  "generatedAt": "2026-10-30T17:29:53.598Z",
+  "publishedAt": "2026-10-30T17:40:06.933Z",
+  "clientOutput": "client/public/assets/gauntlet/music/factions/frumo-council-of-captains-v2.mp3",
+  "contentMimeType": "audio/mpeg",
+  "bytes": 4320620,
+  "sha256": "35e4fdf2dda5fb3f48910a5681bf0950e8f87751c89b91ab8e245fe628dd9759"
+}

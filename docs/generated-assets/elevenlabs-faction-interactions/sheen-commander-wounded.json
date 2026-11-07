@@ -9,8 +9,8 @@
   "modelId": "eleven_multilingual_v2",
   "outputFormat": "mp3_44100_128",
   "clientOutput": "client/public/assets/gauntlet/voices/faction-sheen-commander-wounded.mp3",
-  "generatedAt": "2026-10-13T19:58:46.046Z",
-  "publishedAt": "2026-10-13T19:59:37.104Z",
-  "bytes": 73186,
-  "sha256": "92222333cbda8d260b21752da4296c7deec198d34477ce77ebfd230a7143a786"
+  "generatedAt": "2026-10-30T17:27:00.716Z",
+  "publishedAt": "2026-10-30T17:28:03.547Z",
+  "bytes": 59811,
+  "sha256": "985beb340e710175bb1216f9e22beb2fc127e94861edaaeed4ea84b429e7143c"
 }

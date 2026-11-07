@@ -28,6 +28,10 @@ test("operator creates, tests, assigns and publishes a reusable campaign modifie
   pending = page.waitForResponse(r => r.url().endsWith("/playtest/command")); await harness.getByRole("button", { name: "Execute selected action", exact: true }).click(); expect((await pending).status()).toBe(200);
   await page.screenshot({ path: "artifacts/phase2-rule-modifier.png", fullPage: true });
   await page.getByRole("button", { name: "Preview saved draft", exact: true }).click(); await page.getByRole("button", { name: "Review release", exact: true }).click(); await page.getByLabel("Release name").fill("Browser campaign rules"); await page.getByRole("button", { name: "Publish release", exact: true }).click(); await page.getByRole("button", { name: "Confirm publish", exact: true }).click(); await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible();
-  const manifest = (await (await request.get(origin + "/api/game-content")).json()).content;
+  // Retry only a reset transport on this idempotent read; HTTP failures and
+  // published-content assertions still fail without retrying the publication.
+  const published = await request.get(origin + "/api/game-content", { maxRetries: 2 });
+  expect(published.ok()).toBeTruthy();
+  const manifest = (await published.json()).content;
   expect(manifest.ruleModifiers.find(row => row.definition.id === modifier.id).definition.handSize).toBe(5); expect(manifest.campaigns.rumin.chapters.find(e => e.id === encounter.id).ruleModifierId).toBe(modifier.id);
 });

@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "approvalRequired": true,
+  "creator": "ElevenLabs Music API",
+  "jobId": "zynarth-infinite-hive-aftermath",
+  "kind": "music",
+  "modelId": "music_v2_5",
+  "prompt": "Original complete three-minute instrumental faction theme for the Zynarth of Gauntlet. Compose a full song with one living pulse as the introduction, expanding layers that consume and transform earlier material, a mournful sparse middle section, a resilient ecological return, and a changed but hopeful outro; do not repeat a short loop. A living planet thinks through insectoid bodies: low organic pulses, scraped chitin textures, breath-like bass, clustered strings, and amber bioluminescent tones. Express recycling, adaptation, grief, and stubborn hope. Alien and biological without generic horror. No lyrics, no recognizable melody, no jump scares or trailer climax. Companion arrangement direction: Create a genuinely distinct three-minute alliance and aftermath arrangement. Let separate motifs negotiate, cooperate, and leave visible scars in a reflective but forward-looking resolution. Do not quote the first track's melody; use a new tempo, harmonic center, and a complete beginning-middle-end arc rather than a loop.",
+  "parameters": {
+    "music_length_ms": 180000,
+    "force_instrumental": true
+  },
+  "references": {},
+  "generationId": "V09W6GNxLoaEXXuOA5WK",
+  "generatedAt": "2026-10-30T17:34:42.930Z",
+  "publishedAt": "2026-10-30T17:40:07.114Z",
+  "clientOutput": "client/public/assets/gauntlet/music/factions/zynarth-infinite-hive-v4.mp3",
+  "contentMimeType": "audio/mpeg",
+  "bytes": 4320620,
+  "sha256": "91dd031f038dd23d4c09637813659187218a53233bc6ebb71f9a3d0e32c523d8"
+}
