@@ -250,7 +250,7 @@ test("only admins can save player metadata, with unsaved-change protection and p
   expect((await new AxeBuilder({ page }).include(".gauntlet-admin").analyze()).violations).toEqual([]);
   await profile.getByRole("button", { name: "Save player name" }).click();
   await expect(profile.getByRole("heading", { name: "Visitor Updated" })).toBeVisible();
-  await expect(page.getByRole("status")).toHaveText("Player correction saved.");
+  await expect(page.getByRole("status")).toHaveText("Player metadata saved.");
   await page.reload();
   await adminArea(page, "Players");
   await expect(page.getByRole("button", { name: "View player Visitor Updated", exact: true })).toBeVisible();
@@ -1035,7 +1035,6 @@ test("Admin search opens exact prose editors, guards local edits, and publishes 
   await expect(page.getByText("1 saved field change", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
   await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible();
-  await workspaceView(page, "Preview");
   await expect(page.getByRole("region", { name: "Isolated draft preview", exact: true }).getByRole("heading", { name: "A browser-reviewed practice heading.", exact: true })).toBeVisible();
   await page.getByRole("navigation", { name: "Administration sections" }).getByRole("button", { name: "Publishing", exact: true }).click();
   await page.getByLabel("Release name").fill("Browser prose search");
