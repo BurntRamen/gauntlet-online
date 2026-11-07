@@ -1,6 +1,7 @@
-import { brandText, useBrandPreview } from './brand/brandPreview';
+import { brandText } from './brand/brandPreview';
 import { useEffect, useState } from "react";
 import { resolveVisualAsset } from "./GauntletVisuals";
+import { presentationArt, usePresentationArt } from "./brand/presentationArt";
 import CollectorCardPresentation from "./CollectorCardPresentation";
 import "./CollectorClaimScreen.css";
 
@@ -30,7 +31,7 @@ export default function CollectorClaimScreen({
   onOpenCollection,
   onDismiss
 }) {
-  useBrandPreview();
+  usePresentationArt();
   const [claim, setClaim] = useState(null);
   const [loading, setLoading] = useState(false);
   const [redeeming, setRedeeming] = useState(false);
@@ -174,7 +175,7 @@ export default function CollectorClaimScreen({
                 <ul>
                   {variants.map((variant, index) => (
                     <li key={`${variant.variantId}-${index}`}>
-                      {variant.art && <span className="collector-claim-art"><CollectorCardPresentation card={variant}><img src={resolveVisualAsset(variant.art)} alt="" loading="lazy" decoding="async" /></CollectorCardPresentation></span>}
+                      {variant.art && <span className="collector-claim-art"><CollectorCardPresentation card={variant}><img src={resolveVisualAsset(presentationArt(variant.art, { factionId: variant.factionId, cardId: variant.gameplayCardId, surface: "illustration" }))} alt="" loading="lazy" decoding="async" /></CollectorCardPresentation></span>}
                       <span className="collector-claim-reward-copy">
                         <strong>{variant.name || variant.variantId}</strong>
                         <small>{variant.edition || claim.product.edition} / {variant.finish || claim.product.finish}{variant.animated ? " / animated" : ""}</small>

@@ -1,0 +1,9 @@
+.preview-pack-art{position:relative;display:flex;flex:1;min-height:190px;width:100%;max-width:100%;isolation:isolate;align-items:center;justify-content:center;flex-direction:column;overflow:hidden;border:1px solid #7496b55c;border-radius:12px;background:radial-gradient(ellipse at 50% 30%,#223650,#080c18 75%);color:#fff2dc}
+.preview-pack-art[data-set="fractured-realms"]{background:radial-gradient(ellipse at 50% 20%,#502d24,#130f1b 75%)}
+.preview-pack-art[data-set="legacies"]{background:radial-gradient(ellipse at 50% 20%,#38284e,#0e1422 75%)}
+.preview-pack-lines{position:absolute;inset:12px;border:1px solid #a6bdd944;border-radius:5px;z-index:-1}
+.preview-pack-backdrop{position:absolute;inset:0;display:flex;opacity:.23;z-index:-2}
+.preview-pack-faction{flex:1;min-width:0;width:0;height:100%;object-fit:cover}
+.preview-pack-crest{width:112px;height:112px;object-fit:contain;filter:none;margin:10px 0 0}
+.preview-pack-wordmark{font:700 26px Georgia,serif;letter-spacing:.08em}
+.preview-pack-label{font-size:13px;line-height:1.35;text-align:center;padding:6px 14px 16px;letter-spacing:.04em;overflow-wrap:anywhere}

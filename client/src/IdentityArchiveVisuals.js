@@ -1,4 +1,4 @@
-import { FactionArtwork, FACTION_VISUALS } from "./GauntletVisuals";
+import { FactionArtwork, FACTION_VISUALS, getFactionCover } from "./GauntletVisuals";
 
 const KNOWN_FACTIONS = new Set(["rumin", "sheen", "frumo", "bizi"]);
 const IDENTITY_ARCHIVE_ART = "/assets/gauntlet/backgrounds/gauntlet-menu-identity-v2.jpg";
@@ -22,7 +22,7 @@ export function resolveAchievementVisual(achievement, campaign = {}, selectedFac
   const art = achievementId === "first-booster"
     ? PACK_ARCHIVE_ART
     : achievementId === "first-campaign-clear" && leadingFaction
-      ? campaigns[leadingFaction]?.coverImage || FACTION_VISUALS[leadingFaction]?.art
+      ? getFactionCover(leadingFaction, campaigns[leadingFaction]?.coverImage)
       : factionId === "basic"
         ? IDENTITY_ARCHIVE_ART
         : FACTION_VISUALS[factionId]?.art;
@@ -48,7 +48,7 @@ export function CampaignArchiveCard({ factionId, entry, completed }) {
   const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
   return (
     <article className={`identity-campaign-progress ${completed === total && total > 0 ? "is-complete" : ""}`} style={{ "--faction-accent": FACTION_VISUALS[factionId]?.accent || FACTION_VISUALS.basic.accent }}>
-      <FactionArtwork factionId={factionId} art={entry.coverImage} className="identity-campaign-art" decorative>
+      <FactionArtwork factionId={factionId} art={entry.coverImage} surface="cover" className="identity-campaign-art" decorative>
         <span className="identity-campaign-art-shade" />
         <span className="identity-campaign-index">{completed}/{total}</span>
       </FactionArtwork>

@@ -1,4 +1,5 @@
 import { brandText } from '../brand/brandPreview';
+import { getCardForPresentation, getPlayingCardArtPath } from "../cardArt";
 import { COMPOSED_CARD_SIZE, paintPublishedCardFace } from "./composedCardFace";
 import { createCollectorFoilMaterial } from "./collectorFoilMaterial";
 import { Camera } from "@babylonjs/core/Cameras/camera.js";
@@ -2083,6 +2084,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
 
   function getFaceMaterial(path, label, id, card) {
     if (card?.presentation?.composed) {
+      path = path || card.presentation.illustration;
       const texture = new DynamicTexture(`published-${id}`, COMPOSED_CARD_SIZE, babylonScene, true);
       const context = texture.getContext();
       paintPublishedCardFace(context, card, null); texture.update(true);
@@ -2507,8 +2509,8 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       runtime.mesh.visibility = 1;
     }
     const record = updateCardRecord(actor.actorId, actor.label, position, {
-      artPath: actor.artPath,
-      publishedCard: actor.card?.raw || actor.card,
+      artPath: brandText(getPlayingCardArtPath(actor.card?.raw || actor.card, actor.factionId) || actor.artPath, actor.artPath),
+      publishedCard: getCardForPresentation(actor.card?.raw || actor.card, actor.factionId),
       faceDown: actor.faceDown,
       initialPosition: initial ? new Vector3(initial.x, initial.y, initial.z) : undefined,
       initialRotation: initial ? new Vector3(

@@ -38,5 +38,5 @@ export function PrivateCard({ card, ...props }) {
   const illustration = card?.presentation?.illustration, result = useImage(illustration);
   if (result.error) return <p role="alert">Artwork unavailable · retrieval failed</p>;
   if (illustration?.startsWith("/api/admin/") && !result.src) return <p>Loading private artwork…</p>;
-  return <SpecialCardFace {...props} card={result.src && card.presentation ? { ...card, presentation: { ...card.presentation, illustration: result.src } } : card} />;
+  return <SpecialCardFace {...props} previewArt={false} card={result.src && card.presentation ? { ...card, presentation: { ...card.presentation, illustration: result.src } } : card} />;
 }

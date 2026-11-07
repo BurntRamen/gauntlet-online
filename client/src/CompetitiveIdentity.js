@@ -1,4 +1,6 @@
 import "./CompetitiveIdentity.css";
+import { presentationArt, usePresentationArt } from "./brand/presentationArt";
+import { resolveVisualAsset } from "./GauntletVisuals";
 import { DeckVisual } from "./GauntletVisuals";
 import DeckShowcase from "./DeckShowcase";
 import { PlayerAvatar } from "./ProfileAvatar";
@@ -8,7 +10,7 @@ import { CardBackArt, getCardBackDefinition } from "./CardBackArt";
 const DOSSIER_FACTIONS = new Set(["rumin", "sheen", "frumo", "bizi", "xendra"]);
 
 function factionArt(factionId) {
-  return factionId ? `${process.env.PUBLIC_URL || ""}/assets/gauntlet/${factionId}-card.webp` : "";
+  return factionId ? resolveVisualAsset(presentationArt(`/assets/gauntlet/${factionId}-card.webp`, { factionId, surface: "faction" })) : "";
 }
 
 function contentArt(path) {
@@ -68,7 +70,7 @@ function MatchRows({ profile, matches, onOpenMatch, onOpenReplay }) {
           || match.participants?.find((entry) => entry.accountId !== profile.accountId)
           || null;
         const participantFactionId = participant?.faction?.id;
-        const matchArt = contentArt(match.campaign?.image) || factionArt(participantFactionId);
+        const matchArt = contentArt(presentationArt(match.campaign?.image, { factionId: participantFactionId, surface: "scene" })) || factionArt(participantFactionId);
         const matchLabel = `${String(participant?.result || "record").toUpperCase()} ${participant?.faction?.name || "Basic"} vs ${opponent?.displayName || "Opponent"}`;
         return (
           <div className="competitive-match-row" key={match.matchId}>
@@ -92,6 +94,7 @@ function MatchRows({ profile, matches, onOpenMatch, onOpenReplay }) {
 }
 
 function ProfileBody({ profile, serverUrl, onOpenMatch, onOpenReplay }) {
+  usePresentationArt();
   const ranked = profile.competitiveRecord?.ranked || {};
   const all = profile.competitiveRecord?.all || {};
   const activeSeason = profile.competitiveRecord?.activeSeason || null;
@@ -169,7 +172,7 @@ function ProfileBody({ profile, serverUrl, onOpenMatch, onOpenReplay }) {
         <div className="competitive-campaign-grid">
           {campaignRecords.map((campaign) => {
             const progress = percentage(campaign.completed, campaign.total);
-            const art = contentArt(campaign.coverImage) || factionArt(campaign.factionId);
+            const art = contentArt(presentationArt(campaign.coverImage, { factionId: campaign.factionId, surface: "cover" })) || factionArt(campaign.factionId);
             return (
               <article className="competitive-campaign-card" key={campaign.factionId} style={art ? { backgroundImage: `linear-gradient(180deg, rgba(3,9,15,.08), rgba(3,9,15,.95)), url(${art})` } : undefined}>
                 <span>{campaign.factionName} archive</span>

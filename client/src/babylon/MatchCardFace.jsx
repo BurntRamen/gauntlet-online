@@ -1,11 +1,14 @@
+import { presentationArt, usePresentationArt } from "../brand/presentationArt";
 import { useEffect, useRef } from "react";
+import { getCardForPresentation } from "../cardArt";
 import { COMPOSED_CARD_SIZE, paintPublishedCardFace } from "./composedCardFace";
 
 export default function MatchCardFace({ card, alt = "", fallbackClassName = "" }) {
+  usePresentationArt();
   const canvasRef = useRef(null);
-  const publishedCard = card.raw || card;
+  const publishedCard = getCardForPresentation(card.raw || card, card.factionId || card.raw?.factionId);
   const composed = Boolean(publishedCard.presentation?.composed);
-  const artPath = card.artPath || publishedCard.presentation?.illustration;
+  const artPath = presentationArt((composed ? publishedCard.presentation?.illustration : card.artPath) || card.artPath, { factionId: publishedCard.factionId || card.factionId, surface: composed ? "illustration" : "card", cardId: publishedCard.gameplayCardId || publishedCard.definitionId || publishedCard.id });
 
   useEffect(() => {
     if (!composed) return undefined;

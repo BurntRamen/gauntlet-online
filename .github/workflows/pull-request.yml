@@ -77,6 +77,11 @@ jobs:
       - name: Test released menus with customization disabled
         run: npm run test:e2e:release-menus
 
+      - name: Test optional SuitFire presentation on desktop and phone
+        run: |
+          npx playwright test --config=playwright.suitfire.config.js
+          npm run check:bundle
+
       - name: Check compiled Babylon performance safeguards
         run: npm run test:e2e:performance
 

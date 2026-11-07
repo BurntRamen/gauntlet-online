@@ -37,7 +37,8 @@ import { projectPostMatchResult } from "../match/completionResultProjection";
 import { SeasonResultFacts } from "../SeasonZero";
 import "./CompletionResult.css";
 import { PlayerAvatar, resolveProfileAvatarUrl } from "../ProfileAvatar";
-import { getPlayingCardArtPath } from "../cardArt";
+import { presentationArt, usePresentationRegistry } from "../brand/presentationArt";
+import { getPlayingCardArtPath, getCardForPresentation } from "../cardArt";
 import AnimatedCharacterPortrait from "../AnimatedCharacterPortrait";
 
 const GRAPHICS_QUALITY_STORAGE_KEY = "gauntlet.graphicsQuality";
@@ -961,7 +962,7 @@ function MatchReferencePanel({ kind, snapshot, viewModel, commands, recentEvents
                         onFactionCardClick(role.toLowerCase());
                       }
                     } : undefined}>
-                    {profile.image && <img src={resolveMatchAssetPath(profile.image)} alt="" />}
+                    {profile.image && <img src={resolveMatchAssetPath(presentationArt(profile.image, { factionId: player.faction?.id, speaker: profile.name, surface: role === "City" ? "faction" : "portrait" }))} alt="" />}
                     <div>
                       <span>{role}</span>
                       <strong>{profile.name}</strong>
@@ -1272,9 +1273,9 @@ function CardInspection({ inspection, commands, viewModel, snapshot, docked = fa
 
 function MatchCardArt({ card, artPath, alt = "", loading }) {
   const raw = card?.raw || card;
-  if (raw?.presentation?.composed) return (
+  if (raw?.presentation?.composed || getCardForPresentation(raw, card.factionId || raw?.factionId) !== raw) return (
     <CollectorCardPresentation card={card} alwaysWrap>
-      <MatchCardFace card={{ raw, artPath }} alt={alt} />
+      <MatchCardFace card={{ raw, artPath, factionId: card.factionId }} alt={alt} />
     </CollectorCardPresentation>
   );
   return <CollectorCardPresentation card={card}><img src={artPath} alt={alt} loading={loading} /></CollectorCardPresentation>;
@@ -1554,7 +1555,8 @@ export default function ProductionMatchExperience({
   onRendererFailure,
   onSceneMetrics
 }) {
-  useBrandPreview();
+  const previewBrand = useBrandPreview();
+  const previewRegistry = usePresentationRegistry();
   const [update, setUpdate] = useState(null);
   const [authoritativeUpdate, setAuthoritativeUpdate] = useState(null);
   const [playbackState, setPlaybackState] = useState({
@@ -1896,7 +1898,10 @@ export default function ProductionMatchExperience({
           presentationPlaybackRate: update?.replay?.speed || 1
         }
       : battlefieldViewModel
-  ), [battlefieldViewModel, presentationKit, reducedMotion, update?.presentation?.cues, update?.presentation?.transitionMode, update?.replay?.speed, update?.replay?.transitionMode, update?.replay?.traversalGeneration, update?.source]);
+    // Scene art helpers read these external stores; a change must refresh the
+    // view-model reference without recreating the adapter or moving replay time.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  ), [previewBrand, previewRegistry, battlefieldViewModel, presentationKit, reducedMotion, update?.presentation?.cues, update?.presentation?.transitionMode, update?.replay?.speed, update?.replay?.transitionMode, update?.replay?.traversalGeneration, update?.source]);
 
   const phoneHandActive = Boolean(phoneHandLayout && viewModel
     && !viewModel.perspective?.spectator && !transportUpdate?.privacy?.required

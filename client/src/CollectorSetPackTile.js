@@ -1,3 +1,4 @@
+import PreviewPackArt from "./brand/PreviewPackArt";
 import { brandText, useBrandPreview } from './brand/brandPreview';
 const SET_THEMES = {
   initiative: { accent: "#f6c453", glow: "rgba(246,196,83,.36)", background: "linear-gradient(145deg, #020617, #111827 48%, #172554 100%)", art: "radial-gradient(circle at 50% 20%, rgba(246,196,83,.22), transparent 32%)" },
@@ -12,7 +13,7 @@ const FACTION_NAMES = {
 };
 
 export default function CollectorSetPackTile({ product, checkoutConfigured, onBuyPack }) {
-  useBrandPreview();
+  const preview = useBrandPreview();
   const theme = SET_THEMES[product.setId] || SET_THEMES.initiative;
   const available = product.available !== false;
   const canPurchase = available && checkoutConfigured;
@@ -29,9 +30,9 @@ export default function CollectorSetPackTile({ product, checkoutConfigured, onBu
       <span className="booster-pack-set">Set {product.setNumber} · Animated Styles</span>
       <strong>{product.displayName || product.setName}</strong>
       <span className="booster-pack-subtitle">{product.subtitle}</span>
-      <span className={`booster-pack-art ${product.artPath ? "booster-pack-art-featured" : ""}`} style={{ backgroundImage }}>
+      {preview ? <PreviewPackArt setId={product.setId} label={product.displayName || product.setName} /> : <span className={`booster-pack-art ${product.artPath ? "booster-pack-art-featured" : ""}`} style={{ backgroundImage }}>
         {!product.artPath && <span className="booster-pack-sigil">{product.setNumber}</span>}
-      </span>
+      </span>}
       <span className="booster-pack-count">{product.variantCount} collector styles · ${Number(product.priceUsd || 0).toFixed(2)}</span>
       <span className="booster-pack-slots"><span>{plannedNames.join(" · ")}</span></span>
       <button
