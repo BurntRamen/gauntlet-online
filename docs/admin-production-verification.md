@@ -1,12 +1,12 @@
 # Admin production verification
 
-Qualification date: 7 November 2026. All writes, purchases, repairs, releases and recovery experiments below use isolated fixtures. No production account or shared production draft was changed.
+Qualification date: 7 November 2026; final code checkpoint `1c5a8df`. All writes, purchases, repairs, releases and recovery experiments below use isolated fixtures. No production account or shared production draft was changed. Final GitHub workflow results are attached to [PR #104](https://github.com/BurntRamen/gauntlet-online/pull/104/checks); require passing checks on the reviewed code before merging.
 
 ## Automated and browser evidence
 
 | Gate | Result |
 | --- | --- |
-| Complete client suite after dependency updates | 119 suites, 910 tests passed; build-tool suite 4 passed. |
+| Complete client suite after dependency updates and final fixes | 120 suites, 911 tests passed together; build-tool suite 4 passed. |
 | Complete server suite | Initial local run: 624/625 passed. The remaining assertion expected an obsolete FFA error; corrected assertion passed. GitHub CI subsequently passed the complete server step. |
 | Crash recovery through actual production startup | Passed: killed a server during an active game/draft; replacement with a fresh filesystem recovered exact captured state and purchased entitlements/ledger records. Database outage denied further commands. |
 | Full private project recovery | 2 passed against executable PostgreSQL and an isolated object store: fourteen app-owned tables, credentials, portraits, social records, layouts, private drafts, hidden runtime states, canonical archives, lost replies, corrupted/missing bytes, owner-only empty-destination import and atomic rollback. |
@@ -21,7 +21,7 @@ Qualification date: 7 November 2026. All writes, purchases, repairs, releases an
 
 The main Admin matrix covers both approved identities, direct unauthorized requests, phone layouts, keyboard use, shared-draft conflicts, stale tests, live/custom testing, asset selection, creation of a set/card, mechanical execution, publication/rollback, earned Gold purchases/refunds, Ranked season terms and actual Para event settlement. It is not a claim of one uninterrupted clean local run.
 
-Final regression rechecks are in progress. A later CI run exposed browser Forward restoring background focus after the unsaved dialog opened; the modal now contains restored/programmatic focus, with a passing regression test. The broader player suite also exposed campaign entry retaining menu music and a transient board measurement during viewport changes. Campaign selection now drives its faction theme while menu ambience is inactive; the responsive check retains its usable-area limits and waits for the HUD resize observer. These fixes require the final compiled browser/CI checks before qualification is closed.
+Final compiled regression checks passed: browser Forward/guarded departure three consecutive times, keyboard context and second-operator conflicts (2/2), and the production journeys (3/3). The modal now contains browser-restored/programmatic focus. The two player regression journeys also passed: campaign music follows the selected faction, survives dialogue pause/resume, switches faction and returns to menu music on exit; the responsive dock retains the same canvas and usable-area/non-overlap requirements across four viewports. Its measurement waits for the HUD resize observer rather than sampling the intermediate viewport state. Earlier CI failures and their corrections are retained in the PR history, not represented as an uninterrupted green run.
 
 Three additional socket tests cover v2 paid controller choices, persistent reconnect/deadline handling, timeout without payment, duplicate commands and explicit opposing-player semantics in four-player combat. Unit and PostgreSQL tests exercise the remote storage adapter; browser tests exercise the common UI with isolated providers. They are distinct kinds of evidence.
 
