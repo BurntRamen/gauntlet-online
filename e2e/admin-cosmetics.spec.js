@@ -1,5 +1,5 @@
 const { navigatePlayer, openProfileExtras, openCollection, openCampaign } = require("./player-navigation");
-const { test, expect } = require("./admin-release-test"), { area, paraTab, identity, saveDefinition } = require("./admin-navigation");
+const { test, expect } = require("./admin-release-test"), { area, paraTab, identity, saveDefinition, previewSavedDraft } = require("./admin-navigation");
 const { origin } = require("./admin-urls"), fs = require("node:fs"), path = require("node:path"), AxeBuilder = require("@axe-core/playwright").default;
 test("operator publishes owned equipment; player acquires, equips and sees profile, deck and actual match appearance", async ({ page, request }) => {
   test.setTimeout(180000);
@@ -20,7 +20,7 @@ test("operator publishes owned equipment; player acquires, equips and sees profi
   await paraTab(page, "Marketplace"); await page.getByRole("button", { name: "New product", exact: true }).click(); await identity(page, "museum-collection"); await fill("Name", "Museum collection");
   await select("Category", "bundle"); await select("Pricing", "free"); await select("Availability", "active"); await fill("Start", "2020-01-01T00:00"); await fill("End", "2099-01-01T00:00");
   for (const [, name] of choices) await page.getByLabel(name, { exact: true }).check(); await save();
-  await page.getByRole("button", { name: "Validate draft", exact: true }).click(); await page.getByRole("button", { name: "Preview saved draft", exact: true }).click(); await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Validate draft", exact: true }).click(); await previewSavedDraft(page);
   await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible(); await area(page, "Publishing"); await fill("Release name", "Owned equipment destinations");
   await page.getByRole("button", { name: "Publish release", exact: true }).click(); await page.getByRole("button", { name: "Confirm publish", exact: true }).click(); await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible();
   const saveDeck = await request.post(origin + "/api/collection/save-constructed-deck", { headers, data: { name: "Museum recipe", factionId: "rumin", cardQuantities: {} } }); expect(saveDeck.status()).toBe(200);

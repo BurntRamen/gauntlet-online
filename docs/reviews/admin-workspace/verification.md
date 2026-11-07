@@ -44,6 +44,8 @@ The config builds with the explicit fixture backend and keeps player menu custom
 
 The focused suite exercises multi-field atomic saving, preserved sections and browser history, correct preview source, creation/duplication, printing selection and comparison, keyboard search and focus restoration, operator-scoped preferences, player/match evidence, player correction departure, failed saves, concurrent revision reconciliation, exact-field validation recovery, accepted engine commands and freshness invalidation, and fixture publication verified against the public active manifest. The publication journey restores the fixture's baseline release afterward. Final current-main coverage combines three successful journeys from the targeted run with nine successful journeys from the complementary run. A repeated `ECONNRESET` during a read-only fixture inspection was resolved by the same bounded GET retry used in existing admin tests; mutation requests, HTTP status assertions and UI assertions remain strict.
 
+The existing Admin matrix contains 37 journeys across `playwright.admin.config.js` (25), `playwright.purpose.config.js` (2), `playwright.printings.config.js` (2), `playwright.phase2.config.js` (7), and `playwright.gems.config.js` (1). The final local run used the same explicitly compiled backend on ports 3188/4188. Test navigation follows the new visible controls; saves still require server acknowledgement, and preview-to-review transitions wait for the successful preview response and ready status. Asset journeys wait for the active manifest body before entering the player collection. Immutable byte, ownership, engine-action, purchase, rollback and restart assertions remain intact.
+
 The native browser zoom check is `node e2e/admin-native-zoom.cjs`. It requires the same local client and backend running with the fixture root `.playwright-data/admin-redesign` (or an explicit `GAUNTLET_NATIVE_FIXTURE_ROOT`). It creates a fresh ignored Chromium profile, selects 200% in Chrome's Page zoom setting, verifies the measured viewport/device pixel ratio, exercises keyboard search and the navigation drawer, and scans accessibility. It does not use a personal browser profile.
 
 ## Validation status
@@ -51,17 +53,22 @@ The native browser zoom check is `node e2e/admin-native-zoom.cjs`. It requires t
 | Check | Result |
 | --- | --- |
 | Production client build, lint, compile and asset pruning | Passed with the structured-editor heading repair and explicit isolated backend; includes current main `6498387` |
-| Full client tests | 118 suites, 919 tests passed; 33 affected tests passed after the structured-heading repair |
-| Full server tests | 589 passed, zero failures or skips; run started at `db4e157` with bounded file concurrency, 28.2 minutes |
-| Subsequent record-validation repair | 49 affected server tests passed for `232ee6e`, plus 3 final schema/malformed-data checks; all 11 record-save cases covered |
+| Full client tests | 118 suites, 919 tests passed in CI on `fd0659d`; 33 affected local tests also passed after the structured-heading repair |
+| Full server tests | 596 passed, zero failures in CI on `fd0659d`, including all seven added validation regression cases |
+| Focused record-validation regressions | 49 affected server tests passed for `232ee6e`, plus 3 final schema/malformed-data checks; all 11 record-save cases covered |
 | Qualification tests | 53 passed |
+| Client toolchain tests | 4 passed in CI on `fd0659d` |
 | Strict match-asset report | Passed; no cutover blockers or checksum mismatches |
 | Focused redesign browser suite | 12 unique journeys passed on current main; final screenshots and preference coverage refreshed |
-| Existing admin browser suites | Final run pending |
+| Existing admin browser suites | All 37 unique journeys passed across the five configurations, including targeted reruns after navigation, heading and response-synchronization fixes |
 | Native 200% browser zoom | Passed: actual 200% page zoom, keyboard focus, zero Axe violations and 1366×768 full-surface capture |
 | Bundle checks | Main, player, initial Admin entry and largest async chunk passed; aggregate Admin budget failed |
 
 The aggregate lazy Admin JavaScript is **74.5 KiB gzip against the unchanged 61.0 KiB limit**. This is a merge blocker. The draft PR must remain unmerged until that budget is met; the limits were not relaxed. Passing budgets are main 177.4/180.0 KiB, player JavaScript 752.9/759.0 KiB, initial Admin entry 14.3/20.0 KiB, and largest async chunk 274.2/350.0 KiB.
+
+[The completed CI check job](https://github.com/BurntRamen/gauntlet-online/actions/runs/42341671985/job/128310492214) passed server, client, toolchain and production-build steps, then failed the unchanged aggregate Admin bundle gate. The CI production build also passed the other four bundle limits (main 177.5/180 KiB, player 755.5/759 KiB, initial Admin 14.3/20 KiB, largest async 274.2/350 KiB).
+
+A source-map audit found no duplicated vendor payload. The captured `b6d80ff` baseline, restricted to files in its asset manifest, used 62,454 bytes of the 62,464-byte Admin allowance. The redesign uses 76,250 bytes. An isolated internal-import consolidation experiment saved about 2 KiB but still exceeded the limit; it was not applied. Meeting the unchanged budget remains unfinished work.
 
 Responsive coverage uses 1920 × 1080, 1280 × 720, 768 × 1024, 390 × 844, and 683 × 384 CSS pixels, with reduced motion enabled, overflow checks, drawer keyboard behavior, accessible names and zero Axe violations at all five sizes. The phone journey edits a field, switches sections and preview modes without losing the buffer, saves, and verifies the shared draft response. The 683 × 384 viewport is a reflow simulation. Separately, real browser page zoom changed the measured viewport from 1366 × 768 at device pixel ratio 1 to 683 × 384 at device pixel ratio 2, with `visualViewport.scale` remaining 1; [native zoom metrics](after/native-zoom.json) distinguish that check from viewport emulation.
 

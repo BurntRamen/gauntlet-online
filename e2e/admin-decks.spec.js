@@ -1,4 +1,4 @@
-const { saveRecord, destination, workspaceSection, workspaceView } = require("./admin-navigation");
+const { saveRecord, destination, workspaceSection, workspaceView, previewSavedDraft } = require("./admin-navigation");
 const { openCollection } = require("./player-navigation");
 const { test, expect } = require("./admin-release-test");
 const { waitForBufferedAdminResponse } = require("./buffered-admin-response");
@@ -65,7 +65,7 @@ test("author, reopen, test, publish and buy a deck product; retain it across res
   await workspaceSection(page, "Encounter Workshop", "Opponent / Setup");
   await page.getByLabel("Draft authored opponent deck").selectOption(id); await saveRecord(page);
   await page.getByRole("button", { name: "Inspect assigned opponent recipe" }).click(); await testDeck();
-  await page.getByRole("button", { name: "Preview saved draft", exact: true }).click(); await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible(); await page.getByRole("button", { name: "Review release", exact: true }).click(); await page.getByLabel("Release name").fill("Browser deck R1"); await page.getByRole("button", { name: "Publish release", exact: true }).click(); await page.getByRole("button", { name: "Confirm publish", exact: true }).click(); await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible();
+  await previewSavedDraft(page); await page.getByRole("button", { name: "Review release", exact: true }).click(); await page.getByLabel("Release name").fill("Browser deck R1"); await page.getByRole("button", { name: "Publish release", exact: true }).click(); await page.getByRole("button", { name: "Confirm publish", exact: true }).click(); await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible();
   const buyer = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
   try {
     await buyer.addInitScript(token => localStorage.setItem("gauntlet_auth_token", token), playerToken); const p = await buyer.newPage(); await openPlayerShop(p);

@@ -1,4 +1,4 @@
-const { saveRecord, workspaceSection } = require("./admin-navigation");
+const { saveRecord, workspaceSection, previewSavedDraft } = require("./admin-navigation");
 const { openCollection } = require("./player-navigation");
 const { test, expect } = require("./admin-release-test");
 const { waitForBufferedAdminResponse } = require("./buffered-admin-response");
@@ -78,7 +78,7 @@ test("Admin uploads A/B, publishes, renders pinned matches, rolls back, restarts
   expect(hash(Buffer.from((await draftImage.getAttribute("src")).split(",")[1], "base64"))).toBe(a.sha256);
   await page.screenshot({ path: path.join(artifactRoot, "draft-match.png") });
   const publish = async label => {
-    await page.getByRole("button", { name: "Preview saved draft", exact: true }).click(); await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible();
+    await previewSavedDraft(page);
     await page.getByRole("button", { name: "Review release", exact: true }).click();
     await page.getByLabel("Release name").fill(label);
     await page.getByRole("button", { name: "Publish release", exact: true }).click();
@@ -93,7 +93,9 @@ test("Admin uploads A/B, publishes, renders pinned matches, rolls back, restarts
   await open(page); const b = await upload("#245cdd", true); expect(b.assetId).toBe(a.assetId); expect(b.version).toBe(2);
   expect(r1.game.handAttacks[0].card.presentation.illustrationAssetId).toBe(a.id); await delivered(a);
   await publish("Artwork R2"); const r2 = await capture(); expect(r2.game.handAttacks[0].card.presentation.illustrationAssetId).toBe(b.id); await delivered(b);
+  const manifestLoaded = page.waitForResponse(response => response.url() === serverUrl + "/api/game-content", { timeout: 20000 });
   await page.goto(baseURL);
+  const manifestResponse = await manifestLoaded; expect(manifestResponse.ok()).toBeTruthy(); await manifestResponse.finished();
   await openCollection(page, "catalog");
   await page.getByPlaceholder("Search cards", { exact: true }).fill("Rumin Sentry");
   const bUrl = serverUrl + `/api/content-assets/${b.id}/${b.sha256}.webp`;

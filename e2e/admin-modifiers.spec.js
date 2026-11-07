@@ -1,4 +1,4 @@
-const { saveRecord } = require("./admin-navigation");
+const { saveRecord, previewSavedDraft } = require("./admin-navigation");
 const { test, expect } = require("./admin-release-test");
 const { waitForBufferedAdminResponse } = require("./buffered-admin-response");
 const fs = require("node:fs"), path = require("node:path"), { origin } = require("./admin-urls");
@@ -28,7 +28,7 @@ test("operator creates, tests, assigns and publishes a reusable campaign modifie
   const pass = session.legalActions.find(a => a.type === "passPriority"); await harness.getByRole("combobox", { name: "Action", exact: true }).selectOption(pass.id);
   pending = page.waitForResponse(r => r.url().endsWith("/playtest/command")); await harness.getByRole("button", { name: "Execute selected action", exact: true }).click(); expect((await pending).status()).toBe(200);
   await page.screenshot({ path: "artifacts/phase2-rule-modifier.png", fullPage: true });
-  await page.getByRole("button", { name: "Preview saved draft", exact: true }).click(); await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible(); await page.getByRole("button", { name: "Review release", exact: true }).click(); await page.getByLabel("Release name").fill("Browser campaign rules"); await page.getByRole("button", { name: "Publish release", exact: true }).click(); await page.getByRole("button", { name: "Confirm publish", exact: true }).click(); await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible();
+  await previewSavedDraft(page); await page.getByRole("button", { name: "Review release", exact: true }).click(); await page.getByLabel("Release name").fill("Browser campaign rules"); await page.getByRole("button", { name: "Publish release", exact: true }).click(); await page.getByRole("button", { name: "Confirm publish", exact: true }).click(); await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible();
   // Retry only a reset transport on this idempotent read; HTTP failures and
   // published-content assertions still fail without retrying the publication.
   const published = await request.get(origin + "/api/game-content", { maxRetries: 2 });

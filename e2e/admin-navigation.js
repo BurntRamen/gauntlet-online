@@ -70,6 +70,14 @@ async function saveDefinition(page) {
   await page.getByRole("button", { name: "Close definition", exact: true }).click();
   await expect(name).toHaveCount(0);
 }
+async function previewSavedDraft(page) {
+  const pending = page.waitForResponse(response => response.url().endsWith("/authoring/preview") && response.request().method() === "POST");
+  await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
+  const response = await pending;
+  expect(response.ok()).toBeTruthy();
+  await response.finished();
+  await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible();
+}
 async function refreshAdmin(page) {
   await page.getByRole("button", { name: "Refresh admin", exact: true }).isVisible() || await page.getByLabel("Workspace options", { exact: true }).click();
   await page.getByRole("button", { name: "Refresh admin", exact: true }).click();
@@ -86,4 +94,4 @@ async function identity(page, value) {
   await page.getByText("Advanced · permanent identity", { exact: true }).click();
   await page.getByLabel("ID", { exact: true }).fill(value);
 }
-module.exports = { area, paraTab, identity, navigation, destination, workspaceSection, workspaceView, saveRecord, saveDefinition, refreshAdmin };
+module.exports = { area, paraTab, identity, navigation, destination, workspaceSection, workspaceView, saveRecord, saveDefinition, previewSavedDraft, refreshAdmin };

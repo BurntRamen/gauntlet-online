@@ -1,6 +1,6 @@
 const { test, expect } = require("./admin-release-test");
 const { waitForBufferedAdminResponse } = require("./buffered-admin-response");
-const { origin } = require("./admin-urls"), { area } = require("./admin-navigation");
+const { origin } = require("./admin-urls"), { area, previewSavedDraft } = require("./admin-navigation");
 const fs = require("node:fs"), path = require("node:path"), AxeBuilder = require("@axe-core/playwright").default;
 async function cardSection(page, name) { const select = page.getByRole("combobox", { name: "Card Workshop section", exact: true }); if (await select.isVisible()) await select.selectOption({ label: name }); else await page.getByRole("navigation", { name: "Card Workshop sections", exact: true }).getByRole("button", { name, exact: true }).click(); }
 
@@ -67,7 +67,7 @@ test("operator composes a reusable mechanic, creates a card, executes it and pub
   pending = waitForBufferedAdminResponse(page, r => r.url().endsWith("/playtest/command")); await harness.getByRole("button", { name: "Execute selected action", exact: true }).click(); const result = await (await pending).json();
   expect(result.playtest.game.handAttacks[0].effectiveValue).toBe(card.value + 2); expect(result.playtest.game.players[1].life).toBe(life + 1);
   await page.screenshot({ path: "artifacts/phase2-mechanic-engine.png", fullPage: true });
-  await page.getByRole("button", { name: "Preview saved draft", exact: true }).click(); await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible(); await page.getByRole("button", { name: "Review release", exact: true }).click(); await page.getByLabel("Release name").fill("Browser Studio verified"); await page.getByRole("button", { name: "Publish release", exact: true }).click(); await page.getByRole("button", { name: "Confirm publish", exact: true }).click(); await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible();
+  await previewSavedDraft(page); await page.getByRole("button", { name: "Review release", exact: true }).click(); await page.getByLabel("Release name").fill("Browser Studio verified"); await page.getByRole("button", { name: "Publish release", exact: true }).click(); await page.getByRole("button", { name: "Confirm publish", exact: true }).click(); await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible();
   const manifest = (await (await request.get(origin + "/api/game-content")).json()).content; const published = manifest.cards.find(c => c.id === card.id); expect(published.effect.definition.abilities[0].effects[0].amount).toBe(2);
   await area(page, "Content"); await page.goto("/admin/gauntlet?workshop=cards&object=" + card.id); await cardSection(page, "Artwork"); await expect.poll(() => page.locator(".admin-card-preview img").first().evaluate(img => img.complete && img.naturalWidth > 0)).toBeTruthy(); await page.screenshot({ path: "artifacts/phase2-new-card-preview.png" });
 });
