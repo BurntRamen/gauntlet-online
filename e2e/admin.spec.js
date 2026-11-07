@@ -382,6 +382,7 @@ test("manifest-picked faction and portrait artwork previews load immutable draft
       // the existing ID search so this edits the intended portrait owner.
       if (tab === "Characters / opponents") await page.getByLabel("Search characters / opponents").fill(role.id);
       await page.getByRole("button", { name: "Inspect " + name, exact: true }).click();
+      await workspaceView(page, "Editor");
       await page.getByLabel("Draft " + field, { exact: true }).locator("..").getByText("Advanced · manual reference", { exact: true }).click();
       await page.getByLabel("Draft " + field, { exact: true }).fill(artwork.id);
       await saveRecord(page);

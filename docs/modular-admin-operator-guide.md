@@ -6,7 +6,7 @@ This guide describes the implemented suite. Use [the current release record](adm
 
 ## Start in Home
 
-Use **Continue your work** for your recent and pinned records, or **Needs attention** for actionable shared blockers. Disabled services, unreadable data, pending publication and storage failures are distinct states. Published offer counts do not promise checkout availability. Account summaries identify their bounded sample; they do not measure online presence. Open the relevant area from each task. Refresh Admin after another operator publishes or performs an operation.
+Use **Continue working** and **Pinned shortcuts** for your recent and pinned records, or **Needs attention** for actionable shared blockers. Disabled services, unreadable data, pending publication and storage failures are distinct states. Published offer counts do not promise checkout availability. Account summaries identify their bounded sample; they do not measure online presence. Open the relevant area from each task. Refresh Admin after another operator publishes or performs an operation.
 
 The seven-area rail and named Content destinations remain available on desktop and in the **Navigation** drawer on smaller screens. Ctrl/Cmd+K opens search without moving the editor. Preferences control density, filters, pinned records, focus mode and preview visibility; reset restores the defaults. Preferences are scoped to the operator and server, and private recent/filter state is cleared when the account or server changes.
 

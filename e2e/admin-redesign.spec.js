@@ -5,12 +5,13 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const fixtureRoot = path.resolve(__dirname, "../.playwright-data/admin-redesign");
-const origin = `http://127.0.0.1:${process.env.GAUNTLET_ADMIN_FIXTURE_PORT || "4138"}`;
+const origin = `http://127.0.0.1:${process.env.GAUNTLET_ADMIN_FIXTURE_PORT || "4188"}`;
 const evidence = path.resolve(__dirname, "../docs/reviews/admin-workspace/after");
 const cardId = "rumin-coin-scale-spear";
 const sessions = () => JSON.parse(fs.readFileSync(path.join(fixtureRoot, "sessions.json"), "utf8"));
 const headers = name => ({ Authorization: `Bearer ${sessions()[name || "simply"]}` });
-const api = (request, route, options = {}) => request.get(origin + route, { headers: headers(), ...options });
+// Retry only transport resets on fixture reads; mutations and HTTP assertions remain strict.
+const api = (request, route, options = {}) => request.get(origin + route, { headers: headers(), maxRetries: 2, ...options });
 async function state(request) { const response = await api(request, "/api/admin/authoring"); expect(response.ok()).toBeTruthy(); return response.json(); }
 async function discard(request) { const current = await state(request); if (current.draft) expect((await request.post(origin + "/api/admin/authoring/discard", { headers: headers(), data: { expectedRevision: current.revision } })).ok()).toBeTruthy(); }
 async function openCard(page, id = cardId) { await page.goto(`/admin/gauntlet?workshop=cards&object=${id}`); await expect(page.getByRole("region", { name: "Card Workshop", exact: true })).toBeVisible(); await expect(page.getByLabel("Draft name", { exact: true })).toBeVisible(); }
@@ -276,6 +277,8 @@ test("saved-draft preview and fixture publication verify active without claiming
   await expect(review).toContainText("One release, across all workshops");
   await expect(review).toContainText(name);
   await image(page, "publishing-1366");
+  const publicationA11y = await new AxeBuilder({ page }).include(".gauntlet-admin").analyze();
+  expect(publicationA11y.violations).toEqual([]);
   await page.getByLabel("Release name", { exact: true }).fill("Isolated workspace review");
   await page.getByRole("button", { name: "Publish release", exact: true }).click();
   await expect(page.getByRole("region", { name: "Confirm content operation" })).toBeVisible();

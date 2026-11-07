@@ -3,8 +3,8 @@ const path = require("node:path");
 
 // Separate ports and stores prevent this review from touching another worktree,
 // the historical browser fixtures, or the documented production API fallback.
-const serverPort = process.env.GAUNTLET_ADMIN_FIXTURE_PORT || "4138";
-const clientPort = process.env.GAUNTLET_ADMIN_CLIENT_PORT || "3138";
+const serverPort = process.env.GAUNTLET_ADMIN_FIXTURE_PORT || "4188";
+const clientPort = process.env.GAUNTLET_ADMIN_CLIENT_PORT || "3188";
 const origin = `http://127.0.0.1:${serverPort}`;
 const clientOrigin = `http://127.0.0.1:${clientPort}`;
 const fixtureRoot = path.resolve(__dirname, ".playwright-data/admin-redesign");

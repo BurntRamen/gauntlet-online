@@ -3,18 +3,20 @@ const AxeBuilder = require('../node_modules/@axe-core/playwright').default;
 const fs = require('node:fs');
 const path = require('node:path');
 const expect = rawExpect.configure({ timeout: 30000 });
-const base = 'http://127.0.0.1:3138';
-const backend = 'http://127.0.0.1:4138';
+const base = `http://127.0.0.1:${process.env.GAUNTLET_ADMIN_CLIENT_PORT || '3188'}`;
+const backend = `http://127.0.0.1:${process.env.GAUNTLET_ADMIN_FIXTURE_PORT || '4188'}`;
 const evidence = path.resolve(__dirname, '../docs/reviews/admin-workspace/after');
 const profileDirectory = path.resolve(__dirname, '../artifacts');
 fs.mkdirSync(profileDirectory, { recursive: true });
 fs.mkdirSync(evidence, { recursive: true });
 const profile = fs.mkdtempSync(path.join(profileDirectory, 'native-zoom-profile-'));
-const sessions = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../.playwright-data/admin-redesign/sessions.json'), 'utf8'));
+const fixtureRoot = process.env.GAUNTLET_NATIVE_FIXTURE_ROOT || path.resolve(__dirname, '../.playwright-data/admin-redesign');
+const sessions = JSON.parse(fs.readFileSync(path.join(fixtureRoot, 'sessions.json'), 'utf8'));
 const metrics = page => page.evaluate(() => ({ innerWidth, innerHeight, outerWidth, outerHeight, devicePixelRatio, visualScale: visualViewport.scale, documentWidth: document.documentElement.scrollWidth }));
 (async () => {
   const context = await chromium.launchPersistentContext(profile, { channel: 'chromium', headless: true, viewport: null, reducedMotion: 'reduce', args: ['--window-size=1366,855', '--force-device-scale-factor=1'] });
-  await context.route('**/*', route => { const url = new URL(route.request().url()); return ['http:', 'https:'].includes(url.protocol) && ![base, backend].includes(url.origin) ? route.abort() : route.continue(); });
+  // Leave loopback requests on Chromium's native network path while blocking every external HTTP(S) origin.
+  await context.route(url => ['http:', 'https:'].includes(url.protocol) && ![base, backend].includes(url.origin), route => route.abort());
   await context.addInitScript(({token, origin}) => { if (location.origin === origin) localStorage.setItem('gauntlet_auth_token', token); }, { token: sessions.simply, origin: base });
   const page = context.pages()[0];
   try {
@@ -65,6 +67,8 @@ const metrics = page => page.evaluate(() => ({ innerWidth, innerHeight, outerWid
     const a11y = await new AxeBuilder({ page }).include('.gauntlet-admin').analyze();
     const result = { capturedAt: new Date().toISOString(), browser: 'Playwright Chromium persistent isolated profile', profile: 'Fresh temporary profile under ignored artifacts; no user browser profile reused.', method: 'chrome://settings/appearance Page zoom control selected 200%; no CSS zoom, page scale emulation, or viewport emulation.', capture: { method: 'CDP compositor surface, no clip', width: pixels.readUInt32BE(16), height: pixels.readUInt32BE(20) }, baseline: initial, zoom200: doubled, keyboardSearch: 'pass', navigationDrawer: 'pass', axeViolations: a11y.violations, client: base, backend };
     fs.writeFileSync(path.join(evidence, 'native-zoom.json'), JSON.stringify(result, null, 2) + '\n');
+    expect(result.capture.width).toBe(initial.innerWidth);
+    expect(result.capture.height).toBe(initial.innerHeight);
     expect(a11y.violations).toEqual([]);
     console.log(JSON.stringify(result, null, 2));
   } finally { await context.close(); }
