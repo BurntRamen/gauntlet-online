@@ -9,8 +9,8 @@
   "modelId": "eleven_multilingual_v2",
   "outputFormat": "mp3_44100_128",
   "clientOutput": "client/public/assets/gauntlet/voices/faction-rumin-commander-clicked.mp3",
-  "generatedAt": "2026-10-13T19:58:39.862Z",
-  "publishedAt": "2026-10-13T19:59:37.078Z",
-  "bytes": 49363,
-  "sha256": "08994d7cfaa904aca3b0f35a5a7d1eacc384ac56a0751ebe17b9f2ad84ebf4de"
+  "generatedAt": "2026-10-30T17:26:56.731Z",
+  "publishedAt": "2026-10-30T17:28:03.532Z",
+  "bytes": 48526,
+  "sha256": "eeb28895be75b1f8c66ef9c914eedb8a93f1b0a2c5a6502de677c4f91cc011d5"
 }

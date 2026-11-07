@@ -3,7 +3,7 @@
 // Finite deployed capabilities, never an interpreter for authored rules text.
 const { cardEffect, validateCardEffect, cardEffectDefinitions } = require("./effectRegistry");
 const VERSION = "gauntlet.support.v1";
-const TYPES = new Set(["armament", "weaponry", "spell", "shelter", "ambush", "contraption", "biomorph", "operation", "arcana"]);
+const TYPES = new Set(["armament", "weaponry", "spell", "shelter", "ambush", "contraption", "biomorph", "operation", "arcana", "conduit", "nightmare"]);
 const CONSUMED = new Set([
   "gilded-scale-legionary", "coin-scale-spear", "rumie-vault-shield", "imperial-scale-pike",
   "aurelian-clawblade", "triumphal-ram", "kaisers-gold-claw", "neutral-longsword",

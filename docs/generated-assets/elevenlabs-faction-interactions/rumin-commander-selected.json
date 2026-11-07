@@ -9,8 +9,8 @@
   "modelId": "eleven_multilingual_v2",
   "outputFormat": "mp3_44100_128",
   "clientOutput": "client/public/assets/gauntlet/voices/faction-rumin-commander-selected.mp3",
-  "generatedAt": "2026-10-13T19:58:38.902Z",
-  "publishedAt": "2026-10-13T19:59:37.070Z",
-  "bytes": 44347,
-  "sha256": "c769db6cd0730a00d279b8f957992c7851a407ddb081c0401afbc953219332ac"
+  "generatedAt": "2026-10-30T17:26:56.305Z",
+  "publishedAt": "2026-10-30T17:28:03.526Z",
+  "bytes": 45600,
+  "sha256": "93cc64066e941023e46d71948c157d922a7e7b4c41ad2e5e17d4ce6056bc84ca"
 }

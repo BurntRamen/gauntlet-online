@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "approvalRequired": true,
+  "creator": "ElevenLabs Music API",
+  "jobId": "sheen-living-renewal-exploration",
+  "kind": "music",
+  "modelId": "music_v2_5",
+  "prompt": "Original complete three-minute instrumental faction theme for the Sheen of Gauntlet. Compose a full song with a quiet seed-and-canopy opening, communal growth, a flowering civic middle, a thorned civil-war rupture, and a scarred but hopeful renewal; do not repeat a short loop. The living homeworld Gao should feel sentient without sounding human: woodwind breath, bowed wood, seed-pod percussion, low root-like drones, delicate plucked strings, and layered motifs that spread between instruments like a resilient network. Express care, reform, grief, and patient regrowth. Organic and alien, never generic pastoral fantasy. No lyrics, no recognizable melody, no trailer climax. Companion arrangement direction: Create a genuinely distinct three-minute exploration and identity arrangement. Begin with unfamiliar territory and reveal the faction's signature instruments gradually. Keep the core philosophy recognizable without quoting the first track's melody; use a new tempo, harmonic center, and complete beginning-middle-end arc.",
+  "parameters": {
+    "music_length_ms": 180000,
+    "force_instrumental": true
+  },
+  "references": {},
+  "generationId": "6mZH4aLxfUcpaJgZAbgK",
+  "generatedAt": "2026-10-30T17:29:11.707Z",
+  "publishedAt": "2026-10-30T17:40:06.902Z",
+  "clientOutput": "client/public/assets/gauntlet/music/factions/sheen-living-renewal-v2.mp3",
+  "contentMimeType": "audio/mpeg",
+  "bytes": 4320620,
+  "sha256": "6eedafbf61ecc281048bf61f2234ed586787f72b085e5a82f15f117402da26eb"
+}

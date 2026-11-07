@@ -2,8 +2,8 @@ import { BOARD_LAYOUT_PROFILES, getBoardLayoutProfile } from "./boardStage";
 import { getTableCameraProjection } from "./matchLayout";
 
 export function factionAbilityRole(id = "") {
-  if (/^(polea-|focus-|gracus:epicura(?=:|$)|jali:watane(?=:|$)|mekan:encore(?=:|$))/.test(id)) return "commander";
-  if (/^(lafayette-|meerus-|hera-|jali:basho$|mekan:(monti(?=:|$)|look$|keep$|bottom$))/.test(id)) return "general";
+  if (/^(polea-|focus-|gracus:epicura(?=:|$)|jali:watane(?=:|$)|mekan:encore(?=:|$)|zynarth:hatch(?=:|$)|astral:deploy(?=:|$))/.test(id)) return "commander";
+  if (/^(lafayette-|meerus-|hera-|jali:basho$|mekan:(monti(?=:|$)|look$|keep$|bottom$)|zynarth:klar(?=:|$)|astral:stage(?=:|$))/.test(id)) return "general";
   if (/^(jali:katana(?=:|$)|mekan:(remember(?=:|$)|invite(?=:|$)|cancel-invite$))/.test(id)) return "city";
   return null;
 }
@@ -13,7 +13,8 @@ export function factionBoardCards(faction, abilities = []) {
   const activatedRoles = {
     rumin: ["general"], frumo: ["commander", "general"], bizi: ["commander", "general"],
     mekan: ["commander", "city", ...(["monti", "acama", "ahu"].includes(faction.general?.id) ? ["general"] : [])],
-    jali: ["commander", "general", "city"], gracus: ["commander"]
+    jali: ["commander", "general", "city"], gracus: ["commander"],
+    zynarth: ["commander", "general"], "astral-vanguard": ["commander", "general"]
   }[faction.id] || [];
   return ["commander", "city", "general"].flatMap((role) => {
     const profile = faction[role];

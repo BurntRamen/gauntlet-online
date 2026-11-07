@@ -26,7 +26,7 @@ test("52-card workshop saves exact swaps and boxes; packs reveal sequentially on
   const factions = page.getByLabel("Deck faction", { exact: true }).locator("option");
   await expect.poll(async () => (await factions.evaluateAll(options => options.map(option => option.value))).sort()).toEqual([
     "rumin", "sheen", "frumo", "bizi", "mekan", "jali", "gracus", "indela",
-    "ingles", "mercaw", "mtano", "russo", "zynarth", "astral-vanguard"
+    "ingles", "mercaw", "mtano", "russo", "voltari", "xendra", "zynarth", "astral-vanguard"
   ].sort());
   await expect(page.getByRole("button", { name: "Compact", exact: true })).toHaveAttribute("aria-pressed", "true");
   expect((await page.locator(".deck-slot-panel").boundingBox()).height).toBeLessThan(550);

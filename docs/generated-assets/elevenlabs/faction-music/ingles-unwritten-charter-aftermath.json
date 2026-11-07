@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "approvalRequired": true,
+  "creator": "ElevenLabs Music API",
+  "jobId": "ingles-unwritten-charter-aftermath",
+  "kind": "music",
+  "modelId": "music_v2_5",
+  "prompt": "Original complete three-minute instrumental faction theme for the Ingles of Gauntlet. Compose a full song with a dignified maritime opening, a contrapuntal debate between distinct motifs, a vulnerable chamber-music middle passage, a coordinated return, and a calm open-ended resolution; do not repeat a short loop. Evoke an ocean civilization governed by revisable charters: low strings, restrained brass, frame drum, wooden flute, harbor bells, and several melodies that negotiate rather than overwhelm one another. Principled and brave without royal triumphalism. No lyrics, no recognizable melody, no bombastic trailer climax. Companion arrangement direction: Create a genuinely distinct three-minute alliance and aftermath arrangement. Let separate motifs negotiate, cooperate, and leave visible scars in a reflective but forward-looking resolution. Do not quote the first track's melody; use a new tempo, harmonic center, and a complete beginning-middle-end arc rather than a loop.",
+  "parameters": {
+    "music_length_ms": 180000,
+    "force_instrumental": true
+  },
+  "references": {},
+  "generationId": "VyLYVcti137zTa3YvqhP",
+  "generatedAt": "2026-10-30T17:37:36.833Z",
+  "publishedAt": "2026-10-30T17:40:07.228Z",
+  "clientOutput": "client/public/assets/gauntlet/music/factions/ingles-unwritten-charter-v4.mp3",
+  "contentMimeType": "audio/mpeg",
+  "bytes": 4320620,
+  "sha256": "80f31e90bdac00f58f96f8402f63f16ede0bf02643cf17a2efe0ddd77ffc7d1b"
+}

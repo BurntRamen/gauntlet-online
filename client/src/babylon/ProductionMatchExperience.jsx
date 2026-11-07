@@ -37,6 +37,7 @@ import { SeasonResultFacts } from "../SeasonZero";
 import "./CompletionResult.css";
 import { PlayerAvatar, resolveProfileAvatarUrl } from "../ProfileAvatar";
 import { getPlayingCardArtPath } from "../cardArt";
+import AnimatedCharacterPortrait from "../AnimatedCharacterPortrait";
 
 const GRAPHICS_QUALITY_STORAGE_KEY = "gauntlet.graphicsQuality";
 const MATCH_THEME_STORAGE_KEY = "gauntlet.matchTheme";
@@ -282,8 +283,8 @@ function resolveMatchAssetPath(path) {
   return `${process.env.PUBLIC_URL || ""}${path}`;
 }
 
-function CampaignDialogue({ title, lines = [], audio = [], audioEnabled }) {
-  const playback = useDialoguePlayback({ lines, audio, enabled: audioEnabled });
+function CampaignDialogue({ title, lines = [], audio = [], audioEnabled, factionId = "default" }) {
+  const playback = useDialoguePlayback({ lines, audio, factionId, enabled: audioEnabled });
   const { entries, playingIndex } = playback;
 
   if (entries.length === 0) return null;
@@ -298,6 +299,8 @@ function CampaignDialogue({ title, lines = [], audio = [], audioEnabled }) {
           const isPlaying = playingIndex === index;
           return (
             <blockquote className={isPlaying ? "is-playing" : ""} key={`${parts.speaker}-${index}`}>
+              <AnimatedCharacterPortrait speaker={parts.speaker} factionId={factionId}
+                speaking={isPlaying && !playback.paused} compact decorative />
               <div>
                 <strong>{parts.speaker}</strong>
                 <DialogueVoiceButton playback={playback} index={index} enabled={audioEnabled} />
@@ -348,6 +351,8 @@ function PlayerPlate({
       }[player.factionId] || `/assets/gauntlet/${player.factionId}-card.webp`)
     : "/assets/gauntlet/match/gauntlet-card-back-official.jpg";
   const portraitUrl = resolveProfileAvatarUrl(player, serverUrl);
+  const equippedCharacterPortrait = player.profile?.equipment?.portrait;
+  const revenants = Number(player.revenants || 0);
   return (
     <section
       className={`production-player-plate production-player-plate-${position}${hasPriority ? " has-priority" : ""}${lifeState}`}
@@ -355,7 +360,10 @@ function PlayerPlate({
       aria-label={`${player.name}, ${player.life} life${activeAria}, ${player.handCount} in hand, ${player.deckCount ?? 0} in deck, ${player.discardCount ?? 0} discarded`}
     >
       <div className="production-player-crest" aria-hidden="true">
-        {portraitUrl ? (
+        {equippedCharacterPortrait?.url ? (
+          <AnimatedCharacterPortrait speaker={equippedCharacterPortrait.name || player.name}
+            image={equippedCharacterPortrait.url} animated decorative compact />
+        ) : portraitUrl ? (
           <PlayerAvatar subject={player} name={player.name} serverUrl={serverUrl} size="small" decorative />
         ) : <><img src={crestPath} alt="" /><span>{initial}</span></>}
       </div>
@@ -378,10 +386,18 @@ function PlayerPlate({
       <div className="production-priority">
         {statusOverride || (hasPriority ? activeLabel : player.connected === false ? "Disconnected" : "Waiting")}
       </div>
+      {player.factionId === "jali" && (
+        <div className={`production-player-resource${revenants > 0 ? " has-resource" : " is-empty"}`}
+          role="status" aria-label={`${revenants} ${revenants === 1 ? "Revenant" : "Revenants"} available`}>
+          <span aria-hidden="true">♙</span>
+          <strong>{revenants}</strong>
+          <small>{revenants === 1 ? "Revenant" : "Revenants"}</small>
+        </div>
+      )}
       {onOpenAbilities && (
         <button type="button" className="production-player-abilities" data-match-zone="abilities"
           aria-expanded={abilitiesOpen} aria-controls="match-reference-dock" onClick={onOpenAbilities}>
-          Faction abilities
+          Faction abilities{player.factionId === "jali" ? ` · ${revenants}` : ""}
         </button>
       )}
     </section>
@@ -1069,6 +1085,7 @@ function MatchResult({
         lines={campaign?.endDialogue}
         audio={campaign?.endDialogueAudio}
         audioEnabled={audioEnabled}
+        factionId={campaign?.factionId}
       />
       <div className="production-result-actions">
         {!campaign && onContinueJourney && (
@@ -1187,6 +1204,7 @@ function CampaignEncounter({ campaign, audioEnabled, compact }) {
           lines={dialogue}
           audio={campaign.startDialogueAudio || campaign.dialogueAudio}
           audioEnabled={audioEnabled}
+          factionId={campaign.factionId}
         />
       </div>
     </details>

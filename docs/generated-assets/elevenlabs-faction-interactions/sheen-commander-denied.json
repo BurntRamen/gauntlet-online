@@ -9,8 +9,8 @@
   "modelId": "eleven_multilingual_v2",
   "outputFormat": "mp3_44100_128",
   "clientOutput": "client/public/assets/gauntlet/voices/faction-sheen-commander-denied.mp3",
-  "generatedAt": "2026-10-13T19:58:47.820Z",
-  "publishedAt": "2026-10-13T19:59:37.113Z",
-  "bytes": 47273,
-  "sha256": "b41119bf8a6332f72e002511f83dac3ccbf9c74387b61ee170ff143352b4f1e7"
+  "generatedAt": "2026-10-30T17:27:01.672Z",
+  "publishedAt": "2026-10-30T17:28:03.552Z",
+  "bytes": 57721,
+  "sha256": "cca1e82466bb456c0cfdfe4b23f684bb28e06d8d326f496dec4b3043d46a4988"
 }

@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "approvalRequired": true,
+  "creator": "ElevenLabs Music API",
+  "jobId": "mtano-mountain-remembers-conflict",
+  "kind": "music",
+  "modelId": "music_v2_5",
+  "prompt": "Original complete three-minute instrumental faction theme for the M'Tano of Gauntlet. Compose a full song with rain and a single ancestral pulse, a layered call-and-response development, a dry and nearly silent middle passage, a flowing return transformed by memory, and a hopeful grounded outro; do not repeat a short loop. Evoke mountain watersheds, astronomy, oral history, and ecological stewardship through deep hand drums, thumb piano-like plucks, warm voices used only as wordless texture, wooden flute, flowing water percussion, and low strings. Specific, humane, and future-facing without generic exotic fantasy. No lyrics, no recognizable melody, no trailer climax. Companion arrangement direction: Create a genuinely distinct three-minute conflict and crisis arrangement. Put the faction's philosophy under pressure through sharper rhythm, disrupted counterpoint, and a consequential middle reversal. Do not quote the first track's melody; use a new tempo, harmonic center, and a complete dramatic arc that remains useful under gameplay.",
+  "parameters": {
+    "music_length_ms": 180000,
+    "force_instrumental": true
+  },
+  "references": {},
+  "generationId": "IJpCL3U27Gl3MmFwuhXX",
+  "generatedAt": "2026-10-30T17:38:51.252Z",
+  "publishedAt": "2026-10-30T17:40:07.274Z",
+  "clientOutput": "client/public/assets/gauntlet/music/factions/mtano-mountain-remembers-v3.mp3",
+  "contentMimeType": "audio/mpeg",
+  "bytes": 4320620,
+  "sha256": "6a70fc870364624f026e1a95ce151684df79eebc5a99b7bd61a12059b78534ed"
+}

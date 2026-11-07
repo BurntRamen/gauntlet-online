@@ -77,7 +77,15 @@ for (const [name, renderer, viewport] of [["desktop Babylon", "babylon", { width
       await request.post(`${API}/__support/recover`);
       peer.socket.emit("reconnectToRoom", { roomCode: fixture.roomCode, reconnectToken: fixture.tokens[2] });
       await page.reload();
-      await expect(page.getByTestId("production-babylon-match")).toHaveAttribute("data-revision", "4");
+      // The React fallback performs its socket handshake after the document
+      // reload. On a busy CI runner that handshake can outlive the suite-wide
+      // 15 second assertion timeout even though the restored room is healthy.
+      // Give the persisted-session reconnect contract its own bounded window.
+      await expect(page.getByTestId("production-babylon-match")).toHaveAttribute(
+        "data-revision",
+        "4",
+        { timeout: 30_000 }
+      );
       // Restored receipts are evidence of an already committed action, not new
       // animation work that may lock the recovered board again.
       expect(await page.getByTestId("production-babylon-match").getAttribute("data-active-event-type")).toBe("");

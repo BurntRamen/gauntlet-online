@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "approvalRequired": true,
+  "creator": "ElevenLabs Music API",
+  "jobId": "gracus-stone-question-exploration",
+  "kind": "music",
+  "modelId": "music_v2_5",
+  "prompt": "Original complete three-minute instrumental faction theme for the Gracus of Gauntlet. Compose a full song with a monumental coastal opening, an argumentative thematic development, a quiet questioning middle section, a courageous return, and a thoughtful resolved outro; do not repeat a short loop. Monumental coastal stone, civic argument, and disciplined courage: frame drums, low lyre-like plucks, resonant stone impacts, measured horns, and a questioning modal melody that never settles too quickly. Strength must share space with doubt and open debate. Ancient but alive, philosophical rather than imperial. No lyrics, no recognizable melody, no bombastic trailer ending. Companion arrangement direction: Create a genuinely distinct three-minute exploration and identity arrangement. Begin with unfamiliar territory and reveal the faction's signature instruments gradually. Keep the core philosophy recognizable without quoting the first track's melody; use a new tempo, harmonic center, and complete beginning-middle-end arc.",
+  "parameters": {
+    "music_length_ms": 180000,
+    "force_instrumental": true
+  },
+  "references": {},
+  "generationId": "Vuu7kspCyx4BXThoJC7w",
+  "generatedAt": "2026-10-30T17:32:45.925Z",
+  "publishedAt": "2026-10-30T17:40:07.044Z",
+  "clientOutput": "client/public/assets/gauntlet/music/factions/gracus-stone-question-v2.mp3",
+  "contentMimeType": "audio/mpeg",
+  "bytes": 4320620,
+  "sha256": "32fb0085153f3ac25bcfe3479e6c3d6204969a1feeb83cbc682be454264fb82b"
+}

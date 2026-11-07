@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "approvalRequired": true,
+  "creator": "ElevenLabs Music API",
+  "jobId": "voltari-golden-conduit-aftermath",
+  "kind": "music",
+  "modelId": "music_v2_5",
+  "prompt": "Original complete three-minute instrumental faction theme for the Voltari of Gauntlet. Compose a full song with a precise human-derived opening, a development where procedural patterns transfer between instruments, a beautiful but uncomfortably compulsory middle section, a return that restores individual agency, and a luminous restrained outro; do not repeat a short loop. Human descendants organize energy and effort through golden conduits: precise interlocking metallic pulses, warm cello, electrical resonance, glass percussion, and procedural patterns. The system should sound helpful and elegant while asking who controls optimization. Advanced, luminous, and emotionally restrained. No lyrics, no recognizable melody, no trailer climax. Companion arrangement direction: Create a genuinely distinct three-minute alliance and aftermath arrangement. Let separate motifs negotiate, cooperate, and leave visible scars in a reflective but forward-looking resolution. Do not quote the first track's melody; use a new tempo, harmonic center, and a complete beginning-middle-end arc rather than a loop.",
+  "parameters": {
+    "music_length_ms": 180000,
+    "force_instrumental": true
+  },
+  "references": {},
+  "generationId": "5TJU1CddcBAljKCHhtbe",
+  "generatedAt": "2026-10-30T17:36:08.499Z",
+  "publishedAt": "2026-10-30T17:40:07.167Z",
+  "clientOutput": "client/public/assets/gauntlet/music/factions/voltari-golden-conduit-v4.mp3",
+  "contentMimeType": "audio/mpeg",
+  "bytes": 4320620,
+  "sha256": "87300f6150e9511ef397e2ba59b2f39141d675d32c6b5bb9dd80e55d828fb56b"
+}

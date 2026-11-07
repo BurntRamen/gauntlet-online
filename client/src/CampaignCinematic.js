@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { dialogueEntries, useDialoguePlayback } from "./dialoguePlayback";
 import DialoguePlaybackControls from "./DialoguePlaybackControls";
-import { getCampaignSpeakerImage } from "./CampaignDialogueBlock";
+import AnimatedCharacterPortrait from "./AnimatedCharacterPortrait";
 import { getFactionArtwork } from "./GauntletVisuals";
 import "./CampaignCinematic.css";
+import "./CampaignCinematicPortrait.css";
 
 function assetUrl(source) {
   if (!source || /^(?:[a-z]+:|\/\/)/i.test(source)) return source;
@@ -61,8 +62,8 @@ export default function CampaignCinematic({ cinematic, lines = [], audio = [], f
       </header>
       {!narrator && (
         <div className={`campaign-cinematic-character${isSpeaking ? " is-speaking" : ""}`} aria-hidden="true">
-          <img src={assetUrl(getCampaignSpeakerImage(entry.speaker, factionId))} alt="" />
-          <i />
+          <AnimatedCharacterPortrait speaker={entry.speaker} factionId={factionId}
+            speaking={isSpeaking} animated decorative />
         </div>
       )}
       <div className="campaign-cinematic-caption" aria-live="polite">

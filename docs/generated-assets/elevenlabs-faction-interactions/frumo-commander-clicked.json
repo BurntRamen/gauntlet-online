@@ -9,8 +9,8 @@
   "modelId": "eleven_multilingual_v2",
   "outputFormat": "mp3_44100_128",
   "clientOutput": "client/public/assets/gauntlet/voices/faction-frumo-commander-clicked.mp3",
-  "generatedAt": "2026-10-13T19:58:50.403Z",
-  "publishedAt": "2026-10-13T19:59:37.125Z",
-  "bytes": 43511,
-  "sha256": "59b8e767fbf286de40eecb4756780a6f5bc1291d1613628dd44f4240941d8c6e"
+  "generatedAt": "2026-10-30T17:27:03.002Z",
+  "publishedAt": "2026-10-30T17:28:03.559Z",
+  "bytes": 41838,
+  "sha256": "d332f91cb16ab1bd22789d8a361a25023ff6b6fb93ce2354cdf93d86269a5356"
 }

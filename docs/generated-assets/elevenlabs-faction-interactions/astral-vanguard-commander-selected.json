@@ -9,8 +9,8 @@
   "modelId": "eleven_multilingual_v2",
   "outputFormat": "mp3_44100_128",
   "clientOutput": "client/public/assets/gauntlet/voices/faction-astral-vanguard-commander-selected.mp3",
-  "generatedAt": "2026-10-13T19:59:31.629Z",
-  "publishedAt": "2026-10-13T19:59:37.307Z",
-  "bytes": 53124,
-  "sha256": "50289639b1b711551d77df3a1672fa6923926b78cdba9d290fb06c18bf1ee166"
+  "generatedAt": "2026-10-30T17:27:34.590Z",
+  "publishedAt": "2026-10-30T17:28:03.705Z",
+  "bytes": 56885,
+  "sha256": "4e1a02774d92c077b07a37a1b3f8c775bf27634a8dc305ddd6fba28cce6fda67"
 }

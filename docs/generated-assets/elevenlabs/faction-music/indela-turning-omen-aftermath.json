@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "approvalRequired": true,
+  "creator": "ElevenLabs Music API",
+  "jobId": "indela-turning-omen-aftermath",
+  "kind": "music",
+  "modelId": "music_v2_5",
+  "prompt": "Original complete three-minute instrumental faction theme for the Indela of Gauntlet. Compose a full song with a luminous scholarly opening, alternating warm and cool developments, a suspended contemplative middle passage, an interlocking return, and a clear resolved outro; do not repeat a short loop. A golden age balancing fire and frost: luminous plucked strings, glass harmonics, low bowed drones, hand bells, and slow interlocking rhythmic cycles. Warm and cool colors should alternate before combining. Mystical through pattern and observation, not vague fantasy magic. No lyrics, no recognizable melody, no trailer climax. Companion arrangement direction: Create a genuinely distinct three-minute alliance and aftermath arrangement. Let separate motifs negotiate, cooperate, and leave visible scars in a reflective but forward-looking resolution. Do not quote the first track's melody; use a new tempo, harmonic center, and a complete beginning-middle-end arc rather than a loop.",
+  "parameters": {
+    "music_length_ms": 180000,
+    "force_instrumental": true
+  },
+  "references": {},
+  "generationId": "PqD8zEdUukFXN0alsqVk",
+  "generatedAt": "2026-10-30T17:34:00.131Z",
+  "publishedAt": "2026-10-30T17:40:07.088Z",
+  "clientOutput": "client/public/assets/gauntlet/music/factions/indela-turning-omen-v4.mp3",
+  "contentMimeType": "audio/mpeg",
+  "bytes": 4320620,
+  "sha256": "1980e49296b3bbafee9774d4d8fbae08c8269275793075b0119e4c81cb812bcd"
+}

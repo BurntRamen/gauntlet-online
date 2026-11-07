@@ -5,7 +5,7 @@ const PUBLIC = path.resolve(__dirname, "../client/public");
 const ANALYSIS = "service:match-analysis-v1";
 const TITLE = "service:profile-title-v1";
 const music = new Set(["profile-music", "faction-soundtrack"]);
-const images = new Set(["collector-treatment", "card-back", "deck-box", "faction-banner"]);
+const images = new Set(["collector-treatment", "card-back", "deck-box", "faction-banner", "character-portrait"]);
 const publications = new Set(["digital-publication", "digital-edition"]);
 const ownershipKey = term => `${require("./cosmeticEquipment").SLOTS[term.category] || "content"}:${term.delivery.id}`;
 function resolveDelivery(term, verify = true) {

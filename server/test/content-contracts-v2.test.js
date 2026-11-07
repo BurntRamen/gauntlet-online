@@ -138,6 +138,7 @@ test("every manifest reference resolves to immutable bytes with the declared dig
     assert.ok(row.associations.length);
     assert.equal(crypto.createHash("sha256").update(fs.readFileSync(path.resolve(__dirname, "../../client/public", `.${row.path}`))).digest("hex"), row.sha256);
     assert.equal(assets.resolveAsset(row.id), row.path);
+    assert.equal(assets.resolveAsset(`${row.source}?v=${row.sha256.slice(0, 12)}`), row.path);
     assert.ok(row.path.includes(row.sha256));
   }
 });

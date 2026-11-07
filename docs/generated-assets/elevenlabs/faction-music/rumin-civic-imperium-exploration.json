@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "approvalRequired": true,
+  "creator": "ElevenLabs Music API",
+  "jobId": "rumin-civic-imperium-exploration",
+  "kind": "music",
+  "modelId": "music_v2_5",
+  "prompt": "Original complete three-minute instrumental faction theme for the Rumin of Gauntlet. Compose a full song with a civic marble-and-river opening, measured republican debate, an accelerating imperial middle where motifs and resources are centralized, a fractured passage after assassination, and a resilient synthesis in the outro; do not repeat a short loop. The music personifies the transfer of labor, capital, information, and military effort: frame drums, low lyre-like strings, disciplined brass, coin and stone percussion, and a warm public-square melody that becomes an efficient march before returning with distributed counterpoint. Powerful, humane, and politically uneasy rather than triumphalist. No lyrics, no recognizable melody, no trailer climax. Companion arrangement direction: Create a genuinely distinct three-minute exploration and identity arrangement. Begin with unfamiliar territory and reveal the faction's signature instruments gradually. Keep the core philosophy recognizable without quoting the first track's melody; use a new tempo, harmonic center, and complete beginning-middle-end arc.",
+  "parameters": {
+    "music_length_ms": 180000,
+    "force_instrumental": true
+  },
+  "references": {},
+  "generationId": "E2NLYjyBeRbCmeRa9XsX",
+  "generatedAt": "2026-10-30T17:28:30.469Z",
+  "publishedAt": "2026-10-30T17:40:06.868Z",
+  "clientOutput": "client/public/assets/gauntlet/music/factions/rumin-civic-imperium-v2.mp3",
+  "contentMimeType": "audio/mpeg",
+  "bytes": 4320620,
+  "sha256": "40a20bc602277694a8eb0e803cecd16bbe82b7b3cc379a111c0e4352d708e96b"
+}

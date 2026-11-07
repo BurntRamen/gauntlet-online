@@ -644,6 +644,7 @@ for (const faction of listFactions()) {
     setNumber: set?.number || 5,
     setName: set?.name || "Convergence",
     factionId: faction.id,
+    artPath: faction.cardImage || null,
     cardCount: EARNED_GAMEPLAY_PACK_CARD_COUNT,
     slots: [...EARNED_GAMEPLAY_PACK_SLOTS],
     faceCardOdds: FACE_CARD_ODDS,

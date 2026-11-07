@@ -9,8 +9,8 @@
   "modelId": "eleven_multilingual_v2",
   "outputFormat": "mp3_44100_128",
   "clientOutput": "client/public/assets/gauntlet/voices/faction-sheen-general-clicked.mp3",
-  "generatedAt": "2026-10-13T19:58:48.611Z",
-  "publishedAt": "2026-10-13T19:59:37.117Z",
-  "bytes": 65663,
-  "sha256": "86e846574c291c5451c80d130e4b0581ae2c9498cd90210191eead7dd0666b96"
+  "generatedAt": "2026-10-30T17:27:02.133Z",
+  "publishedAt": "2026-10-30T17:28:03.554Z",
+  "bytes": 69424,
+  "sha256": "01252edfbce77be7ea638d799a6acb831860d6b4fd1dcecca3189d22cbb30bb6"
 }

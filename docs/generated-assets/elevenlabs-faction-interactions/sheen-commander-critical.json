@@ -9,8 +9,8 @@
   "modelId": "eleven_multilingual_v2",
   "outputFormat": "mp3_44100_128",
   "clientOutput": "client/public/assets/gauntlet/voices/faction-sheen-commander-critical.mp3",
-  "generatedAt": "2026-10-13T19:58:47.018Z",
-  "publishedAt": "2026-10-13T19:59:37.109Z",
-  "bytes": 50199,
-  "sha256": "e97c418ba9fc2cd09c08802d41ff914f5eefd89da0def303fd3a0f6ec9ae65cb"
+  "generatedAt": "2026-10-30T17:27:01.182Z",
+  "publishedAt": "2026-10-30T17:28:03.550Z",
+  "bytes": 51034,
+  "sha256": "9a0593c55f77556594d61a5d2a2f78227284166603226baf9120447d932ab6f2"
 }

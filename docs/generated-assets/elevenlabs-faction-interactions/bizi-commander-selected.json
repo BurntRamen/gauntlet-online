@@ -9,8 +9,8 @@
   "modelId": "eleven_multilingual_v2",
   "outputFormat": "mp3_44100_128",
   "clientOutput": "client/public/assets/gauntlet/voices/faction-bizi-commander-selected.mp3",
-  "generatedAt": "2026-10-13T19:58:55.410Z",
-  "publishedAt": "2026-10-13T19:59:37.146Z",
-  "bytes": 41839,
-  "sha256": "7ada53ff54b597f5ae56cd18d965fa802bd753208f42d6434df671cd30b20270"
+  "generatedAt": "2026-10-30T17:27:05.373Z",
+  "publishedAt": "2026-10-30T17:28:03.569Z",
+  "bytes": 44764,
+  "sha256": "acdf09e43c851a6b621f1b35b4cb14562bf5992575e2208eec88b879b3f05031"
 }

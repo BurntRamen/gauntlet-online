@@ -9,8 +9,8 @@
   "modelId": "eleven_multilingual_v2",
   "outputFormat": "mp3_44100_128",
   "clientOutput": "client/public/assets/gauntlet/voices/faction-mekan-commander-denied.mp3",
-  "generatedAt": "2026-10-13T19:59:05.070Z",
-  "publishedAt": "2026-10-13T19:59:37.188Z",
-  "bytes": 37660,
-  "sha256": "a02d844dbb88fdb1a2defad2fd04c6783a08fa0d933df840ef9a0d0148af300c"
+  "generatedAt": "2026-10-30T17:27:10.787Z",
+  "publishedAt": "2026-10-30T17:28:03.591Z",
+  "bytes": 36823,
+  "sha256": "5f1948eafd3fa6342cc4d4e7c5ba186ccfaf516c669a342342ab594e295bc7e7"
 }

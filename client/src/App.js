@@ -24,6 +24,7 @@ import SpecialCardFace, { getCardIllustration } from "./SpecialCardFace";
 import CollectorCardPresentation from "./CollectorCardPresentation";
 import { useDialogueActivity } from "./dialoguePlayback";
 import { resolveCharacterVoice } from "./characterVoices";
+import { playFactionVoice } from "./factionVoicePlayback";
 import CampaignChapterBriefing from "./CampaignChapterBriefing";
 import { DeckVisual, FactionArtwork, FACTION_VISUALS, getFactionArtwork, getFactionAsset, resolveVisualAsset } from "./GauntletVisuals";
 import FactionLoadoutPicker from "./FactionLoadoutPicker";
@@ -40,6 +41,7 @@ import {
   fetchAuthoritativeAccount
 } from "./completionAccountRefresh";
 import { PlayerAvatar, ProfilePortraitEditor } from "./ProfileAvatar";
+import AnimatedCharacterPortrait from "./AnimatedCharacterPortrait";
 import { CardBackArt, getCardBackDefinition, resolveCardBackAsset } from "./CardBackArt";
 import {
   DEFAULT_MENU_AUDIO_SETTINGS,
@@ -240,6 +242,8 @@ const TABLETOP_THEME = {
   shadow: "0 14px 36px rgba(0,0,0,0.42), inset 0 0 0 1px rgba(255,232,188,0.08), inset 0 18px 42px rgba(255,255,255,0.04)"
 };
 
+const factionThemeSources = (slug) => [1, 2, 3, 4].map((version) => `/assets/gauntlet/music/factions/${slug}-v${version}.mp3`);
+
 const MUSIC_TRACKS = {
   menu: {
     label: "The Quiet Workshop",
@@ -262,23 +266,23 @@ const MUSIC_TRACKS = {
   basic: { label: "Basic Gauntlet Theme", pad: [65.41, 87.31, 130.81], notes: [261.63, 293.66, 329.63, 392, 349.23, 293.66, 246.94, 261.63], tempo: 600, wave: "triangle" },
   rumin: {
     label: "The Civic Imperium",
-    sources: ["/assets/gauntlet/music/factions/rumin-civic-imperium-v1.mp3"]
+    sources: factionThemeSources("rumin-civic-imperium")
   },
   sheen: {
     label: "The Living Renewal",
-    sources: ["/assets/gauntlet/music/factions/sheen-living-renewal-v1.mp3"]
+    sources: factionThemeSources("sheen-living-renewal")
   },
   frumo: {
     label: "The Council of Captains",
-    sources: ["/assets/gauntlet/music/factions/frumo-council-of-captains-v1.mp3"]
+    sources: factionThemeSources("frumo-council-of-captains")
   },
   bizi: {
     label: "The Plural Machine",
-    sources: ["/assets/gauntlet/music/factions/bizi-plural-machine-v1.mp3"]
+    sources: factionThemeSources("bizi-plural-machine")
   },
   mekan: {
     label: "The Eternal Festival",
-    sources: ["/assets/gauntlet/music/factions/mekan-eternal-festival-v1.mp3"],
+    sources: factionThemeSources("mekan-eternal-festival"),
     pad: [55, 82.41, 110],
     notes: [329.63, 392, 440, 523.25, 493.88, 392],
     tempo: 520,
@@ -286,22 +290,22 @@ const MUSIC_TRACKS = {
   },
   jali: {
     label: "The Revenant Formation",
-    sources: ["/assets/gauntlet/music/factions/jali-revenant-formation-v1.mp3"],
+    sources: factionThemeSources("jali-revenant-formation"),
     pad: [46.25, 69.3, 92.5],
     notes: [220, 261.63, 293.66, 349.23, 293.66, 246.94],
     tempo: 680,
     wave: "sawtooth"
   },
-  gracus: { label: "The Stone Question", sources: ["/assets/gauntlet/music/factions/gracus-stone-question-v1.mp3"], pad: [55, 82.41, 110], notes: [164.81, 220, 246.94, 329.63, 293.66], tempo: 610, wave: "square" },
-  indela: { label: "The Turning Omen", sources: ["/assets/gauntlet/music/factions/indela-turning-omen-v1.mp3"], pad: [69.3, 103.83, 138.59], notes: [277.18, 311.13, 369.99, 415.3, 369.99], tempo: 740, wave: "sine" },
-  zynarth: { label: "The Infinite Hive", sources: ["/assets/gauntlet/music/factions/zynarth-infinite-hive-v1.mp3"], pad: [41.2, 61.74, 82.41], notes: [164.81, 155.56, 185, 220, 207.65], tempo: 720, wave: "sawtooth" },
-  "astral-vanguard": { label: "The Hybrid Horizon", sources: ["/assets/gauntlet/music/factions/astral-vanguard-hybrid-horizon-v1.mp3"], pad: [55, 82.41, 110], notes: [220, 277.18, 329.63, 293.66, 369.99], tempo: 600, wave: "triangle" },
-  voltari: { label: "The Golden Conduit", sources: ["/assets/gauntlet/music/factions/voltari-golden-conduit-v1.mp3"], pad: [46.25, 69.3, 92.5], notes: [277.18, 311.13, 415.3, 369.99], tempo: 540, wave: "sine" },
-  xendra: { label: "Aspect Without Form", sources: ["/assets/gauntlet/music/factions/xendra-aspect-without-form-v1.mp3"], pad: [46.25, 69.3, 92.5], notes: [185, 174.61, 207.65, 138.59, 155.56, 123.47], tempo: 780, wave: "sine" },
-  ingles: { label: "The Unwritten Charter", sources: ["/assets/gauntlet/music/factions/ingles-unwritten-charter-v1.mp3"] },
-  mercaw: { label: "The Many-Star Accord", sources: ["/assets/gauntlet/music/factions/mercaw-many-star-accord-v1.mp3"] },
-  mtano: { label: "The Mountain Remembers", sources: ["/assets/gauntlet/music/factions/mtano-mountain-remembers-v1.mp3"] },
-  russo: { label: "The Long Winter Oath", sources: ["/assets/gauntlet/music/factions/russo-long-winter-oath-v1.mp3"] }
+  gracus: { label: "The Stone Question", sources: factionThemeSources("gracus-stone-question"), pad: [55, 82.41, 110], notes: [164.81, 220, 246.94, 329.63, 293.66], tempo: 610, wave: "square" },
+  indela: { label: "The Turning Omen", sources: [...factionThemeSources("indela-turning-omen"), "/assets/gauntlet/music/factions/indela-turning-omen-v5.mp3"], pad: [69.3, 103.83, 138.59], notes: [277.18, 311.13, 369.99, 415.3, 369.99], tempo: 740, wave: "sine" },
+  zynarth: { label: "The Infinite Hive", sources: factionThemeSources("zynarth-infinite-hive"), pad: [41.2, 61.74, 82.41], notes: [164.81, 155.56, 185, 220, 207.65], tempo: 720, wave: "sawtooth" },
+  "astral-vanguard": { label: "The Hybrid Horizon", sources: factionThemeSources("astral-vanguard-hybrid-horizon"), pad: [55, 82.41, 110], notes: [220, 277.18, 329.63, 293.66, 369.99], tempo: 600, wave: "triangle" },
+  voltari: { label: "The Golden Conduit", sources: factionThemeSources("voltari-golden-conduit"), pad: [46.25, 69.3, 92.5], notes: [277.18, 311.13, 415.3, 369.99], tempo: 540, wave: "sine" },
+  xendra: { label: "Aspect Without Form", sources: factionThemeSources("xendra-aspect-without-form"), pad: [46.25, 69.3, 92.5], notes: [185, 174.61, 207.65, 138.59, 155.56, 123.47], tempo: 780, wave: "sine" },
+  ingles: { label: "The Unwritten Charter", sources: factionThemeSources("ingles-unwritten-charter") },
+  mercaw: { label: "The Many-Star Accord", sources: factionThemeSources("mercaw-many-star-accord") },
+  mtano: { label: "The Mountain Remembers", sources: factionThemeSources("mtano-mountain-remembers") },
+  russo: { label: "The Long Winter Oath", sources: factionThemeSources("russo-long-winter-oath") }
 };
 
 const MENU_THEME = {
@@ -1361,7 +1365,10 @@ function IdentityDossierHero({ account, featuredDecks, authToken, serverUrl, onA
     <section className="identity-dossier-hero" aria-label="Player identity" style={{ "--faction-accent": FACTION_VISUALS[badgeId]?.accent || FACTION_VISUALS.basic.accent }}>
       {equipment.banner ? <img src={equipment.banner.url} alt={equipment.banner.name} className="identity-dossier-art" /> : <FactionArtwork factionId={badgeId} art={badgeId === "basic" ? "/assets/gauntlet/backgrounds/gauntlet-menu-identity-v2.jpg" : ""} decorative className="identity-dossier-art" />}
       <div className="identity-dossier-portrait">
-        <PlayerAvatar subject={account} name={account?.name || "Guest"} serverUrl={serverUrl} size="large" />
+        {equipment.portrait?.url
+          ? <AnimatedCharacterPortrait speaker={equipment.portrait.name || account?.name || "Commander"}
+              image={equipment.portrait.url} animated />
+          : <PlayerAvatar subject={account} name={account?.name || "Guest"} serverUrl={serverUrl} size="large" />}
       </div>
       <div className="identity-dossier-copy">
         <span>{title}</span>
@@ -1438,7 +1445,9 @@ const PACK_THEMES = {
   ingles: { name: "Ingles", subtitle: "The Unwritten Charter", accent: "#e9c46a", glow: "#e9c46a4d", background: "linear-gradient(145deg,#102a43,#7c5b22)" },
   mercaw: { name: "Mercaw", subtitle: "The Many-Star Accord", accent: "#60a5fa", glow: "#60a5fa57", background: "linear-gradient(145deg,#172554,#7c3aed)" },
   mtano: { name: "M'Tano", subtitle: "The Mountain Remembers", accent: "#9ccf9b", glow: "#9ccf9b4d", background: "linear-gradient(145deg,#173f35,#155e75)" },
-  russo: { name: "Russo", subtitle: "The Long Winter Oath", accent: "#b9d7ea", glow: "#b9d7ea52", background: "linear-gradient(145deg,#202b3c,#7c2d12)" }
+  russo: { name: "Russo", subtitle: "The Long Winter Oath", accent: "#b9d7ea", glow: "#b9d7ea52", background: "linear-gradient(145deg,#202b3c,#7c2d12)" },
+  voltari: { name: "Voltari", subtitle: "The Golden Conduit", accent: "#f8d477", glow: "rgba(248,212,119,.34)", background: "linear-gradient(145deg,#2f2410,#9a6a18 44%,#16345c 90%)", art: "repeating-linear-gradient(90deg, rgba(255,239,177,.15) 0 2px, transparent 2px 24px), radial-gradient(circle at 68% 28%, rgba(250,204,21,.48), transparent 25%)" },
+  xendra: { name: "XenDra", subtitle: "Aspect Without Form", accent: "#c084fc", glow: "rgba(192,132,252,.34)", background: "linear-gradient(145deg,#160b2c,#581c87 44%,#111827 90%)", art: "repeating-radial-gradient(circle at 55% 45%, rgba(216,180,254,.13) 0 3px, transparent 3px 28px), radial-gradient(circle at 35% 25%, rgba(168,85,247,.5), transparent 24%)" }
 };
 
 const factionName = (id) => id === "neutral" ? "Reath" : PACK_THEMES[id]?.name || id;
@@ -2833,7 +2842,7 @@ function TutorialScreen({ embedded = false, onBack, onPlayBasicAi, onPlayFaction
   );
 }
 
-function CampaignScreen({ embedded = false, initialFactionId, initialChapterId = "", manifest, onBack, onStartChapter, onEnableGuest, canPlayAsPlayer, account, campaigns, audioEnabled, musicEnabled, musicVolume }) {
+function CampaignScreen({ embedded = false, initialFactionId, initialChapterId = "", manifest, onBack, onStartChapter, onEnableGuest, canPlayAsPlayer, account, campaigns, audioEnabled }) {
   const campaignPresentation = getModePresentation("campaign", manifest.modeMetadata, {
     title: "Faction Campaigns",
     description: "Choose your commander. Explore their story, chapter by chapter, and earn faction cards along the way."
@@ -2895,8 +2904,6 @@ function CampaignScreen({ embedded = false, initialFactionId, initialChapterId =
           <CampaignChapterBriefing
             campaign={activeCampaign}
             audioEnabled={audioEnabled}
-            musicEnabled={musicEnabled}
-            musicVolume={musicVolume}
             factionId={activeFactionId}
             theme={activeTheme}
             chapter={briefingChapter}
@@ -3560,7 +3567,9 @@ export default function App() {
       musicStopRef.current = null;
     }
     const menuMasterMuted = menuAudioActive && menuAudioSettings.masterMuted;
-    if (musicEnabled && !accountSoundMuted && !menuMasterMuted && !dialogueActive) {
+    // Dialogue is mixed over this player. Keeping dialogue activity out of this
+    // lifecycle preserves the current track and playback position between lines.
+    if (musicEnabled && !accountSoundMuted && !menuMasterMuted) {
       musicStopRef.current = startMusicTrack(activeMusicTrack, musicVolumeRef.current);
     }
     return () => {
@@ -3569,7 +3578,7 @@ export default function App() {
         musicStopRef.current = null;
       }
     };
-  }, [activeMusicTrack, musicEnabled, accountSoundMuted, menuAudioActive, menuAudioSettings.masterMuted, dialogueActive]);
+  }, [activeMusicTrack, musicEnabled, accountSoundMuted, menuAudioActive, menuAudioSettings.masterMuted]);
 
   useEffect(() => {
     if (!accountSoundMuted) return;
@@ -3776,10 +3785,11 @@ export default function App() {
       utterance.voice = profile.voice;
       window.speechSynthesis.speak(utterance);
     };
-    if (!voiceClip || !window.Audio) return synthesize();
-    const audio = new window.Audio(resolveAssetPath(voiceClip));
-    voiceAudioRef.current = audio;
-    audio.play().catch(synthesize);
+    voiceAudioRef.current = playFactionVoice({
+      AudioCtor: window.Audio,
+      source: voiceClip ? resolveAssetPath(voiceClip) : "",
+      synthesize
+    });
   }, [accountSoundMuted]);
 
   const announceCommander = useCallback((factionInput, event, commanderName = "Commander", detail = "") => {
@@ -4389,6 +4399,12 @@ export default function App() {
     socket.emit("selectFaction", { factionId, generalId });
   }
 
+  function previewLobbyFaction(faction) {
+    if (!faction?.id) return;
+    setLobbyFactionPreviewId(faction.id);
+    announceCommander(faction, "selected", faction.commander?.name || faction.name || "Commander", "Faction preview");
+  }
+
   function setGameMode(mode) {
     socket.emit("setGameMode", { mode });
   }
@@ -4734,7 +4750,7 @@ export default function App() {
       initialFactionId={showCampaign.factionId} initialChapterId={showCampaign.chapterId}
       onBack={() => setShowCampaign(false)} onStartChapter={startCampaignChapter} canPlayAsPlayer={canPlayAsPlayer}
       account={account} campaigns={gameContent.campaigns} audioEnabled={!accountSoundMuted && !menuAudioSettings.masterMuted}
-      musicEnabled={musicEnabled} musicVolume={musicVolume} />;
+      />;
     else if (showCollection) workflow = <SetupFrame title={collectionView === "decks" ? "Deck Editor" : collectionView === "catalog" ? "Card Collection" : "Earned Packs"}
       description="Owned cards, saved deck versions, and legal format choices." onBack={() => { if (confirmLeaveDeck()) setShowCollection(false); }}
       backLabel={playerRoute.view === "ranked" ? "Return to Ranked Setup" : playerRoute.page === "play" ? "Back to Play" : "Back to Decks & Cards"}>
@@ -4906,7 +4922,7 @@ export default function App() {
                         role="tab"
                         aria-selected={previewed}
                         className={`faction-${faction.id}`}
-                        onClick={() => setLobbyFactionPreviewId(faction.id)}
+                        onClick={() => previewLobbyFaction(faction)}
                         style={{ "--faction-accent": factionTheme.primary }}
                       >
                         <span className="lobby-faction-thumb" style={{ backgroundImage: `url(${resolveAssetPath(getFactionArtwork(faction.id, faction.cardImage) || "/assets/gauntlet/ui/faction-art-unavailable.svg")})` }} />
@@ -8485,6 +8501,8 @@ export default function App() {
                     <span><strong>Prev suit</strong>{getSuitSymbol(me.turnData.previousAttackSuit) || "None"}</span>
                     <span><strong>Prev value</strong>{me.turnData.previousPlayedValue ?? "None"}</span>
                     <span><strong>Acceleration</strong>{me.accelerationCounters}</span>
+                    {me.faction?.id === "voltari" && <span title="Charge persists between turns. Voltari cards generate and spend it, up to 6."><strong>Charge</strong>{me.chargeCounters || 0}/6</span>}
+                    {me.faction?.id === "xendra" && <span title="At 6 Insanity, you fracture: lose 2 life, then return to 2 Insanity."><strong>Insanity</strong>{me.insanityCounters || 0}/6</span>}
                   </div>
                 </div>
               )}

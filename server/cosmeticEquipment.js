@@ -1,7 +1,7 @@
 "use strict";
 const { assetEntry } = require("./contentAssets");
-const SLOTS = Object.freeze({ "card-back": "cardBack", "deck-box": "deckBox", "profile-title": "title", "faction-banner": "banner", "profile-music": "music", "faction-soundtrack": "music" });
-const LABELS = Object.freeze({ cardBack: "Match card back", deckBox: "Deck Library box cover", title: "Profile title", banner: "Profile faction banner", music: "Profile soundtrack" });
+const SLOTS = Object.freeze({ "card-back": "cardBack", "deck-box": "deckBox", "profile-title": "title", "faction-banner": "banner", "profile-music": "music", "faction-soundtrack": "music", "character-portrait": "portrait" });
+const LABELS = Object.freeze({ cardBack: "Match card back", deckBox: "Deck Library box cover", title: "Profile title", banner: "Profile faction banner", music: "Profile soundtrack", portrait: "Animated command portrait" });
 function presentation(grant) {
   const slot = SLOTS[grant?.term?.category], delivery = grant?.term?.delivery;
   if (!slot || grant.state !== "active" || !delivery) return null;

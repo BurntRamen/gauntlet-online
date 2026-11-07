@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "russo",
+  "role": "commander",
+  "event": "selected",
+  "line": "The hearth is lit. The line will hold.",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "clientOutput": "client/public/assets/gauntlet/voices/faction-russo-commander-selected.mp3",
+  "generatedAt": "2026-10-30T17:27:28.364Z",
+  "publishedAt": "2026-10-30T17:28:03.676Z",
+  "bytes": 39749,
+  "sha256": "279b91b59b1cef7c9e94a97304d7620ffff4aa2f8f293579365033af678af586"
+}
