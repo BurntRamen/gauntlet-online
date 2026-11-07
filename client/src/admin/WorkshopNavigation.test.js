@@ -1,6 +1,9 @@
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { lazy, Suspense } from "react";
 import WorkshopNavigation from "./WorkshopNavigation";
+import WorkshopShell from "./WorkshopShell";
+import { EditorSessionContext } from "./EditorSession";
+import { OperatorPreferences } from "./OperatorPreferences";
 
 const target = { domain: "encounters", id: "chapter-one", section: "story" };
 let oldScroll;
@@ -54,6 +57,33 @@ test("field links wait for the selected object before focusing its editor", asyn
   expect(screen.getByRole("button")).toHaveFocus();
   view.rerender(<><form id="admin-field-heroTitle"><textarea aria-label="New heading" /></form><WorkshopNavigation target={fieldTarget} /></>);
   await waitFor(() => expect(screen.getByRole("textbox", { name: "New heading" })).toHaveFocus());
+});
+
+test("field focus waits for CSS visibility and observes the class that reveals it", async () => {
+  const view = render(<><style>{".hidden-field { display:none }"}</style><button autoFocus>Current editor</button><div className="hidden-field"><section id="admin-field-name"><input aria-label="Name" /></section></div><WorkshopNavigation target={{ domain: "cards", id: "one", field: "name" }} /></>);
+  expect(screen.getByRole("button")).toHaveFocus();
+  expect(HTMLElement.prototype.scrollIntoView).not.toHaveBeenCalled();
+  act(() => { view.container.querySelector(".hidden-field").className = ""; });
+  await waitFor(() => expect(screen.getByRole("textbox")).toHaveFocus());
+});
+
+test("a field link reveals the editor from a remembered preview layout and retains its local value", async () => {
+  const width = window.innerWidth;
+  window.innerWidth = 1200;
+  const scope = "field-link-test";
+  localStorage.setItem(`gauntlet-admin:${scope}`, JSON.stringify({ version: 1, preview: true }));
+  const content = target => <OperatorPreferences scope={scope}><EditorSessionContext.Provider value={{ target }}><style>{".preview-open .design-editor { display:none }"}</style><WorkshopNavigation target={target} /><WorkshopShell name="Card Workshop" title="Card" selectionId="one" preview={<p>Saved preview</p>}><section id="admin-field-name"><input aria-label="Name" defaultValue="Retained local name" /></section></WorkshopShell></EditorSessionContext.Provider></OperatorPreferences>;
+  try {
+    const view = render(content({ domain: "cards", id: "one" }));
+    expect(screen.getByRole("button", { name: "Preview", exact: true })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByLabelText("Name")).not.toBeVisible();
+    view.rerender(content({ domain: "cards", id: "one", field: "name" }));
+    await waitFor(() => expect(screen.getByRole("textbox", { name: "Name" })).toHaveFocus());
+    expect(screen.getByRole("textbox")).toHaveValue("Retained local name");
+    expect(screen.getByRole("button", { name: "Editor", exact: true })).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(screen.getByRole("button", { name: "Preview", exact: true }));
+    expect(screen.getByRole("button", { name: "Preview", exact: true })).toHaveAttribute("aria-pressed", "true");
+  } finally { window.innerWidth = width; localStorage.removeItem(`gauntlet-admin:${scope}`); }
 });
 
 test("selecting the same search result again returns focus without adding navigation history", () => {

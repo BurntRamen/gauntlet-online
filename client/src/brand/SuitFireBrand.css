@@ -1,0 +1,27 @@
+.suitfire-brand { position: relative; isolation: isolate; display: inline-flex; align-items: center; justify-content: center; gap: 10px; max-width: 100%; padding: 6px 12px; overflow: hidden; border-radius: 8px; }
+.suitfire-brand-art { position: absolute; inset: 0; z-index: -1; display: grid; grid-template-columns: repeat(4, 1fr); opacity: .3; pointer-events: none; }
+.suitfire-brand-art img { width: 100%; height: 100%; object-fit: cover; min-width: 0; filter: saturate(.6) brightness(.65); }
+.suitfire-brand-art::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, #07111bee, #07111b88 45%, #07111bf5); }
+.suitfire-brand-mark { display: block; width: 64px; height: 72px; object-fit: contain; flex-shrink: 0; filter: drop-shadow(0 2px 5px #000); }
+.suitfire-brand-name { color: #fff3e0; font: 700 24px/1.15 Georgia, serif; letter-spacing: .02em; text-shadow: 0 2px 6px #000; }
+.suitfire-brand.is-full { width: 320px; padding: 12px 40px; }
+.suitfire-brand.is-full .suitfire-brand-mark { width: 210px; height: 220px; max-width: 100%; }
+@media(max-width:760px) { .suitfire-brand { gap: 6px; padding: 4px 8px; } .suitfire-brand-mark { width: 46px; height: 56px; } .suitfire-brand-name { font-size: 21px; } }
+/* Full lockup and room controls wrap independently on narrow lobby screens. */
+#root .lobby-frame .app-layout-122 { flex-wrap: wrap; align-items: center; }
+#root .lobby-frame .app-layout-122 > div { min-width: 0; max-width: 100%; }
+@media(max-width:760px) { #root .lobby-frame .app-layout-125 { width: 100%; justify-items: start; text-align: left; } }
+
+.gauntlet-brand { display:inline-flex; align-items:center; gap:12px; max-width:100%; }
+.gauntlet-brand-mark { width:76px; height:88px; object-fit:contain; }
+.gauntlet-brand-name { font:700 25px/1.1 Georgia,serif; color:#fff3e0; }
+.gauntlet-brand-name small { display:block; font:700 12px/1.5 system-ui; letter-spacing:.2em; text-transform:uppercase; }
+.gauntlet-brand.is-full .gauntlet-brand-mark { width:210px; height:220px; max-width:100%; }
+@media(max-width:760px) { .gauntlet-brand { gap:8px; } .gauntlet-brand-mark { width:48px; height:56px; } .gauntlet-brand-name { font-size:21px; } }
+
+.brand-choice { display:block; margin:0 0 24px; min-width:0; }
+.brand-choice legend { font-weight:700; padding:0 8px; }
+.brand-choice p { margin:8px 0 16px; }
+.brand-choice-options { display:flex; flex-wrap:wrap; gap:12px 24px; }
+.brand-choice-options label { display:flex; align-items:center; gap:8px; min-height:44px; cursor:pointer; font-size:16px; }
+.brand-choice-options input { width:18px; height:18px; accent-color:#e5bb60; }

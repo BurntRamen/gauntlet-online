@@ -1,5 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
 const express = require("express");
 const { createAuthoredBaseline, hash, pinGameContent } = require("../authoredContent");
 const engine = require("../../shared/duel-rules");
@@ -10,6 +12,41 @@ const { readAuthoringStatus } = require("../adminLiveAvailability");
 const { registerAdminWorkshopRoutes } = require("../adminWorkshopData");
 const old = require("./fixtures/content-v2/authored-baseline-v1.json");
 const baseline = createAuthoredBaseline({ domains: { decks: old.domains.decks }, game: { modes: old.domains.game } });
+
+function assertWorkspaceGuide(status) {
+  assert.equal(status.guide.workspaceVersion, 1, "A matching guide version must permit the deployed editor to open");
+  // Check what the client consumes rather than merely echoing the guide JSON:
+  // a new client topic must also be present in both provider projections.
+  const root = path.resolve(__dirname, "../../client/src"), topics = new Set();
+  for (const name of fs.readdirSync(root, { recursive: true })) {
+    if (!name.endsWith(".js") || name.endsWith(".test.js")) continue;
+    for (const match of fs.readFileSync(path.join(root, name), "utf8").matchAll(/\bhelp\.(workspace\w+)|\btopic="(workspace\w+)"/g)) topics.add(match[1] || match[2]);
+  }
+  assert.ok(topics.size > 0, "Exercise the actual client's workspace guidance references");
+  for (const topic of topics) assert.equal(typeof status.guide.help[topic] === "string" && status.guide.help[topic].trim().length > 0, true, `Missing deployed guidance: ${topic}`);
+  assert.match(status.guide.help.workspaceSeparateScopes, /separate save scopes/);
+  assert.match(status.guide.help.workspaceDraftBoundary, /separate from published and verified active/);
+  assert.match(status.guide.help.workspaceReleaseReview7, /accepted engine action.*exact draft/);
+}
+
+test("authenticated authoring exposes the complete versioned workspace guide without making it public", async t => {
+  const publication = createContentPublication({ baseline, memory: true }), app = express();
+  app.use((req, _res, next) => { if (req.headers["x-test-operator"] === "yes") req.gauntletAdminAccount = { id: "approved-account" }; next(); });
+  registerContentPublicationRoutes(app, publication);
+  const server = app.listen(0, "127.0.0.1");
+  await new Promise(resolve => server.once("listening", resolve));
+  t.after(() => new Promise(resolve => server.close(resolve)));
+  const origin = `http://127.0.0.1:${server.address().port}/api/admin/authoring`;
+  const denied = await fetch(origin);
+  assert.equal(denied.status, 403);
+  assert.equal((await denied.json()).guide, undefined);
+  const response = await fetch(origin, { headers: { "x-test-operator": "yes" } });
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get("cache-control"), /no-store/);
+  const status = await response.json();
+  assert.equal(status.writable, true);
+  assertWorkspaceGuide(status);
+});
 
 function unavailableRepository() {
   const store = createContentPublication({ baseline, memory: true });
@@ -90,7 +127,11 @@ test("live workshop reads work during remote outage while draft, history, valida
   assert.equal((await get("/workshops/presentation?source=live&hash=old")).status, 409);
   const status = await get("/authoring");
   assert.equal(status.status, 200);
-  assert.equal((await status.json()).liveOnly, true);
+  assert.match(status.headers.get("cache-control"), /no-store/);
+  const fallback = await status.json();
+  assert.equal(fallback.liveOnly, true);
+  assert.equal(fallback.writable, false);
+  assertWorkspaceGuide(fallback);
   for (const path of ["/workshops?source=draft", "/workshops/review", `/workshops/releases/${deployed.id}/review`]) {
     const response = await get(path);
     assert.equal(response.status, 503, path);

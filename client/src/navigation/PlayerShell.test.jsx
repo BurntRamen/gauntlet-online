@@ -1,5 +1,6 @@
+import { setAccountBrand, chooseBrand } from '../brand/brandPreview';
 import React from "react";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import PlayerShell from "./PlayerShell";
 import ActionTile from "./ActionTile";
 import SetupFrame from "./SetupFrame";
@@ -79,6 +80,27 @@ test("closing More by backdrop restores body scrolling and entering a destinatio
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 });
 
+test("deferred More restoration does not steal focus from a newly opened layout control", () => {
+  const frames = [];
+  const animationFrame = jest.spyOn(window, "requestAnimationFrame").mockImplementation(callback => { frames.push(callback); return frames.length; });
+  function CustomizableShell() {
+    const [editing, setEditing] = React.useState(false);
+    return <PlayerShell onNavigate={() => {}} customizable editing={editing} onCustomize={() => setEditing(true)}>
+      {editing && <select aria-label="Panel options for Ranked Match"><option>Panel options</option><option>Move Earlier</option></select>}
+    </PlayerShell>;
+  }
+  try {
+    render(<CustomizableShell />);
+    fireEvent.click(screen.getAllByRole("button", { name: "More" })[0]);
+    fireEvent.click(screen.getByRole("button", { name: "Customize this page" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    const ranked = screen.getByLabelText("Panel options for Ranked Match");
+    ranked.focus();
+    act(() => frames.splice(0).forEach(callback => callback(0)));
+    expect(ranked).toHaveFocus();
+  } finally { animationFrame.mockRestore(); }
+});
+
 test("focused workflows omit customization while Done Editing remains globally reachable", () => {
   const onDoneEditing = jest.fn();
   const { rerender } = renderShell({ customizable: false });
@@ -128,4 +150,21 @@ test("choosing a destination in More focuses its heading after the sheet closes"
   fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: /^Matches/ }));
   await new Promise((resolve) => window.requestAnimationFrame(resolve));
   expect(screen.getByRole("heading", { level: 1, name: "Matches" })).toHaveFocus();
+});
+
+test('preserves the public header and shows location and portrait only in the selected preview', () => {
+ const { container } = renderShell({ destination: 'campaign', account: { name: 'River', avatar: { path: '/uploads/river.png' } }, serverUrl: 'https://api.example.invalid' });
+ expect(screen.getByRole('button', { name: 'Gauntlet Online — open Play' })).toBeInTheDocument();
+ expect(container.querySelector('.cd-topbar-caption')).toHaveTextContent('THE COMMAND DECK');
+ expect(container.querySelector('.cd-profile-button img')).toBeNull();
+ act(() => { setAccountBrand({ id: 'preview-fixture', brandPreview: 'suitfire' }); chooseBrand('suitfire'); });
+ expect(screen.getByRole('button', { name: 'SuitFire — open Play' })).toBeInTheDocument();
+ expect(container.querySelector('.cd-topbar-caption')).toHaveTextContent('Current location');
+ expect(container.querySelector('.cd-topbar-caption')).toHaveTextContent(getDestination('campaign').label);
+ expect(container.querySelector('.cd-profile-button img')).toHaveAttribute('src', 'https://api.example.invalid/uploads/river.png');
+ act(() => chooseBrand('gauntlet'));
+ expect(container.querySelector('.cd-topbar-caption')).toHaveTextContent('THE COMMAND DECK');
+ expect(container.querySelector('.cd-profile-button img')).toBeNull();
+ act(() => setAccountBrand(null));
+ localStorage.clear();
 });

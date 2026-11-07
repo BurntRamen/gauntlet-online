@@ -1,3 +1,4 @@
+import { brandText } from '../brand/brandPreview';
 import { useState } from "react";
 import { WorkshopFacts, WorkshopSection } from "./WorkshopShell";
 
@@ -28,15 +29,15 @@ export default function MatchInspector({ match, provenance = {}, design, onInspe
   const [localContext, setLocalContext] = useState({ query: "", event: null });
   const view = context || localContext;
   const change = (patch) => (onContext || setLocalContext)({ ...view, ...patch });
-  if (!match) return <p role="status">Choose a match to inspect its recorded evidence.</p>;
+  if (!match) return <p role="status">Choose a match to inspect.</p>;
   const refs = new Map((design?.references || []).map((reference) => [reference.key, reference]));
   const allEvents = recordedEvents(match, design);
   const events = allEvents.filter((event) => [event.sequence, event.source, event.eventType, event.projected?.text || event.publicPayload?.message || ""].join(" ").toLowerCase().includes((view.query || "").toLowerCase()));
   const hasDraft = !!design?.draft;
-  return <section aria-label="Match design inspection"><header className="design-header"><span className="admin-eyebrow">Match evidence</span><h3>{match.campaign?.title || `${match.mode || "Gauntlet"} match`}</h3><p className="admin-note">Recorded definitions describe this match. Workshop links open the current {hasDraft ? "saved draft" : "live content"}.</p><a href={`/?match=${encodeURIComponent(match.matchId)}&replay=1`} target="_blank" rel="noreferrer">Open recorded replay</a></header>
+  return <section aria-label="Match design inspection"><header className="design-header"><span className="admin-eyebrow">Match evidence</span><h3>{match.campaign?.title || `${match.mode || brandText("SuitFire", "Gauntlet")} match`}</h3><p className="admin-note">Recorded match definitions. Workshop links open the {hasDraft ? "saved draft" : "live content"}.</p><a href={`/?match=${encodeURIComponent(match.matchId)}&replay=1`} target="_blank" rel="noreferrer">Open recorded replay</a></header>
     <WorkshopFacts values={{ Mode: match.mode, Result: match.completionReason, Integrity: provenance.integrity, "Evidence source": provenance.source }} />
     <WorkshopSection title="Participants" id="match-participants">{(match.participants || []).map((player) => <article key={player.playerNum}><h5>{player.displayName || `Player ${player.playerNum}`}</h5><WorkshopFacts values={{ Faction: player.faction?.name, Result: player.result, "Final life": player.finalLife }} /><details className="admin-json"><summary>Technical · captured deck</summary><pre>{JSON.stringify(player.deck, null, 2)}</pre></details></article>)}</WorkshopSection>
-    <WorkshopSection title="Recorded definitions and current content" id="match-definitions">{design ? <><p className="admin-note">{design.note}</p>{design.references?.length ? design.references.map((reference) => <Reference key={reference.key} reference={reference} hasDraft={hasDraft} onInspect={onInspect} />) : <p>No resolvable design references were recorded.</p>}</> : <p className="admin-note">Design references are unavailable for this record. Its original evidence is shown below.</p>}</WorkshopSection>
+    <WorkshopSection title="Recorded definitions and current content" id="match-definitions">{design ? <><p className="admin-note">{design.note}</p>{design.references?.length ? design.references.map((reference) => <Reference key={reference.key} reference={reference} hasDraft={hasDraft} onInspect={onInspect} />) : <p>No design references recorded.</p>}</> : <p className="admin-note">Design references unavailable; original evidence follows.</p>}</WorkshopSection>
     <WorkshopSection title={"Authoritative audit history · " + allEvents.length + " recorded events"} id="match-events"><label className="admin-search">Filter match events<input value={view.query || ""} onChange={(event) => change({ query: event.target.value })} placeholder="Event, message or sequence" /></label><div className="design-match-events">{events.map((event) => {
       const open = view.event === event.key;
       return <details key={event.key} aria-label={(event.source === "engine-evidence" ? "Engine evidence" : "Audit") + " event " + event.sequence} open={open} onToggle={(toggle) => { if (toggle.target !== toggle.currentTarget) return; if (toggle.currentTarget.open && !open) change({ event: event.key }); else if (!toggle.currentTarget.open && open) change({ event: null }); }}>

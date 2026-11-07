@@ -81,25 +81,26 @@ test("live sessions ignore draft changes and draft sessions ignore bookkeeping r
 test("return context restores the section and scroll, while selection never renames another test", () => {
   const remember = jest.fn();
   render(<View context={{ encounterId: row.id, section: "mechanics", scroll: 345 }} onContext={remember} session={{ source: "live", releaseId: state.activeReleaseId, subject: { kind: "card", id: "spear", label: "Spear" }, expiresAt: "2100-01-01T00:00:00Z" }} />);
-  expect(screen.getByLabelText("Jump to section")).toHaveValue("mechanics");
+  expect(screen.getByLabelText("Encounter Workshop section")).toHaveValue("mechanics");
   expect(window.scrollTo).toHaveBeenCalledWith(0, 345);
   expect(screen.getByText(/Testing Spear · another subject/)).toBeVisible();
-  fireEvent.change(screen.getByLabelText("Jump to section"), { target: { value: "deck" } });
+  fireEvent.change(screen.getByLabelText("Encounter Workshop section"), { target: { value: "deck" } });
   expect(remember).toHaveBeenLastCalledWith({ encounterId: row.id, section: "deck", scroll: 0 });
-  expect(screen.getByLabelText("Jump to section")).toHaveValue("deck");
+  expect(screen.getByLabelText("Encounter Workshop section")).toHaveValue("deck");
 });
 
-test("mobile list departure honors the supplied guard and unrelated validation stays separate", () => {
+test("mobile list view preserves selection without a departure guard and unrelated validation stays separate", () => {
   const guard = jest.fn();
   const data = { ...state, validation: { valid: false, errors: [{ domain: "cards", id: "spear", field: "text", message: "Card text needed" }], warnings: [] } };
   const { rerender } = render(<View state={data} onSelectList={guard} />);
-  fireEvent.click(screen.getByText("Encounter list"));
-  expect(guard).toHaveBeenCalledWith(expect.any(Function));
-  expect(screen.getByRole("region", { name: "Encounter Workshop" })).toHaveClass("has-selection");
+  fireEvent.click(screen.getByText("Back to list"));
+  expect(guard).not.toHaveBeenCalled();
+  expect(screen.getByRole("region", { name: "Encounter Workshop" })).not.toHaveClass("has-selection");
+  fireEvent.click(screen.getByRole("button", { name: "First battle", exact: true }));
   fireEvent.click(screen.getByRole("button", { name: "Validation", exact: true }));
   expect(screen.getByText(/No errors for this encounter/)).toBeVisible();
   expect(screen.getByText("1 validation issue elsewhere in the shared draft")).toBeVisible();
   rerender(<View state={data} onSelectList={(continueNavigation) => continueNavigation()} />);
-  fireEvent.click(screen.getByText("Encounter list"));
+  fireEvent.click(screen.getByText("Back to list"));
   expect(screen.getByRole("region", { name: "Encounter Workshop" })).not.toHaveClass("has-selection");
 });

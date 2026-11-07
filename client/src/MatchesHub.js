@@ -1,3 +1,4 @@
+import { brandText, useBrandPreview } from './brand/brandPreview';
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SeasonStandings } from "./SeasonZero";
 import { MatchThumbnail } from "./GauntletVisuals";
@@ -39,6 +40,7 @@ function MatchPreview({ preview, sha256, id }) {
 }
 
 function MatchRow({ match, onOpenMatch, onOpenReplay, onDownload, previewOpen, onTogglePreview }) {
+  useBrandPreview();
   const perspective = match.perspective || {};
   const player = perspective.player || match.participants?.[0] || {};
   const opponent = perspective.opponent || perspective.opponents?.[0]
@@ -51,8 +53,8 @@ function MatchRow({ match, onOpenMatch, onOpenReplay, onDownload, previewOpen, o
   const saved = !!match.local?.saved;
   const playerFaction = player.faction || previewPlayer?.faction;
   const opponentFaction = opponent.faction || previewOpponent?.faction;
-  const playerFactionName = playerFaction?.name || "Basic Gauntlet";
-  const opponentFactionName = opponentFaction?.name || "Basic Gauntlet";
+  const playerFactionName = playerFaction?.name || brandText("Basic SuitFire", "Basic Gauntlet");
+  const opponentFactionName = opponentFaction?.name || brandText("Basic SuitFire", "Basic Gauntlet");
   const matchupLabel = `${playerFactionName} versus ${opponentFactionName}`;
   return (
     <article className="matches-row" data-replay-state={match.replay?.available ? "available" : "unavailable"} data-local-match={saved ? "true" : "false"}>
@@ -107,6 +109,7 @@ function UnavailableReferenceRow({ reference }) {
 }
 
 function MatchImporter({ library, onWatchReplay, onSaved }) {
+  useBrandPreview();
   const inputRef = useRef(null);
   const [inspection, setInspection] = useState(null);
   const [error, setError] = useState("");
@@ -142,7 +145,7 @@ function MatchImporter({ library, onWatchReplay, onSaved }) {
     <section className="match-importer" aria-labelledby="match-import-title">
       <div>
         <h2 id="match-import-title">Import Match File</h2>
-        <p>Preview a saved Gauntlet file, then watch or save it on this device. Importing does not change account progress, rewards, or standings.</p>
+        <p>{brandText("Preview a saved SuitFire file, then watch or save it on this device. Importing does not change account progress, rewards, or standings.", "Preview a saved Gauntlet file, then watch or save it on this device. Importing does not change account progress, rewards, or standings.")}</p>
       </div>
       <div
         className={`match-import-drop${dragging ? " is-dragging" : ""}`}
@@ -155,15 +158,15 @@ function MatchImporter({ library, onWatchReplay, onSaved }) {
           inspectFile(event.dataTransfer.files?.[0]);
         }}
       >
-        <input ref={inputRef} type="file" aria-label="Choose a Gauntlet match file" accept="application/json,.json" onChange={(event) => inspectFile(event.target.files?.[0])} />
+        <input ref={inputRef} type="file" aria-label={brandText("Choose a SuitFire match file", "Choose a Gauntlet match file")} accept="application/json,.json" onChange={(event) => inspectFile(event.target.files?.[0])} />
         <button type="button" onClick={() => inputRef.current?.click()}>Choose Match File</button>
-        <span>or drop a Gauntlet .json file here</span>
+        <span>{brandText("or drop a SuitFire .json file here", "or drop a Gauntlet .json file here")}</span>
       </div>
       {error && <p className="matches-error" role="alert">{error}</p>}
       {status && <p className="matches-storage-note" role="status">{status}</p>}
       {inspection && (
         <div className="match-import-preview">
-          <div className="match-import-integrity"><strong>Valid Gauntlet match file</strong><span>File integrity verified · {inspection.artifact.sha256}</span><small>This check confirms the file is complete and unchanged. Imported files remain player-owned local history.</small></div>
+          <div className="match-import-integrity"><strong>{brandText("Valid SuitFire match file", "Valid Gauntlet match file")}</strong><span>File integrity verified · {inspection.artifact.sha256}</span><small>This check confirms the file is complete and unchanged. Imported files remain player-owned local history.</small></div>
           <MatchPreview preview={inspection.preview} sha256={inspection.artifact.sha256} />
           <div className="matches-row-actions">
             {inspection.replay?.availability?.available

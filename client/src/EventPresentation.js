@@ -1,3 +1,4 @@
+import { brandText, useBrandPreview } from './brand/brandPreview';
 export function Reward({ tier, earned }) {
   const parts = [];
   if (tier.gold) parts.push(`${Number(tier.gold).toLocaleString()} gold`);
@@ -23,7 +24,8 @@ export function scheduleSummary(event) {
 }
 
 
-export function EventHeader({ event }) { const entryAmount = Number(event.entryCost?.amount || 0); return (<header>
-      <div><span className="event-eyebrow">{event.scale === "major" ? "Featured major" : "Gauntlet Events"}</span><h2>{event.name}</h2><p>{event.description}</p>{event.schedule && <p className="event-selected-schedule"><strong>{event.availability?.label}</strong> · {scheduleSummary(event)}<br /><small>Registration closes {localDate(event.schedule.entryClosesAt)}.</small></p>}</div>
+export function EventHeader({ event }) {
+  useBrandPreview(); const entryAmount = Number(event.entryCost?.amount || 0); return (<header>
+      <div><span className="event-eyebrow">{event.scale === "major" ? "Featured major" : brandText("SuitFire Events", "Gauntlet Events")}</span><h2>{event.name}</h2><p>{event.description}</p>{event.schedule && <p className="event-selected-schedule"><strong>{event.availability?.label}</strong> · {scheduleSummary(event)}<br /><small>Registration closes {localDate(event.schedule.entryClosesAt)}.</small></p>}</div>
       <div className="event-entry-cost"><small>Entry</small><strong>{entryAmount === 0 ? "Free" : `${entryAmount} booster credits`}</strong></div>
     </header>); }

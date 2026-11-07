@@ -1,5 +1,12 @@
 "use strict";
 
+async function fetchAdminResponse(route) {
+  // route.fetch shares Playwright's Node HTTP pool with other API contexts.
+  // Do not lend its idle socket to a later assertion after browser editing.
+  const headers = await route.request().allHeaders();
+  return route.fetch({ headers: { ...headers, connection: "close" }, maxRetries: 0 });
+}
+
 function waitForBufferedAdminResponse(page, predicate) {
   const pattern = "**/api/admin/**";
   return new Promise((resolve, reject) => {
@@ -12,7 +19,7 @@ function waitForBufferedAdminResponse(page, predicate) {
       }
 
       try {
-        const response = await route.fetch();
+        const response = await fetchAdminResponse(route);
         const body = await response.body();
         await route.fulfill({ response, body });
         await page.unroute(pattern, handler);
@@ -25,6 +32,9 @@ function waitForBufferedAdminResponse(page, predicate) {
           json: async () => payload
         });
       } catch (error) {
+        // Removing a pending route otherwise releases the original browser
+        // request, which could execute the same mutation a second time.
+        await route.abort("failed").catch(() => {});
         await page.unroute(pattern, handler).catch(() => {});
         reject(error);
       }
@@ -34,4 +44,4 @@ function waitForBufferedAdminResponse(page, predicate) {
   });
 }
 
-module.exports = { waitForBufferedAdminResponse };
+module.exports = { fetchAdminResponse, waitForBufferedAdminResponse };

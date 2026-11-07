@@ -1,3 +1,4 @@
+import BrandChoice from '../brand/BrandChoice';
 import { useEffect, useState } from "react";
 import PlayerShell from "./PlayerShell";
 import ActionTile from "./ActionTile";
@@ -106,7 +107,7 @@ function DraftSetup({ view, onNavigate, account, content, actions, status, saved
   </>;
 }
 
-export default function PlayerMenus({ route, onNavigate, account, ownerAuthorized, content, actions, state, slots, workflow, audioMuted, onToggleAudio }) {
+export default function PlayerMenus({ serverUrl, route, onNavigate, account, ownerAuthorized, content, actions, state, slots, workflow, audioMuted, onToggleAudio }) {
   const { customizationEnabled, editing, setEditing } = usePlayerLayout();
   const { page, view } = route;
   const [rankedSelections, setRankedSelections] = useState({ format: "factions", bestOf: 1, factionId: "", generalId: "", deckId: "" });
@@ -219,7 +220,7 @@ export default function PlayerMenus({ route, onNavigate, account, ownerAuthorize
     ]} />{slots.profileExtras}</div>
     <aside className="cd-profile-account" aria-label="Account and preferences">{slots.account}{customizationEnabled && <details className="cd-profile-layouts"><summary>Customize menu layouts</summary><PageLayoutSettings /></details>}</aside></div>
   </>;
-  else if (page === "settings") body = slots.settings;
+  else if (page === "settings") body = <><BrandChoice />{slots.settings}</>;
 
   const notices = <>
     {state.error && <p className="cd-notice is-error" role="alert">{state.error}</p>}
@@ -228,7 +229,7 @@ export default function PlayerMenus({ route, onNavigate, account, ownerAuthorize
     {state.hasSavedRoom && !(page === "play" && !view && !workflow) && <section className="cd-notice" aria-label="Saved match recovery"><span>Saved room {state.savedRoomCode}</span><button onClick={actions.resume}>Resume Match</button></section>}
     {actions.roomCode && !(page === "play" && view === "tables" && !workflow) && !(page === "play" && !view && !workflow && !state.hasSavedRoom) && <section className="cd-notice" aria-label="Room invitation"><span>Room invitation: {actions.roomCode}</span><button onClick={() => nav("play", "tables")}>Open Invitation</button></section>}
   </>;
-  return <PlayerShell destination={page} navigationKey={`${page}:${view}:${workflow ? "workflow" : "landing"}`} onNavigate={nav} account={account} ownerAuthorized={ownerAuthorized} onAdmin={() => nav("studio")}
+  return <PlayerShell serverUrl={serverUrl} destination={page} navigationKey={`${page}:${view}:${workflow ? "workflow" : "landing"}`} onNavigate={nav} account={account} ownerAuthorized={ownerAuthorized} onAdmin={() => nav("studio")}
     audioMuted={audioMuted} onToggleAudio={onToggleAudio}
     pageTitle={page === "draft" ? draftPresentation.title : undefined} pageDescription={page === "draft" ? draftPresentation.description : undefined}
     pageEyebrow={page === "draft" ? draftPresentation.eyebrow : undefined} pageDetail={page === "draft" ? draftPresentation.detail : undefined}

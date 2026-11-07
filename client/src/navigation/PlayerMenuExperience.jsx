@@ -7,6 +7,6 @@ import { MENU_LAYOUT_CUSTOMIZATION_ENABLED } from './menuFeatures';
 export default function PlayerMenuExperience({ authToken, serverUrl, factionIds, ...menuProps }) {
   const Provider = MENU_LAYOUT_CUSTOMIZATION_ENABLED ? PlayerLayoutProvider : StaticLayoutProvider;
   return <Provider account={menuProps.account} authToken={authToken} serverUrl={serverUrl} factionIds={factionIds}>
-    <PlayerMenus {...menuProps} />
+    <PlayerMenus {...menuProps} serverUrl={serverUrl} />
   </Provider>;
 }

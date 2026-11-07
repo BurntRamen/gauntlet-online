@@ -1,3 +1,4 @@
+import { brandText } from './brand/brandPreview';
 import "./GauntletVisuals.css";
 
 export const FACTION_VISUALS = {
@@ -18,7 +19,7 @@ export const FACTION_VISUALS = {
   russo: { name: "Russo", accent: "#b9d7ea", art: "/assets/gauntlet/russo-emblem.svg" },
   morphlings: { name: "The Continuants", accent: "#8ee7df", art: "", artDirection: { silhouette: "Grotesquely transformed former Astral Vanguard humans: asymmetrical limbs, misplaced vestigial features, fused equipment, split jaws, faceted eyes, and insectile or amphibious adaptations interrupt recognizable human posture and identity", materials: "Wet translucent tissue, scarred chitin, exposed crystal growth, stretched membranes, mismatched organs, refracted fluids, and Vanguard armor permanently grown into living bodies", motifs: "Human names surviving monstrous silhouettes, medical quarantine markings, tragic remnants, forced exile, incomplete reflections, and painful forms becoming survivable", guardrail: "Make the body horror immediate and unsettling while preserving the person's humanity through voice, posture, keepsakes, and recognizable equipment. Their hope comes from mutual care and agency, not from making their bodies beautiful or harmless." } },
   xendra: { name: "XenDra", accent: "#b9a6d8", art: "", artDirection: { silhouette: "Suspended shadows, fragmented masks, impossible anatomy, eclipses, and deliberate empty space", materials: "Lightless void, fractured pale surfaces, smoke without a source, and edges that disagree", motifs: "Altered perception, missing context, overlapping aspects, and absence behaving like a presence", guardrail: "Porcelain-like masks are a prototype visual option, not settled canon; preserve ambiguity and avoid a single fixed species design." } },
-  basic: { name: "Basic Gauntlet", accent: "#d0a863", art: "" }
+  basic: { get name() { return brandText("Basic SuitFire", "Basic Gauntlet"); }, accent: "#d0a863", art: "" }
 };
 
 export function resolveVisualAsset(path) {

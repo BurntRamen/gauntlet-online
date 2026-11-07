@@ -1,3 +1,4 @@
+const { saveRecord, previewSavedDraft } = require("./admin-navigation");
 const { test, expect } = require("./admin-release-test");
 const { waitForBufferedAdminResponse } = require("./buffered-admin-response");
 const fs = require("node:fs"), path = require("node:path"), { origin } = require("./admin-urls");
@@ -16,8 +17,8 @@ test("operator creates, tests, assigns and publishes a reusable campaign modifie
   const encounter = saved.draft.snapshot.domains.encounters.find(e => e.factionId === "rumin");
   await page.goto("/admin/gauntlet?workshop=encounters&object=" + encounter.id + "&section=setup");
   await page.getByRole("combobox", { name: "Draft starting-state rule modifier", exact: true }).selectOption(modifier.id);
-  pending = waitForBufferedAdminResponse(page, r => r.url().endsWith("/authoring/draft") && r.request().method() === "PATCH");
-  await page.getByRole("button", { name: "Save starting-state rule modifier to draft", exact: true }).click();
+  pending = waitForBufferedAdminResponse(page, r => r.url().endsWith("/authoring/record") && r.request().method() === "PATCH");
+  await saveRecord(page);
   const assigned = await (await pending).json(); expect(assigned.draft.snapshot.domains.encounters.find(e => e.id === encounter.id).ruleModifierId).toBe(modifier.id);
   await page.goto("/admin/gauntlet?workshop=rule-modifiers&object=" + modifier.id);
   const harness = page.getByRole("region", { name: "Real engine playtest" }); await harness.getByRole("combobox", { name: "Test content", exact: true }).selectOption("draft");
@@ -27,7 +28,7 @@ test("operator creates, tests, assigns and publishes a reusable campaign modifie
   const pass = session.legalActions.find(a => a.type === "passPriority"); await harness.getByRole("combobox", { name: "Action", exact: true }).selectOption(pass.id);
   pending = page.waitForResponse(r => r.url().endsWith("/playtest/command")); await harness.getByRole("button", { name: "Execute selected action", exact: true }).click(); expect((await pending).status()).toBe(200);
   await page.screenshot({ path: "artifacts/phase2-rule-modifier.png", fullPage: true });
-  await page.getByRole("button", { name: "Preview saved draft", exact: true }).click(); await page.getByRole("button", { name: "Review release", exact: true }).click(); await page.getByLabel("Release name").fill("Browser campaign rules"); await page.getByRole("button", { name: "Publish release", exact: true }).click(); await page.getByRole("button", { name: "Confirm publish", exact: true }).click(); await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible();
+  await previewSavedDraft(page); await page.getByRole("button", { name: "Review release", exact: true }).click(); await page.getByLabel("Release name").fill("Browser campaign rules"); await page.getByRole("button", { name: "Publish release", exact: true }).click(); await page.getByRole("button", { name: "Confirm publish", exact: true }).click(); await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible();
   // Retry only a reset transport on this idempotent read; HTTP failures and
   // published-content assertions still fail without retrying the publication.
   const published = await request.get(origin + "/api/game-content", { maxRetries: 2 });

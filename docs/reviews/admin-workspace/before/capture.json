@@ -1,0 +1,20 @@
+{
+  "baseCommit": "b6d80ff4a85b751a7a8d91c59c6a644366d9535e",
+  "fixture": "e2e/admin-server.js",
+  "client": "http://127.0.0.1:3137",
+  "backend": "http://127.0.0.1:4137",
+  "screenshotViewport": "1366x768, phone 390x844",
+  "card": {
+    "id": "rumin-coin-scale-spear",
+    "name": "Dividend Yield Blade"
+  },
+  "deck": {
+    "id": "standard",
+    "name": "Standard playing deck"
+  },
+  "blockedExternalOrigins": [],
+  "adminRequestOrigins": [
+    "http://127.0.0.1:4137"
+  ],
+  "capturedAt": "2026-10-29T21:29:02.863Z"
+}
