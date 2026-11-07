@@ -4,7 +4,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const crypto = require("node:crypto");
 const { migrateV1 } = require("./contentMigration");
-const { clone, hash, fieldsFor, fieldValue, validateAuthoredContent, resolveEngineContent } = require("./authoredContent");
+const { clone, hash, fieldsFor, fieldValue, validateAuthoredContent, validateAuthoredRecord, resolveEngineContent } = require("./authoredContent");
 const catalog = require("./adminCatalog");
 const imageAssets = require("./authoredAssets");
 const paraLeague = require("./paraLeague");
@@ -234,7 +234,7 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
     if (!Array.isArray(edits) || !edits.length || edits.length > 64 || edits.some(edit => !edit || typeof edit.field !== "string") || new Set(edits.map(edit => edit.field)).size !== edits.length) fail(400, "Provide 1–64 distinct fields on one record.");
     return transaction(expectedRevision, state => {
       for (const edit of edits) applyField(state, { domain, id, field: edit.field, value: edit.value, revert: edit.revert === true }, actorId, true);
-      const problems = validateAuthoredContent(state.draft.snapshot, baseline).errors.filter(issue => issue.domain === domain && issue.id === id);
+      const problems = validateAuthoredRecord(state.draft.snapshot, baseline, domain, id);
       if (problems.length) fail(422, problems.map(issue => `${issue.field ? `${issue.field}: ` : ""}${issue.message}`).join(" "));
     });
   }
