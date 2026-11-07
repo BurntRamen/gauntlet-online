@@ -1,3 +1,4 @@
+import { brandText } from '../brand/brandPreview';
 /** One vocabulary for navigation, page headings, and accessible destinations. */
 export const DESTINATIONS = Object.freeze({
   play: { id: "play", label: "Play", title: "Ready to play?", description: "Choose a game. Every great match starts here.", outcome: "Open game choices", route: "play", requiresAuthentication: false },
@@ -9,7 +10,7 @@ export const DESTINATIONS = Object.freeze({
   community: { id: "community", label: "Community", title: "Community", description: "Find friends, send challenges, and keep the conversation going.", outcome: "Open friends and messages", route: "community", requiresAuthentication: false },
   learn: { id: "learn", label: "Learn & Rules", title: "Learn & Rules", description: "Learn the basics, practice a format, or look up a rule.", outcome: "Open tutorials and rules", route: "learn", requiresAuthentication: false },
   profile: { id: "profile", label: "Profile", title: "Your Profile", description: "Your account, competitive record, rewards, and personal style.", outcome: "Open your account and personal style", route: "profile", requiresAuthentication: false },
-  settings: { id: "settings", label: "Settings", title: "Settings", description: "Make Gauntlet comfortable with audio, display, and accessibility preferences.", outcome: "Open sound and display preferences", route: "settings", requiresAuthentication: false },
+  settings: { id: "settings", label: "Settings", title: "Settings", get description() { return brandText("Make SuitFire comfortable with audio, display, and accessibility preferences.", "Make Gauntlet comfortable with audio, display, and accessibility preferences."); }, outcome: "Open sound and display preferences", route: "settings", requiresAuthentication: false },
 });
 
 export const PRIMARY_DESTINATIONS = Object.freeze(["play", "campaign", "decks", "draft", "compete", "matches", "community", "learn"]);

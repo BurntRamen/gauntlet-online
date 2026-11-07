@@ -1,0 +1,13 @@
+{
+  "checks": [
+    "Real server account projection grants fixture eligibility",
+    "Public guest remains Gauntlet Online without preview choice or Admin access",
+    "Eligible account starts with Gauntlet, selects SuitFire through Settings and retains the choice on reload",
+    "SuitFire Admin aria/rail/return labels are correct; Keep retains local edits and Discard exits to SuitFire",
+    "Returning to the record shows its original name; switching back restores Gauntlet Admin; no authoring writes or revision changes occurred"
+  ],
+  "externalNetwork": "Only the two isolated loopback origins were allowed.",
+  "status": "passed",
+  "measuredAt": "2026-11-07T07:14:15.816Z",
+  "pageErrors": []
+}

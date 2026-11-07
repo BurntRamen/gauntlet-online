@@ -1,0 +1,14 @@
+{
+  "version": "v14",
+  "source": "User-approved attachments, 2026-11-06",
+  "assets": [
+    {
+      "path": "crest.png",
+      "sha256": "fd03e77dd6d6b74cf618cf8abdb8819ba0db3b4bfbf128fab7d15a8a86189d3a"
+    },
+    {
+      "path": "full-logo.png",
+      "sha256": "eafa517cf808f0ffb6048df48e1a5306097417969f12c6a08411f1f60d78e13c"
+    }
+  ]
+}

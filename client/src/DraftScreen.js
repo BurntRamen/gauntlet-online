@@ -1,3 +1,4 @@
+import { brandText, useBrandPreview } from './brand/brandPreview';
 import { useState } from "react";
 import DraftProgress from "./DraftProgress";
 import "./DraftScreen.css";
@@ -15,6 +16,7 @@ function LimitedCardInspector({ card, selected, presentation }) {
 }
 
 export default function DraftScreen({ presentation, onCancelDraft, draft, lobby, player, isSpectator, account, deckRules, draftPending, draftConnected, error, draftSaveMessage, onBack, onCopyRoom, onStartDraft, onPickCard, onToggleDeckCard, onSaveDraftDeck }) {
+  useBrandPreview();
   const [inspectedLimitedCardId, setInspectedLimitedCardId] = useState("");
   const [limitedPoolView, setLimitedPoolView] = useState("all");
   const { MENU_THEME, PACK_THEMES, MenuButton, MenuCard, RoomCodeDisplay, DraftCardTile, getReplacementValue, normalizeReplacementSuitId, limitedDeckSourceLabel } = presentation;
@@ -58,7 +60,7 @@ export default function DraftScreen({ presentation, onCancelDraft, draft, lobby,
         <div style={{ display: "flex", justifyContent: "space-between", gap: 16, flexWrap: "wrap", alignItems: "flex-start", borderBottom: "1px solid rgba(125, 211, 252, 0.28)", paddingBottom: 16, marginBottom: 18 }}>
           <div>
             <div style={{ color: "#f59e0b", fontSize: 12, fontWeight: "bold", letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>{draft?.league ? "Limited League Match" : isSealed ? "Six Pack Sealed" : isBotDraft ? "Bot Draft" : "Eight Seat Draft"}</div>
-            <h1 style={{ margin: 0, color: "#f8fafc" }}>{draft?.league ? "Gauntlet Limited League" : isSealed ? "Gauntlet Sealed" : isBotDraft ? "Gauntlet Bot Draft" : "Gauntlet Draft"}</h1>
+            <h1 style={{ margin: 0, color: "#f8fafc" }}>{draft?.league ? brandText("SuitFire Limited League", "Gauntlet Limited League") : isSealed ? brandText("SuitFire Sealed", "Gauntlet Sealed") : isBotDraft ? brandText("SuitFire Bot Draft", "Gauntlet Bot Draft") : brandText("SuitFire Draft", "Gauntlet Draft")}</h1>
             <p style={{ color: "#bfdbfe", marginBottom: 0 }}>{isSealed ? "Open six packs from one set, then build a one-faction 52-card deck from your private pool." : isBotDraft ? "Draft with seven bot drafters, then save a one-faction 52-card deck for Draft League." : "Draft faction cards, then swap selected cards into your standard 52-card playing deck."}</p>
           </div>
           <div style={{ display: "grid", justifyItems: "end", gap: 8 }}>

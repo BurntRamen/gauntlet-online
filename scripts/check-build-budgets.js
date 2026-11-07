@@ -8,7 +8,7 @@ const budgets = Object.freeze({
   mainGzip: 180 * KIB,
   adminEntryGzip: 20 * KIB,
   // Every named lazy workshop shares this total; splitting grants no extra allowance.
-  // The operator workspace uses 71.2 KiB after shared-editor consolidation.
+  // The operator workspace uses 71.3 KiB after shared-editor consolidation.
   // Allow 75 KiB for the complete lazy Admin workspace; its 20 KiB initial
   // entry and every player-facing ceiling remain unchanged.
   adminGzip: 75 * KIB,

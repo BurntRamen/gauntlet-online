@@ -1,22 +1,24 @@
 {
-  "measuredAt": "2026-11-07T06:55:16.176Z",
+  "measuredAt": "2026-11-07T07:12:25.656Z",
   "build": {
     "adminBudgetBytes": 76800,
-    "aggregateAdminGzipBytes": 72890,
+    "aggregateAdminGzipBytes": 72964,
     "adminFiles": [
       {
         "name": "gauntlet-admin-economy-shared.b2ebe03d.chunk.js",
         "gzipBytes": 1635
       },
       {
-        "name": "gauntlet-admin-workshops.2eb67217.chunk.js",
-        "gzipBytes": 56518
+        "name": "gauntlet-admin-workshops.9d750d47.chunk.js",
+        "gzipBytes": 56548
       },
       {
-        "name": "gauntlet-admin.4df5da84.chunk.js",
-        "gzipBytes": 14737
+        "name": "gauntlet-admin.57e7111e.chunk.js",
+        "gzipBytes": 14781
       }
-    ]
+    ],
+    "reconciledMainCommit": "2ef9f1ccfcb1e0d677d5ab83b46ef76bea498c91",
+    "provenance": "Production build after reconciling the Admin branch with main PR103 optional SuitFire branding. Asset hashes identify the measured compiled build."
   },
   "method": {
     "browser": "Playwright Chromium, headless",
@@ -32,76 +34,58 @@
     "typing": "Three real keyboard characters; event-to-two-animation-frame delay, not field INP; local buffer restored without saving",
     "gzipLevel": 9,
     "isolation": "All non-loopback HTTP(S) browser origins blocked. No production mutations or profile payloads recorded.",
-    "contention": "An intermediate run overlapping focused unit tests was excluded. Final samples ran after that process exited."
+    "contention": "The reconciled-build samples ran without other agent-owned builds or tests.",
+    "brand": "Default Gauntlet Online; fresh context with no saved preview preference and an isolated synthetic account not eligible for the optional brand."
   },
   "hostMedian": {
-    "homeReadyMs": 2733,
+    "homeReadyMs": 2748,
     "homeRangeMs": [
-      2101,
-      3850
+      2216,
+      3014
     ],
-    "firstContentfulPaintMs": 280,
-    "contentReadyMs": 1508,
-    "recordReadyMs": 239,
-    "mechanicsSectionMs": 205,
+    "firstContentfulPaintMs": 292,
+    "contentReadyMs": 1560,
+    "recordReadyMs": 236,
+    "mechanicsSectionMs": 233,
     "detailsSectionMs": 183,
     "typingTwoFramesRangeMs": [
-      25,
-      74
+      26,
+      73
     ],
     "typingLongTaskCount": 0
   },
   "samples": [
     {
       "cpuSlowdown": 1,
-      "homeReadyMs": 3850,
+      "homeReadyMs": 3014,
       "firstContentfulPaintMs": 292,
-      "contentReadyMs": 2101,
-      "recordReadyMs": 371,
-      "mechanicsSectionMs": 309,
-      "detailsSectionMs": 200,
-      "typing": {
-        "inputToTwoAnimationFramesMs": [
-          74,
-          51,
-          32
-        ],
-        "longTaskCount": 0,
-        "longestTaskMs": 0
-      },
-      "pageErrors": []
-    },
-    {
-      "cpuSlowdown": 1,
-      "homeReadyMs": 2733,
-      "firstContentfulPaintMs": 280,
-      "contentReadyMs": 1508,
-      "recordReadyMs": 239,
-      "mechanicsSectionMs": 198,
-      "detailsSectionMs": 133,
-      "typing": {
-        "inputToTwoAnimationFramesMs": [
-          70,
-          29,
-          29
-        ],
-        "longTaskCount": 0,
-        "longestTaskMs": 0
-      },
-      "pageErrors": []
-    },
-    {
-      "cpuSlowdown": 1,
-      "homeReadyMs": 2101,
-      "firstContentfulPaintMs": 216,
-      "contentReadyMs": 1425,
-      "recordReadyMs": 226,
-      "mechanicsSectionMs": 205,
+      "contentReadyMs": 1677,
+      "recordReadyMs": 373,
+      "mechanicsSectionMs": 250,
       "detailsSectionMs": 183,
       "typing": {
         "inputToTwoAnimationFramesMs": [
-          65,
-          25,
+          70,
+          49,
+          30
+        ],
+        "longTaskCount": 0,
+        "longestTaskMs": 0
+      },
+      "pageErrors": []
+    },
+    {
+      "cpuSlowdown": 1,
+      "homeReadyMs": 2216,
+      "firstContentfulPaintMs": 280,
+      "contentReadyMs": 1560,
+      "recordReadyMs": 235,
+      "mechanicsSectionMs": 194,
+      "detailsSectionMs": 183,
+      "typing": {
+        "inputToTwoAnimationFramesMs": [
+          73,
+          26,
           26
         ],
         "longTaskCount": 0,
@@ -110,21 +94,40 @@
       "pageErrors": []
     },
     {
-      "cpuSlowdown": 4,
-      "homeReadyMs": 4891,
-      "firstContentfulPaintMs": 1068,
-      "contentReadyMs": 5162,
-      "recordReadyMs": 1462,
-      "mechanicsSectionMs": 984,
-      "detailsSectionMs": 851,
+      "cpuSlowdown": 1,
+      "homeReadyMs": 2748,
+      "firstContentfulPaintMs": 296,
+      "contentReadyMs": 1490,
+      "recordReadyMs": 236,
+      "mechanicsSectionMs": 233,
+      "detailsSectionMs": 184,
       "typing": {
         "inputToTwoAnimationFramesMs": [
-          307,
-          408,
-          207
+          66,
+          27,
+          53
+        ],
+        "longTaskCount": 0,
+        "longestTaskMs": 0
+      },
+      "pageErrors": []
+    },
+    {
+      "cpuSlowdown": 4,
+      "homeReadyMs": 4399,
+      "firstContentfulPaintMs": 1004,
+      "contentReadyMs": 4950,
+      "recordReadyMs": 1396,
+      "mechanicsSectionMs": 1021,
+      "detailsSectionMs": 835,
+      "typing": {
+        "inputToTwoAnimationFramesMs": [
+          533,
+          215,
+          188
         ],
         "longTaskCount": 4,
-        "longestTaskMs": 217
+        "longestTaskMs": 248
       },
       "pageErrors": []
     }
@@ -150,19 +153,19 @@
       "typingLongTaskCount": 0
     },
     "afterHostMedian": {
-      "homeReadyMs": 2733,
+      "homeReadyMs": 2748,
       "homeRangeMs": [
-        2101,
-        3850
+        2216,
+        3014
       ],
-      "firstContentfulPaintMs": 280,
-      "contentReadyMs": 1508,
-      "recordReadyMs": 239,
-      "mechanicsSectionMs": 205,
+      "firstContentfulPaintMs": 292,
+      "contentReadyMs": 1560,
+      "recordReadyMs": 236,
+      "mechanicsSectionMs": 233,
       "detailsSectionMs": 183,
       "typingTwoFramesRangeMs": [
-        25,
-        74
+        26,
+        73
       ],
       "typingLongTaskCount": 0
     },
@@ -181,25 +184,25 @@
       ]
     },
     "baselineCatalogEncodedResponseBytes": 7215882,
-    "interpretation": "The request is absent from Home in all final samples. Local timing variability does not establish a before/after speedup; the verified improvement is deferring this large unused startup response."
+    "interpretation": "The request is absent from Home in all final samples. The baseline predates both catalog deferral and main PR103 reconciliation. Local timing variability does not establish a before/after speedup; the verified improvement is deferring this large unused startup response."
   },
   "requestProof": {
     "scriptsRequestedBeforeHomeReady": [
-      "main.d5d3ee13.js",
-      "gauntlet-command-deck.d3a5cfb2.chunk.js",
-      "gauntlet-admin.4df5da84.chunk.js",
+      "main.691ffc42.js",
+      "gauntlet-command-deck.f0345b9f.chunk.js",
+      "gauntlet-admin.57e7111e.chunk.js",
       "match-history.69281dab.chunk.js",
-      "705.ba5b81b9.chunk.js"
+      "705.c1e9a44d.chunk.js"
     ],
     "additionalScriptsRequestedOnFirstContent": [
       "content-consumers.88d0a0af.chunk.js",
-      "gauntlet-match.2b574dc7.chunk.js",
-      "gauntlet-admin-workshops.2eb67217.chunk.js"
+      "gauntlet-match.9132700c.chunk.js",
+      "gauntlet-admin-workshops.9d750d47.chunk.js"
     ],
     "workshopRequestedBeforeHome": false,
     "wholeApplicationGzipEquivalentJS": {
-      "home": 236841,
-      "afterContent": 447365
+      "home": 238654,
+      "afterContent": 449416
     },
     "note": "These include existing application and engine dependencies, not only the Admin-source budget. Gzip equivalents use exact requested build files; local transfer was uncompressed.",
     "sharedContentChunks": "content-consumers contains DeckOfferCard and compositionContract. gauntlet-match groups shared duel rules with existing match presentation code. No babylon-shared or WebGL-shader chunk was requested."

@@ -1,3 +1,4 @@
+import { brandText } from './brand/brandPreview';
 import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
 import "./GauntletAdmin.css";
 import "./admin/AdminWorkspace.css";
@@ -88,7 +89,7 @@ function Matches({ request, revision, onInspectContent }) {
   const [query, setQuery] = useState("");
   const [id, setId] = useState("");
   const [lookup, setLookup] = useState("");
-  return <><p className="admin-lede">Browse completed records and inspect their original evidence.</p>
+  return <><p className="admin-lede">Inspect completed matches and original evidence.</p>
     <form className="admin-actions" onSubmit={(event) => { event.preventDefault(); setId(lookup.trim()); }}><label className="admin-search">Exact match ID<input value={lookup} onChange={(event) => setLookup(event.target.value)} placeholder="UUID, including older records" required /></label><button type="submit">Look up match</button></form>
     <label className="admin-search">Search recent records<input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="ID, participant, mode, faction or encounter" /></label>
     <State state={state}>{(data) => <><p className="admin-note">{data.scope}</p><Issues issues={data.issues} /><MatchList records={data.matches.filter((record) => [record.matchId, record.mode, record.campaign?.title, record.campaign?.chapterId, ...(record.participants || []).flatMap((player) => [player.displayName, player.faction?.name])].join(" ").toLowerCase().includes(query.toLowerCase()))} onInspect={setId} /></>}</State>
@@ -176,7 +177,7 @@ function AdminWorkspace({ request, onClose, operations, exitGuard, environment }
   const destination = contentDestination(currentDomain);
   const closeDrawer = () => { setDrawer(false); drawerTrigger.current?.focus(); };
   const openDestination = (name, types) => { const recent = operator.preferences.recent.find(item => types.some(([id]) => id === item.domain)); selectArea("Content", recent?.domain || types[0][0], recent?.id); };
-  return <section className="gauntlet-admin admin-workspace" data-density={operator.preferences.density} data-focus={operator.preferences.focus} aria-label="Gauntlet Admin">
+  return <section className="gauntlet-admin admin-workspace" data-density={operator.preferences.density} data-focus={operator.preferences.focus} aria-label={brandText("SuitFire Admin", "Gauntlet Admin")}>
     <a className="admin-skip" href="#admin-workspace-content">Skip to workspace</a>
     {drawer && <div className="admin-drawer-shade" onClick={closeDrawer} />}
     <div ref={rail} className={`admin-rail ${drawer ? "is-open" : ""}`} role={drawer ? "dialog" : undefined} aria-modal={drawer ? true : undefined} aria-label={drawer ? "Workspace navigation" : undefined} onKeyDown={event => {
@@ -184,10 +185,10 @@ function AdminWorkspace({ request, onClose, operations, exitGuard, environment }
       if (event.key === "Escape") { event.preventDefault(); closeDrawer(); }
       if (event.key === "Tab") { const items = [...rail.current.querySelectorAll("button,a[href]")].filter(el => !el.disabled && el.offsetParent !== null); const first = items[0], last = items.at(-1); if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); } else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); } }
     }}>
-      <div className="admin-brand"><span className="admin-brand-mark" aria-hidden="true">G</span><div><strong>GAUNTLET</strong><span>Operator studio</span></div><button className="admin-drawer-close" onClick={closeDrawer} aria-label="Close navigation">×</button></div>
+      <div className="admin-brand"><span className="admin-brand-mark" aria-hidden="true">{brandText("S", "G")}</span><div><strong>{brandText("SUITFIRE", "GAUNTLET")}</strong><span>Operator studio</span></div><button className="admin-drawer-close" onClick={closeDrawer} aria-label="Close navigation">×</button></div>
       <nav className="admin-nav" aria-label="Administration sections">{AREAS.map((name, index) => <button key={name} aria-current={area === name ? "page" : undefined} onClick={() => selectArea(name)}><svg className="admin-section-icon" viewBox="0 0 24 24" aria-hidden="true"><path d={ICONS[index] || ICONS[0]} /></svg>{name}</button>)}</nav>
       {area === "Content" && <nav className="admin-destinations" aria-label="Content destinations"><span className="admin-eyebrow">Content library</span>{CONTENT_DESTINATIONS.map(([name, types]) => <button key={name} aria-current={destination[0] === name ? "page" : undefined} onClick={() => openDestination(name, types)}>{name}</button>)}</nav>}
-      <div className="admin-rail-footer"><button className="admin-mobile-return" onClick={() => canLeave(() => { clearAdminLocation(); onClose?.(); })}>Back to Gauntlet ↗</button><span className="admin-connection-dot" />{environment?.includes("127.0.0.1") || environment?.includes("localhost") ? "Local environment" : "Private administration"}<small>Server-authorized access</small></div>
+      <div className="admin-rail-footer"><button className="admin-mobile-return" onClick={() => canLeave(() => { clearAdminLocation(); onClose?.(); })}>Back to {brandText("SuitFire", "Gauntlet")} ↗</button><span className="admin-connection-dot" />{environment?.includes("127.0.0.1") || environment?.includes("localhost") ? "Local environment" : "Private administration"}<small>Server-authorized access</small></div>
     </div>
     <div className="admin-workspace-main">
     <header className="admin-topbar">
@@ -196,7 +197,7 @@ function AdminWorkspace({ request, onClose, operations, exitGuard, environment }
       <AdminSearch request={request} onSelect={(target, accepted) => selectArea(target.area, target.domain, target.id, target.section, target.field, accepted)} />
       <span className={`admin-save-context ${editing?.unsaved ? "has-local" : ""}`}>{authoring && editing ? editing.loading ? "Loading authoring…" : editing.busy ? "Working…" : editing.unsaved ? "Unsaved in this browser" : editing.liveOnly ? "Shared draft unavailable" : ["draft", "Saved draft"].includes(editing.source) ? "Saved to shared draft" : "Live content" : "Server-authorized"}</span>
       <details ref={utilityMenu} className="admin-utilities" onKeyDown={event => { if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); dismissMenus(); } }}><summary aria-label="Workspace options">•••</summary><div><strong>Workspace preferences</strong><label>Density<select aria-label="Density" value={operator.preferences.density} onChange={event => operator.update({ density: event.target.value })}><option value="comfortable">Comfortable</option><option value="compact">Compact</option></select></label><label><input type="checkbox" checked={operator.preferences.focus} onChange={event => operator.update({ focus: event.target.checked })} /> Focus on editor</label><label>Preview<select aria-label="Preview visibility" value={operator.preferences.preview == null ? "auto" : String(operator.preferences.preview)} onChange={event => operator.update({ preview: event.target.value === "auto" ? null : event.target.value === "true" })}><option value="auto">Automatic on wide screens</option><option value="true">Show preview</option><option value="false">Keep editor visible</option></select></label><button onClick={operator.reset}>Reset preferences</button><button onClick={() => canLeave(() => setRevision(value => value + 1))}>Refresh admin</button></div></details>
-      <button className="admin-return" onClick={() => canLeave(() => { clearAdminLocation(); onClose?.(); })}>Back to Gauntlet <span aria-hidden="true">↗</span></button>
+      <button className="admin-return" onClick={() => canLeave(() => { clearAdminLocation(); onClose?.(); })}>Back to {brandText("SuitFire", "Gauntlet")} <span aria-hidden="true">↗</span></button>
     </header>
     <div className="admin-body" id="admin-workspace-content" tabIndex={-1}>
       {area === "Content" && <div className="admin-content-context">{destination[1].length > 1 && <label>Content type<select aria-label="Content type" value={currentDomain} onChange={event => selectArea("Content", event.target.value)}>{destination[1].map(([id, name]) => <option key={id} value={id}>{name}</option>)}</select></label>}{editing?.id && <button aria-pressed={operator.isPinned(editing)} onClick={() => operator.togglePin({ domain: editing.domain, id: editing.id, name: editing.name })}>{operator.isPinned(editing) ? "★ Pinned" : "☆ Pin item"}</button>}</div>}

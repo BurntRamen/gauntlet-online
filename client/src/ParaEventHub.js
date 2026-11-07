@@ -1,7 +1,9 @@
+import { brandText, useBrandPreview } from './brand/brandPreview';
 import { useEffect, useState } from "react";
 import "./EventHub.css";
 
 export default function EventHub({ serverUrl, authToken, socket, onOpenMatch }) {
+  useBrandPreview();
   const [data, setData] = useState(null), [error, setError] = useState(""), [status, setStatus] = useState("");
   const [selected, setSelected] = useState(""), [accepted, setAccepted] = useState(false), [busy, setBusy] = useState(false);
   const [pool, setPool] = useState([]), [faction, setFaction] = useState(""), [cards, setCards] = useState([]);
@@ -22,7 +24,7 @@ export default function EventHub({ serverUrl, authToken, socket, onOpenMatch }) 
   async function act(route, input) { setBusy(true); try { await request(route, input); await refresh(); } catch (e) { setError(e.message); } finally { setBusy(false); } }
   const run = event?.attempts?.find((a) => ["registered", "playing"].includes(a.status));
   return <section className="para-hub" aria-label="Para League Event Hub"><h3>Para League</h3>
-    <p>Automatic free membership with your Gauntlet account. Prestige comes from official completed runs and is separate from ranked points. Gold and Gems do not affect qualification.</p>
+    <p>{brandText("Automatic free membership with your SuitFire account. Prestige comes from official completed runs and is separate from ranked points. Gold and Gems do not affect qualification.", "Automatic free membership with your Gauntlet account. Prestige comes from official completed runs and is separate from ranked points. Gold and Gems do not affect qualification.")}</p>
     {!authToken ? <p>Sign in through Profile to enter.</p> : <button onClick={refresh}>Refresh Para League</button>}
     {error && <p role="alert">{error}</p>}{status && <p role="status">{status}</p>}
     {data && !data.enabled && <p>{data.reason}</p>}

@@ -1,3 +1,4 @@
+import { brandText } from '../brand/brandPreview';
 import Help from "./AuthoringHelp";
 import { useState } from "react";
 import { Field } from "../GauntletParaLeague";
@@ -16,7 +17,7 @@ export default function CompetitionWorkshop({ state, act, busy, onDirty, initial
   const pinned = (state.live.competition?.[domain] || []).some(r => r.id === editing?.id && r.status !== "draft");
   return <section className="para-workspace" aria-label="Managed competition definitions">
     <Help topic="CompetitionWorkshop1" />
-    <nav className="admin-subnav" aria-label="Competition definitions">{[["ranked", "Ranked seasons"], ["events", "Gauntlet events"]].map(([key, name]) => <button key={key} aria-pressed={domain === key} onClick={() => leave(() => { setDomain(key); select(null); })}>{name}</button>)}</nav>
+    <nav className="admin-subnav" aria-label="Competition definitions">{[["ranked", "Ranked seasons"], ["events", brandText("SuitFire events", "Gauntlet events")]].map(([key, name]) => <button key={key} aria-pressed={domain === key} onClick={() => leave(() => { setDomain(key); select(null); })}>{name}</button>)}</nav>
     <div className="admin-actions"><button disabled={disabled || dirty} onClick={() => save({ operation: "create" })}>Create {domain === "ranked" ? "season" : "event"} draft</button><RegistrySearch editor={editor} label="Find definitions" /></div>
     <RegistryWorkspace editor={editor} summary={row => <>{row.status} · {row.startsAt ? new Date(row.startsAt).toLocaleString() : "Unscheduled"}</>}>
       {editing && <RegistryForm editor={editor}><h3 className="admin-section-heading">{editing.name}</h3>

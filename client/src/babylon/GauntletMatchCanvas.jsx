@@ -1,3 +1,4 @@
+import { brandText, useBrandPreview } from '../brand/brandPreview';
 import { useEffect, useRef, useState } from "react";
 import { Engine } from "@babylonjs/core/Engines/engine.js";
 import { createGauntletScene } from "./createGauntletScene";
@@ -25,6 +26,7 @@ export default function GauntletMatchCanvas({
   onRendererError,
   onSceneMetrics
 }) {
+  useBrandPreview();
   const canvasRef = useRef(null);
   const rendererRef = useRef(null);
   const engineRef = useRef(null);
@@ -330,9 +332,9 @@ export default function GauntletMatchCanvas({
   return (
     <section
       className="babylon-match-shell"
-      aria-label={`${viewModel?.mode === "factions" ? "Faction" : "Basic Gauntlet"} match rendered with Babylon.js`}
+      aria-label={`${viewModel?.mode === "factions" ? "Faction" : brandText("Basic SuitFire", "Basic Gauntlet")} match rendered with Babylon.js`}
     >
-      <canvas ref={canvasRef} className="babylon-match-canvas" aria-label="Gauntlet game table. Press H, L, F, or A to enter keyboard card, lane, faction, or action controls." />
+      <canvas ref={canvasRef} className="babylon-match-canvas" aria-label={brandText("SuitFire game table. Press H, L, F, or A to enter keyboard card, lane, faction, or action controls.", "Gauntlet game table. Press H, L, F, or A to enter keyboard card, lane, faction, or action controls.")} />
       <AccessibleMatchControls
         viewModel={viewModel}
         commands={commands}

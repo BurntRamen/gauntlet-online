@@ -1,3 +1,4 @@
+import { brandText } from '../brand/brandPreview';
 const DEFAULT_SERIES = Object.freeze({
   kind: "single",
   gameNumber: 1,
@@ -75,7 +76,7 @@ export function createMatchDescriptor(game, controlState = {}) {
 }
 
 export function matchDescriptorLabel(descriptor) {
-  if (!descriptor) return "Gauntlet match";
+  if (!descriptor) return brandText("SuitFire match", "Gauntlet match");
   if (descriptor.opponentKind === "campaignBoss") return "Campaign battle";
   if (descriptor.opponentKind === "trainingAi") return "Training match";
   if (descriptor.deckFormat === "draft") return "Draft-deck match";

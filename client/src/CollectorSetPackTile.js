@@ -1,3 +1,4 @@
+import { brandText, useBrandPreview } from './brand/brandPreview';
 const SET_THEMES = {
   initiative: { accent: "#f6c453", glow: "rgba(246,196,83,.36)", background: "linear-gradient(145deg, #020617, #111827 48%, #172554 100%)", art: "radial-gradient(circle at 50% 20%, rgba(246,196,83,.22), transparent 32%)" },
   legacies: { accent: "#c4b5fd", glow: "rgba(196,181,253,.34)", background: "linear-gradient(145deg, #1e1b4b, #581c87 52%, #172554 100%)" },
@@ -11,6 +12,7 @@ const FACTION_NAMES = {
 };
 
 export default function CollectorSetPackTile({ product, checkoutConfigured, onBuyPack }) {
+  useBrandPreview();
   const theme = SET_THEMES[product.setId] || SET_THEMES.initiative;
   const available = product.available !== false;
   const canPurchase = available && checkoutConfigured;
@@ -23,7 +25,7 @@ export default function CollectorSetPackTile({ product, checkoutConfigured, onBu
       <span className="booster-pack-shine" />
       <span className="booster-pack-crimp booster-pack-crimp-top" />
       <span className="booster-pack-crimp booster-pack-crimp-bottom" />
-      <span className="booster-pack-topline">Gauntlet Collector Store</span>
+      <span className="booster-pack-topline">{brandText("SuitFire Collector Store", "Gauntlet Collector Store")}</span>
       <span className="booster-pack-set">Set {product.setNumber} · Animated Styles</span>
       <strong>{product.displayName || product.setName}</strong>
       <span className="booster-pack-subtitle">{product.subtitle}</span>

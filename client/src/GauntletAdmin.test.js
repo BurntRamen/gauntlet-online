@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import GauntletAdmin from "./GauntletAdmin";
+import { chooseBrand, setAccountBrand } from "./brand/brandPreview";
 
 jest.mock("./GauntletAuthoring", () => ({ __esModule: true, default: ({ area, catalog }) => <><p>Authoring area: {area}</p><span>{catalog ? "Catalog ready" : "Catalog loading"}</span></> }));
 
@@ -24,12 +25,28 @@ const respond = async (path) => {
 };
 const request = jest.fn();
 beforeEach(() => { window.history.replaceState({}, "", "/"); request.mockReset().mockImplementation(respond); jest.spyOn(window, "scrollTo").mockImplementation(() => {}); });
-afterEach(() => jest.restoreAllMocks());
+afterEach(() => { setAccountBrand(null); jest.restoreAllMocks(); });
 function select(area) {
   fireEvent.click(within(screen.getByRole("navigation", { name: "Administration sections" })).getByText(({ Design: "Content", Matches: "Operations", System: "Operations" })[area] || area));
   if (area === "Matches" && screen.queryByRole("button", { name: "Match evidence" })) fireEvent.click(screen.getByRole("button", { name: "Match evidence" }));
   if (area === "System") fireEvent.click(screen.getByRole("button", { name: "Health" }));
 }
+
+test("the redesigned shell follows the eligible account's optional brand and clears it for public use", async () => {
+  setAccountBrand({ id: "admin-brand-preview", brandPreview: "suitfire" });
+  chooseBrand("suitfire");
+  const view = render(<GauntletAdmin request={request} onClose={() => {}} />);
+  await screen.findByRole("heading", { name: "Make your next move." });
+  expect(screen.getByRole("region", { name: "SuitFire Admin" })).toBeVisible();
+  expect(screen.getByText("SUITFIRE")).toBeVisible();
+  expect(screen.getAllByRole("button", { name: /Back to SuitFire/ })).toHaveLength(2);
+  expect(request).not.toHaveBeenCalledWith("/api/admin/catalog");
+  setAccountBrand(null);
+  view.rerender(<GauntletAdmin request={request} onClose={() => {}} />);
+  expect(screen.getByRole("region", { name: "Gauntlet Admin" })).toBeVisible();
+  expect(screen.getByText("GAUNTLET")).toBeVisible();
+  expect(screen.getAllByRole("button", { name: /Back to Gauntlet/ })).toHaveLength(2);
+});
 
 test.each(["Content", "Players"])("Home defers the catalog until %s needs it, then navigation retains it and Refresh reloads it", async area => {
   const catalogReads = () => request.mock.calls.filter(([path]) => path === "/api/admin/catalog").length;
