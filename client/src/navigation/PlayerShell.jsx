@@ -4,7 +4,7 @@ import { PlayerAvatar } from '../ProfileAvatar';
 import React, { useEffect, useId, useRef, useState } from "react";
 import { getDestination, PRIMARY_DESTINATIONS, MOBILE_DESTINATIONS, MORE_DESTINATIONS } from "./destinations";
 import { resolveVisualAsset } from "../GauntletVisuals";
-import { MENU_SCENES } from "./menuArtwork";
+import { GAUNTLET_CREST, MENU_SCENES } from "./menuArtwork";
 import "./PlayerShell.css";
 
 const ICON_PATHS = {
@@ -103,7 +103,7 @@ function MoreSheet({ destination, onNavigate, onClose, onCustomize, customizable
 }
 
 export default function PlayerShell({ serverUrl, destination = "play", navigationKey = destination, pageTitle, pageDescription, pageEyebrow, pageDetail, onNavigate, account, audioMuted = false, onToggleAudio, ownerAuthorized = false, onAdmin, onCustomize, customizable = false, editing = false, onDoneEditing, children, notices }) {
-  useBrandPreview();
+  const preview = useBrandPreview();
   const [moreOpen, setMoreOpen] = useState(false);
   const returnFocusRef = useRef(null);
   const titleRef = useRef(null);
@@ -135,17 +135,17 @@ export default function PlayerShell({ serverUrl, destination = "play", navigatio
   }, []);
 
   return (
-    <div className={`cd-shell${editing ? " is-editing" : ""}`} data-destination={current.id} style={{ "--cd-scene": `url("${resolveVisualAsset(MENU_SCENES[current.id])}")` }}>
+    <div className={`cd-shell${preview ? " is-suitfire" : ""}${editing ? " is-editing" : ""}`} data-destination={current.id} style={{ "--cd-scene": `url("${resolveVisualAsset(MENU_SCENES[current.id])}")` }}>
       <div className="cd-environment" aria-hidden="true"><img key={current.id} src={resolveVisualAsset(MENU_SCENES[current.id])} alt="" decoding="async" draggable={false} /></div>
       <div className="cd-shell-surface" inert={moreOpen ? true : undefined} aria-hidden={moreOpen ? true : undefined}>
         <a className="cd-skip-link" href={`#${mainId}`}>Skip to page content</a>
         <header className="cd-topbar">
-          <button className="cd-brand" type="button" onClick={() => onNavigate("play")} aria-label={brandText("SuitFire — open Play", "Gauntlet Online — open Play")}><SuitFireBrand /></button>
-          <span className="cd-topbar-caption"><small>Current location</small><strong>{current.label}</strong></span>
+          <button className="cd-brand" type="button" onClick={() => onNavigate("play")} aria-label={brandText("SuitFire — open Play", "Gauntlet Online — open Play")}>{preview ? <SuitFireBrand /> : <><img className="cd-brand-crest" src={resolveVisualAsset(GAUNTLET_CREST)} alt="" width="44" height="44" decoding="async" draggable={false} /><span>GAUNTLET <small>ONLINE</small></span></>}</button>
+          <span className="cd-topbar-caption">{preview ? <><small>Current location</small><strong>{current.label}</strong></> : "THE COMMAND DECK"}</span>
           <div className="cd-header-actions">
             {editing && <button type="button" className="cd-button cd-button-primary cd-done-editing" onClick={onDoneEditing}>Done Editing</button>}
             {onToggleAudio && <button type="button" className="cd-header-button cd-audio-button" aria-label="Mute menu audio" aria-pressed={audioMuted} title={audioMuted ? "Unmute menu audio" : "Mute menu audio"} onClick={onToggleAudio}><DestinationIcon name={audioMuted ? "muted" : "sound"} /><span>{audioMuted ? "Muted" : "Mute"}</span></button>}
-            <button type="button" className="cd-header-button cd-profile-button" onClick={() => onNavigate("profile")} aria-label={accountName ? `Profile — ${accountName}` : "Profile"}>{account ? <PlayerAvatar serverUrl={serverUrl} subject={account} name={accountName || "Guest"} size="large" decorative /> : <DestinationIcon name="profile" />}<span>{accountName || "Profile"}</span></button>
+            <button type="button" className="cd-header-button cd-profile-button" onClick={() => onNavigate("profile")} aria-label={accountName ? `Profile — ${accountName}` : "Profile"}>{preview && account ? <PlayerAvatar serverUrl={serverUrl} subject={account} name={accountName || "Guest"} size="large" decorative /> : <DestinationIcon name="profile" />}<span>{accountName || "Profile"}</span></button>
             <button type="button" className="cd-header-button cd-settings-button" onClick={() => onNavigate("settings")}><DestinationIcon name="settings" /><span>Settings</span></button>
             <button type="button" className="cd-header-button cd-desktop-more" onClick={openMore} aria-haspopup="dialog" aria-expanded={moreOpen}><DestinationIcon name="more" /><span>More</span></button>
           </div>

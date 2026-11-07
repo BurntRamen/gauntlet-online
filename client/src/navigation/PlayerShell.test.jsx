@@ -1,5 +1,6 @@
+import { setAccountBrand, chooseBrand } from '../brand/brandPreview';
 import React from "react";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import PlayerShell from "./PlayerShell";
 import ActionTile from "./ActionTile";
 import SetupFrame from "./SetupFrame";
@@ -130,10 +131,19 @@ test("choosing a destination in More focuses its heading after the sheet closes"
   expect(screen.getByRole("heading", { level: 1, name: "Matches" })).toHaveFocus();
 });
 
-test('keeps location and identity distinct and resolves uploaded portraits against the API', () => {
+test('preserves the public header and shows location and portrait only in the selected preview', () => {
  const { container } = renderShell({ destination: 'campaign', account: { name: 'River', avatar: { path: '/uploads/river.png' } }, serverUrl: 'https://api.example.invalid' });
  expect(screen.getByRole('button', { name: 'Gauntlet Online — open Play' })).toBeInTheDocument();
+ expect(container.querySelector('.cd-topbar-caption')).toHaveTextContent('THE COMMAND DECK');
+ expect(container.querySelector('.cd-profile-button img')).toBeNull();
+ act(() => { setAccountBrand({ id: 'preview-fixture', brandPreview: 'suitfire' }); chooseBrand('suitfire'); });
+ expect(screen.getByRole('button', { name: 'SuitFire — open Play' })).toBeInTheDocument();
  expect(container.querySelector('.cd-topbar-caption')).toHaveTextContent('Current location');
  expect(container.querySelector('.cd-topbar-caption')).toHaveTextContent(getDestination('campaign').label);
  expect(container.querySelector('.cd-profile-button img')).toHaveAttribute('src', 'https://api.example.invalid/uploads/river.png');
+ act(() => chooseBrand('gauntlet'));
+ expect(container.querySelector('.cd-topbar-caption')).toHaveTextContent('THE COMMAND DECK');
+ expect(container.querySelector('.cd-profile-button img')).toBeNull();
+ act(() => setAccountBrand(null));
+ localStorage.clear();
 });

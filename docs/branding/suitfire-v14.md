@@ -13,3 +13,5 @@ The location display and enlarged side portrait remain separate. The original fu
 GitHub connector write access was repaired by installing the authorized OpenAI connector on only BurntRamen/gauntlet-online. The release branch is codex/suitfire-complete-rebrand. Additional card/city artwork from a separate handoff is outside this rollout.
 
 Focused rollout validation: 75 client behavior tests, 10 Admin tests, 9 server/auth/recovery tests, and 80 browser combinations (guest, ordinary account, simply, BurntRamen; ten destinations; desktop/mobile) passed. Browser checks cover opt-in, opt-out, refresh persistence, logout reset, logo decoding, header overlap, and page overflow. Approved image hashes remain unchanged.
+
+The public Command Deck retains its existing compact masthead. The enlarged logo, current-location caption and side portrait apply only while SuitFire is selected. Existing Ranked & Gauntlet competition-mode labels remain unchanged in both presentations. Focused follow-up browser checks cover the Admin season/publication journey and public mobile/tablet/zoom layout.
