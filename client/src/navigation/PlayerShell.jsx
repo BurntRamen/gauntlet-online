@@ -129,6 +129,10 @@ export default function PlayerShell({ serverUrl, destination = "play", navigatio
     setMoreOpen(false);
     // Wait until React removes inert from the application surface.
     window.requestAnimationFrame(() => {
+      // A newly revealed control may already own focus before this frame.
+      // Restore only when closing the sheet left focus unclaimed.
+      const active = document.activeElement;
+      if (active && active !== document.body && active !== document.documentElement) return;
       const target = restoreFocus !== false ? returnFocusRef.current : mainRef.current?.querySelector("[data-cd-workflow-heading]") || titleRef.current;
       target?.focus({ preventScroll: true });
     });

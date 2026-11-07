@@ -2,12 +2,13 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { useState } from "react";
 import useWorkshopContext, { targetFromLocation, workshopTarget } from "./useWorkshopContext";
 import UnsavedChangesDialog from "./UnsavedChangesDialog";
+import { OperatorPreferences, useOperatorPreferences } from "./OperatorPreferences";
 
 let workspace;
-function Harness({ initialDirty = false, busy = false, onDiscard = jest.fn(), onBusy = jest.fn(), onNavigate = jest.fn(), beforeNavigate, onExit }) {
+function Harness({ initialDirty = false, busy = false, onDiscard = jest.fn(), onBusy = jest.fn(), onNavigate = jest.fn(), beforeNavigate, onExit, onSave }) {
   const [dirty, setDirty] = useState(initialDirty);
-  workspace = useWorkshopContext({ initialTarget: { domain: "cards", id: "spear" }, dirty, busy, onDiscard: () => { onDiscard(); setDirty(false); }, onBusy, onNavigate, beforeNavigate, onExit });
-  return <><p>{dirty ? "Local values present" : "Local values clear"}</p><p data-testid="target">{workspace.target.domain}:{workspace.target.id}</p><button onClick={() => workspace.navigate({ domain: "encounters", id: "first", section: "story" })}>Open encounter</button>{workspace.pending && <UnsavedChangesDialog onKeep={workspace.cancel} onDiscard={workspace.discard} />}</>;
+  workspace = useWorkshopContext({ initialTarget: { domain: "cards", id: "spear" }, dirty, busy, onDiscard: () => { onDiscard(); setDirty(false); }, onBusy, onNavigate, beforeNavigate, onExit, onSave });
+  return <><p>{dirty ? "Local values present" : "Local values clear"}</p><p data-testid="target">{workspace.target.domain}:{workspace.target.id}</p><button onClick={() => workspace.navigate({ domain: "encounters", id: "first", section: "story" })}>Open encounter</button>{workspace.pending && <UnsavedChangesDialog onKeep={workspace.cancel} onDiscard={workspace.discard} onSave={onSave && workspace.saveAndContinue} saving={workspace.saving} error={workspace.saveError} />}</>;
 }
 
 beforeEach(() => { window.history.replaceState(null, "", "/admin/gauntlet"); jest.spyOn(window, "scrollTo").mockImplementation(() => {}); });
@@ -59,22 +60,21 @@ test("returning from Publishing to the selected object reopens Design without du
   expect(push).not.toHaveBeenCalled();
 });
 
-test("same-object return navigation still resolves local edits before changing the visible view", () => {
+test("same-record sections and Back retain local values without a discard prompt", () => {
   window.history.replaceState(null, "", "/admin/gauntlet?workshop=cards&object=spear");
   const onNavigate = jest.fn(), onDiscard = jest.fn();
   render(<Harness initialDirty onNavigate={onNavigate} onDiscard={onDiscard} />);
-  act(() => workspace.navigate({ domain: "cards", id: "spear" }));
-  fireEvent.click(screen.getByRole("button", { name: "Keep editing" }));
-  expect(onNavigate).not.toHaveBeenCalled();
-  expect(onDiscard).not.toHaveBeenCalled();
+  act(() => workspace.navigate({ domain: "cards", id: "spear", section: "mechanics" }));
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   expect(screen.getByText("Local values present")).toBeVisible();
-  act(() => workspace.navigate({ domain: "cards", id: "spear" }));
-  fireEvent.click(screen.getByRole("button", { name: "Discard local edits and continue" }));
-  expect(onDiscard).toHaveBeenCalledTimes(1);
-  expect(onNavigate).toHaveBeenCalledTimes(1);
+  expect(workspace.target.section).toBe("mechanics");
+  act(() => window.dispatchEvent(new PopStateEvent("popstate", { state: { gauntletWorkshop: 0 } })));
   expect(workspace.target.id).toBe("spear");
-  expect(workspace.backCount).toBe(0);
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  expect(screen.getByText("Local values present")).toBeVisible();
+  expect(onDiscard).not.toHaveBeenCalled();
 });
+
 
 test("URL navigation carries identifiers only and rejects unsupported domains and section values", () => {
   expect(workshopTarget({ domain: "script", id: "one" })).toEqual({ domain: "encounters", id: null });
@@ -166,6 +166,32 @@ test("a separate Players guard cancels browser Back before workshop context chan
   } finally { window.removeEventListener("popstate", downstream); }
 });
 
+test.each([false, true])("a queued Players continuation resumes browser Back once (bounce finished: %s)", bounced => {
+  const go = jest.spyOn(window.history, "go").mockImplementation(() => {});
+  let blocked = false, resume;
+  const beforeNavigate = jest.fn(action => { if (blocked) { resume = action; return false; } return action(); });
+  const onNavigate = jest.fn();
+  render(<Harness beforeNavigate={beforeNavigate} onNavigate={onNavigate} />);
+  act(() => workspace.navigate({ domain: "encounters", id: "first" }));
+  expect(onNavigate).toHaveBeenCalledTimes(1);
+  blocked = true;
+  act(() => window.dispatchEvent(new PopStateEvent("popstate", { state: { gauntletWorkshop: 0 } })));
+  expect(go).toHaveBeenLastCalledWith(1);
+  expect(workspace.target.id).toBe("first");
+  if (bounced) act(() => window.dispatchEvent(new PopStateEvent("popstate", { state: { gauntletWorkshop: 1 } })));
+  blocked = false;
+  act(() => { resume(); resume(); });
+  if (!bounced) {
+    expect(go).toHaveBeenCalledTimes(1);
+    act(() => window.dispatchEvent(new PopStateEvent("popstate", { state: { gauntletWorkshop: 1 } })));
+  }
+  expect(go).toHaveBeenCalledTimes(2);
+  expect(go).toHaveBeenLastCalledWith(-1);
+  act(() => window.dispatchEvent(new PopStateEvent("popstate", { state: { gauntletWorkshop: 0 } })));
+  expect(workspace.target.id).toBe("spear");
+  expect(onNavigate).toHaveBeenCalledTimes(2);
+});
+
 test("pending requests stop both a browser departure and its compensating event", () => {
   const go = jest.spyOn(window.history, "go").mockImplementation(() => {});
   const downstream = jest.fn(), onExit = jest.fn();
@@ -213,4 +239,38 @@ test("dialog keeps keyboard focus inside, supports escape, and restores its trig
   fireEvent.keyDown(discard, { key: "Tab" }); expect(keep).toHaveFocus();
   fireEvent.keyDown(keep, { key: "Escape" });
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument(); expect(trigger).toHaveFocus();
+});
+
+test("Save and continue waits for acknowledgement and retains input after failure", async () => {
+  let finish;
+  const save = jest.fn(() => new Promise(resolve => { finish = resolve; })), navigate = jest.fn(), discard = jest.fn();
+  render(<Harness initialDirty onSave={save} onNavigate={navigate} onDiscard={discard} />);
+  fireEvent.click(screen.getByText("Open encounter"));
+  fireEvent.click(screen.getByText("Save and continue"));
+  expect(navigate).not.toHaveBeenCalled();
+  expect(screen.getByText("Saving…")).toBeDisabled();
+  await act(async () => finish(false));
+  expect(screen.getByRole("dialog")).toBeVisible();
+  expect(screen.getByText("Local values present")).toBeVisible();
+  expect(navigate).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByText("Save and continue"));
+  await act(async () => finish(true));
+  expect(navigate).toHaveBeenCalledWith({domain:"encounters",id:"first",section:"story"});
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  expect(discard).not.toHaveBeenCalled();
+});
+
+
+test("operator filters persist only safe values and reset without abandoning local work", () => {
+  function PreferencesHarness() { const prefs = useOperatorPreferences(); return <><Harness initialDirty /><button onClick={prefs.reset}>Reset workspace preferences</button></>; }
+  render(<OperatorPreferences scope="save-tests:operator"><PreferencesHarness /></OperatorPreferences>);
+  act(() => workspace.remember({query:"Find card",faction:"rumin",formValues:"private working text",token:"private token",scroll:420}));
+  const stored = JSON.parse(localStorage.getItem("gauntlet-admin:save-tests:operator"));
+  expect(stored.filters.cards).toEqual({query:"Find card",faction:"rumin"});
+  expect(JSON.stringify(stored)).not.toContain("private");
+  fireEvent.click(screen.getByRole("button", {name:"Reset workspace preferences"}));
+  expect(workspace.context.query).toBeUndefined();
+  expect(workspace.context.scroll).toBe(420);
+  expect(screen.getByText("Local values present")).toBeVisible();
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 });

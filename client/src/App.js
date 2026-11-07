@@ -4674,7 +4674,6 @@ export default function App() {
   if (homeArea === "studio" && !game && !lobby) {
     return (
       <main className="admin-page">
-        <button className="admin-back" onClick={() => adminExitGuard.current(() => navigateHomeArea("journey"))}>{brandText("Back to SuitFire", "Back to Gauntlet")}</button>
         <Suspense fallback={<SurfaceLoading label={brandText("SuitFire Admin", "Gauntlet Admin")} />}>
           <Studio
             serverUrl={SOCKET_URL}

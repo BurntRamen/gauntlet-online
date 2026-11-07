@@ -28,8 +28,11 @@ test("seven areas connect a named future Ranked season, shared player preview, p
   await page.getByLabel("State", { exact: true }).selectOption("scheduled");
   await page.getByLabel("Win points", { exact: true }).fill("6");
   await expect(page.getByRole("checkbox", { name: "Best of 1", exact: true })).toBeChecked();
+  const savedDefinition = page.waitForResponse(response => response.url().endsWith("/authoring/competition-draft") && response.request().method() === "POST");
   await page.getByRole("button", { name: "Save competition draft", exact: true }).click();
-  await expect(page.getByLabel("Name", { exact: true })).toHaveCount(0);
+  expect((await savedDefinition).ok()).toBeTruthy();
+  await expect(page.getByLabel("Name", { exact: true })).toHaveValue("Browser future Ranked");
+  await expect(page.getByRole("button", { name: "Save competition draft", exact: true })).toBeDisabled();
   await page.getByText("Saved player preview and calendar", { exact: true }).click();
   await expect(page.getByText("Win 6 · Draw 1 · Loss 0 points", { exact: true })).toBeVisible();
   const before = await (await request.get(origin + "/api/admin/competition", { headers })).json();

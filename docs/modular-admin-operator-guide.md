@@ -6,13 +6,17 @@ This guide describes the implemented suite. Use [the current release record](adm
 
 ## Start in Home
 
-Review **Needs attention** first. Disabled services, unreadable data, pending publication and storage failures are distinct states. Published offer counts do not promise checkout availability. Recent activity uses a bounded account sample and last-seen timestamps, not online presence. Open the relevant area from each task. Refresh Admin after another operator publishes or performs an operation.
+Use **Continue working** and **Pinned shortcuts** for your recent and pinned records, or **Needs attention** for actionable shared blockers. Disabled services, unreadable data, pending publication and storage failures are distinct states. Published offer counts do not promise checkout availability. Account summaries identify their bounded sample; they do not measure online presence. Open the relevant area from each task. Refresh Admin after another operator publishes or performs an operation.
+
+The seven-area rail and named Content destinations remain available on desktop and in the **Navigation** drawer on smaller screens. Ctrl/Cmd+K opens search without moving the editor. Preferences control density, filters, pinned records, focus mode and preview visibility; reset restores the defaults. Preferences are scoped to the operator and server, and private recent/filter state is cleared when the account or server changes.
 
 ## Content
 
 Select a workshop, search by name, then open an item. Cards, printings, sets, authored deck recipes and deck products support creation/duplication; permanent identities are generated. Mechanics Studio creates bounded, reusable abilities with triggers, conditions, costs, targets, effects and limits. Cards use those captured definitions in supported two-player games. Rule modifiers configure campaign starting life and hand/refill sizes. Guided creation also supports campaign encounters and factions using the qualified Rumin family. Additional faction families, FFA interpreter support and new campaign objective/AI primitives still require engineering. Follow the [Phase 2 workflows](admin-phase2.md) for these creation paths.
 
-Save individual fields to the shared draft. A changed rules description does not change executable behavior. Choose exact printing versions and legal deck slots; historical releases retain those references. Private deck notes and unselected uploaded art stay in private authoring storage. The actual card/deck/product preview uses the same player presentation. Playtest mechanical changes with a legal accepted engine action in the exact saved draft. Saving another mechanical change invalidates that receipt.
+Use **Save changes** to save the listed fields of the current record together to the shared draft. Card and printing records have separate scopes; private deck notes have their own save. Section changes, help and preview retain local input. A genuine departure offers **Save and continue**, **Keep editing** or **Discard local changes**; continuation waits for acknowledgement. Failed saves retain your input. For a conflict, compare original, latest shared and local values and choose deliberately before retrying.
+
+A changed rules description does not change executable behavior. Choose exact printing versions and legal deck slots; historical releases retain those references. Private deck notes and unselected uploaded art stay in private authoring storage. The actual card/deck/product preview uses the same player presentation and labels its source. A local visual preview is not validation or engine evidence. Playtest mechanical changes with a legal accepted engine action in the exact saved draft. Saving another mechanical change invalidates that receipt.
 
 ## Competition
 
@@ -44,7 +48,7 @@ Name corrections also change the sign-in name. Enter the new name and a reason; 
 
 ## Publishing
 
-Every supported configuration module shares **Draft → Validate → Preview/Test → Review → Publish → Verify Active**. The two operators share one revision-guarded draft; unsaved browser values are private to that browser. A conflict means another save won: refresh, compare and deliberately reapply. Do not discard another operator's work without reviewing the shared changes.
+Every supported configuration module shares **Draft → Validate → Preview/Test → Review → Publish → Verify Active**. The two operators share one revision-guarded draft; unsaved browser values are private to that browser. Publishing includes the entire shared release across workshops. A conflict means another save won: review the displayed values and resolve each conflict before retrying. Do not discard another operator's work without reviewing the shared changes.
 
 Review field differences, validation findings and exact preview/test readiness. Local fixture publishing atomically activates its immutable release. The hosted GitHub adapter produces the existing checked release/deployment workflow. Pending checks or a saved commit are not active deployment. Verify the packaged active release and its actual player-facing consumers. Deployment does not provision missing runtime services.
 
@@ -58,4 +62,4 @@ For a storage failure, stop further activation, preserve existing files and iden
 
 Follow `durable-storage-setup.md` for the supported backup/restore commands. SQLite backups must include committed WAL state through the supplied backup API. Restore to a new isolated directory, verify hashes and replay/reconnect behavior, then separately authorize activation. Account database and immutable object backups need coordinated coverage beyond the runtime archive. Never restore over active stores or deploy an older writer that can spend pre-cutover account Gold.
 
-The user authorized this code merge and deployment. Paid infrastructure, production database migrations, content publication, balance operations, Gem spending and real payments still require their own explicit authorization. Routine isolated testing requires none.
+Code review, merge and deployment are separate from paid infrastructure, production database migrations, content publication, balance operations, Gem spending and real payments. Those operations require their own explicit authorization. Routine isolated testing requires none.

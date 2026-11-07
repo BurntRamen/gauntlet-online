@@ -1,11 +1,11 @@
 const { navigatePlayer, openProfileExtras } = require("./player-navigation");
-const { test, expect } = require("./admin-release-test"), { area, paraTab, identity } = require("./admin-navigation"), { origin } = require("./admin-urls");
+const { test, expect } = require("./admin-release-test"), { area, paraTab, identity, saveDefinition } = require("./admin-navigation"), { origin } = require("./admin-urls");
 const fs = require("node:fs"), path = require("node:path"), AxeBuilder = require("@axe-core/playwright").default;
 test("operator publishes alternative and split prices; player purchases exact terms and operator refunds Gems", async ({ page, request }) => {
   test.setTimeout(180000); const token = JSON.parse(fs.readFileSync(path.resolve(__dirname, "../.playwright-data/admin/sessions.json"))).simply, headers = { Authorization: `Bearer ${token}` };
   await page.goto("/admin/gauntlet"); await page.evaluate(t => localStorage.setItem("gauntlet_auth_token", t), token); await page.reload();
   const fill = (label, value) => page.getByLabel(label, { exact: true }).fill(value), select = (label, value) => page.getByLabel(label, { exact: true }).selectOption(value);
-  const save = async () => { await page.getByRole("button", { name: "Save definition to draft" }).click(); await expect(page.getByLabel("Name", { exact: true })).toHaveCount(0); };
+  const save = () => saveDefinition(page);
   await paraTab(page, "Entitlements"); await page.getByRole("button", { name: "New entitlement", exact: true }).click(); await identity(page, "gem-browser-title");
   await fill("Name", "Crystal Keeper"); await select("Category", "profile-title"); await select("Acquisition provenance", "commercial"); await select("Duration", "days"); await fill("Duration in days", "1");
   await select("Existing content asset", "service:profile-title-v1"); await fill("Rights evidence reference", "Isolated title and payment option qualification"); await select("Fulfillment availability", "available"); await save();
