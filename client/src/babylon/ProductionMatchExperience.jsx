@@ -1923,9 +1923,10 @@ export default function ProductionMatchExperience({
       handRailRef.current.layoutProfile = bounds.height >= bounds.width ? "portrait" : "short-landscape";
       const panel = root.querySelector(".phone-hand-panel");
       const sideHand = phoneHandActive && window.innerWidth > window.innerHeight && window.innerHeight <= 520;
-      const controls = [".production-player-plate-bottom", ".production-context-panel"]
+      // Short landscape places the player plates/actions in a left column.
+      // Only the hand lies below the board in that layout.
+      const controls = (sideHand ? [".phone-hand-panel"] : [".production-player-plate-bottom", ".production-context-panel"])
         .map((selector) => root.querySelector(selector)?.getBoundingClientRect());
-      if (sideHand && panel) controls.push(panel.getBoundingClientRect());
       const hudHeight = Math.max(0, ...controls.filter(Boolean).map((rect) => bounds.bottom - rect.top)) + 4;
       if (phoneHandActive && hudHeight > 4) root.style.setProperty("--phone-hud-reserve", Math.ceil(hudHeight) + "px");
       if (!phoneHandActive && hudHeight > 4 && update?.source !== "replay")
@@ -1933,7 +1934,7 @@ export default function ProductionMatchExperience({
           (desktopPanels || (bounds.width >= 1366 && bounds.height > 520) ? 8 : Math.ceil(hudHeight)) + "px");
       if (panel) root.style.setProperty("--phone-hand-reserve", (sideHand ? 0 : Math.ceil(panel.getBoundingClientRect().height + 4)) + "px");
       if (update?.source !== "replay") {
-        const top = [".production-player-plate-top", ".production-match-utilities > summary", ".production-turn-marker",
+        const top = [...(sideHand ? [] : [".production-player-plate-top"]), ".production-match-utilities > summary", ".production-turn-marker",
           ...(desktopPanels ? [".production-player-plate-bottom"] : [])]
           .map((selector) => root.querySelector(selector)?.getBoundingClientRect()).filter(Boolean);
         root.style.setProperty("--battlefield-top-reserve",

@@ -1,7 +1,7 @@
 # Admin production implementation
 
 Updated: 2026-11-07. Branch: `codex/admin-production-system`.
-Original baseline: `b6d80ff4a85b751a7a8d91c59c6a644366d9535e` (production inspected 29 October). Implementation checkpoints: `c902aae`, `091de86`, `982cdc2`, `85cde2a` and final code checkpoint `1c5a8df`; review is in PR #104. Current main through `6498387` was integrated in `f45e887`, preserving the newer faction mechanics, voices, themes and animated portraits. Read-only production checks on 7 November confirmed frontend/backend availability, 644 cards at `6498387`, and guest Admin denials; this implementation is not deployed.
+Original baseline: `b6d80ff4a85b751a7a8d91c59c6a644366d9535e` (production inspected 29 October). Implementation checkpoints: `c902aae`, `091de86`, `982cdc2`, `85cde2a` and `1c5a8df`; complete CI passed at `8fec80cb`. Subsequent artifact review found and corrected resource-counter board spacing with a deterministic two-player/four-viewport browser test; review is in PR #104. Current main through `6498387` was integrated in `f45e887`, preserving the newer faction mechanics, voices, themes and animated portraits. Read-only production checks on 7 November confirmed frontend/backend availability, 644 cards at `6498387`, and guest Admin denials; this implementation is not deployed.
 
 ## Scope and safety
 

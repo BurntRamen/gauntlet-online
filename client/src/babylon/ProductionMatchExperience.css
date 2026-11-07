@@ -3046,10 +3046,15 @@
 }
 
 /* Reference space is outside the table/HUD rectangle, never over playable cards. */
-.has-reference-dock .production-match-surface { bottom: min(260px, 30dvh); }
+.has-reference-dock {
+  /* Resource counters increase either player plate. Give the table its space
+     first; the reference contents already scroll within the remaining dock. */
+  --reference-dock-height: clamp(150px, calc(100dvh - var(--battlefield-top-reserve, 68px) - var(--battlefield-bottom-reserve, 112px) - 144px), min(260px, 30dvh));
+}
+.has-reference-dock .production-match-surface { bottom: var(--reference-dock-height); }
 .production-reference-panel.is-docked {
   inset: auto 0 0;
-  height: min(260px, 30dvh);
+  height: var(--reference-dock-height);
   padding: 0;
   background: #0b141d;
   backdrop-filter: none;
@@ -3118,6 +3123,7 @@
 }
 
 @media (max-height: 520px) and (orientation: landscape) {
+  .has-phone-hand .production-battlefield-safe-frame { left: 232px; }
   .has-phone-hand .phone-hand-panel { left: 232px; bottom: 4px; }
   .has-phone-hand .production-context-panel {
     left: 4px; right: auto; bottom: 4px; width: 220px; height: 76px; min-height: 0;
