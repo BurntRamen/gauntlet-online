@@ -304,7 +304,8 @@ const MUSIC_TRACKS = {
   "astral-vanguard": { label: "The Hybrid Horizon", sources: factionThemeSources("astral-vanguard-hybrid-horizon"), pad: [55, 82.41, 110], notes: [220, 277.18, 329.63, 293.66, 369.99], tempo: 600, wave: "triangle" },
   voltari: { label: "The Golden Conduit", sources: factionThemeSources("voltari-golden-conduit"), pad: [46.25, 69.3, 92.5], notes: [277.18, 311.13, 415.3, 369.99], tempo: 540, wave: "sine" },
   xendra: { label: "Aspect Without Form", sources: factionThemeSources("xendra-aspect-without-form"), pad: [46.25, 69.3, 92.5], notes: [185, 174.61, 207.65, 138.59, 155.56, 123.47], tempo: 780, wave: "sine" },
-  ingles: { label: "The Unwritten Charter", sources: factionThemeSources("ingles-unwritten-charter") },
+  morphlings: { label: "The Light That Changes", sources: factionThemeSources("morphlings-changing-light"), pad: [55, 73.42, 110], notes: [220, 246.94, 293.66, 329.63, 369.99], tempo: 690, wave: "sine" },
+  ingles: { label: "The Isles Across the Ages", sources: factionThemeSources("ingles-unwritten-charter") },
   mercaw: { label: "The Many-Star Accord", sources: factionThemeSources("mercaw-many-star-accord") },
   mtano: { label: "The Mountain Remembers", sources: factionThemeSources("mtano-mountain-remembers") },
   russo: { label: "The Long Winter Oath", sources: factionThemeSources("russo-long-winter-oath") }
@@ -1445,14 +1446,15 @@ const PACK_THEMES = {
   jali: { name: "Jali", subtitle: "Revenant Formation", accent: "#fb7185", glow: "rgba(251,113,133,0.3)", background: "linear-gradient(145deg, #2b0b16, #7f1d3a 42%, #1e293b 88%)", art: "repeating-linear-gradient(135deg, rgba(255,228,230,.12) 0 3px, transparent 3px 24px), radial-gradient(circle at 70% 24%, rgba(251,113,133,.48), transparent 24%)" },
   gracus: { name: "Gracus", subtitle: "Giant Coast Arena", accent: "#f59e0b", glow: "rgba(245,158,11,.3)", background: "linear-gradient(145deg, #431407, #9a3412 44%, #155e75 90%)", art: "radial-gradient(circle at 50% 25%, rgba(251,191,36,.5), transparent 22%), repeating-linear-gradient(90deg, rgba(255,237,213,.1) 0 3px, transparent 3px 28px)" },
   indela: { name: "Indela", subtitle: "Academy of Omens", accent: "#c4b5fd", glow: "rgba(196,181,253,.3)", background: "linear-gradient(145deg, #1e1b4b, #581c87 46%, #172554 90%)", art: "repeating-radial-gradient(circle at 50% 40%, rgba(254,243,199,.18) 0 2px, transparent 2px 28px), radial-gradient(circle at 50% 38%, rgba(192,132,252,.5), transparent 25%)" },
-  zynarth: { name: "Zynarth", subtitle: "Adaptive Brood", accent: "#a3e635", glow: "rgba(163,230,53,.3)", background: "linear-gradient(145deg, #1a2e05, #3f6212 44%, #3b0764 90%)", art: "radial-gradient(circle at 32% 30%, rgba(190,242,100,.5), transparent 20%), repeating-radial-gradient(circle at 60% 60%, rgba(217,249,157,.12) 0 3px, transparent 3px 26px)" },
-  "astral-vanguard": { name: "Astral Vanguard", subtitle: "Rapid Deployment", accent: "#60a5fa", glow: "rgba(96,165,250,.32)", background: "linear-gradient(145deg, #0c1f3f, #1d4ed8 42%, #312e81 88%)", art: "linear-gradient(120deg, transparent 38%, rgba(147,197,253,.3) 39% 42%, transparent 43%), radial-gradient(circle at 72% 24%, rgba(224,242,254,.58), transparent 18%)" },
-  ingles: { name: "Ingles", subtitle: "The Unwritten Charter", accent: "#e9c46a", glow: "#e9c46a4d", background: "linear-gradient(145deg,#102a43,#7c5b22)" },
+  zynarth: { name: "Zynarth", subtitle: "Recycled Brood", accent: "#d5963d", glow: "rgba(213,150,61,.32)", background: "linear-gradient(145deg, #080706, #24170f 46%, #4b2b14 100%)", art: "radial-gradient(ellipse at 32% 30%, rgba(245,158,11,.5), transparent 18%), repeating-radial-gradient(ellipse at 66% 64%, rgba(180,83,9,.22) 0 3px, transparent 3px 25px), linear-gradient(120deg, rgba(15,15,13,.95), rgba(74,43,20,.72))" },
+  "astral-vanguard": { name: "Astral Vanguard", subtitle: "Field Hybridization", accent: "#f28a38", glow: "rgba(242,138,56,.32)", background: "linear-gradient(145deg, #111827, #263442 50%, #713b1f 100%)", art: "repeating-linear-gradient(120deg, transparent 0 36px, rgba(249,115,22,.3) 37px 40px, transparent 41px 72px), radial-gradient(circle at 72% 24%, rgba(203,213,225,.36), transparent 18%)" },
+  ingles: { name: "Ingles", subtitle: "The Isles Across the Ages", accent: "#e9c46a", glow: "#e9c46a4d", background: "linear-gradient(145deg,#102a43,#7c5b22)" },
   mercaw: { name: "Mercaw", subtitle: "The Many-Star Accord", accent: "#60a5fa", glow: "#60a5fa57", background: "linear-gradient(145deg,#172554,#7c3aed)" },
   mtano: { name: "M'Tano", subtitle: "The Mountain Remembers", accent: "#9ccf9b", glow: "#9ccf9b4d", background: "linear-gradient(145deg,#173f35,#155e75)" },
   russo: { name: "Russo", subtitle: "The Long Winter Oath", accent: "#b9d7ea", glow: "#b9d7ea52", background: "linear-gradient(145deg,#202b3c,#7c2d12)" },
-  voltari: { name: "Voltari", subtitle: "The Golden Conduit", accent: "#f8d477", glow: "rgba(248,212,119,.34)", background: "linear-gradient(145deg,#2f2410,#9a6a18 44%,#16345c 90%)", art: "repeating-linear-gradient(90deg, rgba(255,239,177,.15) 0 2px, transparent 2px 24px), radial-gradient(circle at 68% 28%, rgba(250,204,21,.48), transparent 25%)" },
-  xendra: { name: "XenDra", subtitle: "Aspect Without Form", accent: "#c084fc", glow: "rgba(192,132,252,.34)", background: "linear-gradient(145deg,#160b2c,#581c87 44%,#111827 90%)", art: "repeating-radial-gradient(circle at 55% 45%, rgba(216,180,254,.13) 0 3px, transparent 3px 28px), radial-gradient(circle at 35% 25%, rgba(168,85,247,.5), transparent 24%)" }
+  voltari: { name: "Voltari", subtitle: "The Golden Conduit", accent: "#f8d477", glow: "rgba(248,212,119,.34)", background: "linear-gradient(145deg,#17130b,#8a621c 46%,#082d54 100%)", art: "repeating-linear-gradient(90deg, rgba(255,239,177,.18) 0 3px, transparent 3px 26px), linear-gradient(20deg, transparent 0 42%, rgba(38,153,255,.45) 43% 46%, transparent 47%), radial-gradient(circle at 68% 28%, rgba(56,189,248,.58), transparent 22%)" },
+  xendra: { name: "XenDra", subtitle: "Aspect Without Form", accent: "#b9a6d8", glow: "#b9a6d84d", background: "linear-gradient(145deg,#020204,#111018 48%,#242033)", art: "radial-gradient(circle at 54% 28%,#050507 0 12%,#e2dcea52 13% 15%,transparent 16%)" },
+  morphlings: { name: "The Continuants", subtitle: "Exiled Becoming", accent: "#8ee7df", glow: "#8ee7df47", background: "linear-gradient(145deg,#10151b,#18383b 35%,#4d323f 69%,#281622)", art: "radial-gradient(ellipse at 28% 30%,#9bead06b,transparent 13%)" }
 };
 
 const factionName = (id) => id === "neutral" ? "Reath" : PACK_THEMES[id]?.name || id;
@@ -4529,6 +4531,14 @@ export default function App() {
     navigateHomeArea("matches");
   }
 
+  async function openEarnedCampaignPack(packId) {
+    if (!packId || !authToken) return;
+    await openBoosterPack(packId);
+    returnToMainMenu();
+    navigateHomeArea("build");
+    setShowCollection("packs");
+  }
+
   function returnToJourney() {
     returnToMainMenu();
     navigateHomeArea("journey");
@@ -5008,6 +5018,7 @@ export default function App() {
             onContinueJourney={returnToJourney}
             onOpenReplay={gameIsOver && game.matchId ? () => openReplay(game.matchId) : null}
             onOpenMatches={returnToMatches}
+            onOpenEarnedPack={openEarnedCampaignPack}
             options={{
               forceAccessible: !shouldUseProductionMatchRenderer(),
               audioEnabled: !accountSoundMuted,
@@ -5045,6 +5056,7 @@ export default function App() {
       : null;
     const campaignClearType = completionEnvelope?.campaign?.firstClear ? "First clear" : completionEnvelope?.campaign?.repeatClear ? "Repeat clear" : null;
     const boosterCreditDelta = Number(completionEnvelope?.rewards?.boosterCreditDelta || 0);
+    const campaignPackReward = completionEnvelope?.rewards?.campaignPack || null;
     const eventReward = completionEnvelope?.event || null;
     const unlockedCardStyles = completionEnvelope?.rewards?.cardStylesUnlocked || [];
     const goldDelta = Number(completionEnvelope?.rewards?.goldDelta || 0);
@@ -5106,7 +5118,8 @@ export default function App() {
           <div className="app-layout-130">
             <div><strong>Match ID:</strong> {resultProjection.matchId || "Pending"}</div>
             {game.campaign && <div><strong>Chapter outcome:</strong> {campaignClearType || (didWin ? "Cleared" : "Not cleared")}</div>}
-            {completionEnvelope && <div><strong>Booster credits:</strong> {boosterCreditDelta > 0 ? `+${boosterCreditDelta}` : boosterCreditDelta}</div>}
+            {campaignPackReward && <div><strong>Campaign reward:</strong> {campaignPackReward.name} × {campaignPackReward.count}</div>}
+            {completionEnvelope && !campaignPackReward && <div><strong>Pack credits:</strong> {boosterCreditDelta > 0 ? `+${boosterCreditDelta}` : boosterCreditDelta}</div>}
             {eventReward && <div><strong>Event run:</strong> {eventReward.wins} win{eventReward.wins === 1 ? "" : "s"} · {eventReward.losses} loss{eventReward.losses === 1 ? "" : "es"}{eventReward.status === "complete" ? " · run complete" : ""}</div>}
             {unlockedCardStyles.map((styleId) => <div key={styleId}><strong>Card style earned:</strong> {styleId.split(":")[0].replaceAll("-", " ")}</div>)}
             {goldDelta > 0 && <div><strong>Daily quest gold:</strong> +{goldDelta.toLocaleString()}</div>}
@@ -5162,6 +5175,14 @@ export default function App() {
             })}
           </div>
           <div className="app-layout-133">
+            {campaignPackReward && (
+              <MenuButton
+                disabled={Boolean(authToken) && completionAccountReadyMatchId !== game.matchId}
+                onClick={() => openEarnedCampaignPack(campaignPackReward.packId)}
+              >
+                Open earned pack
+              </MenuButton>
+            )}
             {nextCampaignChapter && (
               <MenuButton
                 disabled={Boolean(authToken) && completionAccountReadyMatchId !== game.matchId}
@@ -8509,6 +8530,7 @@ export default function App() {
                     <span><strong>Acceleration</strong>{me.accelerationCounters}</span>
                     {me.faction?.id === "voltari" && <span title="Charge persists between turns. Voltari cards generate and spend it, up to 6."><strong>Charge</strong>{me.chargeCounters || 0}/6</span>}
                     {me.faction?.id === "xendra" && <span title="At 6 Insanity, you fracture: lose 2 life, then return to 2 Insanity."><strong>Insanity</strong>{me.insanityCounters || 0}/6</span>}
+                    {me.faction?.id === "morphlings" && <span title="Continuity persists. At 6, cohere: gain 1 life, ready an end-turn draw, then return to 2."><strong>Continuity</strong>{me.continuityCounters || 0}/6</span>}
                   </div>
                 </div>
               )}

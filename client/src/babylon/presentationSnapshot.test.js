@@ -241,6 +241,28 @@ test("known identities do not depend on presentation role", () => {
   expect(visibleCardIdentity(card("same"), "combat:0")).toBe("card:same");
 });
 
+test("Zynarth eggs stay face-up and clearly labeled in their lane", () => {
+  const egg = {
+    ...card("zynarth-egg", 0),
+    label: "Zynarth Egg",
+    rank: "EGG",
+    visible: true,
+    zynarthEgg: true,
+    artPath: "/assets/gauntlet/factions/zynarth/zynarth-egg-token.svg",
+    raw: { id: "zynarth-egg", zynarthEgg: true, revealed: false }
+  };
+  const snapshot = createPresentationSnapshot(viewModel({
+    lanes: [{ index: 0, hasLocalCard: true, hasOpponentCard: false, localCard: egg }]
+  }));
+  const actor = snapshot.actors.find((entry) => entry.card?.zynarthEgg);
+
+  expect(actor).toEqual(expect.objectContaining({
+    faceDown: false,
+    artPath: "/assets/gauntlet/factions/zynarth/zynarth-egg-token.svg",
+    preview: expect.objectContaining({ stateLabel: "Zynarth Egg in Lane 1", stateIcon: "egg" })
+  }));
+});
+
 test("an immediately resolved block remains a canonical transient actor for its event frame", () => {
   const blocker = card("blocker", 6);
   const snapshot = createPresentationSnapshot(viewModel({

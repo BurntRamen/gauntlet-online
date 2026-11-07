@@ -53,6 +53,12 @@ const CATALOG_FACTION_IDENTITIES = Object.freeze({
     diamonds: [TRIGGERS.SAME_SUIT_ATTACK, "Prismatic Echo", "When this attack matches the suit of your previous attack, it gets +1 value."],
     clubs: [TRIGGERS.BLOCK_HAND_ATTACK, "Resonant Distortion", "When this blocks an attack played from hand, it gets +1 value."]
   }),
+  morphlings: Object.freeze({
+    spades: [TRIGGERS.DIFFERENT_SUIT_ATTACK, "Adaptive Edge", "When this attack differs in suit from your previous attack, it gets +1 value."],
+    hearts: [TRIGGERS.BLOCK_HIGHER_ATTACKER, "Sheltering Shape", "When this blocks a higher-value attacker, it gets +1 value."],
+    diamonds: [TRIGGERS.RISING_ATTACK, "Remembered Form", "When this attacks after a lower-value card was played, it gets +1 value."],
+    clubs: [TRIGGERS.LATE_BLOCK, "Becoming Together", "When this is your second or later block of the turn, it gets +1 value."]
+  }),
   ingles: Object.freeze({
     spades: [TRIGGERS.FIRST_BLOCK, "Crownless Watch", "When this is your first block of the turn, it gets +1 value."],
     hearts: [TRIGGERS.LATE_BLOCK, "Common Cause", "When this is your second or later block of the turn, it gets +1 value."],
@@ -80,11 +86,12 @@ const CATALOG_FACTION_IDENTITIES = Object.freeze({
 });
 
 const ALIEN_SUPPORT_VALUES = Object.freeze(new Set([10, 12, 14]));
-const ALIEN_RESOURCE_CAPS = Object.freeze({ voltari: 6, xendra: 6 });
+const ALIEN_RESOURCE_CAPS = Object.freeze({ voltari: 6, xendra: 6, morphlings: 6 });
 
 function alienCardType(factionId, value) {
   if (factionId === "voltari" && ALIEN_SUPPORT_VALUES.has(Number(value))) return "conduit";
   if (factionId === "xendra" && ALIEN_SUPPORT_VALUES.has(Number(value))) return "nightmare";
+  if (factionId === "morphlings" && ALIEN_SUPPORT_VALUES.has(Number(value))) return "biomorph";
   return "servitor";
 }
 
@@ -127,6 +134,20 @@ function alienEffectNumbers(factionId, suit, value) {
     if (suit === "hearts") effect.prevent = magnitude;
     if (suit === "diamonds") effect.draw = magnitude ? 1 : 0;
     if (suit === "clubs") effect.heal = magnitude;
+  } else if (factionId === "morphlings") {
+    if (support) {
+      effect.onPlayGain = numericValue === 10 ? 2 : 1;
+      effect.spend = numericValue === 14 ? 2 : numericValue === 12 ? 1 : 0;
+    } else if (lowCombat || highCombat) {
+      effect.gain = 1;
+    } else {
+      effect.spend = 1;
+    }
+    const magnitude = support ? (numericValue === 14 ? 2 : 1) : (lowCombat ? 0 : 1);
+    if (suit === "spades") effect.bonus = magnitude;
+    if (suit === "hearts") effect.prevent = magnitude;
+    if (suit === "diamonds") effect.draw = magnitude ? 1 : 0;
+    if (suit === "clubs") effect.heal = magnitude;
   }
   return effect;
 }
@@ -143,11 +164,13 @@ function alienRulesText(factionId, suit, value, identity) {
   }[suit];
   const triggerText = type === "servitor" ? combatTriggerText : supportTriggerText;
   const pieces = [];
-  if (type !== "servitor") pieces.push(`${type === "conduit" ? "Conduit" : "Nightmare"} — Permanent.`);
-  if (effect.onPlayGain) pieces.push(`When played, gain ${effect.onPlayGain} ${factionId === "voltari" ? "Charge" : "Insanity"}.`);
+  const resource = factionId === "voltari" ? "Charge" : factionId === "xendra" ? "Insanity" : "Continuity";
+  const permanentName = type === "conduit" ? "Conduit" : type === "nightmare" ? "Nightmare" : "Biomorph";
+  if (type !== "servitor") pieces.push(`${permanentName} — Permanent.`);
+  if (effect.onPlayGain) pieces.push(`When played, gain ${effect.onPlayGain} ${resource}.`);
   pieces.push(triggerText);
-  if (effect.gain) pieces.push(`Gain ${effect.gain} ${factionId === "voltari" ? "Charge" : "Insanity"}.`);
-  if (effect.spend) pieces.push(`If you have at least ${effect.spend}, spend ${effect.spend} ${factionId === "voltari" ? "Charge" : "Insanity"}.`);
+  if (effect.gain) pieces.push(`Gain ${effect.gain} ${resource}.`);
+  if (effect.spend) pieces.push(`If you have at least ${effect.spend}, spend ${effect.spend} ${resource}.`);
   if (effect.bonus) pieces.push(type === "servitor"
     ? `It gets +${effect.bonus} value.`
     : `The triggering card gets +${effect.bonus} value.`);
@@ -155,12 +178,13 @@ function alienRulesText(factionId, suit, value, identity) {
   if (effect.draw) pieces.push(`Draw 1 extra card at turn end.`);
   if (effect.heal) pieces.push(`Gain ${effect.heal} life.`);
   if (factionId === "xendra") pieces.push("At 6 Insanity, fracture: lose 2 life (to a minimum of 1), then return to 2 Insanity.");
-  else pieces.push("Charge persists between turns, to a maximum of 6.");
+  else if (factionId === "voltari") pieces.push("Charge persists between turns, to a maximum of 6.");
+  else pieces.push("Continuity persists between turns, to a maximum of 6. At 6 Continuity, cohere: gain 1 life, draw 1 extra card at turn end, then return to 2 Continuity.");
   return `${identity.name} — ${pieces.join(" ")}`;
 }
 
 function alienCatalogProfile(factionId, suit, value) {
-  if (factionId !== "voltari" && factionId !== "xendra") return null;
+  if (!Object.hasOwn(ALIEN_RESOURCE_CAPS, factionId)) return null;
   const identity = catalogIdentity(factionId, suit);
   return {
     type: alienCardType(factionId, value),

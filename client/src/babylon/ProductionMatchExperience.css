@@ -2682,6 +2682,15 @@
     display: none;
   }
 
+  /* Keep the opponent identity rail from wrapping into the battlefield on
+     short phones. Its pile and resource controls are duplicated by the
+     dock/ledger surfaces, while the name, life and crest remain visible. */
+  .production-player-plate-top .production-player-piles,
+  .production-player-plate-top .production-player-resource,
+  .production-player-plate-top .production-player-abilities {
+    display: none;
+  }
+
   .production-context-panel {
     right: 7px;
     bottom: 7px;
@@ -3615,4 +3624,40 @@
 @media (max-width: 700px) {
   .has-windowed-panels .production-context-panel { height: 164px; grid-template-columns: minmax(0, 1fr) 104px; }
   .has-windowed-panels .production-action-buttons button { padding: 5px; font-size: 12px; }
+}
+
+/* Phone play must remain legible at a normal browser zoom. The earlier compact
+   HUD values were useful on small tablets but reduced important instructions
+   to 8–10px on phones. Keep these overrides last so all renderer variants use
+   the same accessible type and touch targets. */
+@media (max-width: 600px) and (orientation: portrait) {
+  .production-match-experience {
+    --phone-hud-reserve: 160px;
+    --phone-hand-reserve: 188px;
+  }
+
+  .production-player-copy strong { font-size: 15px; }
+  .production-life strong { font-size: 28px; }
+  .production-priority,
+  .production-player-piles button,
+  .production-player-abilities { font-size: 12px; }
+
+  .production-context-copy strong {
+    font-size: 14px;
+    line-height: 1.4;
+    -webkit-line-clamp: 4;
+  }
+
+  .production-context-kicker,
+  .production-action-reason { font-size: 12px; }
+
+  .production-action-buttons button,
+  .production-result-actions button {
+    min-height: 48px;
+    font-size: 14px;
+  }
+
+  .production-result-facts,
+  .production-campaign-aftermath,
+  .production-match-result > p { font-size: 14px; line-height: 1.45; }
 }

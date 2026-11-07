@@ -14,6 +14,7 @@ export default function AbilityStatePanel({ viewModel, commands }) {
       {local.factionId === 'bizi' && ` · Acceleration: ${local.accelerationCounters}`}
       {local.factionId === 'voltari' && ` · Charge: ${local.chargeCounters}/6`}
       {local.factionId === 'xendra' && ` · Insanity: ${local.insanityCounters}/6`}
+      {local.factionId === 'morphlings' && ` · Continuity: ${local.continuityCounters}/6`}
       {local.factionId === 'jali' && ` · Revenants: ${local.revenants}`}</p>}
     <div className="ability-state-columns">
       <section aria-label="Current card effects"><h4>Current card effects</h4>

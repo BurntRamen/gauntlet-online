@@ -446,7 +446,7 @@ test(`two ordinary ${profile} browser clients complete live Basic combat and pla
       await expect.poll(() => page.locator(".phone-hand-card").first().evaluate((card) => {
         const rect = card.getBoundingClientRect();
         return [rect.width, rect.height];
-      })).toEqual([92, 129]);
+      })).toEqual([108, 151]);
       await expectNativeSceneDiagnostics(page);
     }
   }
@@ -1173,7 +1173,7 @@ test("signed-in campaign victory refreshes account state, continues, persists, a
   const completion = (await (await completionResponsePromise).json()).completion;
   const refreshedAccount = (await (await accountRefreshPromise).json()).account;
   await expect(page.getByText("First clear", { exact: true })).toBeVisible();
-  await expect(page.getByRole("dialog").getByText("+1", { exact: true })).toBeVisible();
+  await expect(page.getByRole("dialog").getByText(`${completion.rewards.campaignPack.name} × ${completion.rewards.campaignPack.count}`, { exact: true })).toBeVisible();
   await expect(page.getByText("Next mission", { exact: true })).toBeVisible();
 
   const matchId = await match.getAttribute("data-match-id");
@@ -1183,6 +1183,7 @@ test("signed-in campaign victory refreshes account state, continues, persists, a
   expect(completion.result.outcome).toBe("win");
   expect(completion.campaign.firstClear).toBe(true);
   expect(completion.rewards.boosterCreditDelta).toBe(1);
+  expect(completion.rewards.campaignPack).toMatchObject({ count: 1 });
   expect(completion.campaign.nextMission?.chapterId).toBeTruthy();
   expect(refreshedAccount.progression.campaign.rumin).toContain(completion.campaign.chapterId);
   expect(refreshedAccount.stats.collection.packCredits).toBe(1);
