@@ -1,6 +1,7 @@
 const { navigatePlayer } = require("./player-navigation");
 const { area: adminArea, paraTab, identity, saveRecord, destination, workspaceSection, workspaceView, refreshAdmin, navigation } = require("./admin-navigation");
 const { origin } = require("./admin-urls");
+const { fetchAdminResponse } = require("./buffered-admin-response");
 const { test: base, expect } = require("@playwright/test");
 const AxeBuilder = require("@axe-core/playwright").default;
 // API assertions pause while the browser edits. Avoid reusing an idle socket
@@ -32,7 +33,7 @@ const waitForJson = (page, predicate) => new Promise((resolve, reject) => {
     };
     if (!predicate(candidate)) return route.continue();
     try {
-      const response = await route.fetch();
+      const response = await fetchAdminResponse(route);
       const body = await response.body();
       await route.fulfill({ response, body });
       await page.unroute(pattern, handler);
@@ -467,7 +468,7 @@ test("Admin is discoverable only after access approval and review controls retai
 test("disconnected authoring explains the blocker and preserves readable technical details on mobile", async ({ page, request }) => {
   // Explicitly simulated outage: production remains untouched.
   await page.route("**/api/admin/authoring", async (route) => {
-    const response = await route.fetch();
+    const response = await fetchAdminResponse(route);
     const body = await response.json();
     await route.fulfill({ response, json: { ...body, writable: false, connectionRequired: true } });
   });
@@ -501,7 +502,7 @@ test("a reported authoring outage keeps real live testing available without publ
   // Simulate only the server's read-only outage projection. Metadata, session
   // creation and engine commands still use the real isolated fixture backend.
   await page.route("**/api/admin/authoring", async route => {
-    const response = await route.fetch(), body = await response.json();
+    const response = await fetchAdminResponse(route), body = await response.json();
     await route.fulfill({ response, json: { ...body, liveOnly: true, revision: null, writable: false, draft: null, changes: [], releases: [], activations: [], connectionRequired: false,
       sourceAvailability: { live: true, draft: false, history: false }, authoringError: "Shared draft and publication history are unavailable. Live content and isolated live tests remain available. Refresh Admin to reconnect." } });
   });
