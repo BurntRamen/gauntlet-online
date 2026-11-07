@@ -201,6 +201,7 @@ const {
 let contentPublication = null;
 let paraRuntime = null;
 let goldEconomy = null;
+let remoteOperations = null;
 function getPublicGameContent() { return contentPublication ? contentPublication.active().manifest : getSourceGameContent(); }
 const { available: contentAvailable, cardsFor, assertConstructedCards } = require("./releaseCatalog");
 function getGameplayCardById(id) { return contentPublication ? contentPublication.lookupCard(id) : getSourceGameplayCardById(id); }
@@ -230,7 +231,13 @@ const matchArchive = createMatchArchive({
     : createLocalArchiveBackend(MATCH_ARCHIVE_DATA_DIR)
 });
 const roomLifecycleConfig = getRoomLifecycleConfig();
-const roomStateStore = createRoomStateStore(ROOM_STATE_DATA_FILE, {
+const remoteRoomsEnabled = process.env.GAUNTLET_ROOM_STATE_PROVIDER === "supabase";
+const remoteOperationsEnabled = process.env.GAUNTLET_OPERATIONAL_PROVIDER === "supabase";
+if (process.env.GAUNTLET_OPERATIONAL_PROVIDER && !["local","supabase"].includes(process.env.GAUNTLET_OPERATIONAL_PROVIDER)) throw new Error("Unsupported operational-state provider.");
+if (remoteOperationsEnabled && !remoteRoomsEnabled) throw new Error("Remote operations require remote rooms so game settlement shares the durable response boundary.");
+if (process.env.GAUNTLET_ROOM_STATE_PROVIDER && !["local", "supabase"].includes(process.env.GAUNTLET_ROOM_STATE_PROVIDER)) throw new Error("Unsupported room-state provider.");
+if (remoteRoomsEnabled && (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY)) throw new Error("Remote room recovery requires server Supabase credentials.");
+const roomStateStore = remoteRoomsEnabled ? require("./remoteRoomStateStore").createRemoteRoomStateStore({ request: supabaseRequest }) : createRoomStateStore(ROOM_STATE_DATA_FILE, {
   strict: runtimeStorage.required,
   enabled: isRoomRecoveryEnabled(process.env.ROOM_STATE_RECOVERY_ENABLED)
 });
@@ -275,15 +282,19 @@ app.get(["/api/admin/access", "/admin/gauntlet", "/admin/gauntlet/{*section}"], 
   res.json({ authorized: true, accountId: req.gauntletAdminAccount.id });
 });
 app.use("/api/admin/match-archive/import", express.json({ limit: "6mb" }));
-app.use("/api/admin/authoring/assets/upload", express.json({ limit: "4200kb" }));
+app.use("/api/admin/authoring/assets/upload", express.json({ limit: "14mb" }));
 app.use("/api/admin/authoring/assets/upload", (error, req, res, next) => {
   if (!error) return next();
-  res.status(error.status === 413 ? 413 : 400).json({ error: "Upload request is invalid or too large. Use a still image up to 3 MiB." });
+  res.status(error.status === 413 ? 413 : 400).json({ error: "Upload request is invalid or too large. Use an image up to 3 MiB or PCM WAV audio up to 10 MiB." });
 });
 app.use("/api/admin/authoring", express.json({ limit: "160kb" }));
 app.use("/api/account/avatar", express.raw({ type: ["image/jpeg", "image/png", "image/webp"], limit: "1mb" }));
 app.use("/api/payments/webhook", express.raw({ type: "application/json", limit: "64kb" }));
 app.use(express.json({ limit: "20kb" }));
+// Parse bounded request bodies before joining the writer queue. Include
+// profile reads: binding an existing opening balance is a ledger write.
+app.use((req,res,next)=>remoteOperationsEnabled && req.path.startsWith("/api/") && !["/api/content-assets/","/api/admin/authoring","/api/admin/workshops"].some(prefix=>req.path.startsWith(prefix))
+  ? require("./durableHttpBoundary").durableHttpMiddleware(durableRooms)(req,res,next) : next());
 
 function getRequestAddress(req) {
   return String(req.ip || req.socket?.remoteAddress || "unknown").slice(0, 80);
@@ -354,7 +365,7 @@ app.get("/api/storage-status", async (_req, res) => {
       accountStorage: SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY ? "supabase-configured" : "local-json",
       profileImages,
       runtimeStorage: runtimeStorageStatus,
-      activeRooms: { ...roomStateStore.status(), durableVolume: runtimeStorageStatus.persistentMountVerified },
+      activeRooms: { ...roomStateStore.status(), ...(durableRooms?.status() || {}), durableVolume: runtimeStorageStatus.persistentMountVerified },
       privateAuthoring,
       runtimeBackups: { enabled: runtimeBackupService.status().enabled, lastSuccessfulAt: runtimeBackupService.status().lastSuccessfulAt, failed: !!runtimeBackupService.status().lastError, running: runtimeBackupService.status().running },
       matchStorage,
@@ -2006,6 +2017,8 @@ function supabaseAdminAuthHeaders(apiKey = SUPABASE_SERVICE_ROLE_KEY) {
 async function supabaseStorageRequest(pathname, options = {}) {
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) throw new Error("Supabase Storage is not configured.");
   const response = await fetch(`${SUPABASE_URL.replace(/\/$/, "")}/storage/v1/${pathname}`, {
+    signal: options.signal || AbortSignal.timeout(30000),
+    redirect: "error",
     method: options.method || "GET",
     headers: {
       ...supabaseStorageAuthHeaders(),
@@ -5037,6 +5050,10 @@ function normalizeDuelPlayerIds(game) {
 
 // ============ GAME STATE STORAGE ============
 const rooms = new Map();
+const durableRooms = remoteRoomsEnabled ? require("./durableRoomBoundary").createDurableRoomBoundary({ rooms, store: roomStateStore,
+  additionalState:()=>remoteOperations?.snapshot() || null, beforeCommit:async()=>{if(remoteOperations) await remoteOperations.save();} }) : null;
+durableRooms?.wrapBroadcast(io.sockets.adapter);
+const runRoomOperation = work => durableRooms ? durableRooms.run(work) : work();
 let roomStatePersistTimer = null;
 let roomRecoveryInitialized = false;
 const matchmakingQueue = [];
@@ -5201,14 +5218,19 @@ const adminRuntime = {
       })
     };
 const publicationBaseline = createAuthoredBaseline(buildCatalog(adminRuntime));
+if (process.env.GAUNTLET_MEDIA_PROVIDER && process.env.GAUNTLET_MEDIA_PROVIDER !== "supabase") throw new Error("Unsupported immutable media provider.");
+const mediaStore = process.env.GAUNTLET_MEDIA_PROVIDER === "supabase" ? require("./remoteMediaStore").createRemoteMediaStore({ request: supabaseRequest, storageRequest: supabaseStorageRequest,
+  maxBytes: Number(process.env.GAUNTLET_MEDIA_MAX_BYTES || 256 * 1024 * 1024), imageUploadBytes:Number(process.env.GAUNTLET_MEDIA_IMAGE_UPLOAD_BYTES||3*1024*1024),audioUploadBytes:Number(process.env.GAUNTLET_MEDIA_AUDIO_UPLOAD_BYTES||10*1024*1024) }) : null;
+if (mediaStore && !useSupabaseStore()) throw new Error("Immutable media requires server Supabase credentials.");
 if (process.env.GAUNTLET_PRIVATE_AUTHORING_PROVIDER && !["supabase", "github"].includes(process.env.GAUNTLET_PRIVATE_AUTHORING_PROVIDER)) throw new Error("Unsupported private authoring provider.");
 const privateAuthoringStore = process.env.GAUNTLET_PRIVATE_AUTHORING_PROVIDER === "supabase"
   ? require("./privateAuthoringStore").createPrivateAuthoringStore({ request: supabaseRequest }) : null;
 if (privateAuthoringStore && (!useSupabaseStore() || process.env.GAUNTLET_CONTENT_PROVIDER === "file")) throw new Error("Private Supabase authoring requires backend Supabase credentials and the GitHub publication provider.");
 contentPublication = (process.env.GAUNTLET_CONTENT_PROVIDER === "github" || ((process.env.NODE_ENV === "production" || process.env.RENDER === "true") && process.env.GAUNTLET_CONTENT_PROVIDER !== "file"))
-  ? require("./githubContentPublication").createGitHubContentPublication({ baseline: publicationBaseline, draftStore: privateAuthoringStore, runtimeCapabilities: () => paraRuntime?.status() || { enabled: false }, economyCapabilities: () => goldEconomy?.status() || { enabled: false } })
+  ? require("./githubContentPublication").createGitHubContentPublication({ baseline: publicationBaseline, draftStore: privateAuthoringStore, mediaStore, dataOnly: process.env.GAUNTLET_DATA_RELEASES === "true", runtimeCapabilities: () => paraRuntime?.status() || { enabled: false }, economyCapabilities: () => goldEconomy?.status() || { enabled: false } })
   : createContentPublication({
   baseline: publicationBaseline,
+  mediaStore,
   directory: runtimeStorage.paths.content,
   provider: process.env.GAUNTLET_CONTENT_PUBLICATION_PROVIDER || "local",
   runtimeCapabilities: () => paraRuntime?.status() || { enabled: false },
@@ -5226,9 +5248,11 @@ require("./events").setEventProvider(() => {
 });
 require("./adminWorkshopData").registerAdminWorkshopRoutes(app, { publication: contentPublication });
 const { createParaRuntime, registerParaRoutes } = require("./paraRuntime");
-paraRuntime = createParaRuntime({ filename: runtimeStorage.paths.para, publication: contentPublication });
+paraRuntime = createParaRuntime({ filename: runtimeStorage.paths.para && remoteOperationsEnabled ? ":memory:" : runtimeStorage.paths.para, publication: contentPublication });
 registerParaRoutes(app, paraRuntime, requireAccountRecord);
-goldEconomy = require("./goldEconomy").createGoldEconomy({ legacyGoldImport: process.env.GAUNTLET_GOLD_MIGRATION === "legacy-opening-v1", gemsEnabled: process.env.GAUNTLET_GEMS_ENABLED === "true", filename: runtimeStorage.paths.economy, publication: contentPublication });
+goldEconomy = require("./goldEconomy").createGoldEconomy({ legacyGoldImport: process.env.GAUNTLET_GOLD_MIGRATION === "legacy-opening-v1", gemsEnabled: process.env.GAUNTLET_GEMS_ENABLED === "true", filename: runtimeStorage.paths.economy && remoteOperationsEnabled ? ":memory:" : runtimeStorage.paths.economy, publication: contentPublication });
+if(remoteOperationsEnabled) remoteOperations=require("./remoteOperationalStore").createRemoteOperationalStore({request:supabaseRequest,
+  stores:{...(paraRuntime.enabled?{para:paraRuntime.persistence}:{}),...(goldEconomy.enabled?{gold:goldEconomy.persistence}:{})}});
 const paymentService = require("./paymentService").createPaymentService({ ledger: goldEconomy.payments });
 require("./paymentService").registerPaymentRoutes(app, paymentService, { requireAccount: requireAccountRecord });
 require("./economyRoutes").registerEconomyRoutes(app, goldEconomy, { paymentService, requireAccount: requireAccountRecord, records: listMatchRecordsByAccount, findRecord: findMatchRecordById,
@@ -5285,7 +5309,7 @@ registerAdminRoutes(app, {
     environment: process.env.NODE_ENV,
     backendCommit: process.env.RENDER_GIT_COMMIT || process.env.GIT_COMMIT || null,
     roomRecovery: isRoomRecoveryEnabled(process.env.ROOM_STATE_RECOVERY_ENABLED),
-    runtimeStorage: () => ({ ...runtimeStorageStatus, checkpoint: roomStateStore.status(), backups: runtimeBackupService.status() }),
+    runtimeStorage: () => ({ ...runtimeStorageStatus, operations:remoteOperations?.status() || {configured:false,provider:"local",health:"unconfigured"}, checkpoint: { ...roomStateStore.status(), ...(durableRooms?.status() || {}) }, backups: runtimeBackupService.status() }),
     deckSchemaVersion: DECK_LIBRARY_SCHEMA_VERSION,
     adminAccountCount: gauntletAdminAuthorization.configuredAccounts,
     para: paraRuntime,
@@ -5445,6 +5469,7 @@ app.post("/api/admin/match-archive/archive-process-local", async (req, res) => {
 });
 
 function persistRoomsNow(now = Date.now()) {
+  if (durableRooms) return durableRooms.checkpoint();
   if (roomStatePersistTimer) {
     clearTimeout(roomStatePersistTimer);
     roomStatePersistTimer = null;
@@ -5453,6 +5478,7 @@ function persistRoomsNow(now = Date.now()) {
 }
 
 function scheduleRoomStatePersist() {
+  if (durableRooms) return; // The enclosing operation commits before its outbox is delivered.
   if (!roomRecoveryInitialized || !roomStateStore.enabled || roomStatePersistTimer) return;
   roomStatePersistTimer = setTimeout(() => {
     roomStatePersistTimer = null;
@@ -5467,13 +5493,16 @@ function scheduleRoomStatePersist() {
 
 function initializeRoomRecovery(now = Date.now()) {
   if (roomRecoveryInitialized) return { enabled: roomStateStore.enabled, restored: 0, alreadyInitialized: true };
-  roomRecoveryInitialized = true;
-  const recoveredRooms = roomStateStore.loadRooms(now);
-  for (const roomState of recoveredRooms) {
-    normalizeDuelPlayerIds(roomState.game);
-    if (!rooms.has(roomState.roomCode)) rooms.set(roomState.roomCode, roomState);
-  }
-  return { enabled: roomStateStore.enabled, restored: recoveredRooms.length, alreadyInitialized: false };
+  const install = recoveredRooms => {
+    for (const roomState of recoveredRooms) {
+      normalizeDuelPlayerIds(roomState.game);
+      if (!rooms.has(roomState.roomCode)) rooms.set(roomState.roomCode, roomState);
+    }
+    roomRecoveryInitialized = true;
+    return { enabled: roomStateStore.enabled, restored: recoveredRooms.length, alreadyInitialized: false };
+  };
+  const recovered = roomStateStore.loadRooms(now);
+  return durableRooms ? recovered.then(install) : install(recovered);
 }
 
 function makeReconnectToken() {
@@ -5922,6 +5951,14 @@ async function sweepRoomLifecycle(options = {}) {
           emitState(roomState); continue;
         }
       }
+      if (roomState.game?.phase !== "gameOver" && roomState.game?.mechanicQueue?.length) {
+        mechanicChoices.stamp(roomState.game, now, config.reconnectGraceMs);
+        const choice = roomState.game.mechanicQueue[0];
+        if (now >= choice.deadline) {
+          const command = mechanicChoices.command(roomState.game, { timeout: true });
+          if (command) await executeSemanticDuelCommand(roomState, choice.player, { commandId: `timeout-${choice.id}`, baseRevision: roomState.game.revision, command: { ...command, decisionTimeout: true } }, { authority: "server", system: true, saveUndo: false });
+        }
+      }
       const action = getRoomLifecycleAction(roomState, now, config);
       if (action === "abandon_match") {
         await abandonActiveRoom(roomState, "reconnect_timeout", now);
@@ -5942,7 +5979,7 @@ async function sweepRoomLifecycle(options = {}) {
 function startRoomLifecycleSweep() {
   if (roomLifecycleTimer) return roomLifecycleTimer;
   roomLifecycleTimer = setInterval(() => {
-    sweepRoomLifecycle().catch((error) => console.error("[Rooms] Lifecycle sweep failed", error));
+    Promise.resolve(runRoomOperation(() => sweepRoomLifecycle())).catch((error) => console.error("[Rooms] Lifecycle sweep failed", error));
   }, roomLifecycleConfig.sweepIntervalMs);
   roomLifecycleTimer.unref?.();
   return roomLifecycleTimer;
@@ -7239,6 +7276,7 @@ function applyOverpayCardRewards(game, playerNum, paid, required, card = null, n
 }
 
 function applyAfterAttackDeclared(game, playerNum, attack, payment) {
+  freeForAllMechanics.trigger(game, playerNum, attack.card, "attack", { attack, payment });
   const player = game.players[playerNum];
   const card = attack.card;
   const notes = attack.notes || [];
@@ -7545,7 +7583,7 @@ async function finalizeRoomGameStats(roomState, options = {}) {
   roomState.pendingFinalization = { completedAt, completionReason, abandonmentReason: options.abandonmentReason || null };
   // Preserve final evidence before any remote consequence writes. A restart
   // retries through the existing idempotent match/account receipt machinery.
-  if (roomRecoveryInitialized) persistRoomsNow();
+  if (roomRecoveryInitialized) await persistRoomsNow();
   if (!(game.serverLeagueEvidence || []).some((entry) => ["match.ended", "match.abandoned"].includes(entry.eventType))) {
     captureLeagueEvidence(game, {
       command: { type: "finalizeMatch" },
@@ -7594,7 +7632,7 @@ async function finalizeRoomGameStats(roomState, options = {}) {
   }
   game.statsRecorded = true;
   delete roomState.pendingFinalization;
-  if (roomRecoveryInitialized) persistRoomsNow();
+  if (roomRecoveryInitialized) await persistRoomsNow();
   return finalized.envelope;
 }
 
@@ -7694,6 +7732,8 @@ function resolveFreeForAllDamage(game, roomState) {
         if (hasCardEffect(block.card, "beli-awakened")) game.players[block.player].turnData.beliAwakenedReady = true;
       }
     }
+    freeForAllMechanics.trigger(game, attack.player, attack.card, "combatEnd", { attack, payment: attack.payment });
+    for (const block of attack.block || []) freeForAllMechanics.trigger(game, block.player, block.card, "combatEnd", { attack, block, payment: block.payment });
     game.players[attack.player].discard.push(attack.card);
     (attack.block || []).forEach((block) => game.players[block.player].discard.push(block.card));
   }
@@ -7851,6 +7891,7 @@ function spendCampaignBossAction(game, playerNum, kind = "action") {
 }
 
 function chooseSemanticTrainingAiCommand(game) {
+  if (game.mechanicQueue?.[0]?.player === 2) return mechanicChoices.command(game);
   const legalActions = getSharedLegalActions(game, 2);
   if (legalActions.length === 0) return null;
   const ai = game.players[2];
@@ -7992,7 +8033,8 @@ function aiNeedsLaneSetup(game) {
 async function runTrainingAi(roomState) {
   if (!isTrainingAiRoom(roomState) || !roomState.game || roomState.game.phase === "gameOver") return;
   if (
-    roomState.game.phase !== "end"
+    roomState.game.mechanicQueue?.[0]?.player !== 2
+    && roomState.game.phase !== "end"
     && (roomState.game.phase !== "priority" || roomState.game.priority !== 2)
   ) return;
 
@@ -8003,10 +8045,14 @@ async function runTrainingAi(roomState) {
 
 function scheduleTrainingAi(roomState) {
   if (!isTrainingAiRoom(roomState) || roomState.aiMoveTimer) return;
+  roomState.aiMoveDueAt = roomState.aiMoveDueAt || Date.now() + 650;
   roomState.aiMoveTimer = setTimeout(() => {
-    roomState.aiMoveTimer = null;
-    runTrainingAi(roomState).catch((error) => console.error("[TrainingAI] Failed", error));
-  }, 650);
+    Promise.resolve(runRoomOperation(() => {
+      roomState.aiMoveTimer = null;
+      delete roomState.aiMoveDueAt;
+      return runTrainingAi(roomState);
+    })).catch((error) => console.error("[TrainingAI] Failed", error));
+  }, Math.max(0, roomState.aiMoveDueAt - Date.now()));
 }
 
 function stableJson(value) {
@@ -8063,6 +8109,8 @@ function rejectDuelCommand(roomState, envelope, code, message) {
   };
 }
 
+const mechanicChoices = require("./mechanicChoices");
+const freeForAllMechanics = require("./freeForAllMechanics");
 async function executeSemanticDuelCommand(roomState, playerNum, envelope = {}, internal = {}) {
   if (!roomState?.game || !playerNum) {
     return rejectDuelCommand(roomState, envelope, "MATCH_UNAVAILABLE", "The match is not available.");
@@ -8141,6 +8189,7 @@ async function executeSemanticDuelCommand(roomState, playerNum, envelope = {}, i
   }
   const historyBeforeGame = roomState.game;
   roomState.game = applied.state;
+  mechanicChoices.stamp(roomState.game, Date.now(), roomLifecycleConfig.reconnectGraceMs);
   captureLeagueEvidence(roomState.game, {
     beforeGame: historyBeforeGame,
     commandId,
@@ -8491,7 +8540,8 @@ function createFreeForAllGameFromLobby(roomState, resolvedContent = contentPubli
   for (const player of Object.values(roomState.lobby.players)) {
     for (const card of player.savedConstructedDeck?.cards || []) {
       const definition = resolvedContent.manifest.cards.find(row => row.id === (card.gameplayCardId || card.definitionId || card.id));
-      if (definition?.effect?.id === "authored-mechanic") throw Object.assign(new Error(`${definition.name} uses a two-player authored mechanic. Choose a different deck for Free-For-All.`), { status: 422 });
+      const problem = definition && freeForAllMechanics.reason(definition);
+      if (problem) throw Object.assign(new Error(`${definition.name}: ${problem}`), { status: 422 });
     }
   }
   roomState.matchMetadata = createMatchMetadata();
@@ -8622,10 +8672,12 @@ function createFreeForAllGameFromLobby(roomState, resolvedContent = contentPubli
 // ============ SOCKET HANDLERS ============
 io.on("connection", (socket) => {
   console.log(`[Socket] Connected: ${socket.id}`);
-  const onClientEvent = createSocketBoundary(socket, { getRoomForSocket });
+  durableRooms?.wrapSocket(socket);
+  const onClientEvent = createSocketBoundary(socket, { getRoomForSocket, run: runRoomOperation,
+    output: send => durableRooms ? durableRooms.output(send) : send() });
 
-  socket.on("leaveParaQueue", () => { removeFromParaQueue(socket.id); socket.emit("paraStatus", { message: "Left queue. Your run is retained." }); });
-  socket.on("joinParaQueue", async ({ authToken, attemptId, factionId, cards = [] } = {}, ack) => {
+  onClientEvent("leaveParaQueue", () => { removeFromParaQueue(socket.id); socket.emit("paraStatus", { message: "Left queue. Your run is retained." }); });
+  onClientEvent("joinParaQueue", async ({ authToken, attemptId, factionId, cards = [] } = {}, ack) => {
     const reply = (value) => { socket.emit("paraStatus", value); if (typeof ack === "function") ack(value); };
     try {
       if (!paraRuntime.enabled) throw new Error(paraRuntime.status().reason);
@@ -8663,7 +8715,7 @@ io.on("connection", (socket) => {
         room.game.para = clonePlain(room.para);
         paraRuntime.reserve(room.game.matchId, entries[0].attemptId, entries[1].attemptId);
         entries.forEach((item, i) => { const playerSocket = io.sockets.sockets.get(item.socketId); attachPlayerSocket(room, playerSocket, i + 1); playerSocket.emit("paraStatus", { inQueue: false, message: "Official match started." }); });
-        persistRoomsNow(); emitState(room); reply({ inQueue: false, message: "Official match started." });
+        await persistRoomsNow(); emitState(room); reply({ inQueue: false, message: "Official match started." });
       } catch (error) { deleteRoom(room.roomCode); throw error; }
     } catch (error) { reply({ inQueue: false, error: error.message }); }
   });
@@ -10420,6 +10472,7 @@ io.on("connection", (socket) => {
     addAccelerationIfOverpaid(game, playerNum, payment.total, blockCardValue, blockCards[0], blockEntries[0]?.notes || []);
     applyOverpayCardRewards(game, playerNum, payment.total, blockCardValue, blockCards[0], blockEntries[0]?.notes || []);
     finalizeBlockDeclaration(game, playerNum, blockEntries);
+    for (const block of blockEntries) freeForAllMechanics.trigger(game, playerNum, block.card, "block", { attack, block, payment: block.payment });
     
     if (isLaneBlock) laneState.block.push(...blockEntries);
     else attack.block.push(...blockEntries);
@@ -10890,10 +10943,11 @@ io.on("connection", (socket) => {
 let shutdownStarted = false;
 
 if (process.env.GAUNTLET_RUNTIME_BACKUPS && process.env.GAUNTLET_RUNTIME_BACKUPS !== "supabase") throw new Error("Unsupported runtime backup provider.");
-if (process.env.GAUNTLET_RUNTIME_BACKUPS && !runtimeStorageStatus.persistentMountVerified) throw new Error("Runtime backups require a verified persistent volume.");
+if (process.env.GAUNTLET_RUNTIME_BACKUPS && !runtimeStorageStatus.persistentMountVerified && !remoteRoomsEnabled) throw new Error("Runtime backups require remote room authority or a verified persistent volume.");
 const { createRuntimeBackupService, createBackupStorage } = require("./runtimeBackups");
-const runtimeBackupService = createRuntimeBackupService({ config: runtimeStorage, beforeSnapshot: () => persistRoomsNow(),
-  storage: process.env.GAUNTLET_RUNTIME_BACKUPS === "supabase" ? createBackupStorage({ url: SUPABASE_URL, key: SUPABASE_SERVICE_ROLE_KEY }) : null });
+const backupStorage = process.env.GAUNTLET_RUNTIME_BACKUPS === "supabase" ? createBackupStorage({ url: SUPABASE_URL, key: SUPABASE_SERVICE_ROLE_KEY }) : null;
+const runtimeBackupService = remoteRoomsEnabled ? require("./remoteRuntimeBackups").createRemoteRuntimeBackupService({ request:supabaseRequest,storage:backupStorage,
+  beforeSnapshot:()=>persistRoomsNow(),run:runRoomOperation,maxBytes:Number(process.env.GAUNTLET_BACKUP_MAX_BYTES||128*1024*1024) }) : createRuntimeBackupService({ config: runtimeStorage, beforeSnapshot: () => persistRoomsNow(),storage:backupStorage });
 
 async function shutdownServer(signal = "shutdown") {
   if (shutdownStarted) return;
@@ -10903,7 +10957,7 @@ async function shutdownServer(signal = "shutdown") {
   stopRoomLifecycleSweep();
   server.close();
   try {
-    const result = persistActiveRoomsForShutdown();
+    const result = await runRoomOperation(() => persistActiveRoomsForShutdown());
     console.log(`[Server] Preserved ${result.saved} active room${result.saved === 1 ? "" : "s"}.`);
   } catch (error) {
     console.error("[Server] Failed to preserve active rooms", error);
@@ -10913,13 +10967,16 @@ async function shutdownServer(signal = "shutdown") {
 }
 
 if (require.main === module) {
-  const recovery = initializeRoomRecovery();
-  server.listen(PORT, () => {
-    runtimeBackupService.start();
-    startRoomLifecycleSweep();
-    if (recovery.enabled) console.log(`[Rooms] Restored ${recovery.restored} active room${recovery.restored === 1 ? "" : "s"}.`);
-    console.log(`Server running on port ${PORT}`);
-  });
+  Promise.resolve(contentPublication.verifyMedia()).then(async()=>{if(remoteOperations){await remoteOperations.load();await remoteOperations.save();}}).then(() => initializeRoomRecovery()).then(async recovery => {
+    await runtimeBackupService.initialize?.();
+    server.listen(PORT, () => {
+      runtimeBackupService.start();
+      startRoomLifecycleSweep();
+      for (const room of rooms.values()) if (room.aiMoveDueAt) scheduleTrainingAi(room);
+      if (recovery.enabled) console.log(`[Rooms] Restored ${recovery.restored} active room${recovery.restored === 1 ? "" : "s"}.`);
+      console.log(`Server running on port ${PORT}`);
+    });
+  }).catch(error => { console.error("[Storage] Startup integrity or recovery check failed; refusing player traffic.", error.message); process.exitCode = 1; });
   process.once("SIGTERM", () => shutdownServer("SIGTERM"));
   process.once("SIGINT", () => shutdownServer("SIGINT"));
 }

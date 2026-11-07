@@ -313,11 +313,13 @@ function createAdminData(deps) {
         roomState: ROOM_STATE_SCHEMA_VERSION, completion: MATCH_COMPLETION_ENVELOPE_VERSION, engineSnapshot: duel.SCHEMA_VERSION,
         engineCommand: duel.COMMAND_SCHEMA_VERSION, engineEvent: duel.EVENT_SCHEMA_VERSION, deckLibrary: deps.deckSchemaVersion },
       storage: {
+        ...(runtime?.operations ? {operations:{...runtime.operations,health:runtime.checkpoint?.blocked?"unavailable":runtime.operations.health}} : {}),
         accounts: { source: accountSource(), status: checks[0].status === "fulfilled" ? "read succeeded" : "unavailable" },
         matches: { mode: persistence.mode, status: checks[1].status === "fulfilled" ? "read succeeded" : "unavailable", capabilities: persistence.capabilities },
         archive: { mode: archive.mode || null, status: checks[2].status === "fulfilled" && archive.available ? "available" : "unavailable", durable: !!archive.durable },
-        rooms: { enabled: deps.roomRecovery, source: runtime?.persistentMountVerified ? "Private persistent-volume checkpoints" : "Private local room snapshots", note: "Room contents are never exposed through admin.", ...(runtime ? { persistentVolume: runtime.persistentMountVerified, lastCheckpoint: runtime.checkpoint.lastSavedAt || "None saved this process", checkpointFailed: runtime.checkpoint.lastSaveFailed } : {}) },
-        ...(runtime ? { runtimeBackups: { enabled: runtime.backups.enabled, source: "Private Supabase Storage", lastSuccessfulAt: runtime.backups.lastSuccessfulAt || "No verified backup", status: runtime.backups.lastError ? "Failed; inspect server logs" : runtime.backups.running ? "Backing up" : runtime.backups.enabled ? "Scheduled hourly" : "Not configured" } } : {}),
+        rooms: { enabled: deps.roomRecovery, source: runtime?.checkpoint.provider === "supabase" ? "Private Supabase committed room state" : runtime?.persistentMountVerified ? "Private persistent-volume checkpoints" : "Private local room snapshots", note: "Room contents are never exposed through admin.", ...(runtime ? { persistentVolume: runtime.persistentMountVerified, lastCheckpoint: runtime.checkpoint.lastSavedAt || "No durable commit recorded", checkpointFailed: runtime.checkpoint.lastSaveFailed,
+          ...(runtime.checkpoint.provider === "supabase" ? { status: runtime.checkpoint.blocked ? "unavailable" : runtime.checkpoint.health, acknowledgement: "After durable commit", recoveryVerified: !!runtime.checkpoint.recoveryVerified, revision: runtime.checkpoint.revision } : {}) } : {}) },
+        ...(runtime ? { runtimeBackups: { enabled: runtime.backups.enabled, source: "Private Supabase Storage", coverage:runtime.backups.source || "Private runtime files", objectKey:runtime.backups.objectKey || "No verified recovery point", recoveryVerified:!!runtime.backups.recoveryVerified, maxBytes:runtime.backups.maxBytes || null, storedBytes:runtime.backups.storedBytes || null, lastSuccessfulAt: runtime.backups.lastSuccessfulAt || "No verified backup", status: runtime.backups.lastError ? "Failed; inspect server logs" : runtime.backups.running ? "Backing up" : runtime.backups.enabled ? "Scheduled hourly" : "Not configured" } } : {}),
         content: { source: current.publishing.storage || "Configured content provider", status: deps.publication ? "read succeeded" : "source baseline only", writable: !!current.publishing.writable, activeRelease: current.versions.content }
       },
       validation: current.validation, sources: current.sources,
@@ -327,7 +329,8 @@ function createAdminData(deps) {
         ...checks.flatMap((check, index) => check.status === "rejected" ? [`${["Account read", "Match storage probe", "Archive probe"][index]} failed. Details remain in server logs.`] : []),
         ...(!archive.available ? ["Canonical archive is unavailable. This does not prove that all match records are unavailable."] : []),
         ...(persistence.mode === "account-only" ? ["Account-only persistence: full match evidence is not guaranteed after process replacement."] : []),
-        ...(runtime && !runtime.persistentMountVerified ? ["Runtime files are not on a verified persistent volume. Server replacement can lose active rooms or enabled SQLite ledgers."] : []),
+        ...(runtime && !runtime.persistentMountVerified && runtime.operations?.provider!=="supabase" ? [runtime.checkpoint.provider === "supabase" ? "Rooms use remote committed state. Any enabled local SQLite ledgers still require durable storage." : "Runtime files are not on a verified persistent volume. Server replacement can lose active rooms or enabled SQLite ledgers."] : []),
+        ...(runtime?.checkpoint.blocked ? ["Room actions are paused after an unconfirmed write. Restart with the committed remote state before accepting further actions."] : []),
         ...(runtime?.backups.enabled && (!runtime.backups.lastSuccessfulAt || runtime.backups.lastError) ? ["Runtime backups need attention. A verified off-volume recovery point has not been confirmed for the latest attempt."] : []),
         ...(!current.validation.valid ? [current.validation.message] : [])
       ],

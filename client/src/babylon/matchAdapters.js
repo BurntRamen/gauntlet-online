@@ -84,6 +84,7 @@ function clone(value) {
 
 function nextActor(game) {
   if (!game || game.phase === "gameOver") return null;
+  if (game.mechanicDecision?.player || game.mechanicQueue?.[0]?.player) return game.mechanicDecision?.player || game.mechanicQueue[0].player;
   if (game.phase === "end") return currentPlacementPlayer(game);
   return game.priority;
 }
@@ -703,6 +704,7 @@ export class LocalDuelAdapter {
       return this.game.message || "Watching the match.";
     }
     if (this.controller !== this.perspective) return `Viewing Player ${this.perspective}.`;
+    if (this.game.mechanicDecision || this.game.mechanicQueue?.length) return this.game.message;
     if (this.game.phase === "end" && this.selection.kind !== "placement") {
       const actor = currentPlacementPlayer(this.game);
       const laneIndex = this.game.endPlacementLaneIndex;
@@ -1032,11 +1034,11 @@ export class LocalDuelAdapter {
       confirmLabel: confirm.label,
       confirmDisabled: confirm.disabled,
       confirmReason: confirm.disabled ? this.confirmationReason() : "",
-      activePlayer: this.game.phase === "end"
+      activePlayer: this.game.mechanicDecision?.player || this.game.mechanicQueue?.[0]?.player || (this.game.phase === "end"
         ? currentPlacementPlayer(this.game)
         : this.game.phase === "gameOver"
           ? null
-          : this.game.priority,
+          : this.game.priority),
       events: this.pendingEvents,
       interaction: {
         attackMode: this.selection.kind === "handAttack"

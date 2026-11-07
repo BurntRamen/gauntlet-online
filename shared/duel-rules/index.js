@@ -1868,8 +1868,9 @@ function startEndPlacement(game, events) {
   events.push(event(game, "endPlacement.started", { player: actor, laneIndex: 0 }));
 }
 
-function startNextTurn(game, events) {
-  mechanicRuntime.boardTrigger(game, "turnEnd", mechanicApi(game, events));
+function startNextTurn(game, events, resumed = false) {
+  if (!resumed) mechanicRuntime.boardTrigger(game, "turnEnd", mechanicApi(game, events));
+  if (game.mechanicQueue?.length) { game.mechanicContinuation = { kind: "nextTurn" }; return; }
   clearTemporaryBonuses(game);
   drawToHandSize(game, 1, events);
   drawToHandSize(game, 2, events);
@@ -2093,7 +2094,7 @@ function applyCommandInternal(current, rawCommand, trace) {
       commandId
     );
   }
-  if (current.contentBinding?.mechanicVersion && current.contentBinding.mechanicVersion !== mechanicContract.VERSION) return reject(current, command, "Unsupported authored mechanic interpreter binding.");
+  if (current.contentBinding?.mechanicVersion && !mechanicContract.supportedVersions.includes(current.contentBinding.mechanicVersion)) return reject(current, command, "Unsupported authored mechanic interpreter binding.");
   if (current.phase === "gameOver") return reject(current, command, "The match is already over.");
   const game = clone(current);
   const player = Number(command.player);
@@ -2102,6 +2103,9 @@ function applyCommandInternal(current, rawCommand, trace) {
   let label = "";
 
   if (!actor) return reject(current, command, "Unknown player.");
+
+  const isDecision = command.type === "useFactionAbility" && String(command.abilityId).startsWith("mechanic:decision:");
+  if (game.mechanicQueue?.length && command.type !== "concede" && !isDecision) return reject(current, command, "Resolve the offered mechanic decision before continuing play.");
 
   if (command.type === "playSupport") {
     const laneIndex = command.laneIndex;
@@ -2565,7 +2569,9 @@ function applyCommandInternal(current, rawCommand, trace) {
       })
     );
     label = `Player ${player} blocked with ${blockCards.map((card) => `${card.rank}${card.suit}`).join(", ")}.`;
-    if (game.gameMode === "basic") {
+    if (game.gameMode === "basic" && game.mechanicQueue?.length) {
+      game.mechanicContinuation = { kind: "combat", attackId: pending.attack.id, laneIndex: pending.laneIndex };
+    } else if (game.gameMode === "basic") {
       resolveAttack(game, pending.attack, pending.laneIndex, events, trace);
     } else {
       game.priorityPassed = { 1: false, 2: false };
@@ -2590,6 +2596,8 @@ function applyCommandInternal(current, rawCommand, trace) {
       game.message = `Player ${player} declined the block. Player ${pending.attack.player} may pass to resolve combat.`;
       events.push(event(game, "priority.granted", { player: pending.attack.player }));
     }
+  } else if (isDecision) {
+    label = mechanicRuntime.resolveDecision(game, player, command, mechanicApi(game, events, player));
   } else if (command.type === "useFactionAbility" && String(command.abilityId).startsWith("mechanic:")) {
     label = mechanicRuntime.activate(game, player, command, pendingAttack(game)?.attack, mechanicApi(game, events, player));
   } else if (command.type === "useFactionAbility" && String(command.abilityId).startsWith("mekan:")) {
@@ -2919,10 +2927,25 @@ function applyCommandInternal(current, rawCommand, trace) {
 
   // Accepted activations reopen the response round. Automatic triggers are part
   // of their originating command; Epicura has its own combat priority transfer.
-  if (command.type === "useFactionAbility" && !String(command.abilityId).startsWith("gracus:")) {
+  if (command.type === "useFactionAbility" && !isDecision && !String(command.abilityId).startsWith("gracus:")) {
     game.priorityPassed = { 1: false, 2: false };
     game.message = `${label} Player ${player} retains priority. The opponent can respond after you pass.`;
     events.push(event(game, "priority.retained", { player, abilityId: command.abilityId.split(":").slice(0, 2).join(":"), passesReset: true }));
+  }
+
+  if (game.phase !== "gameOver") {
+    mechanicRuntime.drain(game, mechanicApi(game, events));
+    if (!game.mechanicQueue?.length && game.mechanicContinuation) {
+      const continuation = game.mechanicContinuation; delete game.mechanicContinuation;
+      if (continuation.kind === "nextTurn") startNextTurn(game, events, true);
+      else if (continuation.kind === "combat") {
+        const pending = pendingAttack(game);
+        if (!pending || pending.attack.id !== continuation.attackId) throw new Error("Lost mechanic combat continuation.");
+        resolveAttack(game, pending.attack, continuation.laneIndex, events, trace);
+      }
+      mechanicRuntime.drain(game, mechanicApi(game, events));
+    }
+    if (game.mechanicQueue?.length) game.message = `Player ${game.mechanicQueue[0].player}: resolve ${mechanicRuntime.decisionView(game).label} before play continues.`;
   }
 
   if (supportContract.enabled(game)) for (const [laneIndex, lane] of current.lanes.entries()) for (const owner of [1, 2]) {
@@ -2953,7 +2976,7 @@ function applyCommandInternal(current, rawCommand, trace) {
     accepted: true,
     state: game,
     revision: game.revision,
-    legalActions: getLegalActions(game, game.priority),
+    legalActions: getLegalActions(game, game.mechanicQueue?.[0]?.player || game.priority),
     rejectionReason: "",
     rejection: null,
     actionLogEntry,
@@ -2977,6 +3000,12 @@ function applyCommand(current, command, options) {
 // Evaluate on a clone because some conditional helpers consume turn flags.
 function previewPayment(state, player, command) {
   const game = clone(state), actor = game.players[player];
+  if (actor && command.type === "useFactionAbility" && String(command.abilityId).startsWith("mechanic:")) {
+    const action = getLegalActions(game, player).find(a => a.abilityId === command.abilityId);
+    if (!action) return { total: 0, required: 0, error: "That mechanic action is unavailable." };
+    const value = validatePayment(actor, command.paymentCardIds || [], action.requiredPayment, [action.targetCardId, action.sourceCardId].filter(Boolean));
+    return { total: value.total || 0, required: action.requiredPayment, error: value.error || null };
+  }
   if (actor && command.type === "playSupport") {
     const card = findHandCard(actor, command.cardId);
     if (!card) return null;
@@ -3007,6 +3036,7 @@ function previewPayment(state, player, command) {
 }
 
 function getFactionAbilityActions(game, playerNumber) {
+  if (game?.mechanicQueue?.length) return mechanicRuntime.decisionActions(game, playerNumber);
   const actor = game?.players?.[playerNumber];
   if (!actor || game.gameMode !== "factions" || game.phase !== "priority" || game.priority !== playerNumber) {
     return [];
@@ -3402,7 +3432,7 @@ function normalizeLegalAction(game, playerNumber, action) {
     if (action.abilityId.startsWith("mechanic:")) {
       fixed.targetCardId = action.targetCardId;
       if (action.destinationLane != null) fixed.destinationLane = action.destinationLane;
-      payment = { requiredValue: action.requiredPayment, mode: "cardValueTotal", eligibleCardIds: actor.hand.filter(c => c.id !== action.targetCardId).map(c => c.id), excludedCardIds: [action.targetCardId].filter(Boolean), excludesSelections: [], minimumCards: 0, maximumCards: actor.hand.length, selectionOrderMatters: false };
+      payment = { requiredValue: action.requiredPayment, mode: "cardValueTotal", eligibleCardIds: action.paymentOptions?.map(c => c.cardId) || actor.hand.filter(c => c.id !== action.targetCardId).map(c => c.id), excludedCardIds: [action.targetCardId, action.sourceCardId].filter(Boolean), excludesSelections: [], minimumCards: 0, maximumCards: actor.hand.length, selectionOrderMatters: false };
       selected.paymentCardIds = "payment";
     }
     const ownLaneCards = game.lanes.flatMap((lane, laneIndex) => lane.facedown[playerNumber]
@@ -3485,6 +3515,7 @@ function getLegalActions(game, player) {
   const playerNumber = Number(player);
   const actor = game.players[playerNumber];
   if (!actor) return [];
+  if (game.mechanicQueue?.length) return mechanicRuntime.decisionActions(game, playerNumber).map(action => normalizeLegalAction(game, playerNumber, action));
   const pending = pendingAttack(game);
   if (pending) {
     if (game.priority !== playerNumber) return [];
@@ -3742,6 +3773,7 @@ function sanitizeEventForPerspective(entry, viewer, hiddenCardIds) {
     delete sanitized.source;
   }
   if (sanitized.cardId && hiddenCardIds.has(sanitized.cardId)) delete sanitized.cardId;
+  if (sanitized.targetCardId && hiddenCardIds.has(sanitized.targetCardId)) delete sanitized.targetCardId;
   if (Array.isArray(sanitized.cardIds)) {
     sanitized.cardIds = sanitized.cardIds.filter((cardId) => !hiddenCardIds.has(cardId));
     if (sanitized.cardIds.length === 0 && belongsToOtherPlayer) delete sanitized.cardIds;
@@ -3753,6 +3785,9 @@ function sanitizeEventForPerspective(entry, viewer, hiddenCardIds) {
 function projectForPerspective(game, perspectivePlayer) {
   const projected = clone(game);
   delete projected.supportCommandReceipts;
+  delete projected.mechanicQueue;
+  delete projected.mechanicContinuation;
+  projected.mechanicDecision = mechanicRuntime.decisionView(game);
   const viewer = Number(perspectivePlayer);
   const hiddenCardIds = new Set();
   for (const player of [1, 2]) {

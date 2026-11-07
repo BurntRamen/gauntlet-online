@@ -4,9 +4,12 @@ const modifiers = require("../shared/duel-rules/ruleModifierContract");
 const kinds = { mechanics: contract, modifiers };
 const empty = () => ({ schemaVersion: "gauntlet.studio.v1", mechanics: [] });
 const clone = value => structuredClone(value);
-function create(source, kind = "mechanics") {
+function create(source, kind = "mechanics", interpreter = source?.interpreter || 1) {
   if (kind === "modifiers") return { ...(source ? clone(source) : { name: "New modifier", status: "active", interpreter: 1, playerLife: 42, opponentLife: 42, handSize: 8 }), id: `modifier-${crypto.randomUUID()}`, ...(source ? { name: `${source.name.slice(0, 110)} copy`, status: "active" } : {}) };
-  return { ...(source ? clone(source) : { name: "New mechanic", status: "active", interpreter: 1, cardTypes: ["spell"], abilities: [contract.ability()] }), id: `mechanic-${crypto.randomUUID()}`, ...(source ? { name: `${source.name.slice(0, 110)} copy`, status: "active" } : {}) };
+  if (![1, 2].includes(interpreter)) throw Object.assign(new Error("Choose a supported mechanic interpreter."), { status: 422 });
+  const row = { ...(source ? clone(source) : { name: "New mechanic", status: "active", interpreter, cardTypes: ["spell"], abilities: [contract.ability("placed", interpreter)] }), id: `mechanic-${crypto.randomUUID()}`, ...(source ? { name: `${source.name.slice(0, 110)} copy`, status: "active" } : {}) };
+  if (interpreter === 2 && row.interpreter === 1) { row.interpreter = 2; row.abilities = row.abilities.map(a => ({ ...a, decision: "automatic" })); }
+  return row;
 }
 function validate(snapshot) {
   const cards = Array.isArray(snapshot.domains?.cards) ? snapshot.domains.cards : [];
@@ -27,7 +30,7 @@ function validate(snapshot) {
   if (errors.length) return errors;
   for (const card of cards) if (card?.effect?.id === contract.ID) {
     const row = studio.mechanics.find(r => r.id === card.effect.mechanicId);
-    if (!contract.exact(card.effect, ["id", "version", "mechanicId"]) || !contract.validateEffect(card.effect) || !row?.cardTypes?.includes(card.type)) errors.push({ domain: "cards", id: card.id, field: "effect", message: "Choose a saved mechanic compatible with this card type. Runtime definitions cannot be supplied by an editor." });
+    if (!contract.exact(card.effect, ["id", "version", "mechanicId"]) || !contract.validateEffect(card.effect) || card.effect.version !== row?.interpreter || !row?.cardTypes?.includes(card.type)) errors.push({ domain: "cards", id: card.id, field: "effect", message: "Choose a saved mechanic compatible with this card type and interpreter version. Runtime definitions cannot be supplied by an editor." });
   }
   for (const row of Array.isArray(snapshot.domains?.encounters) ? snapshot.domains.encounters : []) if (row?.ruleModifierId && !studio.modifiers?.some(m => m.id === row.ruleModifierId)) errors.push({ domain: "encounters", id: row.id, field: "ruleModifierId", message: "Choose a saved rule modifier." });
   return errors;
@@ -35,7 +38,7 @@ function validate(snapshot) {
 function resolve(card, snapshot, hash) {
   if (card.effect?.id !== contract.ID) return card;
   const definition = snapshot.studio?.mechanics.find(row => row.id === card.effect.mechanicId);
-  if (!definition || contract.errors(definition).length || !definition.cardTypes.includes(card.type)) throw new Error("Unresolved or incompatible authored mechanic.");
+  if (!definition || contract.errors(definition).length || card.effect.version !== definition.interpreter || !definition.cardTypes.includes(card.type)) throw new Error("Unresolved or incompatible authored mechanic.");
   return { ...card, effect: { ...card.effect, definition: clone(definition), revision: hash(definition) } };
 }
 function changes(previous, next) {
@@ -49,6 +52,6 @@ function rollbackProblem(previous, next) {
 }
 function metadata(snapshot) {
   return { modifiers: (snapshot.studio?.modifiers || []).map(row => ({ ...clone(row), explanation: modifiers.explain(row), usedBy: snapshot.domains.encounters.filter(e => e.ruleModifierId === row.id).map(e => ({ id: e.id, name: e.title })) })), version: contract.VERSION, triggers: contract.triggers, conditions: contract.conditions, targets: contract.targets, operations: contract.operations, types: contract.types,
-    definitions: (snapshot.studio?.mechanics || []).map(row => ({ ...clone(row), explanation: contract.explain(row), usedBy: snapshot.domains.cards.filter(c => c.effect?.mechanicId === row.id).map(c => ({ id: c.id, name: c.name, factionId: c.factionId })) })) };
+    definitions: (snapshot.studio?.mechanics || []).map(row => ({ ...clone(row), explanation: contract.explain(row), compatibility: require("../shared/duel-rules/mechanicModes").compatibility(row), usedBy: snapshot.domains.cards.filter(c => c.effect?.mechanicId === row.id).map(c => ({ id: c.id, name: c.name, factionId: c.factionId })) })) };
 }
 module.exports = { kinds, empty, create, validate, resolve, changes, rollbackProblem, metadata };

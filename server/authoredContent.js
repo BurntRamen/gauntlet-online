@@ -41,8 +41,9 @@ FIELDS.encounters.ruleModifierId = { label: "Starting-state rule modifier", type
 FIELDS.cards.effect = { label: "Card effect", type: "object", mechanical: true, options: effects.cardEffectDefinitions(), note: "Select a deployed effect for this faction and card type. Declared parameters remain supported; Rumin armaments also support bounded structured composition." };
 FIELDS.factions.mechanics = { label: "Faction mechanics", type: "object", mechanical: true, options: effects.factionEffectDefinitions(), note: "Only supported parameters are editable. Activation costs, timing, targeting and counters remain engine-controlled." };
 function fieldsFor(domain, row, snapshot) {
+  if (domain === "campaigns" && row?.origin === "admin-faction-v1") return { ...FIELDS.campaigns, pitch: { ...FIELDS.campaigns.pitch, required: false, note: "Write approved campaign copy. Blank displays no introduction; creation never generates lore." } };
   if (domain === "factions" && row?.origin === "admin-faction-v1") return { ...FIELDS.factions, ...require("./adminFactions").fields };
-  if (domain === "encounters" && row?.origin === require("./adminEncounters").ORIGIN) return { ...FIELDS.encounters, ...require("./adminEncounters").fields };
+  if (domain === "encounters" && row?.origin === require("./adminEncounters").ORIGIN) return { ...FIELDS.encounters, ...Object.fromEntries(["story", "beforeBattle", "afterBattle"].map(key => [key, { ...FIELDS.encounters[key], required: false, note: "Write approved narrative. Blank shows no copy; no filler is generated." }])), ...require("./adminEncounters").fields };
   if (domain === "decks" && row?.origin === require("./adminDecks").ORIGIN) return require("./adminDecks").fields;
   if (domain === "offers") return require("./adminDeckOffers").fields;
   if (domain === "assets" && row?.origin === require("./adminPrintings").ORIGIN) return require("./adminPrintings").fields;
@@ -250,7 +251,7 @@ function resolveEngineContent(snapshot, releaseId) {
   manifest.assetManifest = { version: assets.assetManifest.version, entries: clone([...assets.assetManifest.entries, ...versions.map(row => assets.assetEntry(row.id, versions, releaseId))]) };
   manifest.contentBinding = { authoredRelease: releaseId, rulesVersion: duel.RULES_VERSION, cardEffectContractVersion: effects.CARD_EFFECT_CONTRACT_VERSION, factionEffectContractVersion: effects.FACTION_EFFECT_CONTRACT_VERSION, encounterContractVersion: encounterContract.ENCOUNTER_CONTRACT_VERSION, assetManifestVersion: assets.assetManifest.version, gameConfigVersion: config.GAME_CONFIG_VERSION };
   if (domains.factions.some(f => f.origin === "admin-faction-v1")) manifest.contentBinding.factionFamilyVersion = "gauntlet.faction-families.v1";
-  if (domains.cards.some(card => card.effect?.id === require("../shared/duel-rules/mechanicContract").ID)) manifest.contentBinding.mechanicVersion = require("../shared/duel-rules/mechanicContract").VERSION;
+  if (domains.cards.some(card => card.effect?.id === require("../shared/duel-rules/mechanicContract").ID)) manifest.contentBinding.mechanicVersion = domains.cards.some(card => card.effect?.id === "authored-mechanic" && card.effect.version === 2) ? require("../shared/duel-rules/mechanicContract").VERSION2 : require("../shared/duel-rules/mechanicContract").VERSION;
   if (domains.cards.some(card => card.effect?.id === composition.ID)) manifest.contentBinding.compositionVersion = composition.VERSION;
   const source = registry.getPublicGameContent();
   for (const card of manifest.cards) {

@@ -80,7 +80,7 @@ function createObject(snapshot, input) {
     availability: { ...defaultAvailability(), ...(snapshot.domains.factions.some(f => f.id === (input.factionId || source?.factionId) && f.origin === "admin-faction-v1") ? { constructed: false } : {}) }, status: "active" };
   const art = input.art || snapshot.domains.assets.find(v => v.id === source?.defaultVariantId)?.art || registry.getCollectorVariantById(`${effect.legacyCardId}:standard`)?.art;
   if (composedSource) row.effect = clone(source.effect);
-  if (mechanic) { row.effect = { id: "authored-mechanic", version: 1, mechanicId }; row.text = require("../shared/duel-rules/mechanicContract").explain(mechanic); }
+  if (mechanic) { row.effect = { id: "authored-mechanic", version: mechanic.interpreter, mechanicId }; row.text = require("../shared/duel-rules/mechanicContract").explain(mechanic); }
   if (source?.flavor != null) row.flavor = source.flavor;
   const variant = { id: row.defaultVariantId, schemaVersion: 1, variantId: row.defaultVariantId, gameplayCardId: id,
     name: `${row.name} Standard`, edition: set.id, finish: "standard", frame: "faction-standard", border: "standard", art,

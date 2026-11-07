@@ -32,5 +32,5 @@ test("capacity counts unique retained bytes and versions separately; reuse does 
   assert.equal(images.capacity(state).storedBytes, images.MAX_STORED);
   state.uploads = [{ versions: Array.from({ length: 500 }, (_, index) => ({ ...a, id: `image-version-${crypto.randomUUID()}`, version: index + 1 })) }];
   state.releases = {};
-  assert.throws(() => images.insert(state, input, processed, "admin"), /500 retained image versions/);
+  assert.throws(() => images.insert(state, input, processed, "admin"), /retained media-version limit/);
 });
