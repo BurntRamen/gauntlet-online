@@ -1934,12 +1934,17 @@ export default function ProductionMatchExperience({
       if (sideHand && panel) controls.push(panel.getBoundingClientRect());
       const hudHeight = Math.max(0, ...controls.filter(Boolean).map((rect) => bounds.bottom - rect.top)) + 4;
       if (phoneHandActive && hudHeight > 4) root.style.setProperty("--phone-hud-reserve", Math.ceil(hudHeight) + "px");
+      // In short landscape the player plates occupy the left column; only
+      // the hand rail below the board needs to reserve vertical table space.
+      if (sideHand && panel) root.style.setProperty("--battlefield-bottom-reserve",
+        Math.ceil(bounds.bottom - panel.getBoundingClientRect().top + 4) + "px");
+      else if (phoneHandActive) root.style.removeProperty("--battlefield-bottom-reserve");
       if (!phoneHandActive && hudHeight > 4 && update?.source !== "replay")
         root.style.setProperty("--battlefield-bottom-reserve",
           (desktopPanels || (bounds.width >= 1366 && bounds.height > 520) ? 8 : Math.ceil(hudHeight)) + "px");
       if (panel) root.style.setProperty("--phone-hand-reserve", (sideHand ? 0 : Math.ceil(panel.getBoundingClientRect().height + 4)) + "px");
       if (update?.source !== "replay") {
-        const top = [".production-player-plate-top", ".production-match-utilities > summary", ".production-turn-marker",
+        const top = [...(sideHand ? [] : [".production-player-plate-top"]), ".production-match-utilities > summary", ".production-turn-marker",
           ...(desktopPanels ? [".production-player-plate-bottom"] : [])]
           .map((selector) => root.querySelector(selector)?.getBoundingClientRect()).filter(Boolean);
         root.style.setProperty("--battlefield-top-reserve",

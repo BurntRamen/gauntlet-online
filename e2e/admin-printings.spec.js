@@ -2,6 +2,7 @@ const { saveRecord, workspaceView, workspaceSection, destination, previewSavedDr
 const { openCollection } = require("./player-navigation");
 const { test, expect } = require("./admin-release-test");
 const { waitForBufferedAdminResponse } = require("./buffered-admin-response");
+const { randomUUID } = require("node:crypto");
 const fs = require("node:fs"), path = require("node:path"), { spawn } = require("node:child_process"), sharp = require("sharp");
 const serverUrl = `http://127.0.0.1:${process.env.GAUNTLET_ADMIN_FIXTURE_PORT || 4117}`, cardId = "rumin-vault-shield-bearer", artifactRoot = path.resolve(__dirname, "../artifacts/printings/browser");
 let child, root;
@@ -34,7 +35,18 @@ test("create, upload, organize, publish, own, save, play, revise and recover a p
     }
     throw lastError;
   };
-  const capture = async () => { const response = await request.post(serverUrl + "/api/admin/fixture/capture-printing-match", { headers }); expect(response.ok()).toBeTruthy(); return (await response.json()).game; };
+  const capture = async ({ dropResponse = false } = {}) => {
+    const response = await request.post(serverUrl + "/api/admin/fixture/capture-printing-match", {
+      headers: { ...headers, ...(dropResponse ? { "X-Gauntlet-Fixture-Drop-Capture-Response": "once" } : {}) },
+      data: { captureId: randomUUID() },
+      // Only ECONNRESET is retried; HTTP errors and assertions still fail.
+      // The stable capture ID makes a lost acknowledgement safe to retry.
+      maxRetries: 2
+    });
+    expect(response.ok()).toBeTruthy();
+    if (dropResponse) expect(response.headers()["x-gauntlet-fixture-replayed"]).toBe("true");
+    return (await response.json()).game;
+  };
   await open(page); const source = await status(), p1 = `${cardId}:standard`;
   await workspaceView(page, "Preview"); await expect(page.locator(".admin-card-preview img").first()).toBeVisible();
   await destination(page, "Sets");
@@ -86,13 +98,14 @@ test("create, upload, organize, publish, own, save, play, revise and recover a p
   const savedDeck = () => JSON.parse(fs.readFileSync(accountFile, "utf8")).accounts[0].stats.savedConstructedDeck; expect(savedDeck().collectorVariantSelections[cardId]).toBe(p2);
   await page.locator(".deck-slot.is-replaced").click(); await expect(page.locator(".deck-slot-preview img")).toHaveAttribute("src", serverUrl + `/api/content-assets/${b.id}/${b.sha256}.webp`); await page.screenshot({ path: path.join(artifactRoot, "saved-deck.png") });
   const oldGame = await capture(); expect(oldGame.handAttacks[0].card.presentation.printingId).toBe(p2); expect(oldGame.handAttacks[0].card.presentation.illustrationAssetId).toBe(b.id);
-  await open(page); await selected(page, p2); const c = await upload("#a337dd"); await publish("Printing browser R2"); const nextGame = await capture(); expect(nextGame.handAttacks[0].card.presentation.illustrationAssetId).toBe(c.id); expect(nextGame.handAttacks[0].card.presentation.printingRevision).not.toBe(oldGame.handAttacks[0].card.presentation.printingRevision);
+  await open(page); await selected(page, p2); const c = await upload("#a337dd"); await publish("Printing browser R2"); const nextGame = await capture({ dropResponse: true }); expect(nextGame.handAttacks[0].card.presentation.illustrationAssetId).toBe(c.id); expect(nextGame.handAttacks[0].card.presentation.printingRevision).not.toBe(oldGame.handAttacks[0].card.presentation.printingRevision);
   await open(page); await page.getByRole("button", { name: "Review release", exact: true }).click(); await page.getByRole("button", { name: "Restore Printing browser R1", exact: true }).click(); await page.getByRole("button", { name: "Confirm rollback", exact: true }).click(); await expect(page.getByText("Previous release restored for future games.", { exact: true })).toBeVisible();
   await stop(); await start(); const fresh = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
   try {
     await fresh.addInitScript(token => localStorage.setItem("gauntlet_auth_token", token), token); const p = await fresh.newPage(); await open(p); await selected(p, p2); await expect(p.locator(".admin-card-preview img").first()).toHaveAttribute("src", serverUrl + `/api/content-assets/${b.id}/${b.sha256}.webp`);
     expect(savedDeck().collectorVariantSelections[cardId]).toBe(p2); expect((await capture()).handAttacks[0].card.presentation.illustrationAssetId).toBe(b.id);
     const rooms = (await (await request.get(serverUrl + "/api/admin/fixture/image-matches", { headers })).json()).rooms;
+    expect(rooms).toHaveLength(3); // R1, R2 and restored R1; the reset must not duplicate R2.
     for (const [index, version] of [b, c].entries()) {
       const state = rooms[index].publicState; expect(state.handAttacks[0].card.presentation.illustrationAssetId).toBe(version.id); const matchId = `eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee${index}`;
       const replay = { matchId, availability: { available: true, mode: "public-state-frames" }, participants: [{ playerNum: 1, displayName: "Rumin" }, { playerNum: 2, displayName: "Sheen" }], frames: [{ frameIndex: 1, publicState: state }], steps: [{ index: 0, evidenceSequence: 1, evidenceId: "printing-attack", eventType: "attack.declared", turn: 1, phase: "priority", label: "Captured printing attack", frameIndex: 1, publicPayload: {} }], notableMoments: [] };
