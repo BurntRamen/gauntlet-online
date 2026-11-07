@@ -82,7 +82,7 @@
 .admin-production-intro, .admin-production-guide footer { padding: 4px 18px 12px; }
 .admin-production-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 270px), 1fr)); gap: 12px; padding: 0 18px 12px 38px; }
 .admin-production-steps li { padding: 12px; border: 1px solid #3e5461; border-radius: 8px; background: #1b2c36; }
-.admin-production-steps h5 { margin: 0 0 8px; font-size: 14px; }
+.admin-production-steps h4 { margin: 0 0 8px; font-size: 14px; }
 .admin-production-guide p { font-size: 13px; line-height: 1.55; }
 .admin-production-guide a { color: #f2d18a; }
 .admin-form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(125px, 1fr)); gap: 10px; }

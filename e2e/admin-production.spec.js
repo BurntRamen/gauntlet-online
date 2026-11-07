@@ -76,7 +76,8 @@ test("only an admin can restore reviewed progress, with a reason and retained au
   const profile = page.getByRole("region", { name: "Selected player" });
   await profile.getByRole("button", { name: "Review missing progress", exact: true }).click();
   await expect(page.getByLabel("Correction reason")).toBeFocused();
-  await expect(page.getByRole("region", { name: "Proposed account repair" })).toContainText("1 missing facts");
+  await expect(page.getByRole("region", { name: "Proposed account repair" })).toContainText("1 missing fact");
+  await expect(page.getByRole("region", { name: "Proposed account repair" })).toContainText("Campaign clears · Rumin");
   await page.getByLabel("Correction reason").fill("Restore the recorded isolated campaign clear");
   page.once("dialog", dialog => dialog.dismiss());
   await nav(page).getByRole("button", { name: "Content", exact: true }).click();
