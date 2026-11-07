@@ -52,9 +52,9 @@ function System({ request, revision, operations }) {
 }
 
 
-function Overview({ request, revision, onSelect }) {
+function Overview({ request, revision, onSelect, onInspect }) {
   const state = useAdminData(request, "/api/admin/home", revision);
-  return <State state={state}>{data => <Suspense fallback={<p>Loading overview…</p>}><ModuleHome data={data} onSelect={onSelect} /></Suspense>}</State>;
+  return <State state={state}>{data => <Suspense fallback={<p>Loading overview…</p>}><ModuleHome data={data} onSelect={onSelect} onInspect={onInspect} /></Suspense>}</State>;
 }
 
 function MatchList({ records, onInspect }) {
@@ -128,7 +128,7 @@ export default function GauntletAdmin({ request, onClose, operations, exitGuard 
     if (area === "Competition" && value !== "Results") setAuthoringArea(value === "Para definitions" ? "Competition" : "Ranked & Gauntlet");
     if (value === "Match evidence") setMatchesOpened(true);
   });
-  const inspectContent = (domain, id) => selectArea("Content", domain, id);
+  const inspectContent = (domain, id, section, field) => selectArea("Content", domain, id, section, field);
   const catalog = useAdminData(request, "/api/admin/catalog", revision);
   return <section className="gauntlet-admin" aria-label="Gauntlet Admin">
     <header className="admin-header"><div><span className="admin-eyebrow">Private operator workspace</span><h3>Gauntlet Admin</h3><p>Design content, inspect players, and manage releases.</p></div><div className="admin-actions"><button onClick={() => canLeave(() => setRevision(revision + 1))}>Refresh admin</button><button onClick={() => canLeave(() => { clearAdminLocation(); onClose?.(); })}>Close admin</button></div></header>
@@ -137,7 +137,7 @@ export default function GauntletAdmin({ request, onClose, operations, exitGuard 
     <div className="admin-body"><div className="admin-title-row" hidden={area === "Content"}><h3>{area}</h3><span className="admin-badge">{authoring ? "Shared draft authoring" : area === "Players" ? "Player profiles" : area === "Competition" ? "Event operations" : area === "Operations" ? "Diagnostics and recovery" : "Current capabilities"}</span></div>
       {workspace[area] && <nav className="admin-subnav" aria-label={`${area} workspaces`}>{({ Competition: ["Para definitions", "Ranked & Gauntlet", "Results"], "Store & Economy": ["Products", "Gold & Rewards"], Operations: ["Health", "Match evidence"] })[area].map(value => <button key={value} aria-pressed={workspace[area] === value} onClick={() => selectWorkspace(value)}>{value}</button>)}</nav>}
       {area === "Content" && matchesOpened && <button onClick={() => selectArea("Matches")}>Return to match inspection</button>}
-      {area === "Home" && <Overview request={request} revision={revision} onSelect={selectArea} />}
+      {area === "Home" && <Overview request={request} revision={revision} onSelect={selectArea} onInspect={inspectContent} />}
       {authoringArea && <div hidden={!authoring}><GauntletAuthoring request={request} area={authoringArea} initialDomain={contentDomain} revision={revision} catalog={catalog.data} onPublished={() => setRevision((value) => value + 1)} guard={guard} onNavigate={selectArea} beforeNavigate={() => playerGuard.current()} onExit={onClose} /></div>}
       {area === "Players" && <Suspense fallback={<p>Loading players…</p>}><Players request={request} revision={revision} catalog={catalog.data} guard={playerGuard} useData={useAdminData} State={State} Facts={Facts} Json={Json} date={date} label={label} /></Suspense>}
       {matchesOpened && <div hidden={area !== "Operations" || workspace.Operations !== "Match evidence"}><Matches request={request} revision={revision} onInspectContent={inspectContent} /></div>}

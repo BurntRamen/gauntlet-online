@@ -10,7 +10,7 @@ function Harness({ initialDirty = false, busy = false, onDiscard = jest.fn(), on
   return <><p>{dirty ? "Local values present" : "Local values clear"}</p><p data-testid="target">{workspace.target.domain}:{workspace.target.id}</p><button onClick={() => workspace.navigate({ domain: "encounters", id: "first", section: "story" })}>Open encounter</button>{workspace.pending && <UnsavedChangesDialog onKeep={workspace.cancel} onDiscard={workspace.discard} />}</>;
 }
 
-beforeEach(() => { window.history.replaceState(null, "", "/admin/gauntlet"); jest.spyOn(window, "scrollTo").mockImplementation(() => {}); });
+beforeEach(() => { localStorage.clear(); window.history.replaceState(null, "", "/admin/gauntlet"); jest.spyOn(window, "scrollTo").mockImplementation(() => {}); });
 afterEach(() => jest.restoreAllMocks());
 
 test("departure retains dirty values on cancel and only discards local values before continuation", () => {

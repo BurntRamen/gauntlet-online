@@ -1,6 +1,8 @@
 "use strict";
 // Operator guidance travels with the private authoring projection and its contracts.
 module.exports = {
+  encounterObjective: "Objective: win the match under its captured engine rules. Existing first-clear progression and retry routing apply. Narrative text does not create a victory condition.",
+  unavailableObjectives: "Survive a number of turns needs a defined end-of-turn boundary and precedence over defeat. Protect a target needs a defined protected entity, removal/revival behavior and loss timing. These objectives are unavailable until those game-design decisions and engine contracts exist.",
   "immutableAsset": "Choose an existing immutable asset.",
   "catalogField": "Save this configuration to the shared draft; publishing applies it to future games.",
   "identityLock": "Published identity and deck slot are retained. Duplicate this card to change them.",

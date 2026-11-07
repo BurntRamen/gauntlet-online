@@ -24,6 +24,7 @@ const cardFields = {
   status: choice("Catalog status", ["active", "archived"])
 };
 const setFields = {
+  packComposition: { ...require("../shared/duel-rules/packComposition").field, note: "This set's Draft/Sealed pack recipe. Existing card legality and duplicate handling remain enforced. No store product or price is created." },
   name: { label: "Set name", type: "text", maxLength: 160, required: true },
   description: { label: "Set introduction", type: "text", maxLength: 2000, required: false },
   members: { label: "Set membership", type: "card-list", mechanical: true },
@@ -56,7 +57,7 @@ function createObject(snapshot, input) {
     if (input.sourceId && !source) fail("The set to duplicate no longer exists.");
     const row = { id: `auth-set-${crypto.randomUUID()}`, name: input.name.trim(), description: source?.description || "",
       number: Math.max(...registry.DRAFT_SETS.map(s => s.number), ...snapshot.domains.sets.map(s => s.number)) + 1,
-      members: clone(source?.members || []), limited: { draft: false, sealed: false }, status: "active" };
+      members: clone(source?.members || []), ...(source?.packComposition ? { packComposition: clone(source.packComposition) } : {}), limited: { draft: false, sealed: false }, status: "active" };
     snapshot.domains.sets.push(row); return row;
   }
   const set = snapshot.domains.sets.find(s => s.id === input.setId);
@@ -137,7 +138,9 @@ function validateCatalog(snapshot, baseline, validateLegacy) {
   }
   const numbers = new Set(registry.DRAFT_SETS.map(s => s.number));
   for (const set of snapshot.domains.sets) {
-    if (!exact(set, ["id", "name", "description", "number", "members", "limited", "status"]) || !/^auth-set-[a-f0-9-]{36}$/.test(set?.id)) { issue("sets", set?.id, "id", "Unsupported set identity."); continue; }
+    if (!exact(set, ["id", "name", "description", "number", "members", "limited", "status", ...(Object.hasOwn(set || {}, "packComposition") ? ["packComposition"] : [])]) || !/^auth-set-[a-f0-9-]{36}$/.test(set?.id)) { issue("sets", set?.id, "id", "Unsupported set identity."); continue; }
+    const packs = require("../shared/duel-rules/packComposition"), recipe = Object.hasOwn(set, "packComposition") ? set.packComposition : packs.defaults;
+    if (!packs.valid(recipe)) { issue("sets", set.id, "packComposition", "Use 13 supported slots, four fixed common suit guarantees, and a 0–100% wild mythic roll."); continue; }
     if (!Number.isInteger(set.number) || set.number < 1 || numbers.has(set.number)) issue("sets", set.id, "number", "Set number must be unique."); numbers.add(set.number);
     if (!validText(set.name, 160) || !validText(set.description, 2000, false)) issue("sets", set.id, "name", "Set name or introduction is invalid.");
     if (!flags(set.limited, ["draft", "sealed"]) || !["active", "archived"].includes(set.status)) issue("sets", set.id, "limited", "Unsupported limited-format configuration.");
@@ -145,7 +148,8 @@ function validateCatalog(snapshot, baseline, validateLegacy) {
     for (const format of ["draft", "sealed"]) if (set.limited?.[format] && set.status === "active") {
       const pool = set.members.map(id => cards.get(id)).filter(c => available(c, format));
       const factions = [...new Set(pool.map(c => c.factionId))];
-      if (!factions.some(id => id !== "neutral") || factions.some(id => ["common", "uncommon", "rare", "mythic"].some(rarity => !pool.some(c => c.factionId === id && c.rarity === rarity)))) issue("sets", set.id, "limited", `${format} needs common, uncommon, rare and mythic cards for every included faction; the existing pack recipe is unchanged.`);
+      if (!factions.some(id => id !== "neutral") || factions.some(id => packs.requirements(recipe).some(rarity => !pool.some(c => c.factionId === id && c.rarity === rarity)))) issue("sets", set.id, "limited", `${format} needs every rarity required by this pack composition for each included faction.`);
+      if (registry.DRAFT_CARD_SUITS.some(suit => !pool.some(card => card.suit === suit)) || recipe.slots.includes("face") && !pool.some(card => [11, 12, 13, 14].includes(card.value))) issue("sets", set.id, "packComposition", `${format} needs all four suits and any configured face-card slot in its eligible pool.`);
     }
   }
   // Recheck references against the combined index, including additions.
@@ -176,7 +180,7 @@ function rollbackProblem(live, target) {
 function projectSets(snapshot) {
   return (snapshot.domains.sets || []).map(set => ({ id: set.id, name: set.name, number: set.number, description: set.description, memberCardIds: clone(set.members), authored: true,
     factionIds: [...new Set(set.members.map(id => snapshot.domains.cards.find(c => c.id === id)?.factionId).filter(id => id && id !== "neutral"))],
-    draftAvailable: set.status === "active" && set.limited.draft, sealedAvailable: set.status === "active" && set.limited.sealed,
+    draftAvailable: set.status === "active" && set.limited.draft, sealedAvailable: set.status === "active" && set.limited.sealed, packComposition: clone(set.packComposition || require("../shared/duel-rules/packComposition").defaults),
     ...(!(set.status === "active" && (set.limited.draft || set.limited.sealed)) ? { unavailableReason: "This authored set is not available in limited formats." } : {}) }));
 }
 module.exports = { SCHEMA, cardFields, setFields, availabilityKeys, defaultAvailability, upgrade, createObject, validateCatalog, available, rollbackProblem, projectSets };

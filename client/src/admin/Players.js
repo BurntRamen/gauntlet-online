@@ -6,6 +6,8 @@ function PlayerMetadataEditor({ player, request, guard, onSaved }) {
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [repair, setRepair] = useState(null);
+  const retry = useRef(null);
   const pending = useRef(false);
   const input = useRef(null);
   useEffect(() => { if (editing) input.current?.focus(); }, [editing]);
@@ -16,7 +18,7 @@ function PlayerMetadataEditor({ player, request, guard, onSaved }) {
     // A single departure can pass both the Players and workshop guards before
     // React commits the reset. Do not prompt again for an accepted discard.
     guard.current = () => true;
-    setEditing(false); setValue(player.name); setReason(""); setError("");
+    setEditing(false); setRepair(null); retry.current = null; setValue(player.name); setReason(""); setError("");
     return true;
   }
   useEffect(() => { guard.current = leave; return () => { guard.current = () => true; }; });
@@ -31,21 +33,31 @@ function PlayerMetadataEditor({ player, request, guard, onSaved }) {
     if (pending.current) return;
     pending.current = true; setBusy(true); setError("");
     try {
-      await request(`/api/admin/players/${encodeURIComponent(player.id)}/metadata`, {
-        method: "PATCH", body: JSON.stringify({ expectedName: player.name, metadata: { name: value }, reason })
+      const terms = repair ? { action: repair.action, expectedHash: repair.hash, reason } : { expectedName: player.name, metadata: { name: value }, reason };
+      const signature = JSON.stringify(terms);
+      if (retry.current?.signature !== signature) retry.current = { signature, key: crypto.randomUUID() };
+      await request(`/api/admin/players/${encodeURIComponent(player.id)}/${repair ? "repair" : "metadata"}`, {
+        method: repair ? "POST" : "PATCH", body: JSON.stringify({ ...terms, key: retry.current.key })
       });
       pending.current = false; guard.current = () => true;
-      setEditing(false); onSaved();
+      setEditing(false); setRepair(null); setReason(""); onSaved();
     } catch (failure) { setError(failure.message); }
     finally { pending.current = false; setBusy(false); }
   }
+  async function inspectRepair() {
+    if (pending.current) return;
+    pending.current = true; setBusy(true); setError("");
+    try { setRepair(await request(`/api/admin/players/${encodeURIComponent(player.id)}/repair`)); setEditing(true); }
+    catch (failure) { setError(failure.message); }
+    finally { pending.current = false; setBusy(false); }
+  }
   return editing ? <form className="admin-player-edit" onSubmit={save} aria-label="Edit player metadata">
-    <label className="admin-search">Player name<input ref={input} value={value} disabled={busy} minLength={3} maxLength={24} pattern={"[A-Za-z0-9 _\\-]{3,24}"} required aria-describedby="player-name-help" onChange={(event) => setValue(event.target.value)} /></label>
-    <p id="player-name-help" className="admin-note">This is also the name used to sign in. Changes save directly to this account.</p>
-    <label className="admin-search">Correction reason<input value={reason} disabled={busy} minLength={8} maxLength={1000} required onChange={e => setReason(e.target.value)} /></label>
+    {repair ? <section aria-label="Proposed account repair"><h5>Restore recorded progress</h5><p>{repair.boundary}</p><p>{repair.evidenceCount} saved receipts inspected · {repair.changes.length} missing facts</p>{repair.changes.map((change, i) => <details key={i}><summary>{change.path}</summary><p>Recorded in {change.receipt}</p><pre>{JSON.stringify({ before: change.before, after: change.after }, null, 2)}</pre></details>)}{!repair.changes.length && <p>No repair is needed from the available evidence.</p>}<p className="admin-note">Applying this repair changes the account immediately and records your reason. It does not enter the shared content draft.</p></section> : <><label className="admin-search">Player name<input ref={input} value={value} disabled={busy} minLength={3} maxLength={24} pattern={"[A-Za-z0-9 _\\-]{3,24}"} required aria-describedby="player-name-help" onChange={(event) => setValue(event.target.value)} /></label>
+    <p id="player-name-help" className="admin-note">This is also the name used to sign in. Changes save directly to this account.</p></>}
+    <label className="admin-search">Correction reason<input ref={repair ? input : undefined} value={reason} disabled={busy} minLength={8} maxLength={1000} required onChange={e => setReason(e.target.value)} /></label>
     {error && <p role="alert" className="admin-alert">{error}</p>}
-    <div className="admin-actions"><button type="submit" disabled={busy || !dirty}>{busy ? "Saving…" : "Save player name"}</button><button type="button" disabled={busy} onClick={leave}>Cancel</button></div>
-  </form> : <button onClick={() => setEditing(true)}>Edit player name</button>;
+    <div className="admin-actions"><button type="submit" disabled={busy || !dirty || (repair && !repair.changes.length)}>{busy ? "Saving…" : repair ? "Apply reviewed repair now" : "Save player name"}</button><button type="button" disabled={busy} onClick={leave}>Cancel</button></div>
+  </form> : <><div className="admin-actions"><button disabled={busy} onClick={() => setEditing(true)}>Edit player name</button><button disabled={busy} onClick={inspectRepair}>Review missing progress</button></div>{error && <p role="alert">{error}</p>}</>;
 }
 
 function PlayerProfile({ player, catalog, onBack, request, guard, onSaved, Facts, Json, date, label }) {
@@ -62,7 +74,7 @@ function PlayerProfile({ player, catalog, onBack, request, guard, onSaved, Facts
     <PlayerMetadataEditor player={player} request={request} guard={guard} onSaved={onSaved} />
     <nav className="admin-subnav" aria-label="Player details">{["Summary", "Campaigns", "Collection", "Decks", "Purchases", "Support history", "Technical"].map((item) => <button key={item} aria-pressed={section === item} onClick={() => setSection(item)}>{item}</button>)}</nav>
     {section === "Purchases" && <><Facts values={{ Gold: player.commerce?.ledger?.balance ?? player.commerce?.gold, Timetwisters: player.commerce?.timetwisters }} /><p>{player.commerce?.source}</p>{(player.commerce?.receipts || []).map(receipt => <details key={receipt.requestId}><summary>{receipt.productName || receipt.template.name} · {receipt.price} {label(receipt.currency)} · {date(receipt.purchasedAt)}</summary><p>Captured recipe: {receipt.template.name}. Future prices do not change this receipt.</p><Json value={receipt} title="Original purchase terms" /></details>)}{(player.commerce?.ledger?.grants || []).map(grant => <p key={grant.id}>{grant.term.name} · {grant.state} · {grant.expiresAt ? date(grant.expiresAt) : "Permanent"}</p>)}<Json value={player.commerce?.ledger?.transactions || []} title="Currency history" /><Json value={player.commerce?.premiumReceipts || []} title="Premium receipts" /></>}
-    {section === "Support history" && <>{(player.corrections || []).map(row => <article key={row.id}><h5>{date(row.at)} · {label(row.action)}</h5><p>{row.before} → {row.after}</p><p>{row.reason}</p><small>Operator {row.actorId}</small></article>)}{!player.corrections?.length && <p>No audited corrections recorded.</p>}<Json value={player.matchReferences} title="Match evidence references" /></>}
+    {section === "Support history" && <>{(player.corrections || []).map(row => <article key={row.id}><h5>{date(row.at)} · {label(row.action)}</h5>{typeof row.before === "object" || typeof row.after === "object" ? <Json value={{ before: row.before, after: row.after, evidence: row.evidence }} title="Recorded correction and evidence" /> : <p>{row.before} → {row.after}</p>}<p>{row.reason}</p><small>Operator {row.actorId}</small></article>)}{!player.corrections?.length && <p>No audited corrections recorded.</p>}<Json value={player.matchReferences} title="Match evidence references" /></>}
     {section === "Summary" && <><h5>At a glance</h5><Facts values={{ gamesPlayed: player.results?.gamesPlayed, wins: player.results?.gamesWon, losses: player.results?.gamesLost, draws: player.results?.gamesDrawn }} />
       <div className="admin-player-totals"><p><strong>{campaigns.reduce((sum, campaign) => sum + campaign.completedChapterIds.length, 0)}</strong> campaign chapters cleared</p><p><strong>{decks.filter((deck) => !deck.archived).length}</strong> active saved decks</p></div>
       <p className="admin-note">Joined {date(player.createdAt)}. Choose a section above to see more.</p>
@@ -107,7 +119,7 @@ export default function Players({ request, revision, catalog, guard, useData, St
         <div className="admin-object-list">{filtered.map((player) => <button key={player.id} aria-label={`View player ${player.name}`} aria-pressed={selectedId === player.id} onClick={() => select(player.id)}><strong>{player.name}</strong><small>Last seen {date(player.lastSeenAt)}</small></button>)}</div>
         <div className="admin-actions"><button disabled={!offset} onClick={() => { if (guard.current()) { setSelectedId(null); setOffset(Math.max(0, offset - 25)); } }}>Previous players</button><button disabled={!data.hasMore} onClick={() => { if (guard.current()) { setSelectedId(null); setOffset(offset + 25); } }}>Next players</button></div>
       </div>
-      {selected ? <PlayerProfile Facts={Facts} Json={Json} date={date} label={label} key={selected.id} player={selected} catalog={catalog} request={request} guard={guard} onSaved={() => { setNotice("Player metadata saved."); setReload((value) => value + 1); }} onBack={() => { if (select(null)) requestAnimationFrame(() => list.current?.focus()); }} /> : <div className="admin-player-empty"><h4>Select a player</h4><p>Choose a player name.</p></div>}
+      {selected ? <PlayerProfile Facts={Facts} Json={Json} date={date} label={label} key={selected.id} player={selected} catalog={catalog} request={request} guard={guard} onSaved={() => { setNotice("Player correction saved."); setReload((value) => value + 1); }} onBack={() => { if (select(null)) requestAnimationFrame(() => list.current?.focus()); }} /> : <div className="admin-player-empty"><h4>Select a player</h4><p>Choose a player name.</p></div>}
     </div>;
   }}</State></>;
 }

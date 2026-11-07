@@ -968,7 +968,7 @@ function collectionSummary(stats = {}) {
     ...normalizeCollection(stats),
     catalog,
     collectorCatalog: manifest.collectorVariants.map((variant) => publicCollectorVariant(variant, manifest)),
-    boosters: BOOSTER_PRODUCTS,
+    boosters: Object.fromEntries(Object.entries(BOOSTER_PRODUCTS).map(([id, pack]) => [id, { ...pack, slots: [...packComposition.resolve(manifest).slots], wildMythicPercent: packComposition.resolve(manifest).wildMythicPercent }])),
     collectorPacks: COLLECTOR_PACK_PRODUCTS,
     packStore: {
       checkoutConfigured: Boolean(PACK_PURCHASE_URL),
@@ -1019,7 +1019,9 @@ function bindLimitedRelease(draft, manifest, format, resolved) {
   draft.resolvedContent = clonePlain(resolved);
 }
 
+const packComposition = require("../shared/duel-rules/packComposition");
 function createDraftPack(ownerPlayer, factionIds, manifest = getPublicGameContent(), setId = null, format = "draft") {
+  const recipe = packComposition.resolve(manifest, setId);
   const pool = cardsFor(manifest, format, { setId });
   const availableFactionIds = (factionIds || [])
     .filter((factionId) => pool.some((card) => card.factionId === factionId));
@@ -1027,7 +1029,7 @@ function createDraftPack(ownerPlayer, factionIds, manifest = getPublicGameConten
   if (availableFactionIds.length === 0) throw new Error("The selected set does not have a draft card catalog yet.");
   const eligiblePool = pool.filter((card) => availableFactionIds.includes(card.factionId));
   const pickDraftCard = (slot, suit = null) => {
-    const rarity = slot === "face" ? null : resolveBoosterSlot(slot);
+    const rarity = slot === "face" ? null : packComposition.rarity(slot, recipe, crypto.randomInt);
     const exact = eligiblePool.filter((card) => (
       (!suit || card.suit === suit)
       && (slot === "face" ? FACE_CARD_VALUES.has(Number(card.value)) : card.rarity === rarity)
@@ -1041,7 +1043,7 @@ function createDraftPack(ownerPlayer, factionIds, manifest = getPublicGameConten
   if (guaranteedSuitCards.some((card) => !card)) {
     throw new Error("That draft set cannot guarantee one card from every suit.");
   }
-  const remainingCards = DRAFT_PACK_SLOTS.slice(DRAFT_CARD_SUITS.length).map((slot) => pickDraftCard(slot));
+  const remainingCards = recipe.slots.slice(DRAFT_CARD_SUITS.length).map((slot) => pickDraftCard(slot));
   const cards = [...guaranteedSuitCards, ...remainingCards].filter(Boolean).map((card) => ({
     ...card,
     suit: card.suit,
@@ -3328,8 +3330,7 @@ function pickCollectionCard(factionId, rarity, manifest = getPublicGameContent()
   return getPlayableCollectionCard(cardPool[crypto.randomInt(cardPool.length)], {}, manifest);
 }
 
-function pickCollectionCardFromPool(rarity) {
-  const manifest = getPublicGameContent();
+function pickCollectionCardFromPool(rarity, manifest = getPublicGameContent()) {
   const cardPool = cardsFor(manifest, "earnedPacks", { rarity }).filter((card) => card.factionId !== NEUTRAL_FACTION_ID);
   if (cardPool.length === 0) return null;
   return getPlayableCollectionCard(cardPool[crypto.randomInt(cardPool.length)], {}, manifest);
@@ -3369,19 +3370,19 @@ function pickFaceCard(factionId = null, manifest = null, randomInt = crypto.rand
   return getPlayableCollectionCard(cardPool[randomInt(cardPool.length)], {}, manifest);
 }
 
-function pickBoosterCard(factionId, slot, manifest = null) {
+function pickBoosterCard(factionId, slot, manifest = getPublicGameContent()) {
   if (slot === "face") return pickFaceCard(factionId, manifest);
   return factionId
-    ? pickCollectionCard(factionId, resolveBoosterSlot(slot), manifest)
-    : pickCollectionCardFromPool(resolveBoosterSlot(slot));
+    ? pickCollectionCard(factionId, resolveBoosterSlot(slot, manifest), manifest)
+    : pickCollectionCardFromPool(resolveBoosterSlot(slot, manifest), manifest);
 }
 
-function resolveBoosterSlot(slot) {
-  if (slot !== "wild") return slot;
-  return crypto.randomInt(100) < 20 ? "mythic" : "rare";
+function resolveBoosterSlot(slot, manifest) {
+  return packComposition.rarity(slot, packComposition.resolve(manifest), crypto.randomInt);
 }
 
 function openCollectionBooster(stats, packId) {
+  const manifest = getPublicGameContent(), recipe = packComposition.resolve(manifest);
   const pack = BOOSTER_PRODUCTS[packId];
   if (!pack) throw new Error("Unknown earned gameplay pack.");
 
@@ -3391,14 +3392,14 @@ function openCollectionBooster(stats, packId) {
   }
   const guaranteedSuits = pack.guaranteedSuits || DRAFT_CARD_SUITS;
   const guaranteedCards = guaranteedSuits
-    .map((suit) => pickCollectionCardForSuit(pack.factionId || null, suit, "common"))
+    .map((suit) => pickCollectionCardForSuit(pack.factionId || null, suit, "common", manifest))
     .filter(Boolean);
   if (guaranteedCards.length !== guaranteedSuits.length) {
     throw new Error(`${pack.name} cannot guarantee one card from every suit.`);
   }
-  const remainingSlots = pack.slots.slice(guaranteedSuits.length);
+  const remainingSlots = recipe.slots.slice(guaranteedSuits.length);
   const openedCards = guaranteedCards.concat(remainingSlots
-    .map((slot) => pickBoosterCard(pack.pool === "all-factions" ? null : pack.factionId, slot))
+    .map((slot) => pickBoosterCard(pack.pool === "all-factions" ? null : pack.factionId, slot, manifest))
     .filter(Boolean));
   if (openedCards.length !== pack.cardCount) {
     throw new Error(`${pack.name} produced ${openedCards.length} cards instead of ${pack.cardCount}.`);
@@ -5293,6 +5294,8 @@ const adminPlaytests = createAdminPlaytests({ publication: contentPublication, c
 });
 registerAdminPlaytestRoutes(app, adminPlaytests);
 const { createPlayerMetadataEditor, registerPlayerMetadataRoutes } = require("./adminPlayerMetadata");
+const { createPlayerRepairService, registerPlayerRepairRoutes } = require("./adminPlayerRepairs");
+registerPlayerRepairRoutes(app, { authorize: requireOwnerAuthorization, service: createPlayerRepairService({ useSupabase: useSupabaseStore, request: supabaseRequest, accountFile: ACCOUNT_DATA_FILE }) });
 registerPlayerMetadataRoutes(app, {
   authorize: requireOwnerAuthorization,
   edit: createPlayerMetadataEditor({ useSupabase: useSupabaseStore, request: supabaseRequest,
@@ -7959,6 +7962,8 @@ function chooseSemanticTrainingAiCommand(game) {
     game.campaign
     && campaignBossHasAction(game, 2)
   ) {
+    const preparation = require("./encounterAiProfiles").prepareSupport(game, legalActions, paidSupportAi.chooseSupport);
+    if (preparation) return preparation;
     return { type: "declareCampaignBossAttack", system: true };
   }
 
@@ -8288,6 +8293,8 @@ function prepareCampaignRoom(roomState, resolvedContent, factionId, chapterId) {
   const bossPowerProfile = getCampaignBossPowerProfile(faction, chapter, bossAbility);
   roomState.lobby.gameMode = "factions";
   roomState.lobby.campaign = {
+    aiProfile: require("./encounterAiProfiles").profile(chapter.aiProfile),
+    aiContractVersion: require("./encounterAiProfiles").VERSION,
     ...(opponentTemplate ? { opponentTemplate: { id: opponentTemplate.id, revision: opponentTemplate.revision, name: opponentTemplate.name, composition: clonePlain(opponentTemplate.composition) } } : {}),
     setup: clonePlain(chapter.setup),
     ...(chapter.ruleModifierId ? { ruleModifierId: chapter.ruleModifierId } : {}),

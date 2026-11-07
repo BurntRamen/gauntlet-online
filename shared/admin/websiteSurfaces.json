@@ -1,0 +1,11 @@
+[
+  {"id":"play","owner":"practice","name":"Play landing","title":"Ready to play?","description":"Choose a game. Every great match starts here."},
+  {"id":"campaign","owner":"campaign","name":"Campaign page header","title":"Campaign","description":"Choose a faction story or pick up where you left off."},
+  {"id":"decks","owner":"factions","name":"Decks & Cards landing","title":"Decks & Cards","description":"Build your deck, explore your collection, and open earned packs."},
+  {"id":"compete","owner":"ranked","name":"Compete landing","title":"Compete","description":"Find your next ranked match, official event, or league."},
+  {"id":"matches","owner":"ranked","name":"Matches landing","title":"Matches","description":"Find your match records and watch available replays."},
+  {"id":"community","owner":"freeForAll","name":"Community landing","title":"Community","description":"Find friends, send challenges, and keep the conversation going."},
+  {"id":"learn","owner":"practice","name":"Learn & Rules landing","title":"Learn & Rules","description":"Learn the basics, practice a format, or look up a rule."},
+  {"id":"profile","owner":"practice","name":"Profile page header","title":"Your Profile","description":"Your account, competitive record, rewards, and personal style."},
+  {"id":"settings","owner":"practice","name":"Settings page header","title":"Settings","description":"Make Gauntlet comfortable with audio, display, and accessibility preferences."}
+]

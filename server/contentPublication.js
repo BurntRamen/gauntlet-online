@@ -13,6 +13,11 @@ const mechanicStudio = require("./mechanicAuthoring");
 const STORE_SCHEMA = "gauntlet.content-store.v1";
 const releaseId = (snapshot) => `gauntlet-content-${hash(snapshot)}`;
 function fail(status, message) { const error = new Error(message); error.status = status; throw error; }
+function contribution(state, actorId, domain, id, field = "*") {
+  if (!actorId) return;
+  const entries = state.draft.contributions || [];
+  state.draft.contributions = [...entries.filter(row => !(row.domain === domain && row.id === id && row.field === field)), { domain, id, field, actorId, at: new Date().toISOString() }];
+}
 
 // One atomic state file is the transaction boundary: snapshot insertion, pointer
 // activation and draft removal either all commit, or none do. A separate exclusive
@@ -226,15 +231,17 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
       }
       if (domain === "cards" && row.origin === "admin-v1" && field === "suit") row.replacementSuit = row.suit;
       state.draft.updatedAt = new Date().toISOString(); state.draft.updatedBy = actorId; state.draft.previewedHash = null; state.draft.previewedRevision = null; state.draft.playtestedHash = null;
+      contribution(state, actorId, domain, id, field);
     });
   }
   function create({ expectedRevision, ...input }, actorId) {
     return transaction(expectedRevision, state => {
       if (!state.draft) state.draft = { baseReleaseId: state.activeReleaseId, snapshot: clone(state.releases[state.activeReleaseId].snapshot) };
-      catalog.createObject(state.draft.snapshot, input);
+      const created = catalog.createObject(state.draft.snapshot, input);
       imageAssets.attachVersions(state.draft.snapshot, state);
       const validation = validateAuthoredContent(state.draft.snapshot, baseline);
       if (!validation.valid) fail(422, validation.errors.map(issue => issue.message).join(" "));
+      contribution(state, actorId, input.domain, created.id);
       Object.assign(state.draft, { updatedBy: actorId, updatedAt: new Date().toISOString(), previewedHash: null, previewedRevision: null, playtestedHash: null });
     });
   }
@@ -296,6 +303,8 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
         } else fail(400, "Unknown Para draft operation.");
       }
       state.draft.updatedBy = actorId; state.draft.updatedAt = new Date().toISOString();
+      if (operation === "seed") for (const [kind, rows] of Object.entries(snapshot.paraLeague)) { if (Array.isArray(rows)) for (const row of rows) contribution(state, actorId, `para:${kind}`, row.id); }
+      else contribution(state, actorId, `para:${domain}`, id);
       Object.assign(state.draft, { updatedBy: actorId, updatedAt: new Date().toISOString(), previewedHash: null, previewedRevision: null, playtestedHash: null });
     });
   }
@@ -326,6 +335,7 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
           rows[index] = clone(value);
         } else fail(400, "Choose a supported Studio operation.");
       }
+      contribution(state, actorId, `studio:${kind}`, ["create", "duplicate"].includes(operation) ? rows.at(-1).id : id);
       Object.assign(state.draft, { updatedBy: actorId, updatedAt: new Date().toISOString(), previewedHash: null, previewedRevision: null, playtestedHash: null });
     });
   }
@@ -345,6 +355,7 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
         rows[index] = clone(value);
       } else fail(400, "Unsupported competition operation.");
       if (rows.length > 200 || Buffer.byteLength(JSON.stringify(config)) > 512000) fail(422, "Competition catalog capacity exceeded.");
+      contribution(state, actorId, `competition:${domain}`, ["create", "duplicate"].includes(operation) ? rows.at(-1).id : id);
       state.draft.updatedBy = actorId; state.draft.updatedAt = new Date().toISOString(); state.draft.previewedHash = null; state.draft.playtestedHash = null;
     });
   }
@@ -370,7 +381,7 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
       const snapshot = state.draft.snapshot, id = releaseId(snapshot), timestamp = new Date().toISOString();
       imageAssets.packageAssets(state, snapshot); // Verify exact retained and required bytes before changing the pointer.
       // Publishing identical content reuses its original immutable release.
-      if (!state.releases[id]) state.releases[id] = { id, sha256: hash(snapshot), label: label.trim(), createdAt: timestamp, createdBy: actorId, snapshot: clone(snapshot), ...(snapshot.assetVersions?.length ? { assetDependencies: require("./releaseAssetDependencies").version } : {}) };
+      if (!state.releases[id]) state.releases[id] = { id, sha256: hash(snapshot), label: label.trim(), createdAt: timestamp, createdBy: actorId, contributions: clone(state.draft.contributions || []), snapshot: clone(snapshot), ...(snapshot.assetVersions?.length ? { assetDependencies: require("./releaseAssetDependencies").version } : {}) };
       state.activations.push({ action: "publish", from: state.activeReleaseId, to: id, at: timestamp, by: actorId });
       state.activeReleaseId = id; state.draft = null;
     });

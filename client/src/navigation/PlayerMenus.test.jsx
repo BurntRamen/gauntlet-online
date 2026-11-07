@@ -34,6 +34,14 @@ const openMore = () => fireEvent.click(screen.getAllByRole("button", { name: "Mo
 
 beforeEach(() => localStorage.clear());
 
+test.each(["play", "decks", "compete", "matches", "community", "learn", "profile", "settings", "campaign"])("published %s landing prose changes the visible header and preserves navigation", page => {
+  const { props } = renderMenus({ route: { page, view: "" }, content: { factions: [], campaigns: {}, websiteProse: { [page]: { title: "Reviewed heading", description: "Published introduction." } } } });
+  expect(screen.getByRole("heading", { level: 1, name: "Reviewed heading" })).toBeInTheDocument();
+  expect(screen.getByText("Published introduction.")).toBeInTheDocument();
+  fireEvent.click(within(screen.getByRole("navigation", { name: "Main navigation" })).getByRole("button", { name: "Decks & Cards" }));
+  expect(props.onNavigate).toHaveBeenCalledWith("decks", "");
+});
+
 test("Play exposes all eight actions with concise labels and accurate click outcomes", () => {
   const { props } = renderMenus();
   const cases = [

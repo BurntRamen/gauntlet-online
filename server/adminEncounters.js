@@ -40,7 +40,8 @@ function errors(snapshot, editable) {
     orders.add(orderKey);
     if (!["active", "archived"].includes(row.status)) add("encounters", row, "status", "Choose active or archived availability.");
     for (const [key, spec] of Object.entries(editable)) {
-      const value = row[key];
+      const value = row[key] === undefined ? spec.defaultValue : row[key];
+      if (spec.type === "choice") { if (!spec.options.some(option => (option.id ?? option) === value)) add("encounters", row, key, "Choose a supported encounter profile."); continue; }
       if (key === "setup") { if (!validateEncounterSetup(value, snapshot.domains.cards, row.factionId)) add("encounters", row, key, "Use a supported encounter setup, ability and eligible cards."); continue; }
       const list = ["lines", "assets"].includes(spec.type) ? value : [value];
       if (!Array.isArray(list) || list.length > (spec.maxItems || 1) || list.some(v => !(v === null && spec.type === "assets") && (typeof v !== "string" || v.length > spec.maxLength || spec.required && !["story", "beforeBattle", "afterBattle"].includes(key) && !v.trim() || /[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(v)))) add("encounters", row, key, "Use the supported text length and required fields.");
