@@ -6,7 +6,7 @@ export default function Competition({ request, revision, useData, State, Json, l
   const state = useData(request, "/api/admin/para", `${revision}-${updated}`);
   const managed = useData(request, "/api/admin/competition", `${revision}-${updated}`);
   const name = id => managed.data?.players?.find(p => p.id === id)?.name || id;
-  return <><nav className="admin-subnav" aria-label="Competition results">{["Para", "Ranked & Gauntlet"].map(name => <button key={name} aria-pressed={source === name} onClick={() => setSource(name)}>{name}</button>)}</nav>
+  return <><nav className="admin-subnav" aria-label="Competition results">{["Para", "Ranked & Gauntlet"].map(name => <button key={name} aria-pressed={source === name} onClick={() => setSource(name)}>{name === "Ranked & Gauntlet" ? "Ranked & Events" : name}</button>)}</nav>
     <label className="admin-search">Find player or event<input value={query} onChange={e => setQuery(e.target.value)} /></label>
     {source === "Ranked & Gauntlet" ? <State state={managed}>{data => <><p>{data.note}</p>{data.seasons.map(season => <details key={season.definition.seasonId} className="admin-player-card"><summary>{season.definition.displayName} · {season.definition.status}</summary>
       {season.standings.filter(row => `${row.name} ${row.accountId}`.toLowerCase().includes(query.toLowerCase())).map(row => <p key={row.accountId}>#{row.rank} · {row.name} · {row.points} points · {row.wins} wins / {row.losses} losses / {row.draws} draws</p>)}{!season.standings.length && <p>No settled results.</p>}</details>)}

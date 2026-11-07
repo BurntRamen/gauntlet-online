@@ -1,3 +1,4 @@
+import { brandText } from '../brand/brandPreview';
 import Help from "./AuthoringHelp";
 import { useEffect, useState } from "react";
 import { Field } from "../GauntletParaLeague";
@@ -17,7 +18,7 @@ export default function CompetitionWorkshop({ state, act, busy, onDirty }) {
   const update = (key, value) => setEditing(current => ({ ...current, [key]: value }));
   return <section className="para-workspace" aria-label="Managed competition definitions">
     <Help topic="CompetitionWorkshop1" />
-    <nav className="admin-subnav" aria-label="Competition definitions">{[["ranked", "Ranked seasons"], ["events", "Gauntlet events"]].map(([key, name]) => <button key={key} aria-pressed={domain === key} onClick={() => leave(() => { setDomain(key); setEditing(null); })}>{name}</button>)}</nav>
+    <nav className="admin-subnav" aria-label="Competition definitions">{[["ranked", "Ranked seasons"], ["events", brandText("SuitFire events", "Gauntlet events")]].map(([key, name]) => <button key={key} aria-pressed={domain === key} onClick={() => leave(() => { setDomain(key); setEditing(null); })}>{name}</button>)}</nav>
     <div className="admin-actions"><button disabled={disabled || dirty} onClick={() => save({ operation: "create" })}>Create {domain === "ranked" ? "season" : "event"} draft</button><label className="admin-search">Find definitions<input value={query} onChange={e => setQuery(e.target.value)} /></label></div>
     <div className="admin-authoring-layout"><div className="admin-object-list">{config[domain].filter(r => r.name.toLowerCase().includes(query.toLowerCase())).map(r => <button key={r.id} aria-pressed={editing?.id === r.id} onClick={() => leave(() => setEditing(structuredClone(r)))}><strong>{r.name}</strong><small>{r.status} · {r.startsAt ? new Date(r.startsAt).toLocaleString() : "Unscheduled"}</small></button>)}</div>
       {editing && <form className="admin-editor admin-contract-fields" onSubmit={e => { e.preventDefault(); save({ operation: "update", id: editing.id, value: editing }); }}><h4>{editing.name}</h4>

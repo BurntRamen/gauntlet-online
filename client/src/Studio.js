@@ -1,3 +1,4 @@
+import { brandText } from './brand/brandPreview';
 import { useCallback, useEffect, useRef, useState } from "react";
 import "./Studio.css";
 import GauntletAdmin from "./GauntletAdmin";
@@ -151,9 +152,9 @@ export default function Studio({ serverUrl, authToken = "", onSignIn, onAuthoriz
   if (!authorizedToken || authorizedToken !== authToken) {
     return (
       <section className="studio-gate" aria-labelledby="studio-gate-title">
-        <span>Gauntlet Admin · private operations</span>
+        <span>{brandText("SuitFire Admin · private operations", "Gauntlet Admin · private operations")}</span>
         <h3 id="studio-gate-title">Private administration</h3>
-        <p>Gauntlet Admin is restricted to simply and Burnt Ramen. Access is checked by the server using your existing account session.</p>
+        <p>Server-verified access for simply and Burnt Ramen.</p>
         {!authToken && <button onClick={onSignIn}>Sign in through Profile</button>}
         {authToken && <button disabled={loading} onClick={() => setAttempt((value) => value + 1)}>{loading ? "Checking access…" : "Check admin access"}</button>}
         {error && <p className="studio-error" role="alert">{error}</p>}
@@ -169,7 +170,7 @@ export default function Studio({ serverUrl, authToken = "", onSignIn, onAuthoriz
   const operations = overview ? (
     <div className="studio" aria-busy={loading}>
       <header className="studio-header">
-        <div><span>Owner operations</span><h3>Gauntlet Studio</h3><p>Safe production projections only—no player hands, deck contents, credentials, or signed claim tokens.</p></div>
+        <div><span>Owner operations</span><h3>{brandText("SuitFire Studio", "Gauntlet Studio")}</h3><p>Overview excludes private hands, decks, credentials and claim tokens.</p></div>
         <button type="button" onClick={() => loadOverview()} disabled={loading}>{loading ? "Refreshing…" : "Refresh operations"}</button>
       </header>
       {error && <p className="studio-error" role="alert">{error}</p>}

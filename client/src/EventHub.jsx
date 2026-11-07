@@ -1,3 +1,4 @@
+import { brandText, useBrandPreview } from './brand/brandPreview';
 import { useEffect, useRef, useState } from "react";
 import FactionLoadoutPicker from "./FactionLoadoutPicker";
 import "./EventHub.css";
@@ -31,6 +32,7 @@ export default function EventHub({
   serverUrl, socket, authToken, account, factions = [],
   onAccountUpdated, onError
 }) {
+  useBrandPreview();
   const [definitions, setDefinitions] = useState([]);
   const [selectedId, setSelectedId] = useState("open-gauntlet");
   const [pending, setPending] = useState(false);
@@ -105,7 +107,7 @@ export default function EventHub({
   const canPlay = event.availability?.canPlay !== false;
   return <section className="event-hub">
     {majors.length > 0 && <section className="event-major-schedule" aria-labelledby="major-event-schedule-title">
-      <div className="event-schedule-heading"><div><span className="event-eyebrow">Championship calendar</span><h2 id="major-event-schedule-title">Major Gauntlet weekends</h2></div><p>Free entry for the inaugural season · times shown locally</p></div>
+      <div className="event-schedule-heading"><div><span className="event-eyebrow">Championship calendar</span><h2 id="major-event-schedule-title">{brandText("Major SuitFire weekends", "Major Gauntlet weekends")}</h2></div><p>Free entry for the inaugural season · times shown locally</p></div>
       <div className="event-major-grid">{majors.map((major) => <button key={major.id} type="button" className={`event-major-card is-${major.availability?.state || "upcoming"}`} aria-pressed={major.id === event.id} onClick={() => setSelectedId(major.id)}>
         <span className="event-major-status">{major.availability?.label || "Scheduled"}</span>
         <strong>{major.name}</strong>

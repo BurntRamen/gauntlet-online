@@ -129,3 +129,11 @@ test("choosing a destination in More focuses its heading after the sheet closes"
   await new Promise((resolve) => window.requestAnimationFrame(resolve));
   expect(screen.getByRole("heading", { level: 1, name: "Matches" })).toHaveFocus();
 });
+
+test('keeps location and identity distinct and resolves uploaded portraits against the API', () => {
+ const { container } = renderShell({ destination: 'campaign', account: { name: 'River', avatar: { path: '/uploads/river.png' } }, serverUrl: 'https://api.example.invalid' });
+ expect(screen.getByRole('button', { name: 'Gauntlet Online — open Play' })).toBeInTheDocument();
+ expect(container.querySelector('.cd-topbar-caption')).toHaveTextContent('Current location');
+ expect(container.querySelector('.cd-topbar-caption')).toHaveTextContent(getDestination('campaign').label);
+ expect(container.querySelector('.cd-profile-button img')).toHaveAttribute('src', 'https://api.example.invalid/uploads/river.png');
+});

@@ -1,3 +1,4 @@
+import { brandText, useBrandPreview } from './brand/brandPreview';
 import { useEffect, useState } from "react";
 import "./ProfileAvatar.css";
 
@@ -98,6 +99,7 @@ export async function prepareProfilePortrait(file) {
 }
 
 export function ProfilePortraitEditor({ account, authToken, serverUrl, onAccountUpdated }) {
+  useBrandPreview();
   const [status, setStatus] = useState("");
   const [uploading, setUploading] = useState(false);
 
@@ -123,7 +125,7 @@ export function ProfilePortraitEditor({ account, authToken, serverUrl, onAccount
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || "The portrait could not be saved.");
       onAccountUpdated?.(data.account);
-      setStatus("Portrait live across your Gauntlet identity.");
+      setStatus(brandText("Portrait live across your SuitFire identity.", "Portrait live across your Gauntlet identity."));
     } catch (error) {
       setStatus(error.message || "The portrait could not be saved.");
     } finally {
