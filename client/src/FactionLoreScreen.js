@@ -79,7 +79,7 @@ export default function FactionLoreScreen({ manifest, onBack, onOpenCampaign, em
   const faction = filtered.find((entry) => entry.id === selectedId) || filtered[0] || factions.find((entry) => entry.id === selectedId) || factions[0];
   const campaign = campaigns[faction?.id] || {};
   const artwork = resolveVisualAsset(getFactionArtwork(faction?.id, campaign.coverImage, faction?.city?.image, faction?.cardImage));
-  const artDirection = FACTION_VISUALS[faction?.id]?.artDirection;
+  const artDirection = faction?.artDirection;
   const leaders = leaderEntries(faction, campaign);
   const acts = storyActs(campaign);
   const setName = manifest?.draftSets?.find((set) => set.factionIds?.includes(faction?.id))?.name || SET_NAMES[faction?.setId] || brandText("SuitFire", "Gauntlet");

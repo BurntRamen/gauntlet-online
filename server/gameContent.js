@@ -1344,6 +1344,7 @@ const factionsData = {
     id: "voltari",
     name: "Voltari",
     cardImage: "/assets/gauntlet/constructed/bizi/bizi-voltaric-ultimatum.webp",
+    artDirection: { silhouette: "Monumental architectural machines, procession lines, gliders, and exposed storm reactors", materials: "Gilded structural metal, dark ceramic joints, and electric-blue conduit light", motifs: "Organized energy transfer, nested systems, precise apertures, and visible power routing", guardrail: "Keep every machine readable as a component of a larger system; avoid generic humanoid robots." },
     commander: { name: "Stormlord Veyra", image: "/assets/gauntlet/constructed/bizi/bizi-voltaric-ultimatum.webp", text: "Playable identity: arrange exact printed values into efficient conduit sequences while preserving independent command." },
     general: { name: "Warden Kryos", image: "/assets/gauntlet/constructed/bizi/bizi-voltaric-ultimatum.webp", text: "Playable identity: redirect effort between isolated systems and decide who retains agency over each optimization." },
     city: { name: "Voltara Skyhold", image: "/assets/gauntlet/constructed/bizi/bizi-voltaric-ultimatum.webp", text: "Storm power, defensive anchors, and local shutdown keys keep the network accountable." }
@@ -1353,6 +1354,7 @@ const factionsData = {
     name: "Zynarth",
     draftRules: true,
     cardImage: "/assets/gauntlet/factions/zynarth/brood-nest.webp",
+    artDirection: { silhouette: "Coordinated swarms, protective queens, egg chambers, and bodies specialized for a shared task", materials: "Dark chitin, amber membranes, wet stone, resin, and recycled biomass", motifs: "Consumption becoming growth, nested broods, molting layers, and living architecture", guardrail: "Show intelligence through coordinated ecology, not human expressions or interchangeable insect-monster imagery." },
     commander: { name: "Broodmother Zalara", image: "/assets/gauntlet/factions/zynarth/broodmother-zalara.webp", text: "At the start of your turn, create an Egg in an empty lane. Once per turn, hatch an Egg into a Worker, Soldier, or Guard." },
     general: { id: "klar", name: "K'Lar, Biomass Keeper", image: "/assets/gauntlet/factions/zynarth/klar-biomass-keeper.webp", text: "Once per turn, sacrifice two Underlings you control to draw one card." },
     city: { name: "Brood Nest", image: "/assets/gauntlet/factions/zynarth/brood-nest.webp", text: "The first time you hatch each turn, you may hatch a second Egg into a Worker." }
@@ -1362,6 +1364,7 @@ const factionsData = {
     name: "Astral Vanguard",
     draftRules: true,
     cardImage: "/assets/gauntlet/factions/astral-vanguard/vanguard-outpost.webp",
+    artDirection: { silhouette: "Human explorers in worn industrial armor, practical spacecraft, field drones, and modular outposts", materials: "Scuffed steel, fabric seals, repair patches, glass, and restrained orange markings", motifs: "Hybrid systems, improvised connections, expedition labels, and visible repairs", guardrail: "Keep their technology powerful but tangible: equipment is maintained, damaged, adapted, and carried by people." },
     commander: { name: "High Marshal Alden", image: "/assets/gauntlet/factions/astral-vanguard/high-marshal-alden.webp", text: "Once per turn, deploy the top card of your deck to an empty lane if it is a Servitor with printed value 3 or less." },
     general: { id: "myra-cross", name: "Sergeant Myra Cross", image: "/assets/gauntlet/factions/astral-vanguard/sergeant-myra-cross.webp", text: "Once per turn, put a card from your hand on top of your deck. Your next payment this turn gets +2 value." },
     city: { name: "Vanguard Outpost", image: "/assets/gauntlet/factions/astral-vanguard/vanguard-outpost.webp", text: "Whenever a Servitor enters one of your lanes directly from your deck, it gets +1 value until end of turn." }
@@ -1370,6 +1373,7 @@ const factionsData = {
     id: "xendra",
     name: "XenDra",
     cardImage: "/assets/gauntlet/bizi-card.webp",
+    artDirection: { silhouette: "Suspended shadows, fragmented masks, impossible anatomy, eclipses, and deliberate empty space", materials: "Lightless void, fractured pale surfaces, smoke without a source, and edges that disagree", motifs: "Altered perception, missing context, overlapping aspects, and absence behaving like a presence", guardrail: "Porcelain-like masks are a prototype visual option, not settled canon; preserve ambiguity and avoid a single fixed species design." },
     commander: { name: "Elias Varen, Final Conduit", image: "/assets/gauntlet/rumin-card.webp", text: "Playable identity: change suits and perspectives until apparently fixed values reveal another aspect." },
     general: { name: "Syllith, the Echoing Child", image: "/assets/gauntlet/sheen-card.webp", text: "Playable identity: repeat and reinterpret ordinary actions as memories, echoes, and unreliable predictions." },
     city: { name: "The Deep Currents", image: "/assets/gauntlet/frumo-card.webp", text: "The battlefield presents several true aspects of the same event without promising which one will endure." }
@@ -1380,6 +1384,7 @@ const factionsData = {
     setId: "convergence",
     draftRules: true,
     cardImage: "/assets/gauntlet/morphlings-emblem.svg",
+    artDirection: { silhouette: "Grotesquely transformed former Astral Vanguard humans: asymmetrical limbs, misplaced vestigial features, fused equipment, split jaws, faceted eyes, and insectile or amphibious adaptations interrupt recognizable human posture and identity", materials: "Wet translucent tissue, scarred chitin, exposed crystal growth, stretched membranes, mismatched organs, refracted fluids, and Vanguard armor permanently grown into living bodies", motifs: "Human names surviving monstrous silhouettes, medical quarantine markings, tragic remnants, forced exile, incomplete reflections, and painful forms becoming survivable", guardrail: "Make the body horror immediate and unsettling while preserving the person's humanity through voice, posture, keepsakes, and recognizable equipment. Their hope comes from mutual care and agency, not from making their bodies beautiful or harmless." },
     commander: { name: "Captain Ilyra Vale, Keeper of the First Shape", image: "/assets/gauntlet/morphlings-emblem.svg", text: "A grotesquely transformed former Astral Vanguard captain whose fused uniform and remembered oath make her humanity undeniable. Build Continuity by adapting to changing attacks and resilient blocks. At 6 Continuity, cohere: gain 1 life, draw 1 extra card at turn end, then return to 2." },
     general: { id: "tessan", name: "Dr. Tessan Rook, Many-Form Guide", image: "/assets/gauntlet/morphlings-emblem.svg", text: "A former Vanguard xenobiologist now bearing unstable human, insectile, and crystalline anatomy. Spades adapt, Hearts shelter, Diamonds remember, and Clubs become together; every changed form has a role without becoming compulsory." },
     city: { name: "The Refuge of Returning Light", image: "/assets/gauntlet/morphlings-emblem.svg", text: "Built on Pelagia after Vanguard planets refused the transformed crews entry. Continuity persists between turns, and the Refuge recognizes personhood where quarantine law saw only contamination." }
