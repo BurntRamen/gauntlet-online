@@ -52,6 +52,29 @@ test("keeps exactly three lanes and maps hidden lane occupancy by perspective", 
   expect(view.lanes[1].attack.owner).toBe(2);
 });
 
+test("presents Zynarth eggs as distinct public battlefield tokens", () => {
+  const game = makeGame();
+  game.players[1].faction = { id: "zynarth", name: "Zynarth" };
+  game.lanes[0].facedown[1] = {
+    id: "zynarth-egg-1",
+    owner: 1,
+    factionId: "zynarth",
+    zynarthForm: "egg",
+    zynarthEgg: true,
+    zynarthUnderling: true,
+    revealed: false
+  };
+  const view = createBasicGauntletMatchViewModel({ game, player: 1, role: "player" });
+
+  expect(view.lanes[0].localCard).toEqual(expect.objectContaining({
+    label: "Zynarth Egg",
+    rank: "EGG",
+    value: 0,
+    zynarthEgg: true,
+    artPath: "/assets/gauntlet/factions/zynarth/zynarth-egg-token.svg"
+  }));
+});
+
 test("maps life, phase, priority, and derived interaction selections", () => {
   const view = createBasicGauntletMatchViewModel({
     game: makeGame(),

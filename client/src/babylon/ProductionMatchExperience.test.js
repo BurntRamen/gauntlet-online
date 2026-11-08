@@ -938,6 +938,7 @@ test("keeps status chrome absent at rest and exposes it during active playback",
 
 test("uses the App-owned completion and waits for account refresh before continuing campaign", async () => {
   const onContinueCampaign = jest.fn();
+  const onOpenEarnedPack = jest.fn();
   const viewModel = createViewModel();
   viewModel.phase = "gameOver";
   viewModel.winner = 1;
@@ -955,7 +956,10 @@ test("uses the App-owned completion and waits for account refresh before continu
       firstClear: true,
       nextMission: { status: "available", factionId: "rumin", chapterId: "the-republic", title: "The Republic" }
     },
-    rewards: { boosterCreditDelta: 1 }
+    rewards: {
+      boosterCreditDelta: 1,
+      campaignPack: { count: 1, packId: "rumin-foundation", name: "Rumin Foundation Pack" }
+    }
   };
   const rendered = render(
     <ProductionMatchExperience
@@ -963,23 +967,29 @@ test("uses the App-owned completion and waits for account refresh before continu
       completion={completion}
       campaignContinuationReady={false}
       onContinueCampaign={onContinueCampaign}
+      onOpenEarnedPack={onOpenEarnedPack}
       options={{ audioEnabled: false }}
     />
   );
 
   const continueButton = await screen.findByRole("button", { name: "Next Mission: The Republic" });
   expect(continueButton).toBeDisabled();
+  expect(screen.getByText("Rumin Foundation Pack × 1")).toBeVisible();
+  expect(screen.getByRole("button", { name: "Open earned pack" })).toBeDisabled();
   rendered.rerender(
     <ProductionMatchExperience
       adapter={adapter}
       completion={completion}
       campaignContinuationReady
       onContinueCampaign={onContinueCampaign}
+      onOpenEarnedPack={onOpenEarnedPack}
       options={{ audioEnabled: false }}
     />
   );
   fireEvent.click(screen.getByRole("button", { name: "Next Mission: The Republic" }));
   expect(onContinueCampaign).toHaveBeenCalledWith("rumin", "the-republic");
+  fireEvent.click(screen.getByRole("button", { name: "Open earned pack" }));
+  expect(onOpenEarnedPack).toHaveBeenCalledWith("rumin-foundation");
 });
 
 test("does not fetch completion independently or offer continuation after defeat", async () => {

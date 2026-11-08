@@ -8,6 +8,7 @@ const { buildLinePlan, designVoices, generateLines, parseDialogueLine, publishLi
 const manifest = require("./elevenlabs-frumo-campaign.json");
 const biziManifest = require("./elevenlabs-bizi-campaign.json");
 const xendraManifest = require("./elevenlabs-xendra-campaign.json");
+const zynarthManifest = require("./elevenlabs-zynarth-campaign.json");
 
 test("Frumo manifest covers every scripted campaign speaker and line", () => {
   const plan = buildLinePlan(manifest);
@@ -35,6 +36,17 @@ test("XenDra manifest covers every scripted campaign speaker and line", () => {
   assert.equal(new Set(plan.map((line) => line.voiceKey)).size, 10);
   assert.equal(plan[0].fileName, "xendra-ch01-before-01-narrator.mp3");
   assert.equal(plan.at(-1).fileName, "xendra-ch08-before-03-narrator.mp3");
+});
+
+test("Zynarth manifest covers every campaign line with insectoid-specific roles", () => {
+  const plan = buildLinePlan(zynarthManifest);
+  assert.equal(plan.length, 120);
+  assert.equal(new Set(plan.map((line) => line.chapterId)).size, 12);
+  assert.equal(new Set(plan.map((line) => line.voiceKey)).size, 6);
+  assert.equal(plan[0].fileName, "zynarth-ch01-before-01-narrator.mp3");
+  assert.equal(plan.at(-1).fileName, "zynarth-ch12-after-05-narrator.mp3");
+  assert.match(zynarthManifest.voices.broodmother.description, /mandible|stridulation/i);
+  assert.match(zynarthManifest.voices.broodmother.description, /never shrill.*never.*human/i);
 });
 
 test("dialogue parsing preserves colons inside spoken text", () => {

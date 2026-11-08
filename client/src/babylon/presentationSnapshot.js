@@ -438,6 +438,10 @@ export function createPresentationSnapshot(viewModel, options = {}) {
   (viewModel?.lanes || []).forEach((lane, laneIndex) => {
     if (lane.hasLocalCard) {
       const known = lane.localCard?.visible ? lane.localCard : null;
+      // Zynarth Eggs are public board tokens created by Zalara, not secret
+      // cards placed from the player's hand. Give their owner a distinct,
+      // face-up battlefield piece so the hatch resource is always legible.
+      const visibleEgg = Boolean(known?.zynarthEgg || known?.raw?.zynarthEgg);
       const actorId = visibleCardIdentity(known, `player-${bottomPlayer}:lane:${laneIndex}`);
       const selectedAttack = viewModel?.selection?.attackMode?.from === "lane"
         && Number(viewModel.selection.attackMode.lane) === laneIndex;
@@ -451,7 +455,7 @@ export function createPresentationSnapshot(viewModel, options = {}) {
         slotIndex: 0,
         count: 1
       }, {
-        faceDown: !lane.localCard?.raw?.revealed,
+        faceDown: !visibleEgg && !lane.localCard?.raw?.revealed,
         selected: selectedAttack || selectedBlock || laneTargetSelected(viewModel, laneIndex, "local"),
         selectionRole: selectedBlock ? "blocker" : selectedAttack ? "attacker" : null,
         interaction: {
@@ -462,8 +466,8 @@ export function createPresentationSnapshot(viewModel, options = {}) {
         },
         preview: lane.localCard ? {
           ...lane.localCard,
-          stateLabel: `Face-down in Lane ${laneIndex + 1}`,
-          stateIcon: "placement"
+          stateLabel: visibleEgg ? `Zynarth Egg in Lane ${laneIndex + 1}` : `Face-down in Lane ${laneIndex + 1}`,
+          stateIcon: visibleEgg ? "egg" : "placement"
         } : null
       }));
     }

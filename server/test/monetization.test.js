@@ -100,7 +100,7 @@ function makeSemanticGame(card) {
 }
 
 test("every competitive gameplay definition has a free acquisition path and free default presentation", () => {
-  assert.equal(COLLECTION_CARDS.length, 644);
+  assert.equal(COLLECTION_CARDS.length, 696);
   for (const card of COLLECTION_CARDS) {
     assert.equal(card.gameplayCardId, card.id);
     assert.equal(card.freeAcquisition, FREE_GAMEPLAY_ACQUISITION);
@@ -130,11 +130,11 @@ test("every catalog faction covers 2 through ace with the shared face-card rarit
       const effect = defaultCardEffect(faceCard.id);
       const isFullCatalogFaction = Object.hasOwn(FULL_FACTION_COLLECTIONS, factionId);
       const expectedHandler = !isFullCatalogFaction ? "printed-value-only"
-        : ["voltari", "xendra"].includes(factionId) ? "catalog-alien-resource" : "catalog-faction-identity";
+        : ["voltari", "xendra", "morphlings"].includes(factionId) ? "catalog-alien-resource" : "catalog-faction-identity";
       assert.equal(effectDefinitions.get(effect.id).handler, expectedHandler, `${faceCard.id} effect contract`);
       if (isFullCatalogFaction) {
         assert.equal(Number.isInteger(effect.parameters.trigger), true, `${faceCard.id} has a deterministic faction trigger`);
-        if (!["voltari", "xendra"].includes(factionId)) assert.equal(effect.parameters.bonus, 1, `${faceCard.id} has the shared balanced identity bonus`);
+        if (!["voltari", "xendra", "morphlings"].includes(factionId)) assert.equal(effect.parameters.bonus, 1, `${faceCard.id} has the shared balanced identity bonus`);
         else assert.equal(Number.isInteger(effect.parameters.spend), true, `${faceCard.id} has a deterministic resource cost`);
       } else {
         assert.deepEqual(effect.parameters, {}, `${faceCard.id} has no unimplemented parameters`);
@@ -322,7 +322,7 @@ test("earned gameplay packs change free entitlement while collector grants do no
 
 test("all earned gameplay packs contain 13 cards, cover every suit, and keep faction packs seeded", () => {
   const boosters = collectionSummary({ collection: {} }).boosters;
-  for (const factionId of ["voltari", "xendra"]) {
+  for (const factionId of ["voltari", "xendra", "morphlings"]) {
     const pack = boosters[`${factionId}-foundation`];
     assert.equal(pack?.factionId, factionId, `${factionId}: listed as a faction pack`);
     assert.match(pack?.artPath || "", /^\/assets\/gauntlet\//, `${factionId}: faction pack art`);
@@ -351,7 +351,7 @@ test("all earned gameplay packs contain 13 cards, cover every suit, and keep fac
   assert.equal(indelaCards.length, 13);
   assert.equal(indelaCards.every((card) => card.factionId === "indela"), true);
 
-  for (const factionId of ["mekan", "jali", "gracus", "voltari", "xendra", "ingles", "mercaw", "mtano", "russo"]) {
+  for (const factionId of ["mekan", "jali", "gracus", "voltari", "xendra", "morphlings", "ingles", "mercaw", "mtano", "russo"]) {
     const stats = { collection: { packCredits: 1 } };
     const cards = openCollectionBooster(stats, `${factionId}-foundation`);
     assert.equal(cards.length, 13, factionId);
