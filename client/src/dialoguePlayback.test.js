@@ -192,6 +192,7 @@ test("synthesizes every missing campaign line with stable character-specific voi
   const player = createDialoguePlayer({
     entries: dialogueEntries(["Alden: Hold the line.", "Myra Cross: Move."], []),
     factionId: "astral-vanguard",
+    synthesizeMissing: true,
     AudioCtor: FakeAudio,
     SpeechCtor: FakeUtterance,
     speechSynthesis: synth,
@@ -216,6 +217,7 @@ test("falls back to synthesis when a recorded line fails", () => {
   const player = createDialoguePlayer({
     entries: dialogueEntries(["Xen'Dra: The angle remembers."], ["/missing.mp3"]),
     factionId: "xendra",
+    synthesizeMissing: true,
     AudioCtor: FakeAudio,
     SpeechCtor: FakeUtterance,
     speechSynthesis: synth,
@@ -226,6 +228,29 @@ test("falls back to synthesis when a recorded line fails", () => {
   clips[0].onerror();
   expect(utterances[0].text).toBe("The angle remembers.");
   expect(utterances[0].rate).toBeLessThan(0.75);
+});
+
+test("plays an authored exchange track and advances portrait focus without OS speech", () => {
+  const synth = { speak: jest.fn(), cancel: jest.fn(), getVoices: () => [] };
+  const onChange = jest.fn();
+  const player = createDialoguePlayer({
+    entries: dialogueEntries(["Alden: Hold.", "Myra Cross: Moving."], []),
+    factionId: "astral-vanguard",
+    trackSource: "/astral-opening.mp3",
+    AudioCtor: FakeAudio,
+    speechSynthesis: synth,
+    onChange
+  });
+  players.push(player);
+  player.play();
+  expect(clips[0].src).toBe("/astral-opening.mp3");
+  clips[0].duration = 20;
+  clips[0].currentTime = 12;
+  clips[0].ontimeupdate();
+  expect(onChange.mock.calls.at(-1)[0]).toMatchObject({ playingIndex: 1, status: "Playing Myra Cross." });
+  expect(synth.speak).not.toHaveBeenCalled();
+  clips[0].onended();
+  expect(onChange.mock.calls.at(-1)[0]).toMatchObject({ playingIndex: null, status: "Dialogue finished." });
 });
 
 test("Zynarth recorded dialogue never falls back to a human browser voice", () => {

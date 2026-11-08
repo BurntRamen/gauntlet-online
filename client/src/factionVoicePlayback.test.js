@@ -1,10 +1,10 @@
 import { playFactionVoice } from "./factionVoicePlayback";
 
-test("uses speech synthesis only when no recorded faction voice exists", () => {
+test("never substitutes a robotic browser voice when no authored recording exists", () => {
   const synthesize = jest.fn();
 
   expect(playFactionVoice({ AudioCtor: window.Audio, source: "", synthesize })).toBeNull();
-  expect(synthesize).toHaveBeenCalledTimes(1);
+  expect(synthesize).not.toHaveBeenCalled();
 });
 
 test("does not replace a failed ElevenLabs recording with robotic browser speech", async () => {

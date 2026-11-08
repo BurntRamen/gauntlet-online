@@ -1753,6 +1753,14 @@ Object.assign(campaignChapters, ADDITIONAL_CAMPAIGNS);
 Object.assign(campaignChapters, FRONTIER_CAMPAIGNS);
 campaignChapters["astral-vanguard"] = REATH_CAMPAIGN;
 
+const astralVanguardCampaignVoiceAssets = require("./astralVanguardCampaignVoiceAssets.json");
+for (const chapter of campaignChapters["astral-vanguard"]) {
+  const audio = astralVanguardCampaignVoiceAssets.chapters?.[chapter.id];
+  if (!audio) continue;
+  chapter.dialogueTrack = audio.dialogueTrack;
+  chapter.endDialogueTrack = audio.endDialogueTrack;
+}
+
 const frumoCampaignVoiceAssets = require("./frumoCampaignVoiceAssets.json");
 for (const chapter of campaignChapters.frumo) {
   const audio = frumoCampaignVoiceAssets.chapters?.[chapter.id];
