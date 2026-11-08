@@ -35,6 +35,17 @@ function buildCompletionEnvelope({ record, playerNum, consequence = null, accoun
     .map((participant) => projectMatchPerspective(record, { playerNum: participant.playerNum }))
     .filter(Boolean);
   const progression = consequence?.progression || {};
+  const boosterCreditDelta = Number(consequence?.boosterCreditDelta || 0);
+  const campaignFactionId = record?.campaign?.factionId || null;
+  const campaignPack = record?.campaign
+    && consequence?.campaign?.firstClear === true
+    && boosterCreditDelta > 0
+    ? {
+        count: boosterCreditDelta,
+        packId: `${campaignFactionId}-foundation`,
+        name: `${perspective?.player?.faction?.name || "Faction"} Foundation Pack`
+      }
+    : null;
   return {
     envelopeVersion: MATCH_COMPLETION_ENVELOPE_VERSION,
     matchId: record?.matchId || null,
@@ -67,7 +78,8 @@ function buildCompletionEnvelope({ record, playerNum, consequence = null, accoun
     } : null,
     event: consequence?.event ? clone(consequence.event) : null,
     rewards: {
-      boosterCreditDelta: Number(consequence?.boosterCreditDelta || 0),
+      boosterCreditDelta,
+      campaignPack,
       goldDelta: Number(consequence?.goldDelta || 0),
       dailyQuestsCompleted: clone(consequence?.dailyQuestsCompleted || []),
       reason: consequence?.boosterCreditReason || null,

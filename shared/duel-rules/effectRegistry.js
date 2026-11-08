@@ -75,7 +75,7 @@ function hasCardEffect(card, handler) {
 }
 function cardParameter(card, key) { return cardEffect(card)?.parameters[key] ?? 0; }
 const factionDefinitions = Object.freeze({
-  ...Object.fromEntries(["mekan", "jali", "gracus", "indela", "ingles", "mercaw", "mtano", "russo", "zynarth", "astral-vanguard", "voltari", "xendra"].map(id => [id, { id: `engine-${id}`, version: 1, factionId: id, parameters: {} }])),
+  ...Object.fromEntries(["mekan", "jali", "gracus", "indela", "ingles", "mercaw", "mtano", "russo", "zynarth", "astral-vanguard", "voltari", "xendra", "morphlings"].map(id => [id, { id: `engine-${id}`, version: 1, factionId: id, parameters: {} }])),
   rumin: { id: "imperial-rhythm", version: 1, factionId: "rumin", parameters: { fourthAttackBonus: { min: 0, max: 8, default: 3 } } },
   sheen: { id: "living-defense", version: 1, factionId: "sheen", parameters: { largeAttackBonus: { min: 0, max: 8, default: 2 } } },
   frumo: { id: "sunken-maneuvers", version: 1, factionId: "frumo", parameters: {} },

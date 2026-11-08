@@ -4,21 +4,21 @@ const FACTIONS = {
   ingles: {
     id: "ingles", name: "Ingles", setId: "frontiers", draftRules: true,
     cardImage: "/assets/gauntlet/ingles-emblem.svg",
-    commander: { name: "First Speaker Elian Wren", image: "/assets/gauntlet/ingles-emblem.svg", text: "Charter — Build a balanced hand, commit deliberately, and make every lane support the whole formation." },
-    general: { name: "Marshal Rowan Vale", image: "/assets/gauntlet/ingles-emblem.svg", text: "Common Ground — Favor flexible cards and shared-suit formations that can answer changing threats." },
-    city: { name: "Crownless Haven", image: "/assets/gauntlet/ingles-emblem.svg", text: "Open Council — Patient defense creates the strongest moment for a coordinated reply." },
+    commander: { name: "Queen Victoria Ashbourne", image: "/assets/gauntlet/ingles-emblem.svg", text: "Long Reign — Build institutions that outlast one battle, then decide what an empire owes the peoples carrying its cost." },
+    general: { name: "Lord Arthur Wellington", image: "/assets/gauntlet/ingles-emblem.svg", text: "Measured Campaign — Favor disciplined formations, prepared reserves, and victories that leave room for negotiation." },
+    city: { name: "Ashbourne", image: "/assets/gauntlet/ingles-emblem.svg", text: "The Living Chronicle — Each generation inherits power, debts, and unfinished arguments from the last." },
     homeworld: "Albion Reach",
-    origin: "The Ingles formed on the ocean world Albion Reach, where island cities replaced hereditary rule with negotiated charters after the Crownless War.",
-    reathArrival: "An ancient standing stone beneath Crownless Haven resolved into a Timetwister, carrying a consent-bound expedition to Reath while Albion Reach remained its origin."
+    origin: "The Ingles arose on Albion Reach through successive reigns, religious divisions, foreign wars, industrial expansion, and an empire whose achievements cannot be separated from the peoples asked to pay for them.",
+    reathArrival: "A late Ingles expedition reached Reath through a Timetwister. Reath is the meeting place of these histories, never the Ingles homeworld or the source of their civilization."
   },
   mercaw: {
     id: "mercaw", name: "Mercaw", setId: "frontiers", draftRules: true,
     cardImage: "/assets/gauntlet/mercaw-emblem.svg",
-    commander: { name: "Convener Mara Kest", image: "/assets/gauntlet/mercaw-emblem.svg", text: "Many-Star Accord — Keep several useful lines open, then concentrate them when a common purpose is chosen." },
+    commander: { name: "Gerrick Warclaw", image: "/assets/gauntlet/mercaw-emblem.svg", text: "Independence Line — Turn local initiative into a coordinated uprising without pretending every revolutionary wants the same future." },
     general: { name: "Rook Talon", image: "/assets/gauntlet/mercaw-emblem.svg", text: "Frontier Initiative — Adapt quickly with the cards available instead of waiting for a perfect plan." },
     city: { name: "Accord Spire", image: "/assets/gauntlet/mercaw-emblem.svg", text: "Federated Signal — Diverse lanes become strongest when their independent choices converge." },
     homeworld: "Cairn",
-    origin: "The Mercaw arose among Cairn's migrating aerie-cities, building a noisy federation from peoples who prized invention, local autonomy, and mutual defense.",
+    origin: "The Mercaw arose among Cairn's migrating aerie-cities. Their modern federation was forged in revolt against Ingles rule, amid independence advocates, loyalists, rival revolutionary leaders, and broken promises of freedom.",
     reathArrival: "Cairn's buried star-beacon proved to be a Timetwister receiver, and a federation chosen by public compact crossed to Reath without claiming it as a frontier to own."
   },
   mtano: {
@@ -243,20 +243,44 @@ const RUSSO_STORY = [
 
 const ARC = {
   ingles: {
-    hero: "First Speaker Elian Wren", ally: "Marshal Rowan Vale", world: "Albion Reach", city: "Crownless Haven",
-    perspective: "Elian Wren as a charter becomes a living promise",
-    titles: ["The Crownless Shore", "Ink and Salt", "The Island Compact", "The Unwritten Clause", "A Parliament Under Siege", "The Price of Protection", "The Broken Seal", "No King Returns", "The Common Fleet", "The Standing Stone", "A Charter Between Worlds", "The Open Door"],
-    foes: ["The Last Royal Fleet", "The Salt Barons", "The Isolated Isles", "The Letter of the Law", "Admiral Corven", "The Emergency Council", "The Forged Signatories", "The Returning Crown", "The Tempest Armada", "The Stone's Custodian", "The Closed Horizon", "The Convergence Storm"],
-    conflict: "negotiated freedom can survive fear without hardening into another crown",
-    theme: "The Unwritten Charter"
+    hero: "Queen Victoria Ashbourne", ally: "Lord Arthur Wellington", world: "Albion Reach", city: "Ashbourne",
+    perspective: "successive Ingles generations inheriting power, debts, and unfinished arguments",
+    conflict: "institutions can endure change while acknowledging the people and territories made to bear their cost",
+    theme: "The Isles Across the Ages",
+    chapters: [
+      { title: "The Learned Crown", playableName: "King Alfric the Learned", ally: "Archivist Edwyn", foe: "The North-Sea Raiders", when: "The first unification of the Ingles islands", perspective: "Alfric, defending learning and law while gathering divided kingdoms", story: "Alfric turns monasteries, local oaths, and coastal defenses into a common resistance. His victory begins the Ingles state, but also the recurring question of whether unity protects local voices or absorbs them." },
+      { title: "The Book and the Blade", playableName: "King Alfric the Learned", ally: "Archivist Edwyn", foe: "The Unwritten Winter", when: "The rebuilding after invasion", perspective: "Alfric deciding what knowledge a kingdom preserves and whose testimony enters its history" },
+      { title: "The Divided Faith", playableName: "Queen Elizara", ally: "Councillor Beatrice Vane", foe: "The Ashen Synod", when: "The Ingles religious settlement", perspective: "Elizara, balancing conscience, authority, and a realm ready to fracture" },
+      { title: "The Armada Season", playableName: "Queen Elizara", ally: "Admiral Rowan Vale", foe: "The Meridian Armada", when: "A foreign fleet approaches Albion Reach", perspective: "Elizara coordinating rival ports that distrust one another more than the invader" },
+      { title: "A Stage for the Realm", playableName: "Queen Elizara", ally: "Elian Wren", foe: "The Censor's Office", when: "The cultural flowering after the Armada", perspective: "Elizara hearing artists turn national confidence into criticism of the crown" },
+      { title: "Engines of Empire", playableName: "Queen Victoria Ashbourne", ally: "Lord Arthur Wellington", foe: "The Furnace Compact", when: "The height of Ingles industrial expansion", perspective: "Victoria confronting the transfer of wealth and suffering hidden inside imperial efficiency" },
+      { title: "The Mercaw Question", playableName: "Lord Arthur Wellington", ally: "Queen Victoria Ashbourne", foe: "Gerrick Warclaw's Continental Line", where: "The Ingles-held ports of Cairn", when: "The Mercaw independence war", perspective: "Arthur, facing an uprising whose grievances his orders cannot erase", story: "Arthur is ordered to preserve Ingles rule in Cairn while Mercaw revolutionaries, loyalists, laborers, merchants, and local nations pursue different futures. The mission refuses to make either population a single political mind." },
+      { title: "Crown and Parliament", playableName: "Queen Victoria Ashbourne", ally: "Elian Wren", foe: "The Imperial Hardliners", when: "The crisis after the Mercaw war", perspective: "Victoria deciding whether defeat produces reform, retaliation, or merely a different justification for control" },
+      { title: "The Cost of Peace", playableName: "Lord Arthur Wellington", ally: "Mara Kest", foe: "The Unfinished Treaty", where: "A neutral harbor between Albion Reach and Cairn", when: "The first postwar settlement", perspective: "Arthur and Mara negotiating with factions that reject the peace for opposite reasons" },
+      { title: "The Standing Stone", playableName: "Elian Wren", ally: "Lord Arthur Wellington", foe: "The Closed Horizon", when: "The first verified Timetwister signal", perspective: "Elian discovering that Ingles history is one history among many" },
+      { title: "A Chronicle Between Worlds", playableName: "Elian Wren", ally: "Queen Victoria Ashbourne", foe: "The Convergence Storm", when: "The preparation of the first Ingles interworld expedition", perspective: "Elian arguing that contact must not become another imperial frontier" },
+      { title: "The Open Door", playableName: "Elian Wren", ally: "Lord Arthur Wellington", foe: "The Convergence Storm", where: "Reath, at a newly opened convergence site", when: "The first Ingles arrival on Reath", perspective: "Elian carrying a civilization-spanning chronicle into contact with histories it did not create" }
+    ]
   },
   mercaw: {
-    hero: "Convener Mara Kest", ally: "Rook Talon", world: "Cairn", city: "Accord Spire",
-    perspective: "Mara Kest inside a federation that argues before it acts",
-    titles: ["Aeries in Motion", "The First Accord", "Engines of Independence", "The Copper Rush", "Votes in the Wind", "The Company Sky", "A Union of Rivals", "The Empty Ballot", "One Signal, Many Wings", "The Buried Beacon", "The Frontier Refused", "The Many-Star Accord"],
-    foes: ["The Talon Raiders", "The Lone Aerie", "The Patent Houses", "The Claim Syndicate", "The Silent Delegation", "The Meridian Company", "The Secession Fleet", "The Counterfeit Convener", "The Black-Sky Armada", "The Beacon Warden", "The Annexation Bloc", "The Convergence Storm"],
-    conflict: "pluralism can coordinate common action without converting independence into ownership",
-    theme: "The Many-Star Accord"
+    hero: "Gerrick Warclaw", ally: "Mara Kest", world: "Cairn", city: "Accord Spire",
+    perspective: "Gerrick Warclaw trying to win independence without defining freedom for everyone else",
+    conflict: "a revolution can coordinate common action while honoring the different freedoms its supporters were promised",
+    theme: "The Many-Star Revolution",
+    chapters: [
+      { title: "Taxed Without a Voice", playableName: "Gerrick Warclaw", ally: "Mara Kest", foe: "The Ingles Customs Office", when: "The last years of Ingles rule on Cairn", perspective: "Gerrick turning a trade protest into a movement that still contains loyalists and cautious reformers" },
+      { title: "The First Talon", playableName: "Gerrick Warclaw", ally: "Rook Talon", foe: "The Redcoat Aeries", when: "The first armed clash of the Mercaw revolution", perspective: "Gerrick learning that a symbolic victory can make compromise harder" },
+      { title: "Loyal Wings", playableName: "Gerrick Warclaw", ally: "Mara Kest", foe: "The Cairn Loyalist Council", when: "Civil conflict spreads through the aerie-cities", perspective: "Gerrick facing Mercaw loyalists whose fears cannot be reduced to cowardice" },
+      { title: "Promises at the Crossing", playableName: "Mara Kest", ally: "Gerrick Warclaw", foe: "The Deferred Freedom Bloc", when: "Revolutionary leaders bargain for soldiers and labor", perspective: "Mara recording which promised freedoms the provisional government intends to postpone", story: "The revolution asks disenfranchised communities to fight while several leaders plan to delay their freedom until after victory. Mara makes those contradictions public before they become the new nation's foundation." },
+      { title: "Winter at Blackfeather", playableName: "Gerrick Warclaw", ally: "Rook Talon", foe: "General Wellington's Encirclement", when: "The revolution's hardest winter", perspective: "Gerrick holding a coalition together when hunger makes every principle negotiable" },
+      { title: "Rivals of the Republic", playableName: "Gerrick Warclaw", ally: "Mara Kest", foe: "The Revolutionary Directorate", when: "Victory becomes plausible", perspective: "Gerrick confronting fellow revolutionaries who want independence under their permanent command" },
+      { title: "The Aerie Surrenders", playableName: "Gerrick Warclaw", ally: "Rook Talon", foe: "The Ingles Expeditionary Line", when: "The decisive campaign for Cairn", perspective: "Gerrick winning a military end to the war without pretending it resolves the revolution's internal disputes" },
+      { title: "A Republic of Debts", playableName: "Mara Kest", ally: "Gerrick Warclaw", foe: "The Unpaid Army", when: "The peace immediately after independence", perspective: "Mara forcing the new republic to account for the people who won a freedom they have not received" },
+      { title: "One Signal, Many Wings", playableName: "Gerrick Warclaw", ally: "Mara Kest", foe: "The Counterfeit Convener", when: "The first constitutional crisis", perspective: "Gerrick defending plural government from a leader using his own legend as precedent" },
+      { title: "The Buried Beacon", playableName: "Gerrick Warclaw", ally: "Rook Talon", foe: "The Beacon Warden", when: "The discovery of Cairn's Timetwister", perspective: "an aging Gerrick confronting a frontier that cannot be claimed through revolution" },
+      { title: "The Frontier Refused", playableName: "Mara Kest", ally: "Gerrick Warclaw", foe: "The Annexation Bloc", when: "The vote on an expedition to Reath", perspective: "Mara insisting that independence gives Mercaw no right to colonize another people's meeting place" },
+      { title: "The Many-Star Accord", playableName: "Gerrick Warclaw", ally: "Mara Kest", foe: "The Convergence Storm", where: "Reath, at a newly opened convergence site", when: "The first Mercaw arrival on Reath", perspective: "Gerrick carrying an unfinished revolution into contact with civilizations that owe it nothing" }
+    ]
   },
   mtano: {
     hero: "Rainkeeper Amari", ally: "Pathfinder Kito", world: "M'Kora", city: "Mawingu Terraces",
@@ -292,7 +316,7 @@ function makeChapter(factionId, arc, index) {
     ? `${arc.hero} leads a consent-bound expedition from homeworld ${arc.world} through the Timetwister to Reath. They defend the crossing without treating the convergence world as their origin or a possession.`
     : transit
       ? `An ancient stone reveals a quantum-correlated receiver on Reath. ${arc.hero} must prove that identity, consent, and responsibility can survive reconstruction across worlds.`
-      : `On homeworld ${arc.world}, ${arc.hero} confronts ${foe} as the faction tests whether ${arc.conflict}.`);
+      : `On homeworld ${arc.world}, ${playableName} confronts ${foe} as the faction tests whether ${arc.conflict}.`);
   const before = plan.before || (final
     ? `${arc.world}'s travelers emerge on Reath as histories from unrelated worlds overlap around the same unstable receiver.`
     : transit
@@ -342,29 +366,36 @@ function makeChapter(factionId, arc, index) {
   return chapter;
 }
 
-const CAMPAIGNS = Object.fromEntries(Object.entries(ARC).map(([id, arc]) => [id, arc.titles.map((_, index) => makeChapter(id, arc, index))]));
+const CAMPAIGNS = Object.fromEntries(Object.entries(ARC).map(([id, arc]) => [id, (arc.chapters || arc.titles).map((_, index) => makeChapter(id, arc, index))]));
 const NARRATION = Object.fromEntries(Object.values(CAMPAIGNS).flat().map((entry) => [entry.id, { beforeBattle: entry.dialogue[0].replace(/^Narrator:\s*/, ""), afterBattle: entry.endDialogue[0].replace(/^Narrator:\s*/, "") }]));
 const METADATA = Object.fromEntries(Object.entries(ARC).map(([id, arc]) => [id, { commanderName: arc.theme, pitch: `Follow the ${FACTIONS[id].name} across homeworld ${arc.world}, test whether ${arc.conflict}, and reach Reath as a convergence point rather than an origin.`, coverImage: FACTIONS[id].cardImage }]));
 function oppositionArchive(factionId) {
   const arc = ARC[factionId];
-  return Object.fromEntries(arc.foes.map((name, index) => [
+  const foes = arc.chapters ? arc.chapters.map((chapter) => chapter.foe) : arc.foes;
+  const titles = arc.chapters ? arc.chapters.map((chapter) => chapter.title) : arc.titles;
+  return Object.fromEntries(foes.map((name, index) => [
     `opposition-${index + 1}`,
     {
       name,
-      role: `Opposition in ${arc.titles[index]}`,
-      description: `${name} turns the conflict of “${arc.titles[index]}” into a test of whether ${arc.conflict}. The encounter matters because its answer changes who may speak, coordinate, and carry the faction's values into the next crisis.`
+      role: `Opposition in ${titles[index]}`,
+      description: `${name} turns the conflict of “${titles[index]}” into a test of whether ${arc.conflict}. The encounter matters because its answer changes who may speak, coordinate, and carry the faction's values into the next crisis.`
     }
   ]));
 }
 
 const CHARACTERS = {
   ingles: {
-    elian: { name: "Elian Wren", role: "First Speaker", description: "A constitutional reformer who treats law as a revisable promise among people rather than a sacred machine. Elian's authority comes from making disagreement legible, preserving the right to amend a decision even while Albion Reach is under attack." },
-    rowan: { name: "Rowan Vale", role: "Marshal of the Common Fleet", description: "A disciplined defender who accepts civilian argument as part of command rather than an obstacle to it. Rowan proves that a formation can remain decisive without turning temporary military necessity into a returning crown." },
+    alfric: { name: "Alfric the Learned", role: "Early Defender and Unifier", description: "A scholar-king who joins divided island realms through law, education, and common defense. His reign begins the Ingles chronicle without resolving whether unification preserves local voices or absorbs them." },
+    elizara: { name: "Queen Elizara", role: "Queen of the Divided Faith", description: "A ruler navigating religious fracture, foreign invasion, and cultural renewal while learning that national unity cannot require a single conscience." },
+    victoria: { name: "Queen Victoria Ashbourne", role: "Monarch at the Height of Empire", description: "A long-reigning sovereign forced to confront how industrial achievement and imperial confidence transfer their costs to distant peoples." },
+    arthur: { name: "Lord Arthur Wellington", role: "General and Imperial Adviser", description: "A disciplined commander sent to preserve Ingles rule in Cairn. Arthur can recognize the Mercaw cause without being able to step outside the institution whose orders he carries." },
+    elian: { name: "Elian Wren", role: "Later Constitutional Reformer", description: "A supporting figure from a later generation who treats law as a revisable promise. Elian helps the Ingles meet Reath without reducing their entire civilization to his era." },
+    rowan: { name: "Rowan Vale", role: "Admiral of the Island Fleet", description: "A defender who coordinates rival ports during the Armada crisis and demonstrates that decisive command need not become permanent authority." },
     ...oppositionArchive("ingles")
   },
   mercaw: {
-    mara: { name: "Mara Kest", role: "Federal Convener", description: "A patient coalition builder who knows that unity chosen noisily is stronger than obedience imposed efficiently. Mara keeps the many aeries inside the Accord by protecting their right to refuse, renegotiate, and still return to the common flight." },
+    gerrick: { name: "Gerrick Warclaw", role: "Commander of the Mercaw Revolution", description: "A revolutionary commander who turns scattered resistance into an independence movement without ever fully controlling what independence means to its loyalists, radicals, merchants, soldiers, and promised-but-deferred citizens." },
+    mara: { name: "Mara Kest", role: "Federal Convener and Revolutionary Witness", description: "A coalition builder who records the freedoms revolutionary leaders promise before victory. Mara remains essential without replacing Gerrick as the commander at the center of the independence story." },
     rook: { name: "Rook Talon", role: "Frontier Pathfinder", description: "An inventor and pilot who loves independence enough to defend other people's right to it. Rook turns engines, maps, and improvised relays into connective tissue without treating discovery as a claim of ownership." },
     ...oppositionArchive("mercaw")
   },

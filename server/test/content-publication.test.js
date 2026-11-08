@@ -27,7 +27,7 @@ test("authoring projection retains every compatible card effect without repeatin
     assert.deepEqual(state.fields.cards[row.id].effect.options, effects.filter(option => option.factionId === row.factionId && option.cardType === row.type), row.id);
   }
   assert.ok(Buffer.byteLength(JSON.stringify(state)) < 12 * 1024 * 1024, "The baseline authoring response must fit within 12 MiB instead of repeating approximately 96 MiB of effect options.");
-  assert.ok(Buffer.byteLength(JSON.stringify(state.fields)) < 8 * 1024 * 1024, "Per-row editor metadata must stay within 8 MiB.");
+  assert.ok(Buffer.byteLength(JSON.stringify(state.fields)) < 9 * 1024 * 1024, "Per-row editor metadata must stay within 9 MiB after the complete Continuants catalog is included.");
   assert.deepEqual(require("../authoredContent").FIELDS.cards.effect.options, effects, "Response projection must not modify shared validation metadata.");
   assert.deepEqual(state.live, baseline, "Projection must preserve the public content snapshot.");
   assert.equal(state.validation.source, "live");

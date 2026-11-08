@@ -77,6 +77,11 @@ test("finalizes a campaign victory once and returns the durable completion envel
   assert.equal(first.envelope.campaign.firstClear, true);
   assert.equal(first.envelope.campaign.image, "/assets/gauntlet/campaigns/rumin/01-brothers-of-destiny.webp");
   assert.equal(first.envelope.rewards.boosterCreditDelta, 1);
+  assert.deepEqual(first.envelope.rewards.campaignPack, {
+    count: 1,
+    packId: "rumin-foundation",
+    name: "Rumin Foundation Pack"
+  });
   assert.equal(first.envelope.rewards.goldDelta, 500);
   assert.deepEqual(first.envelope.rewards.dailyQuestsCompleted, [{ id: "win-one", name: "Claim Victory", gold: 500 }]);
   assert.equal(first.envelope.campaign.nextMission.chapterId, "second-march");

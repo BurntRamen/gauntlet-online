@@ -181,7 +181,7 @@ for (const id of [
   "neutral-freeblade-envoy", "neutral-convergence-oracle", "neutral-gauntlet-regent", "neutral-timetwister-ascendant"
 ]) CARD_WORDING[id] = "No additional ability.";
 
-for (const factionId of ["mekan", "jali", "gracus", "voltari", "xendra", "ingles", "mercaw", "mtano", "russo"]) {
+for (const factionId of ["mekan", "jali", "gracus", "voltari", "xendra", "morphlings", "ingles", "mercaw", "mtano", "russo"]) {
   for (const suit of ["spades", "hearts", "diamonds", "clubs"]) {
     for (const rank of ["2", "3", "4", "5", "6", "7", "8", "9", "10", "jack", "queen", "king", "ace"]) {
       CARD_WORDING[`${factionId}-${suit}-${rank}`] = "No additional ability.";

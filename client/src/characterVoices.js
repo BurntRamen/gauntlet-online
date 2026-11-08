@@ -7,7 +7,8 @@ const FACTION_VOICE_PROFILES = {
   jali: { rate: 0.86, pitch: 0.72, hints: ["daniel", "george", "male"] },
   gracus: { rate: 0.9, pitch: 0.82, hints: ["david", "mark", "male"] },
   indela: { rate: 0.93, pitch: 1.12, hints: ["zira", "samantha", "female"] },
-  zynarth: { rate: 0.78, pitch: 0.62, hints: ["female", "zira", "samantha"] },
+  zynarth: { rate: 0.7, pitch: 0.48, hints: ["william", "guy", "davis", "mark"] },
+  morphlings: { rate: 0.82, pitch: 0.86, hints: ["aria", "william", "andrew"] },
   "astral-vanguard": { rate: 0.98, pitch: 0.94, hints: ["aria", "guy", "english"] },
   voltari: { rate: 0.88, pitch: 0.68, hints: ["david", "mark", "male"] },
   xendra: { rate: 0.68, pitch: 0.48, hints: ["daniel", "david", "male"] },
@@ -42,7 +43,8 @@ export function resolveCharacterVoice({ factionId = "default", speaker = "Narrat
     rate,
     pitch,
     voice: candidates.length ? candidates[hash % candidates.length] : null,
-    abstract: factionId === "xendra"
+    abstract: factionId === "xendra",
+    insectoid: factionId === "zynarth"
   };
 }
 

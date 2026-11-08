@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { render } from "@testing-library/react";
-import { FactionArtwork, getFactionAsset, getFactionArtwork } from "./GauntletVisuals";
+import { FactionArtwork, FACTION_VISUALS, factionIdFrom, getFactionAsset, getFactionArtwork } from "./GauntletVisuals";
 
 test("keeps the neutral fallback behind only artwork-free faction surfaces", () => {
   const stylesheet = fs.readFileSync(path.join(__dirname, "GauntletVisuals.css"), "utf8");
@@ -30,4 +30,10 @@ test("a faction with no own artwork renders a neutral identity instead of anothe
   const { container } = render(<FactionArtwork factionId="xendra" art="/assets/gauntlet/bizi-card.webp" />);
   expect(container.firstChild).toHaveClass("is-neutral");
   expect(container.firstChild.style.backgroundImage).toBe("");
+});
+
+test("recognizes the Continuants' current and legacy identifiers", () => {
+  expect(FACTION_VISUALS.morphlings.name).toBe("The Continuants");
+  expect(factionIdFrom("Morphling remnant")).toBe("morphlings");
+  expect(factionIdFrom("Continuant refuge")).toBe("morphlings");
 });

@@ -82,6 +82,7 @@ const FACTION_PROFILES = {
   "astral-vanguard": { id: "astral-vanguard", name: "Astral Vanguard", commander: "High Marshal Alden", city: "Vanguard Outpost", general: { id: "myra-cross", name: "Sergeant Myra Cross" } },
   voltari: { id: "voltari", name: "Voltari", commander: "Silicon Sovereign", city: "The Golden Conduit", general: { id: "consent-keeper", name: "Consent Keeper" } },
   xendra: { id: "xendra", name: "Xen’Dra", commander: "The Deep Currents", city: "Total Eclipse", general: { id: "distant-witness", name: "Distant Witness" } },
+  morphlings: { id: "morphlings", name: "The Continuants", commander: "Captain Ilyra Vale, Keeper of the First Shape", city: "The Refuge of Returning Light", general: { id: "tessan", name: "Dr. Tessan Rook, Many-Form Guide" } },
   ingles: { id: "ingles", name: "Ingles", commander: "First Speaker Elian Wren", city: "Crownless Haven", general: { id: "rowan-vale", name: "Marshal Rowan Vale" } },
   mercaw: { id: "mercaw", name: "Mercaw", commander: "Convener Mara Kest", city: "Accord Spire", general: { id: "rook-talon", name: "Rook Talon" } },
   mtano: { id: "mtano", name: "M'Tano", commander: "Rainkeeper Amari", city: "Mawingu Terraces", general: { id: "kito", name: "Pathfinder Kito" } },
@@ -337,6 +338,7 @@ function makePlayer(number, name, deck, faction = null) {
     accelerationCounters: 0,
     chargeCounters: 0,
     insanityCounters: 0,
+    ...(faction?.id === "morphlings" ? { continuityCounters: 0 } : {}),
     turnData: createTurnData()
   };
 }
@@ -927,10 +929,16 @@ function catalogTriggerActive(player, card, trigger, context) {
   );
 }
 
+const ALIEN_RESOURCE_CONFIG = Object.freeze({
+  voltari: { key: "chargeCounters", label: "Charge" },
+  xendra: { key: "insanityCounters", label: "Insanity" },
+  morphlings: { key: "continuityCounters", label: "Continuity" }
+});
+
 function adjustAlienResource(game, playerNumber, faction, amount, notes, source) {
   const player = game.players[playerNumber];
-  const key = faction === "voltari" ? "chargeCounters" : "insanityCounters";
-  const label = faction === "voltari" ? "Charge" : "Insanity";
+  const { key, label } = ALIEN_RESOURCE_CONFIG[faction] || {};
+  if (!key) return;
   if (amount < 0) {
     player[key] = Math.max(0, Number(player[key] || 0) + amount);
     notes.push(`${source} spent ${Math.abs(amount)} ${label}`);
@@ -943,21 +951,26 @@ function adjustAlienResource(game, playerNumber, faction, amount, notes, source)
     player[key] = 2;
     notes.push(`${source} fractured: lost 2 life and returned to 2 Insanity`);
   }
+  if (faction === "morphlings" && player[key] >= 6) {
+    player.life += 1;
+    player.turnData.alienEndTurnDraws = Number(player.turnData.alienEndTurnDraws || 0) + 1;
+    player[key] = 2;
+    notes.push(`${source} cohered: gained 1 life, readied an end-turn draw, and returned to 2 Continuity`);
+  }
 }
 
 function applyAlienResourceCard(game, playerNumber, card, context) {
   const result = { bonus: 0, preventDamage: 0, notes: [] };
   if (!hasCardEffect(card, "catalog-alien-resource")) return result;
   const faction = card.factionId;
-  if (faction !== "voltari" && faction !== "xendra") return result;
+  if (!ALIEN_RESOURCE_CONFIG[faction]) return result;
   const player = game.players[playerNumber];
   const trigger = cardParameter(card, "trigger");
   if (!catalogTriggerActive(player, card, trigger, context)) return result;
   if (isSupportCard(card) && card.supportState?.alienResourceUsedTurn === game.turn) return result;
 
   const spend = cardParameter(card, "spend");
-  const key = faction === "voltari" ? "chargeCounters" : "insanityCounters";
-  const label = faction === "voltari" ? "Charge" : "Insanity";
+  const { key, label } = ALIEN_RESOURCE_CONFIG[faction];
   if (spend && Number(player[key] || 0) < spend) {
     result.notes.push(`${card.name} needs ${spend} ${label}`);
     return result;
@@ -1692,11 +1705,12 @@ function applyConstructedLaneEntry(game, playerNumber, card, laneIndex, command,
     if (amount) {
       const notes = [];
       adjustAlienResource(game, playerNumber, card.factionId, amount, notes, card.name);
-      events.push(event(game, card.factionId === "voltari" ? "charge.gained" : "insanity.gained", {
+      const resource = ALIEN_RESOURCE_CONFIG[card.factionId];
+      events.push(event(game, card.factionId === "voltari" ? "charge.gained" : card.factionId === "xendra" ? "insanity.gained" : "continuity.gained", {
         player: playerNumber,
         amount,
         source: card.name,
-        total: card.factionId === "voltari" ? player.chargeCounters : player.insanityCounters,
+        total: resource ? player[resource.key] : 0,
         notes
       }));
     }
@@ -4001,7 +4015,7 @@ function projectForPerspective(game, perspectivePlayer) {
   projected.lanes.forEach((lane, laneIndex) => {
     if (!lane.support) lane.support = { 1: null, 2: null };
     for (const player of [1, 2]) {
-      if (player !== viewer && lane.facedown[player] && !lane.facedown[player].revealed) {
+      if (player !== viewer && lane.facedown[player] && !lane.facedown[player].revealed && !lane.facedown[player].zynarthEgg) {
         hiddenCardIds.add(lane.facedown[player].id);
         lane.facedown[player] = { id: `hidden-lane-${laneIndex}-p${player}`, hidden: true };
       }

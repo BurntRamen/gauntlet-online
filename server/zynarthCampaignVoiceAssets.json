@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "factionId": "zynarth",
+  "chapters": {
+    "zynarth-first-pulse": {
+      "dialogueAudio": [
+        null,
+        "/assets/gauntlet/voices/zynarth-ch01-before-02-broodmother-zalara.mp3",
+        null,
+        null,
+        "/assets/gauntlet/voices/zynarth-ch01-before-05-broodmother-zalara.mp3"
+      ],
+      "endDialogueAudio": [
+        null,
+        null,
+        null,
+        "/assets/gauntlet/voices/zynarth-ch01-after-04-broodmother-zalara.mp3",
+        null
+      ]
+    }
+  }
+}

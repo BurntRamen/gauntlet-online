@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 536" role="img" aria-labelledby="title description">
+  <title id="title">Zynarth Egg</title>
+  <desc id="description">A luminous amber-green egg suspended in a dark organic brood chamber.</desc>
+  <defs>
+    <radialGradient id="shell" cx="38%" cy="27%" r="72%">
+      <stop offset="0" stop-color="#efff9a"/>
+      <stop offset=".25" stop-color="#b8df42"/>
+      <stop offset=".72" stop-color="#628719"/>
+      <stop offset="1" stop-color="#263609"/>
+    </radialGradient>
+    <radialGradient id="chamber" cx="50%" cy="44%" r="68%">
+      <stop offset="0" stop-color="#315019"/>
+      <stop offset=".58" stop-color="#13210e"/>
+      <stop offset="1" stop-color="#050906"/>
+    </radialGradient>
+    <linearGradient id="vein" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#efff91"/>
+      <stop offset="1" stop-color="#86b92d" stop-opacity=".08"/>
+    </linearGradient>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="13" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="384" height="536" rx="28" fill="#050806"/>
+  <rect x="12" y="12" width="360" height="512" rx="22" fill="url(#chamber)" stroke="#a7cf3d" stroke-width="5"/>
+  <g opacity=".55" stroke="#668f2d" stroke-width="7" fill="none">
+    <path d="M17 103C75 137 65 205 18 240M367 91c-61 46-51 117 1 145M20 402c65-22 77-85 29-127M365 410c-68-20-82-82-31-128"/>
+    <path d="M51 19c22 59 84 72 126 27M333 18c-28 61-87 73-130 26M50 517c22-52 74-66 118-30M335 517c-23-55-78-69-120-30"/>
+  </g>
+  <ellipse cx="192" cy="278" rx="112" ry="158" fill="#91c92b" opacity=".2" filter="url(#glow)"/>
+  <path d="M192 105c-57 0-106 99-106 193 0 82 47 139 106 139s106-57 106-139c0-94-49-193-106-193Z" fill="url(#shell)" stroke="#d8f66b" stroke-width="5"/>
+  <g fill="none" stroke="url(#vein)" stroke-width="5" opacity=".72">
+    <path d="M190 125c-2 60 21 86 3 134-16 44-8 94 5 151"/>
+    <path d="M191 217c-33-29-49-46-64-78M195 264c38-30 57-55 75-91M194 321c-37 10-58 38-78 72M197 355c32 7 50 28 67 57"/>
+  </g>
+  <g fill="#eaff80" opacity=".82" filter="url(#glow)">
+    <circle cx="151" cy="205" r="7"/><circle cx="230" cy="248" r="6"/><circle cx="162" cy="344" r="5"/>
+  </g>
+  <path d="M67 464h250" stroke="#9ecb3d" stroke-width="2" opacity=".75"/>
+  <text x="192" y="490" text-anchor="middle" fill="#efffb5" font-family="Georgia,serif" font-size="27" font-weight="700" letter-spacing="3">ZYNARTH EGG</text>
+  <text x="192" y="514" text-anchor="middle" fill="#a9c96b" font-family="Arial,sans-serif" font-size="13" letter-spacing="2">HATCH • RECYCLE • ENDURE</text>
+</svg>
