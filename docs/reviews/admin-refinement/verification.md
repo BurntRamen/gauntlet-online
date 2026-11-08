@@ -79,6 +79,6 @@ Measurements use local uncompressed, `no-store` production assets, no network th
 
 The [review gallery](README.md) contains matched Home, collection, editor/preview, validation and review views at 1366×768, 1920×1080 and 390×844. The mobile save/focus state has an [additional capture](after/mobile-save-focus.png). Responsive Axe and overflow checks include a 683×384 CSS reflow viewport.
 
-**Actual 200% native browser zoom is not verified.** The computer-use bridge stopped because it could not determine the active browser URL reliably enough to continue. CSS reflow is not a substitute for that requested manual check. No native-zoom screenshot or full manual assistive-technology audit is claimed.
+Actual 200% native browser zoom was unresolved at this original refinement checkpoint. The [subsequent pipeline verification](../admin-pipelines/verification.md) closes that item using Chromium's real Page zoom setting and captures all five surfaces. CSS reflow remains a separate check. No full manual assistive-technology audit is claimed.
 
 No migrations or new deployment dependencies are required. Deploy the matching client/server when this draft is eventually approved: new explanatory copy is supplied by the existing private responses. Keep this review **draft, unmerged and undeployed**; Git-triggered Vercel deployment is disabled for this branch in `client/vercel.json`.

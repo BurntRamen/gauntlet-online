@@ -17,7 +17,15 @@ async function mutate(request, operation, data) {
 async function clean(request) { if ((await state(request)).draft) await mutate(request, 'discard', {}); }
 async function capture(page, name) {
   fs.mkdirSync(root, { recursive: true });
-  await page.evaluate(async () => { await document.fonts.ready; await Promise.all([...document.images].map(img => img.decode().catch(() => {}))); });
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+    // Hidden and offscreen lazy images may never start loading. Only wait for
+    // artwork that can appear in this viewport capture.
+    await Promise.all([...document.images].filter(img => {
+      const box = img.getBoundingClientRect();
+      return box.width && box.height && box.bottom > 0 && box.top < innerHeight && box.right > 0 && box.left < innerWidth && getComputedStyle(img).visibility !== 'hidden';
+    }).map(img => img.decode().catch(() => {})));
+  });
   await page.screenshot({ path: path.join(root, name + '.png'), animations: 'disabled' });
   if (phase === 'after') {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${name} overflow`).toBeTruthy();

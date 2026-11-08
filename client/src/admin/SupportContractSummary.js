@@ -6,7 +6,7 @@ import { WorkshopFacts } from "./WorkshopShell";
 
 export default function SupportContractSummary({ card }) {
   if (!TYPES.has(card?.type)) return null;
-  if (card.effect?.id === "authored-mechanic" && !card.effect.definition) return <Help topic="supportUnresolved" />;
+  if (["authored-mechanic", "mechanic-program"].includes(card.effect?.id) && !card.effect.definition) return <Help topic="supportUnresolved" />;
   const contract = definition(card);
   if (!contract) return <Help role="alert" topic="supportUnsupported" />;
   return <section aria-label="Support rules contract">

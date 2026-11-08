@@ -58,10 +58,10 @@ function Simulator({ state, config, request, disabled }) {
   </section>;
 }
 
-export default function GauntletParaLeague({ state, act, busy, request, onDirty, preview, scope, initialTarget }) {
+export default function GauntletParaLeague({ state, act, busy, request, onDirty, preview, scope, initialTarget, onSelect }) {
   const [tab, setTab] = useState("Overview");
   const domain = TABS[tab];
-  const registry = useRegistryEditor({ state, act, registry: "paraLeague", domain, action: "para-draft", scope: domain ? { domain } : undefined, onDirty, initialTarget,
+  const registry = useRegistryEditor({ state, act, registry: "paraLeague", domain, action: "para-draft", scope: domain ? { domain } : undefined, onDirty, initialTarget, initialId: initialTarget?.id, onSelect: id => onSelect?.(domain, id),
     onTarget: target => { const name = Object.keys(TABS).find(tab => TABS[tab] === target.domain); if (!name) return false; setTab(name); },
     fieldId: target => `para-${target.domain}-${target.field || "name"}`, label: "definition", localBaseline: true, serverIds: false, copy, adjust: adjustEvent });
   const { buffer: editor, config, dirty, leave, select, update, mutate, setQuery, filter, setFilter } = registry;
@@ -78,7 +78,7 @@ export default function GauntletParaLeague({ state, act, busy, request, onDirty,
         <section className="admin-editor" aria-label="Para definition editor">{editor ? <><h3 className="admin-section-heading">{editor.original ? "Edit definition" : "New definition"} · {dirty ? "Unsaved" : state.draft ? "Saved draft" : "Published"}</h3><RegistryForm editor={registry} className="admin-contract-fields">
           {Object.entries(state.para.fields[domain]).filter(([key]) => key !== "id").map(([key, field]) => <Field key={key} id={`para-${domain}-${key}`} field={field} value={editor.row[key] ?? state.para.templates[domain][key]} onChange={(value) => update(key, value)} config={config} assets={state.assetLibrary} disabled={disabled} />)}
           <details><summary>Advanced · permanent identity</summary><Field field={state.para.fields[domain].id} value={editor.row.id} disabled={disabled || !!editor.original} onChange={value => update("id", value)} /></details><div className="admin-actions"><button type="submit" disabled={disabled || !dirty}>Save definition to draft</button><button type="button" onClick={() => leave(() => select(null))}>Close definition</button>{editor.original && Object.hasOwn(editor.row, "status") && <button type="button" disabled={disabled || dirty || editor.row.status === "archived"} onClick={() => mutate({ operation: "archive", id: editor.row.id })}>Archive definition</button>}</div>
-        </RegistryForm>{editor.original && <div className="admin-actions"><button disabled={disabled || dirty} onClick={() => mutate({ operation: "duplicate", id: `para-${crypto.randomUUID()}`, sourceId: editor.row.id })}>Duplicate definition</button></div>}</> : <p>Choose a definition. Copies receive a new identity; dates reset.</p>}</section></RegistryWorkspace>
+        </RegistryForm>{editor.original && <div className="admin-actions"><button disabled={disabled || dirty} onClick={() => mutate({ operation: "duplicate", id: `para-${crypto.randomUUID()}`, sourceId: editor.row.id })}>Duplicate definition</button></div>}</> : <p>{state.guide?.help?.registryChoose}</p>}</section></RegistryWorkspace>
     </>}
 
     {["Overview", "Seasons", "Events"].includes(tab) && <section><h3 className="admin-section-heading">Proposed calendar</h3><ol>{(config.events || []).slice().sort((a, b) => a.week - b.week).map((e) => <li key={e.id}>Week {e.week} · {e.name} · {e.winTarget}/{e.lossLimit} · {e.startsAt ? new Date(e.startsAt).toLocaleString() : "Unscheduled"} · {e.status}</li>)}</ol></section>}

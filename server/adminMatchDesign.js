@@ -12,7 +12,7 @@ function projectMatchDesign(input, currentSnapshot, draftSnapshot = null) {
   const cardEffects = new Map(cardAuthoringDefinitions().map(row => [row.id, row]));
   const factionEffects = new Map(Object.values(factionEffectDefinitions()).map(row => [row.id, row]));
   const current = (domain, id, snapshot) => {
-    const row = domain === "card-effects" ? cardEffects.get(id) : domain === "faction-effects" ? factionEffects.get(id) : snapshot?.domains?.[domain]?.find(entry => entry.id === id);
+    const row = domain === "card-effects" ? cardEffects.get(id) : domain === "faction-effects" ? factionEffects.get(id) : domain === "mechanics" ? snapshot?.studio?.mechanics.find(entry => entry.id === id) : snapshot?.domains?.[domain]?.find(entry => entry.id === id);
     return { label: row ? row.label || objectLabel(row) : "Current definition unavailable", definition: row ? clone(row) : null, available: !!row };
   };
   const add = (domain, id, label = null, definition = null) => {
@@ -37,7 +37,9 @@ function projectMatchDesign(input, currentSnapshot, draftSnapshot = null) {
     const keys = [add("cards", id, value.name, Object.keys(captured).length ? captured : null)];
     // Different cards can have different compositions with the same interpreter
     // ID. Keep their recorded definitions on their individual card references.
-    if (effect?.id && effect.id !== "composed-rumin-armament") keys.push(add("card-effects", effect.id, null, effect));
+    const program = require("../shared/duel-rules/mechanicProgram");
+    if (effect?.id && effect.id !== "composed-rumin-armament" && !program.isAuthored(effect)) keys.push(add("card-effects", effect.id, null, effect));
+    for (const ref of program.references(effect)) keys.push(add("mechanics", ref.mechanicId, ref.definition?.name, ref.definition || null));
     if (value.variantId) keys.push(add("assets", value.variantId, null, value.presentation ? { presentation: value.presentation } : null));
     return keys.filter(Boolean);
   };

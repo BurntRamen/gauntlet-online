@@ -1,5 +1,8 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render as renderWithoutHelp, screen, waitFor } from "@testing-library/react";
+import { HelpProvider } from "./admin/AuthoringHelp";
 import GauntletPlaytest from "./GauntletPlaytest";
+
+const render = element => renderWithoutHelp(element, { wrapper: ({ children }) => <HelpProvider value={require("../../server/adminAuthoringGuide").help}>{children}</HelpProvider> });
 
 const state = { revision: 7, draft: {}, validation: { valid: true }, live: { domains: { factions: [
   { id: "rumin", name: "Rumin" }, { id: "sheen", name: "Sheen" }, { id: "xendra", name: "XenDra", campaignOnly: true }

@@ -144,6 +144,7 @@ jobs:
         run: |
           npx playwright test --config=playwright.admin-redesign.config.js
           npx playwright test --config=playwright.admin-refinement.config.js
+          npx playwright test --config=playwright.admin-pipelines.config.js
       - name: Upload failed Admin diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
@@ -155,6 +156,8 @@ jobs:
             artifacts/printings/browser/
             artifacts/purpose/browser/
             artifacts/admin-refinement-regression/
+            artifacts/admin-pipeline-*.png
+            artifacts/admin-pipelines-results.json
             docs/reviews/admin-refinement/after/
           if-no-files-found: ignore
           retention-days: 7

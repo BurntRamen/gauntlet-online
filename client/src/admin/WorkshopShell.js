@@ -36,7 +36,6 @@ export default function WorkshopShell({ name, title, description, status, action
   }, [selectionId]);
   return <section className={`design-workshop ${preview ? "has-preview" : ""} ${selectionId && !showList ? "has-selection" : ""} ${showPreview ? "preview-open" : ""} ${showList ? "browser-open" : ""}`} aria-label={name}>
     <header ref={header} className="design-header design-workspace-header" id="workshop-context" tabIndex={-1}><div><span className="admin-eyebrow">{name}</span><h3>{title}</h3>{description && <p className="admin-note">{description}</p>}</div><div className="design-header-actions">{status && <div className="admin-tags">{status}</div>}{actions && <div className="admin-actions">{actions}</div>}</div></header>
-    {selectionId && session?.production}
     <div className="design-view-controls">{selectionId && <button className="design-list-toggle" onClick={() => {
       const open = () => { setShowList(true); requestAnimationFrame(() => selection.current?.querySelector("input,button")?.focus()); };
       if (showList) { setShowList(false); header.current?.focus(); } else open();
@@ -48,5 +47,6 @@ export default function WorkshopShell({ name, title, description, status, action
         <div className="design-content"><div className="design-editor" id="admin-selected" tabIndex={-1}>{children}</div>{preview && <section className="design-preview" aria-label={`${name} preview and test`}><div className="admin-panel-heading"><span className="admin-eyebrow">Player presentation</span><button aria-label="Close preview" onClick={() => setPreview(false)}>×</button></div>{preview}</section>}</div>
       </div>
     </div>
+    {selectionId && session?.production}
   </section>;
 }

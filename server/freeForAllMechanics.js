@@ -1,6 +1,11 @@
 "use strict";
 const runtime = require("../shared/duel-rules/mechanicRuntime"), modes = require("../shared/duel-rules/mechanicModes");
-function reason(card) { return runtime.isAuthored(card) ? modes.freeForAllReason(card.effect.definition) : null; }
+function reason(card) {
+  if (!runtime.isAuthored(card)) return null;
+  if (card.effect.id === "authored-mechanic") return modes.freeForAllReason(card.effect.definition);
+  const modules = runtime.programs(card);
+  return modules.length ? modules.map(source => modes.freeForAllReason(source.effect.definition)).find(Boolean) || null : "The captured mechanic program must resolve before mode eligibility can be determined.";
+}
 function trigger(game, player, source, timing, context = {}) {
   if (game.gameMode !== "freeForAll" || !runtime.isAuthored(source)) return [];
   const problem = reason(source); if (problem) throw new Error(problem);

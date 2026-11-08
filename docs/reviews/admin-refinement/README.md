@@ -2,6 +2,8 @@
 
 Draft review branch: `codex/admin-refinement`, based on refreshed `main` at `d3e6f364f5ea061cb85f9156ec99049900a8fdb6`. PRs #102, #104 and #105 are included in that base. The prior worktree branch and unrelated work are preserved.
 
+The subsequent [connected production pipelines review](../admin-pipelines/README.md) adds outcome-based creation flows and contains the newer verification and performance evidence. The measurements below describe the original refinement commit unless explicitly updated there.
+
 ## What changed
 
 Collections use the full workspace until a record is opened. Semantic table rows open records; the gallery remains available. Content destinations sit directly beneath Content. At 1600px and above, collection, editor and preview can share the screen; at laptop widths, the collection collapses behind Back to list; below 1200px, Editor and Preview are explicit modes.
@@ -50,7 +52,7 @@ All captures use synthetic accounts and isolated stores, with non-loopback HTTP(
 
 Check results, the nine requested journeys, timing measurements and limitations are recorded in [verification.md](verification.md). Exact measurements are in [performance.json](performance.json). Source-map comparison verified that all 51 Admin source files in the retained baseline build exactly match `d3e6f364`.
 
-Actual native 200% browser zoom remains **unverified**. The computer-use bridge stopped because it could not reliably identify the active browser URL. The completed 683 × 384 CSS reflow check is a separate check and is not represented as actual browser zoom.
+The original refinement verified 683 × 384 CSS reflow. The subsequent pipeline follow-up also verifies [actual native 200% Chromium zoom](../admin-pipelines/native-zoom/native-zoom.json) through the browser's Page zoom setting, with five captured surfaces, keyboard focus return, Axe and overflow checks. See the [current review evidence](../admin-pipelines/README.md).
 
 ## Configuration and boundaries
 

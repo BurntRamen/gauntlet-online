@@ -26,7 +26,9 @@ function workshopMetadata(selection) {
   const bindings = { authoredRelease: identity.releaseId, ...Object.fromEntries([
     "rulesVersion", "cardEffectContractVersion", "factionEffectContractVersion", "encounterContractVersion", "assetManifestVersion", "gameConfigVersion"
   ].map(key => [key, snapshot.engine[key]])) };
-  if (snapshot.domains.cards.some(card => card.effect?.id === composition.ID)) bindings.compositionVersion = composition.VERSION;
+  if (snapshot.domains.cards.some(card => card.effect?.id === composition.ID || card.effect?.armament?.id === composition.ID)) bindings.compositionVersion = composition.VERSION;
+  const program = require("../shared/duel-rules/mechanicProgram");
+  if (snapshot.domains.cards.some(card => card.effect?.id === program.ID)) bindings.mechanicProgramVersion = program.VERSION;
   return { version: 1, ...identity, studio: require("./mechanicAuthoring").metadata(snapshot), cardEffects: cardAuthoringDefinitions(), ...rulesAuthoringData(snapshot),
     bindings: clone(bindings), capabilities: { productionGuide: true, liveTests: true, customScenarios: 1, commandPreview: true, livePresentation: true, relationships: true, releaseReview: true } };
 }
@@ -35,7 +37,9 @@ function registerAdminWorkshopRoutes(app, { publication }) {
   for (const [path, operation] of [
     ["/production", async req => {
       const status = await readWorkshopStatus(publication, req.query?.source);
-      return require("./adminProductionGuide").productionGuide(status, selectWorkshopSnapshot(status, req.query), req.query);
+      const selection = selectWorkshopSnapshot(status, req.query);
+      return req.query?.pipeline ? require("./adminProductionPipelines").pipeline(status, selection, req.query)
+        : require("./adminProductionGuide").productionGuide(status, selection, req.query);
     }],
     ["/search", async req => {
       validateSearchQuery(req.query);

@@ -14,7 +14,7 @@ function Change({ change, onInspect, library, comparison = false }) {
   return <article className="design-change"><div className="admin-title-row"><div><small>{change.fieldLabel || change.field}</small><h5>{change.label || change.id}</h5></div>{onInspect && <button type="button" onClick={() => onInspect(change.domain, change.id, change.field)}>Open {change.label || change.id}</button>}</div>{change.scope && <p className="admin-note">{change.scope}</p>}<div className="design-change-values"><Value label="Live" value={change.before ?? change.live} library={library} resolvedAsset={change.liveAsset} /><Value label={comparison ? "Selected release" : "Saved draft"} value={change.after ?? change.draft} library={library} resolvedAsset={change.draftAsset} /></div></article>;
 }
 
-export default function ReleaseReview({ state, review, onInspect, onPublish, onDiscard, onRollback, onCompare, onValidate, onPreview, releaseName = "", onReleaseName, busy, unsaved, error, onRetry }) {
+export default function ReleaseReview({ state, review, onInspect, onPublish, onDiscard, onValidate, onPreview, releaseName = "", onReleaseName, busy, unsaved, error, onRetry }) {
   const helpCopy = useHelp();
   const readiness = review?.readiness;
   const groups = (review?.groups || []).filter(group => group.changes?.length);
@@ -48,7 +48,6 @@ export default function ReleaseReview({ state, review, onInspect, onPublish, onD
       {readiness?.engineTestRequired && <Help className="admin-note" topic="ReleaseReview3" />}
     </div></div>
     {state.draft && onDiscard && <details className="admin-recovery"><summary>Discard shared draft</summary><Help topic="workspaceReleaseReview10" /><button className="admin-danger" disabled={blocked} onClick={onDiscard}>Discard shared draft</button></details>}
-    {onCompare && <WorkshopSection title="Release history" id="review-history">{(state.releases || []).map(release => <article className="design-change" key={release.id}><h5>{release.label || release.id}{release.id === state.activeReleaseId ? " · Live" : ""}</h5><p className="admin-note">{release.createdAt ? new Date(release.createdAt).toLocaleString() : "Date not recorded"}</p><div className="admin-actions"><button disabled={busy} onClick={() => onCompare(release.id)}>Compare {release.label || "release"}</button>{onRollback && <button disabled={blocked || !!state.draft || !release.compatible || !!release.rollbackBlocked || release.id === state.activeReleaseId} onClick={() => onRollback(release)}>Restore {release.label || "release"}</button>}</div></article>)}</WorkshopSection>}
     {review?.comparison && <WorkshopSection title="Rollback comparison" id="review-comparison"><Help className="admin-note" topic="ReleaseReview4" />{(review.comparison.groups || []).map(group => <div key={group.id}><h5>{group.label}</h5>{group.changes.map((change, index) => <Change key={index} change={change} onInspect={onInspect} library={state.assetLibrary} comparison />)}</div>)}</WorkshopSection>}
   </section>;
 }

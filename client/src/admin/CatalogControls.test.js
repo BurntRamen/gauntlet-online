@@ -18,6 +18,13 @@ test("creation uses a guided effect contract and never sends a chosen identity o
   fireEvent.click(screen.getByRole("button", { name: "Save new card to draft" }));
   expect(onCreate).toHaveBeenCalledWith({ domain: "cards", setId: "set-one", name: "New blade", effectId: "coin-scale-spear", factionId: "rumin", type: "armament", value: 4, suit: "spades", rarity: "common" });
 });
+test.each(["composed-rumin-armament", "mechanic-program"])("duplicating %s preserves the selected complete behavior", effectId => {
+  const source = { id: "source", name: "Saved blade", factionId: "rumin", type: "armament", value: 4, suit: "spades", effect: { id: effectId, version: 1 } }, onCreate = jest.fn();
+  render(<CatalogControls creation={{ domain: "cards", sourceId: source.id }} state={{ ...state, live: { domains: { ...state.live.domains, cards: [source] } } }} effects={effects} onEdit={jest.fn()} onCreate={onCreate} />);
+  expect(screen.getByRole("combobox", { name: "Mechanical effect" })).toHaveValue(effectId);
+  const save = screen.getByRole("button", { name: "Save new card to draft" }); expect(save).toBeEnabled(); fireEvent.click(save);
+  expect(onCreate).toHaveBeenCalledWith(expect.objectContaining({ sourceId: source.id, effectId, factionId: "rumin", type: "armament" }));
+});
 test("membership search keeps existing selections and availability changes only its own flag", () => {
   const onChange = jest.fn();
   const view = render(<CatalogField definition={{ type: "card-list" }} value={["one"]} cards={[{ id: "one", name: "First" }, { id: "two", name: "Second" }]} onChange={onChange} />);

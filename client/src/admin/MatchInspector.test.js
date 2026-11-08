@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import MatchInspector from "./MatchInspector";
+const guide = require("../../../server/adminMatchGuide.json");
 
 const match = { matchId: "match-1", mode: "campaign", campaign: { title: "Recorded battle" }, participants: [], auditEvents: [{ sequence: 1, turn: 2, eventType: "card_played", publicPayload: { message: "Old Spear entered play" } }] };
 const reference = { key: "cards:spear", domain: "cards", id: "spear", recorded: { available: true, label: "Old Spear", definition: { text: "Old behavior", effect: { id: "old-effect", version: 1 } } }, current: { available: true, label: "New Spear", definition: { text: "Current behavior" } } };
@@ -7,7 +8,7 @@ const design = { references: [reference], events: [{ sequence: 1, text: "Old Spe
 
 test("distinguishes immutable recorded evidence from current content and opens replay separately", () => {
   const inspect = jest.fn();
-  render(<MatchInspector match={match} design={design} onInspect={inspect} />);
+  render(<MatchInspector guide={guide} match={match} design={design} onInspect={inspect} />);
   expect(screen.getAllByText("Recorded in this match")[0]).toBeVisible();
   expect(screen.getAllByText("Old behavior")[0]).toBeVisible();
   expect(screen.getAllByText("Current behavior")[0]).toBeVisible();
@@ -18,7 +19,7 @@ test("distinguishes immutable recorded evidence from current content and opens r
 });
 
 test("unknown current definitions have no guessed workshop link and event filtering preserves original text", () => {
-  render(<MatchInspector match={match} design={{ ...design, references: [{ ...reference, current: { available: false } }] }} onInspect={jest.fn()} />);
+  render(<MatchInspector guide={guide} match={match} design={{ ...design, references: [{ ...reference, current: { available: false } }] }} onInspect={jest.fn()} />);
   expect(screen.queryByRole("button", { name: /Open current/ })).not.toBeInTheDocument();
   fireEvent.change(screen.getByLabelText("Filter match events"), { target: { value: "no matching text" } });
   expect(screen.getByText("No matching events.")).toBeVisible();
@@ -29,7 +30,7 @@ test("audit and engine events sharing a sequence retain separate evidence and de
   const dual = { ...match, leagueEvidence: [{ sequence: 1, turn: 2, eventType: "effect_resolved", publicPayload: { message: "Effect fired" } }] };
   const projection = { ...design, references: [reference, effect], events: [{ sequence: 1, source: "audit", text: "Recorded audit message", references: [reference.key] }, { sequence: 1, source: "engine-evidence", text: "Recorded engine effect", references: [effect.key] }] };
   const inspect = jest.fn(), remember = jest.fn();
-  render(<MatchInspector match={dual} design={projection} onInspect={inspect} context={{ event: "engine-evidence:1", query: "" }} onContext={remember} />);
+  render(<MatchInspector guide={guide} match={dual} design={projection} onInspect={inspect} context={{ event: "engine-evidence:1", query: "" }} onContext={remember} />);
   const audit = within(screen.getByRole("group", { name: "Audit event 1" }));
   const engine = within(screen.getByRole("group", { name: "Engine evidence event 1" }));
   expect(audit.getByText("Recorded audit message")).toBeVisible();

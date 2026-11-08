@@ -1,11 +1,13 @@
 "use strict";
 const contract = require("./compositionContract");
-const isComposed = card => card?.effect?.id === contract.ID;
-const armable = card => isComposed(card) && contract.validate(card.effect, card);
+const program = require("./mechanicProgram");
+const isComposed = card => program.armingCard(card)?.effect?.id === contract.ID;
+const armable = card => isComposed(card) && (card.effect.id !== program.ID || program.validate(card.effect, card, true)) && contract.validate(program.armingCard(card).effect, card);
 // Conditions are evaluated once, on the validated attack command's pre-payment
 // snapshot. No effect may dispatch another trigger or mutate the condition facts.
 function prepare(source, facts) {
   if (!armable(source)) return { error: "Unsupported armament composition or interpreter version." };
+  source = program.armingCard(source);
   return { source, abilities: source.effect.abilities.map((ability, index) => {
     const c = ability.condition;
     const observed = { always: true, overpay: facts.overpay, diamondsPaid: facts.diamondsPaid, attackValue: facts.attackValue, attackNumber: facts.attackNumber }[c.kind];

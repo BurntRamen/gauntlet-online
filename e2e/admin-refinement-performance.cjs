@@ -94,7 +94,7 @@ function jsSummary(rows) {
       await page.keyboard.type(' QA', { delay: 35 }); await painted(page);
       const typing = await page.evaluate(before => ({ inputToTwoFramesMs: window.__loadEvidence.inputFrames.slice(before.inputs), longTasks: window.__loadEvidence.longTasks.filter(task => task.start >= before.at) }), beforeTyping);
       await input.fill(original); await painted(page);
-      start = performance.now(); await section(page, 'Mechanics'); await page.getByLabel('Reusable mechanic', { exact: true }).waitFor({ state: 'visible' }); await painted(page);
+      start = performance.now(); await section(page, 'Mechanics'); await page.getByRole('button', { name: 'Replace with modular effects', exact: true }).waitFor({ state: 'visible' }); await painted(page);
       const mechanicsReadyMs = performance.now() - start;
       start = performance.now(); await section(page, 'Details'); await input.waitFor({ state: 'visible' }); await painted(page);
       const detailsReadyMs = performance.now() - start;

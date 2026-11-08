@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import Players from "./Players";
+const guide = require("../../../server/adminPlayerGuide.json");
 const profiles = [{ id: "one", name: "First player", campaigns: [], decks: [], matchReferences: [], unlocks: {} }, { id: "two", name: "Second player", campaigns: [], decks: [], matchReferences: [], unlocks: {} }];
 function useData(request, path, revision) {
   const [state, setState] = useState({ loading: true });
@@ -20,7 +21,7 @@ test("profile sections preserve corrections and failed departure save retains in
   let failure = true;
   const request = jest.fn(async (path, options) => {
     if (path.endsWith("/metadata")) { expect(JSON.parse(options.body)).toEqual({ expectedName: "First player", metadata: { name: "Corrected name" }, reason: "Requested by account owner", key: expect.stringMatching(/^[a-f0-9-]{36}$/) }); if (failure) throw new Error("Save unavailable"); return {}; }
-    return { players: profiles, hasMore: false };
+    return { players: profiles, hasMore: false, guide };
   });
   render(<Players {...makeProps(request)} />); await edit();
   fireEvent.click(within(screen.getByRole("navigation", { name: "Player details" })).getByRole("button", { name: "Decks" }));
@@ -42,7 +43,7 @@ test("stale player metadata shows both names and requires explicit reconciliatio
   let revision = false;
   const request = jest.fn(async path => {
     if (path.endsWith("/metadata")) { revision = true; throw Object.assign(new Error("Name changed elsewhere"), { status: 409 }); }
-    return { players: revision ? [{ ...profiles[0], name: "Other operator name" }] : profiles, hasMore: false };
+    return { players: revision ? [{ ...profiles[0], name: "Other operator name" }] : profiles, hasMore: false, guide };
   });
   render(<Players {...makeProps(request)} />); await edit();
   fireEvent.click(screen.getByRole("button", { name: "Save player name" }));
@@ -55,7 +56,7 @@ test("stale player metadata shows both names and requires explicit reconciliatio
 });
 
 test("departure save explains invalid corrections without sending a write or losing input", async () => {
-  const request = jest.fn(async () => ({ players: profiles, hasMore: false }));
+  const request = jest.fn(async () => ({ players: profiles, hasMore: false, guide }));
   render(<Players {...makeProps(request)} />); await edit();
   fireEvent.change(screen.getByLabelText("Correction reason"), { target: { value: "" } });
   fireEvent.click(screen.getByRole("button", { name: "View player Second player" }));

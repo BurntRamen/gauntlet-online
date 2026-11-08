@@ -474,6 +474,27 @@
 .admin-workspace .admin-draft-summary { grid-column:1; }
 .admin-content-browser.is-gallery ul { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:12px; padding:0; margin:0; list-style:none; }
 .admin-content-browser.is-gallery button { width:100%; text-align:left; }
+.admin-workspace .admin-home-grid { grid-template-areas:"pipelines attention" "pipelines release" "recent pins"; }
+.admin-workspace .admin-pipeline-launcher { grid-area:pipelines; }
+.admin-workspace .admin-home-attention { grid-area:attention; }
+.admin-workspace .admin-draft-summary { grid-area:release; }
+.admin-workspace .admin-home-recent { grid-area:recent; }
+.admin-workspace .admin-home-pins { grid-area:pins; }
+.admin-pipeline-launcher > div { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:16px; }
+.admin-workspace .admin-pipeline-launcher button { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px; min-height:62px; text-align:left; background:var(--admin-raised); }
+.admin-pipeline-launcher button strong { font-size:15px; font-weight:600; }
+.admin-production-task { border:1px solid #6a8f91; background:#142631; border-radius:8px; margin-bottom:16px; padding:12px 16px; clear:both; }
+.admin-production-task header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+.admin-production-task h3 { margin:4px 0 0; font-size:18px; }
+.admin-production-task .admin-actions { margin:0; }
+.admin-task-plan > .admin-actions { align-items:end; margin-bottom:16px; }
+.admin-task-plan label { display:grid; gap:6px; font-size:14px; }
+.admin-task-plan ol { counter-reset:step; list-style:none; padding:0; margin:0; display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.admin-workspace .admin-task-plan li { position:relative; padding:12px 12px 12px 50px; background:var(--admin-bg); border:1px solid var(--admin-line); border-radius:6px; }
+.admin-task-plan h4 { font-size:16px; margin:0; }
+.admin-task-plan p { font-size:14px; line-height:1.5; }
+.admin-task-plan li:before { counter-increment:step; content:counter(step); position:absolute; left:12px; width:26px; text-align:center; border-radius:50%; background:#29434b; color:#d3f1e8; line-height:26px; }
+.admin-task-plan footer { border-top:1px solid var(--admin-line); padding-top:12px; margin-top:16px; }
 @media(min-width:1200px) {
   .admin-workspace .has-preview.preview-open .design-content { grid-template-columns:minmax(0,1fr) 300px; }
   .admin-workspace .has-preview.preview-open .design-editor { display:block; }
@@ -495,17 +516,20 @@
 }
 @media(max-width:1000px) { .admin-workspace { display:block; }.admin-workspace .admin-rail { width:280px; } }
 @media(max-width:750px) {
+  .admin-workspace .admin-home-grid { grid-template-areas:"pipelines" "attention" "release" "recent" "pins"; }
+  .admin-task-plan ol { grid-template-columns:1fr; }
+  .admin-production-task { padding:12px; }
   .admin-workspace button { min-height:44px; }
-  .admin-topbar { height:88px; min-height:64px; padding:8px 12px; gap:8px; }
-  .admin-topbar .admin-save-context { font-size:13px; }
+  .admin-topbar { display:grid; grid-template-columns:auto minmax(0,1fr) auto auto; height:88px; min-height:64px; padding:8px 12px; gap:8px; }
+  .admin-topbar .admin-location,.admin-topbar .admin-location strong { min-width:0; overflow:hidden; text-overflow:ellipsis; }
+  .admin-topbar .admin-finder > button { font-size:0; min-width:44px; padding:8px; }
+  .admin-topbar .admin-finder > button > span { font-size:20px; }
+  .admin-topbar .admin-save-context { grid-column:1/-1; grid-row:2; order:initial; font-size:13px; }
   .admin-workspace .admin-body { padding:12px; }
   .admin-home-welcome { margin:0 0 16px; gap:12px; }
   .admin-home-grid,.admin-home-quick { display:grid; grid-template-columns:1fr; }
-  .admin-home-pins,.admin-home-attention { grid-column:auto; grid-row:auto; }
-  .admin-workspace .admin-home-attention,.admin-workspace .admin-draft-summary { grid-column:auto; grid-row:auto; }
   .admin-workspace .admin-content-context:has(> button:only-child) { float:none; margin:0 0 8px; }
   .admin-workspace .admin-content-context:has(> button:only-child) + div .design-workspace-header { padding-right:0; }
-  .admin-home-attention { order:1; }.admin-home-pins { order:2; }
   .admin-workspace .design-workshop:not(.has-selection) .design-selection { grid-template-columns:1fr; }
   .admin-workspace .design-header-actions { align-items:flex-start; }
   .admin-workspace .design-workspace-header { flex-wrap:wrap; }
