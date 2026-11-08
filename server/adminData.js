@@ -213,14 +213,14 @@ function createAdminData(deps) {
     const value = i => reads[i].status === "fulfilled" ? reads[i].value : null;
     const registry = value(0), state = value(1), people = value(2), health = value(3);
     const config = state?.live?.paraLeague || {};
-    const tasks = (registry?.modules || []).flatMap(row => row.blockers.map(message => ({ area: row.area, title: row.name, message })));
+    const tasks = (registry?.modules || []).flatMap(row => row.blockers.map(message => ({ area: row.area, title: row.name, message, kind: ["gems", "payments", "legacy"].includes(row.gate) ? "capability" : "attention" })));
     if (state?.draft) tasks.unshift({ area: "Publishing", title: "Shared draft needs review", message: `${state.changes.length} saved changes; validation ${state.validation.valid ? "passes" : "needs attention"}.` });
     if (state?.pending) tasks.unshift({ area: "Publishing", title: "Release pending", message: `Publication is ${state.pending.phase}. Verify deployment before calling it active.` });
     const para = value(4), pinned = new Map((para?.events || []).map(event => [event.id, event]));
     if (para?.failures?.length) tasks.push({ area: "Competition", title: "Para settlement needs review", message: `${para.failures.length} recorded failures. Inspect results and recovery evidence before intervening.` });
     for (const message of health?.issues || []) tasks.push({ area: "Operations", title: "Storage or recovery needs attention", message });
     for (let i = 0; i < reads.length; i++) if (reads[i].status === "rejected") tasks.push({ area: "Operations", title: "A data source could not be read", message: `${["Module capabilities", "Shared authoring", "Player accounts", "System health", "Para runtime"][i]} is unavailable; no empty-success state is inferred.` });
-    return { checkedAt: new Date().toISOString(), tasks, modules: registry?.modules || [],
+    return { guide: require("./adminHomeGuide.json"), checkedAt: new Date().toISOString(), tasks, modules: registry?.modules || [],
       seasons: [deps.runtime.season(), ...(state?.live?.competition?.ranked || []).map(s => ({ ...s, kind: "Ranked" })), ...(config.seasons || []).map(s => ({ ...s, kind: "Para", runtimeEnabled: !!deps.para?.enabled }))].filter(Boolean).filter((s, i, all) => all.findIndex(other => (other.id || other.seasonId) === (s.id || s.seasonId)) === i),
       events: [...require("./events").listEventDefinitions().map(e => ({ ...e, availability: deps.gold?.enabled ? { ...e.availability, label: "New entry closed after finite Gold cutover" } : e.availability })), ...[...new Set([...(config.events || []).map(e => e.id), ...pinned.keys()])].map(id => {
         const runtime = pinned.get(id), e = runtime?.definition || config.events.find(e => e.id === id);

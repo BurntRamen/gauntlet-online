@@ -214,7 +214,7 @@ test("preview uses the real card component and publication requires explicit rev
   expect(request).toHaveBeenCalledWith("/api/admin/authoring/preview", expect.objectContaining({ method: "POST" }));
   view.rerender(<GauntletAuthoring {...properties} area="Publishing" />);
   expect(await screen.findByRole("button", { name: "Publish release" })).toBeDisabled();
-  await screen.findByText("Ready for review and publishing");
+  await screen.findByText("Name this release before publishing.");
   fireEvent.change(screen.getByLabelText("Release name"), { target: { value: "Reviewed update" } });
   fireEvent.click(screen.getByRole("button", { name: "Publish release" }));
   expect(state.activeReleaseId).toBe("release-one");
@@ -306,6 +306,7 @@ test("a 409 keeps the original save revision until the operator explicitly selec
   fireEvent.click(screen.getByRole("button", { name: /^Save changes to/ }));
   const retry = await screen.findByRole("button", { name: "Use latest revision for retry" });
   expect(screen.getByLabelText("Draft name")).toHaveValue("Retained local name");
+  fireEvent.click(screen.getAllByText("Compare & revert")[0]);
   fireEvent.click(screen.getByText("Saved shared draft value"));
   expect(screen.getByText("Other operator name", { selector: "pre" })).toBeVisible();
   fireEvent.click(screen.getByRole("button", { name: /^Save changes to/ }));

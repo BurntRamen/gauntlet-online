@@ -1,12 +1,15 @@
+import { useHelp } from "./AuthoringHelp";
 import GauntletContractFields from "../GauntletContractFields";
 import Validation from "./WorkshopValidation";
 import { displayValue } from "./workshopValues";
 import { CatalogField } from "./CatalogControls";
 import { DeckField } from "./DeckCompositionField";
 import MechanicsEditor, { GeneratedWording } from "./MechanicsEditor";
+const selectedKey = (domain, id, field) => `${domain}-${id}-${field}`.replace(/[^a-zA-Z0-9_-]/g, "-");
 export { displayValue } from "./workshopValues";
 
 export default function WorkshopField({ state, domain, row, field, buffer, busy, onEdit, onInspect, onAsset, renderContract, onReset }) {
+  const helpCopy = useHelp();
   const rawDefinition = state.fields[domain]?.[row.id]?.[field];
   const definition = field === "effect" && rawDefinition ? { ...rawDefinition, abilityLabels: Object.fromEntries((state.workshopMetadata?.cardEffects || []).map(effect => [effect.id, effect.label])) } : rawDefinition;
   if (!definition) return null;
@@ -22,7 +25,10 @@ export default function WorkshopField({ state, domain, row, field, buffer, busy,
   const catalogType = ["pack-composition", "modifier-reference", "choice", "catalog-flags", "card-list", "printing-edition", "deck-reference", "deck-composition", "offer-prices", "offer-sale"].includes(definition.type);
   if (definition.type === "object" || catalogType) { try { contract = JSON.parse(value); } catch { contract = value; } }
   const selectedEffect = field === "effect" && state.workshopMetadata?.cardEffects?.find(effect => effect.id === contract?.id);
-  const controlProps = { "aria-label": `Draft ${definition.label.toLowerCase()}`, value, disabled, onChange: event => update(event.target.value) };
+  const errorId = `admin-error-${selectedKey(domain, row.id, field)}`;
+  const noteId = errorId + "-help";
+  const invalid = (state.validation?.errors || []).some(issue => issue.domain === domain && issue.id === row.id && issue.field === field);
+  const controlProps = { "aria-label": `Draft ${definition.label.toLowerCase()}`, value, disabled, "aria-invalid": invalid || undefined, "aria-describedby": [noteId, invalid && errorId].filter(Boolean).join(" "), onChange: event => update(event.target.value) };
   const structuredProps = { definition, row, guide: state.guide, value: contract, cards: (state.draft?.snapshot || state.live).domains.cards, disabled, onInspect, onChange: next => update(JSON.stringify(next, null, 2)) };
   let control;
   if (catalogType) {
@@ -42,15 +48,15 @@ export default function WorkshopField({ state, domain, row, field, buffer, busy,
 
   return <section id={`admin-field-${field}`} className={`admin-field ${changed ? "is-changed" : ""}`}>
     <div className="admin-title-row"><strong>{definition.label}</strong><span className={`admin-badge ${dirty ? "is-unsaved" : changed ? "is-draft" : "is-live"}`}>{dirty ? "Unsaved" : changed ? "Draft changed" : "Matches live"}</span></div>
-    <div className="admin-field-columns"><div className="admin-comparison"><details open={definition.type !== "object" && changed}><summary>{definition.type === "object" ? "Technical · live contract" : changed ? "Live value · changed in draft" : "Compare with live"}</summary><div className="admin-live-value" tabIndex={0} aria-label={`Current live ${definition.label.toLowerCase()}`}>{displayValue(live) || "—"}</div></details>{dirty && <details><summary>Saved shared draft value</summary><pre className="admin-protected">{displayValue(saved)}</pre></details>}</div>
-      <div>{!catalogType && <span className="sr-only">Draft {definition.label.toLowerCase()}</span>}{control}
+    <div className="admin-field-columns">
+      <div role="group" aria-label={definition.label} aria-describedby={controlProps["aria-describedby"]}>{!catalogType && <span className="sr-only">Draft {definition.label.toLowerCase()}</span>}{control}
       {domain === "cards" && field === "text" && ["composed-rumin-armament", "authored-mechanic"].includes(row.effect?.id) && <GeneratedWording studio={state.studio} row={row} disabled={disabled} onChange={update} />}
       {definition.type === "asset" && <button type="button" disabled={disabled} onClick={event => onAsset({ returnFocus: event.currentTarget, value, liveValue: live, media: definition.media, clearLabel: definition.required ? null : domain === "assets" && field === "art" ? "Use default artwork" : undefined, onSelect: update })}>Browse {definition.media === "audio" ? "audio" : "images"}</button>}
       {definition.type === "assets" && <div className="admin-actions">{(value || row[field]?.length ? value.split("\n") : []).map((entry, index) => <button key={index} type="button" disabled={disabled} onClick={event => onAsset({ returnFocus: event.currentTarget, value: entry, liveValue: live?.[index], media: definition.media, onSelect: next => { const lines = value.split("\n"); lines[index] = next; update(lines.join("\n")); } })}>Choose voice {index + 1}</button>)}<button type="button" disabled={disabled} onClick={event => onAsset({ returnFocus: event.currentTarget, value: "", media: definition.media, onSelect: next => update(value ? `${value}\n${next}` : next) })}>Add voice reference</button></div>}
       </div></div>
     {selectedEffect && dirty && <p className="admin-note">Selected effect: {selectedEffect.label} · {selectedEffect.description} Review the displayed wording before saving.</p>}
-    <p className="admin-note">{structuralLock ? state.guide.identityLock : definition.note || (["lines", "assets"].includes(definition.type) ? state.guide.linesHelp : catalogType ? state.guide.catalogField : definition.type === "integer" ? `Whole number from ${definition.min} to ${definition.max}.` : definition.type === "asset" ? state.guide.immutableAsset : `Up to ${definition.maxLength} characters.`)}</p>
-    <Validation guide={state.guide} validation={state.validation} domain={domain} id={row.id} field={field} />
-    <details className="admin-field-tools"><summary>Compare & revert</summary><div className="admin-actions">{dirty && <button type="button" disabled={disabled} onClick={onReset}>Reset local {definition.label.toLowerCase()}</button>}<button type="button" disabled={disabled || !state.live.domains[domain]?.some(entry => entry.id === row.id) || (!dirty && !changed)} onClick={() => update(definition.type === "card-list" ? JSON.stringify(live) : displayValue(live))}>Revert {definition.label.toLowerCase()} to live</button><p className="admin-note">Reverting changes your local value. Use Save changes to update this record in the shared draft.</p></div></details>
+    <p id={noteId} className="admin-note">{structuralLock ? state.guide.identityLock : definition.note || (["lines", "assets"].includes(definition.type) ? state.guide.linesHelp : catalogType ? state.guide.catalogField : definition.type === "integer" ? `Whole number from ${definition.min} to ${definition.max}.` : definition.type === "asset" ? state.guide.immutableAsset : `Up to ${definition.maxLength} characters.`)}</p>
+    <Validation errorId={errorId} guide={state.guide} validation={state.validation} domain={domain} id={row.id} field={field} />
+    <details className="admin-field-tools"><summary>Compare & revert</summary><div className="admin-comparison"><div><strong>Current live value</strong><div className="admin-live-value" tabIndex={0} aria-label={`Current live ${definition.label.toLowerCase()}`}>{displayValue(live) || "—"}</div></div>{dirty && <details><summary>Saved shared draft value</summary><pre className="admin-protected">{displayValue(saved)}</pre></details>}</div><div className="admin-actions">{dirty && <button type="button" disabled={disabled} onClick={onReset}>Reset local {definition.label.toLowerCase()}</button>}<button type="button" disabled={disabled || !state.live.domains[domain]?.some(entry => entry.id === row.id) || (!dirty && !changed)} onClick={() => update(definition.type === "card-list" ? JSON.stringify(live) : displayValue(live))}>Revert {definition.label.toLowerCase()} to live</button><p className="admin-note">{helpCopy.fieldNote1}</p></div></details>
   </section>;
 }

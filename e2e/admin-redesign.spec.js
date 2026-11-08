@@ -6,7 +6,7 @@ const path = require("node:path");
 
 const fixtureRoot = path.resolve(__dirname, "../.playwright-data/admin-redesign");
 const origin = `http://127.0.0.1:${process.env.GAUNTLET_ADMIN_FIXTURE_PORT || "4188"}`;
-const evidence = path.resolve(__dirname, "../docs/reviews/admin-workspace/after");
+const evidence = path.resolve(__dirname, process.env.GAUNTLET_ADMIN_EVIDENCE_DIR || "../docs/reviews/admin-workspace/after");
 const cardId = "rumin-coin-scale-spear";
 const sessions = () => JSON.parse(fs.readFileSync(path.join(fixtureRoot, "sessions.json"), "utf8"));
 const headers = name => ({ Authorization: `Bearer ${sessions()[name || "simply"]}` });
@@ -140,6 +140,7 @@ test("creation selects the new record and printing comparison retains the select
   await section(page, "Composition", "Deck Workshop");
   await expect(page.getByRole("region", { name: "Deck Workshop", exact: true })).toContainText("52");
   await image(page, "deck-composition-1366");
+  await page.getByRole("button", { name: "Back to list", exact: true }).click();
   await page.getByRole("button", { name: "Duplicate deck", exact: true }).click();
   await page.getByLabel("New content name", { exact: true }).fill("Redesign copied deck");
   await page.getByRole("button", { name: "Save new deck to draft", exact: true }).click();
@@ -177,6 +178,7 @@ test("keyboard search is a modal extension, restores focus and opens exact edita
 });
 
 test("operator preferences are scoped and private recent work clears when accounts change", async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
   await openCard(page);
   const browser = page.locator(".admin-content-browser");
   await browser.evaluate(element => element.scrollTo(0, 400));

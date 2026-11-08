@@ -1,8 +1,10 @@
+import { useHelp } from "./AuthoringHelp";
 import "./WorkshopPanels.css";
 
 const names = { "uses-effect": "Uses effect", "uses-card": "Uses card", "belongs-to": "Belongs to", "uses-asset": "Uses asset" };
 
 export default function RelatedContent({ data, domain, id, onInspect }) {
+  const helpCopy = useHelp();
   if (!data) return <p className="admin-note">Related content is not available yet.</p>;
   const graph = data.draft || data.current || data;
   const nodes = graph.nodes || [], edges = graph.edges || [];
@@ -14,6 +16,6 @@ export default function RelatedContent({ data, domain, id, onInspect }) {
   return <div className="design-related">
     {!unique.length ? <p className="admin-note">No authored references for this object.</p> : renderLinks(unique.slice(0, 6))}
     {unique.length > 6 && <details key={`${domain}:${id}`} className="design-related-more"><summary>Show all references ({unique.length})</summary>{renderLinks(unique.slice(6))}</details>}
-    <p className="admin-note">{typeof data.coverage === "string" ? data.coverage : "Authored content only. Player-owned decks and historical matches are outside this index."}</p>
+    <p className="admin-note">{typeof data.coverage === "string" ? data.coverage : helpCopy.relatedNote1}</p>
   </div>;
 }

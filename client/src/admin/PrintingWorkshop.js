@@ -1,3 +1,4 @@
+import { useHelp } from "./AuthoringHelp";
 import Help from "./AuthoringHelp";
 import { useState } from "react";
 import { PrivateCard, PrivateImage } from "./PrivateAsset";
@@ -29,10 +30,11 @@ export default function PrintingWorkshop({ card, variants, selected, state, fiel
 }
 
 export function EditionPrintings({ state, setId, onInspect }) {
+  const helpCopy = useHelp();
   const [query, setQuery] = useState("");
   const snapshot = state.draft?.snapshot || state.live;
   const rows = snapshot.domains.assets.filter(row => row.edition === setId).sort((a, b) => (a.position || 0) - (b.position || 0) || a.name.localeCompare(b.name));
   const visible = rows.filter(row => `${row.name} ${row.collectorNumber || ""} ${row.id}`.toLowerCase().includes(query.toLowerCase()));
   const image = row => (state.assetLibrary || []).find(asset => [asset.id, asset.source, asset.path].includes(row.art))?.path || (row.art?.startsWith("/") ? row.art : null);
-  return <section aria-label="Edition printings"><h4>Printings in this edition · {rows.length}</h4><Help topic="PrintingWorkshop2" /><label className="admin-search">Search edition printings<input value={query} onChange={event => setQuery(event.target.value)} placeholder="Card name, collector number or ID" /></label><p className="admin-note">{visible.length} of {rows.length} printings{query && <> · <button onClick={() => setQuery("")}>Clear search</button></>}</p><div className="admin-printing-list is-gallery">{visible.map(row => <button key={row.id} onClick={() => onInspect("assets", row.id)}>{image(row) && <PrivateImage loading="lazy" src={image(row)} alt="" />}<span><strong>{row.name}</strong><small>{row.collectorNumber || "Default"} · Order {row.position || 0}</small><small>{row.status || "active"}{row.status === "archived" ? " · references retained" : ""}</small></span></button>)}</div>{!visible.length && <p>{rows.length ? "No matching printings. Try another name or clear the search." : "No printings belong to this edition yet. Open a card’s Artwork section to create or duplicate a supported printing."}</p>}</section>;
+  return <section aria-label="Edition printings"><h4>Printings in this edition · {rows.length}</h4><Help topic="PrintingWorkshop2" /><label className="admin-search">Search edition printings<input value={query} onChange={event => setQuery(event.target.value)} placeholder="Card name, collector number or ID" /></label><p className="admin-note">{visible.length} of {rows.length} printings{query && <> · <button onClick={() => setQuery("")}>Clear search</button></>}</p><div className="admin-printing-list is-gallery">{visible.map(row => <button key={row.id} onClick={() => onInspect("assets", row.id)}>{image(row) && <PrivateImage loading="lazy" src={image(row)} alt="" />}<span><strong>{row.name}</strong><small>{row.collectorNumber || "Default"} · Order {row.position || 0}</small><small>{row.status || "active"}{row.status === "archived" ? " · references retained" : ""}</small></span></button>)}</div>{!visible.length && <p>{rows.length ? "No matching printings. Try another name or clear the search." : helpCopy.printingNote1}</p>}</section>;
 }

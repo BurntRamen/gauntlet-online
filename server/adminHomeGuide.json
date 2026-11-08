@@ -1,0 +1,14 @@
+{
+  "text1": "Review the saved changes across every workshop, resolve validation issues, and test this exact draft.",
+  "text2": "Save a content change to begin a shared draft. Publishing is a separate, deliberate step.",
+  "text3": "Configuration and activation are separate from publishing content.",
+  "text4": "Latest receipts in the account sample. Store & Economy retains ledger evidence and captured terms.",
+  "recentEmpty": "Your recently opened content will appear here. Start with a card, story, or deck.",
+  "pinnedEmpty": "Pin an item from its workspace to keep it close at hand.",
+  "releaseUnavailable": "Open Publishing to retry the connection and inspect its status.",
+  "welcome": "Resume an edit, resolve a blocker, or prepare the next release.",
+  "localEdits": "Local edits stay in your browser until you save them.",
+  "players": "Profile, collection, purchases & support →",
+  "matches": "Results, replay & original evidence →",
+  "encounters": "Story, setup & real engine testing →"
+}

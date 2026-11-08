@@ -1,12 +1,14 @@
+import { useHelp } from "./AuthoringHelp";
 import Help from "./AuthoringHelp";
 import { useEffect, useRef, useState } from "react";
 
 export function CatalogField({ definition, value, onChange, cards, editions = [], modifiers = [], disabled }) {
+  const helpCopy = useHelp();
   const [query, setQuery] = useState("");
   if (definition.type === "pack-composition") {
     const recipe = value || definition.defaultValue;
     const options = { common: "Common", uncommon: "Uncommon", rare: "Rare", mythic: "Mythic", wild: "Rare / mythic roll", face: "Face card" };
-    return <fieldset disabled={disabled}><legend>{definition.label}</legend><p>13 cards. Slots 1–4 guarantee one card of each suit, preferring common cards.</p><div className="admin-form-grid">{recipe.slots.slice(4).map((slot, index) => <label key={index}>Slot {index + 5}<select value={slot} onChange={event => onChange({ ...recipe, slots: recipe.slots.map((current, i) => i === index + 4 ? event.target.value : current) })}>{Object.entries(options).map(([id, name]) => <option key={id} value={id}>{name}</option>)}</select></label>)}</div><label>Mythic chance in rare / mythic slots (%)<input type="number" min={0} max={100} step={1} required value={recipe.wildMythicPercent} onChange={event => onChange({ ...recipe, wildMythicPercent: event.target.value === "" ? "" : Number(event.target.value) })} /></label><p className="admin-note">Existing face-card odds, card eligibility, pack credits and duplicate delivery still apply.</p></fieldset>;
+    return <fieldset disabled={disabled}><legend>{definition.label}</legend><p>{helpCopy.catalogNote1}</p><div className="admin-form-grid">{recipe.slots.slice(4).map((slot, index) => <label key={index}>Slot {index + 5}<select value={slot} onChange={event => onChange({ ...recipe, slots: recipe.slots.map((current, i) => i === index + 4 ? event.target.value : current) })}>{Object.entries(options).map(([id, name]) => <option key={id} value={id}>{name}</option>)}</select></label>)}</div><label>Mythic chance in rare / mythic slots (%)<input type="number" min={0} max={100} step={1} required value={recipe.wildMythicPercent} onChange={event => onChange({ ...recipe, wildMythicPercent: event.target.value === "" ? "" : Number(event.target.value) })} /></label><p className="admin-note">{helpCopy.catalogNote2}</p></fieldset>;
   }
   if (["printing-edition", "choice", "modifier-reference"].includes(definition.type)) {
     const options = definition.type === "printing-edition" ? editions : definition.type === "modifier-reference" ? [{ id: "", name: "Standard encounter setup" }, ...modifiers] : definition.options;

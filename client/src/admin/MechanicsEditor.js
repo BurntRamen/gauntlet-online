@@ -1,3 +1,4 @@
+import { useHelp } from "./AuthoringHelp";
 import ValueControl, { EditorValues, replaceAt, removeAt, moveUp } from "./ValueControl";
 import Help from "./AuthoringHelp";
 import GauntletContractFields from "../GauntletContractFields";
@@ -12,6 +13,7 @@ export function GeneratedWording({ row, studio, disabled, onChange }) {
 }
 
 export default function MechanicsEditor(props) {
+  const helpCopy = useHelp();
   const { value, row, onChange, disabled } = props;
   const authored = value?.id === mechanicContract.ID, mechanics = props.studio?.definitions || [];
   const composed = value?.id === contract.ID;
@@ -31,14 +33,14 @@ export default function MechanicsEditor(props) {
         {contract.conditions[ability.condition.kind] && <ValueControl label="Threshold" aria-label={`Ability ${index + 1} threshold`} type="number" required min={contract.conditions[ability.condition.kind][0]} max={contract.conditions[ability.condition.kind][1]} step={1} path={["abilities", index, "condition", "amount"]} />}
         {ability.effects.map((effect, i) => <div className="mechanics-operation" key={i}><span>Effect {i + 1}</span><ValueControl label="Operation" aria-label={`Ability ${index + 1} effect ${i + 1}`} path={["abilities", index, "effects", i, "kind"]} options={Object.entries(guidance.operationLabels)} onChange={kind => setAbility(index, { ...ability, effects: replaceAt(ability.effects, i, { kind, amount: effect.amount, ...contract.operations[kind] }) })} />
           <ValueControl label="Amount" aria-label={`Ability ${index + 1} effect ${i + 1} amount`} type="number" required min={1} max={contract.limits.amount} step={1} path={["abilities", index, "effects", i, "amount"]} />
-          <small>{effect.kind === "attackBonus" ? "Target: selected attacker · Expires when this combat ends" : "Target: your player · Immediate life gain"}</small>
+          <small>{effect.kind === "attackBonus" ? helpCopy.mechanicTarget : helpCopy.mechanicLife}</small>
           <div className="admin-actions"><button type="button" disabled={!i} onClick={() => setAbility(index, { ...ability, effects: moveUp(ability.effects, i) })}>Move effect {i + 1} up</button><button type="button" onClick={() => setAbility(index, { ...ability, effects: removeAt(ability.effects, i) })}>Remove effect {i + 1}</button></div>
         </div>)}
         <div className="admin-actions"><button type="button" disabled={ability.effects.length >= contract.limits.effects} onClick={() => setAbility(index, { ...ability, effects: [...ability.effects, copy(contract.ability().effects[0])] })}>Add effect to ability {index + 1}</button><button type="button" disabled={value.abilities.length >= contract.limits.abilities} onClick={() => onChange({ ...value, abilities: [...value.abilities, copy(ability)] })}>Duplicate ability {index + 1}</button><button type="button" onClick={() => remove(index)}>Remove ability {index + 1}</button></div>
       </fieldset>)}
       <button type="button" disabled={disabled || value.abilities.length >= contract.limits.abilities} onClick={() => onChange({ ...value, abilities: [...value.abilities, contract.ability()] })}>Add ability</button>
-      <section aria-label="Generated mechanics explanation"><h5>Executable behavior · generated explanation</h5><p className="mechanics-explanation">{guidance.explain(value, row)}</p><p className="admin-note">{row.text === guidance.explain(value, row) ? "Printed wording matches this generated explanation." : "Printed wording differs. Review it in Details after saving. Arbitrary prose is not verified as equivalent."}</p></section>
-      <details><summary>Engine-owned timing, payment, choices and limits</summary><Help topic="MechanicsEditor4" /><Help topic="MechanicsEditor5" /><p>Interpreter: {contract.VERSION}. Changing mechanics invalidates the saved draft test. A passing action is not evidence of balance.</p></details>
+      <section aria-label="Generated mechanics explanation"><h5>Executable behavior · generated explanation</h5><p className="mechanics-explanation">{guidance.explain(value, row)}</p><p className="admin-note">{row.text === guidance.explain(value, row) ? helpCopy.mechanicWording : helpCopy.mechanicsNote1}</p></section>
+      <details><summary>Engine-owned timing, payment, choices and limits</summary><Help topic="MechanicsEditor4" /><Help topic="MechanicsEditor5" /><p>Interpreter: {contract.VERSION}{helpCopy.mechanicsNote2}</p></details>
     </>}
   </>}</div></EditorValues>;
 }

@@ -1,5 +1,7 @@
+import { HelpProvider } from "./AuthoringHelp";
+const render = element => renderWithoutHelp(element, { wrapper: ({ children }) => <HelpProvider value={require("../../../server/adminAuthoringGuide").help}>{children}</HelpProvider> });
 import { useState } from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render as renderWithoutHelp, screen, fireEvent } from "@testing-library/react";
 import MechanicsEditor, { GeneratedWording } from "./MechanicsEditor";
 import contract from "@gauntlet/duel-rules/compositionContract";
 const row = { factionId: "rumin", type: "armament", text: "Printed prose" };

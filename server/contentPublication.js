@@ -149,7 +149,8 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
   }
   function project(state) {
     const live = state.releases[state.activeReleaseId];
-    const validation = validateAuthoredContent(state.draft?.snapshot || live.snapshot, baseline);
+    const contentHash = state.draft ? hash(state.draft.snapshot) : live.sha256;
+    const validation = { ...validateAuthoredContent(state.draft?.snapshot || live.snapshot, baseline), source: state.draft ? "draft" : "live", hash: contentHash, revision: state.revision };
     for (const row of state.draft?.snapshot.assetVersions || []) { try { imageAssets.verifiedBytes(row, state.assetBlobs); } catch (error) { validation.valid = false; validation.errors.push({ domain: "asset-library", id: row.id, message: error.message }); } }
     if (state.draft && state.draft.baseReleaseId !== live.id) { validation.valid = false; validation.errors.push({ message: "Draft base differs from the active release. Discard and recreate this draft." }); }
     const retained = state.draft && competition.retainedProblem(live.snapshot.competition, state.draft.snapshot.competition);
@@ -160,7 +161,7 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
       encounterSummaries: require("./encounterAuthoring").summaries(state.draft?.snapshot || live.snapshot),
       assetLibrary: [...require("./digitalDelivery").deliveryOptions(), ...imageAssets.entries(state)],
       assetCapacity: imageAssets.capacity(state, mediaStore),
-      live: clone(live.snapshot), draft: state.draft ? { ...clone(state.draft), hash: hash(state.draft.snapshot) } : null, changes: changes(state), validation,
+      live: clone(live.snapshot), draft: state.draft ? { ...clone(state.draft), hash: contentHash } : null, changes: changes(state), validation,
       studio: mechanicStudio.metadata(state.draft?.snapshot || live.snapshot),
       capabilities: { factionCreation: 1, encounterCreation: 1, ruleModifiers: 1, mechanicStudio: 2, catalogCreation: 1, imageUploads: 1, audioUploads: 1, remoteMedia: mediaStore ? 1 : 0, printingCreation: 1, authoredDecks: 1, deckOffers: 1, privateNotes: 1 },
       competition: { fields: competition.FIELDS, sourceEvents: require("./events").EVENT_DEFINITIONS, sourceSeason: require("./seasons").ACTIVE_SEASON,
