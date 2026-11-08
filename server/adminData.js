@@ -155,10 +155,11 @@ function projectPlayer(account, runtime, source) {
 }
 
 function createAdminData(deps) {
-  const catalog = async () => {
+  const readAuthoring = () => deps.publication?.summary ? deps.publication.summary() : deps.publication?.status();
+  const catalog = async (authoring) => {
     const data = buildCatalog(deps.runtime, deps.publication?.active());
     if (deps.publication) {
-      const state = await deps.publication.status();
+      const state = await (authoring || readAuthoring());
       data.versions.authoredSchema = state.live.schemaVersion;
       data.game.modes = data.game.modes.map((mode) => ({ ...mode, ...state.live.domains.game.find((entry) => entry.id === mode.id) }));
       data.game.enablement = "Mode presentation uses published content. Mode enablement, rules, deck slots, rewards and progression gates remain engine-controlled.";
@@ -202,14 +203,17 @@ function createAdminData(deps) {
     } })) };
   }
 
-  async function modules() {
-    const [authoring, deck] = await Promise.allSettled([deps.publication?.status(), deps.deckCapability?.()]);
-    return require("./adminModules").projectModules({ environment: deps.environment, authoring: authoring.status === "fulfilled" ? authoring.value : null,
+  async function modules(authoring) {
+    const [state, deck] = await Promise.allSettled([authoring || readAuthoring(), deps.deckCapability?.()]);
+    return require("./adminModules").projectModules({ environment: deps.environment, authoring: state.status === "fulfilled" ? state.value : null,
       deck: deck.status === "fulfilled" ? deck.value : null, para: deps.para?.status(), gold: deps.gold?.status() });
   }
 
   async function home() {
-    const reads = await Promise.allSettled([modules(), deps.publication?.status(), players({ limit: "100" }), system(), Promise.resolve().then(() => deps.para?.inspect?.())]);
+    // One fresh read per request keeps the release, capabilities and health on
+    // the same revision without repeatedly building the full editor catalog.
+    const authoring = Promise.resolve().then(readAuthoring);
+    const reads = await Promise.allSettled([modules(authoring), authoring, players({ limit: "100" }), system(authoring), Promise.resolve().then(() => deps.para?.inspect?.())]);
     const value = i => reads[i].status === "fulfilled" ? reads[i].value : null;
     const registry = value(0), state = value(1), people = value(2), health = value(3);
     const config = state?.live?.paraLeague || {};
@@ -297,12 +301,12 @@ function createAdminData(deps) {
       note: "Existing public evidence projection. Private hands, room snapshots and reconnect credentials are not read. No events or provenance are rewritten." } };
   }
 
-  async function system() {
+  async function system(authoring) {
     const checkedAt = new Date().toISOString();
     const checks = await Promise.allSettled([players({ limit: "1" }), storedMatches(1), deps.archive.probe()]);
     const persistence = deps.persistence.status();
     const archive = deps.archive.status();
-    const current = await catalog();
+    const current = await catalog(authoring);
     const runtime = deps.runtimeStorage?.();
     return {
       guide: require("./adminSystemGuide.json"), checkedAt, environment: deps.environment || "unspecified", applicationVersion: require("./package.json").version,
