@@ -140,8 +140,8 @@ function createGitHubContentPublication({ baseline, draftStore = null, mediaStor
   async function requirePrivateStorage() {
     if (!await hasPrivateStorage()) fail(503, "Private drafts require a verified private repository or configured private Supabase authoring storage. No private changes were saved.");
   }
-  function project(state, privateStorageReady = true) {
-    const view = core(state).status();
+  function project(state, privateStorageReady = true, summary = false) {
+    const store = core(state), view = summary ? store.summary() : store.status();
     return { ...view, writable: !!token && privateStorageReady && !state.pending, provider: "github", draftStorage: draftStore ? "supabase-private" : "github", privateStorageReady,
       authoringError: !privateStorageReady && token ? "Private editing and publication are unavailable. Case must configure private Supabase authoring storage. Live inspection and live tests remain available." : null,
       storage: dataOnly && privateStorageReady ? "Private drafts and immutable releases in Supabase. Checked GitHub content merges activate without an application restart; code changes require deployment." : !privateStorageReady ? "Private draft editing is unavailable. Configure private Supabase authoring storage; this repository is public or unverified. Live inspection and live playtests remain available." : draftStore ? "Private drafts, uploads and notes in Supabase. Published releases use GitHub checks and deployment." : "Shared drafts and release history in private GitHub storage. Publishing waits for checks and deployment.",
@@ -282,6 +282,7 @@ function createGitHubContentPublication({ baseline, draftStore = null, mediaStor
       return body?.then ? body.then(project) : project(body);
     },
     status: async () => project((await load()).state, await hasPrivateStorage()),
+    summary: async () => project((await load()).state, await hasPrivateStorage(), true),
     lookupCard: id => clone(resolvedActive().cards.get(id) || null), lookupVariant: id => clone(resolvedActive().variants.get(id) || null),
     lookupSet: id => clone(resolvedActive().resolved.manifest.draftSets.find(set => set.id === id) || null),
     paraDraft: (args, actor) => operate("paraDraft", args, actor),

@@ -147,7 +147,7 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
     }));
     return [...contentChanges, ...paraChanges, ...competition.changes(live.competition, state.draft.snapshot.competition), ...mechanicStudio.changes(live.studio, state.draft.snapshot.studio)];
   }
-  function project(state) {
+  function project(state, summary = false) {
     const live = state.releases[state.activeReleaseId];
     const contentHash = state.draft ? hash(state.draft.snapshot) : live.sha256;
     const validation = { ...validateAuthoredContent(state.draft?.snapshot || live.snapshot, baseline), source: state.draft ? "draft" : "live", hash: contentHash, revision: state.revision };
@@ -155,13 +155,15 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
     if (state.draft && state.draft.baseReleaseId !== live.id) { validation.valid = false; validation.errors.push({ message: "Draft base differs from the active release. Discard and recreate this draft." }); }
     const retained = state.draft && competition.retainedProblem(live.snapshot.competition, state.draft.snapshot.competition);
     if (retained) { validation.valid = false; validation.errors.push({ message: retained }); }
-    return { revision: state.revision, writable: writable && provider === "local", storage: "Atomic JSON on the configured server volume; one shared draft", activeReleaseId: live.id,
+    const overview = { revision: state.revision, writable: writable && provider === "local", storage: "Atomic JSON on the configured server volume; one shared draft", activeReleaseId: live.id,
       publication: { provider, supported: provider === "local", github: "unavailable", activeReleaseId: live.id, deployment: provider === "local" ? "active-on-this-server" : "unsupported-provider", message: "Local publication activates this server immediately." },
+      live: clone(live.snapshot), draft: state.draft ? { ...clone(state.draft), hash: contentHash } : null, changes: changes(state), validation };
+    if (summary) return overview;
+    return { ...overview,
       guide: require("./adminAuthoringGuide"),
       encounterSummaries: require("./encounterAuthoring").summaries(state.draft?.snapshot || live.snapshot),
       assetLibrary: [...require("./digitalDelivery").deliveryOptions(), ...imageAssets.entries(state)],
       assetCapacity: imageAssets.capacity(state, mediaStore),
-      live: clone(live.snapshot), draft: state.draft ? { ...clone(state.draft), hash: contentHash } : null, changes: changes(state), validation,
       studio: mechanicStudio.metadata(state.draft?.snapshot || live.snapshot),
       capabilities: { factionCreation: 1, encounterCreation: 1, ruleModifiers: 1, mechanicStudio: 2, catalogCreation: 1, imageUploads: 1, audioUploads: 1, remoteMedia: mediaStore ? 1 : 0, printingCreation: 1, authoredDecks: 1, deckOffers: 1, privateNotes: 1 },
       competition: { fields: competition.FIELDS, sourceEvents: require("./events").EVENT_DEFINITIONS, sourceSeason: require("./seasons").ACTIVE_SEASON,
@@ -484,6 +486,7 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
   return { published, paraDraft, paraSimulation, competitionDraft, studioDraft, saveNotes, uploadAsset, migrateAssets,
     assetStorageUsage: () => mediaStore ? mediaStore.capacity() : imageAssets.capacity(read()),
     verifyMedia: async () => { if (mediaStore) { const state = read(); await mediaStore.ensurePrivate(); await mediaStore.verify(Object.values(state.releases).flatMap(release => release.snapshot.assetVersions || []), state.assetBlobs || {}); } },
+    summary: () => project(read(), true),
     archiveAsset, privateAsset, publicAsset, exportState: () => clone(read()), releaseSnapshot, active, lookupCard, lookupVariant, lookupSet, status: () => project(read()), create, patch, patchRecord, discard, preview, publish: verifiedActivation(publish), rollback: verifiedActivation(rollback), playtestContent, recordPlaytest };
 }
 
