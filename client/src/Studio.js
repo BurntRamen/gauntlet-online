@@ -15,6 +15,11 @@ function Status({ good, children }) {
   return <span className={`studio-status ${good ? "is-good" : "is-warning"}`}>{children}</span>;
 }
 
+function Operations({ load, children }) {
+  useEffect(() => { load(); }, [load]);
+  return children;
+}
+
 export default function Studio({ serverUrl, authToken = "", onSignIn, onAuthorizedChange, onClose, exitGuard, onOpenMatch, onOpenReplay }) {
   const sessionRef = useRef("");
   const [authorizedToken, setAuthorizedToken] = useState("");
@@ -81,10 +86,6 @@ export default function Studio({ serverUrl, authToken = "", onSignIn, onAuthoriz
     catch (failure) { setError(failure.message); }
     finally { setLoading(false); }
   }, [ownerRequest]);
-
-  useEffect(() => {
-    if (authorizedToken && authorizedToken === authToken) loadOverview();
-  }, [authorizedToken, authToken, loadOverview]);
 
   async function downloadMatchJson(matchId) {
     try {
@@ -246,5 +247,5 @@ export default function Studio({ serverUrl, authToken = "", onSignIn, onAuthoriz
       <p className="studio-generated">Generated {formatDate(overview?.generatedAt)} · account storage {system.accountStorage || "unknown"} · Supabase {system.supabaseConfigured ? "configured" : "not configured"}</p>
     </div>
   ) : <p role={error ? "alert" : "status"}>{error || "Loading existing operations…"}</p>;
-  return <GauntletAdmin key={`${serverUrl}:${operatorId}`} operatorScope={operatorId ? `${serverUrl}:${operatorId}` : ""} environment={serverUrl} exitGuard={exitGuard} request={ownerRequest} onClose={onClose || closeAdmin} operations={operations} />;
+  return <GauntletAdmin key={`${serverUrl}:${operatorId}`} operatorScope={operatorId ? `${serverUrl}:${operatorId}` : ""} environment={serverUrl} exitGuard={exitGuard} request={ownerRequest} onClose={onClose || closeAdmin} operations={<Operations load={loadOverview}>{operations}</Operations>} />;
 }

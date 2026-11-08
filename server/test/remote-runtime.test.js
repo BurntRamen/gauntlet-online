@@ -21,6 +21,45 @@ const room = () => ({ roomCode: "ABC123", lobby: { players: { 1: { socket: "priv
   game: { phase: "priority", revision: 4, players: { 1: { hand: [{ id: "hidden" }], deck: [{ id: "next" }] } } },
   duelCommandResults: { action: { fingerprint: "fingerprint", result: { accepted: true } } }, aiMoveDueAt: 1800000000000 });
 
+test("unchanged shutdown and backup checkpoints do not invalidate a replacement process", async t => {
+  const { db, call } = await database(t);
+  const outgoing = createRemoteRoomStateStore({ request: call });
+  await outgoing.loadRooms();
+  const initial = await outgoing.saveRooms([]);
+  assert.equal(initial.revision, 1); // Initialize even an empty store.
+  const incoming = createRemoteRoomStateStore({ request: call });
+  assert.deepEqual(await incoming.loadRooms(), []);
+  const shutdown = await outgoing.saveRooms([], Date.now() + 1000);
+  const backup = await incoming.saveRooms([], Date.now() + 2000);
+  for (const receipt of [shutdown, backup]) {
+    assert.equal(receipt.unchanged, true);
+    assert.equal(receipt.revision, initial.revision);
+    assert.equal(new Date(receipt.savedAt).getTime(), new Date(initial.savedAt).getTime());
+  }
+  assert.equal((await db.query("select count(*)::int n from public.gauntlet_runtime_commits")).rows[0].n, 1);
+  const mutation = await incoming.saveRooms([room()]);
+  assert.equal(mutation.revision, 2);
+  assert.equal(incoming.status().health, "healthy");
+});
+
+test("room checkpoint deduplication preserves real conflicts and failed-state blocking", async t => {
+  const { call } = await database(t);
+  const a = createRemoteRoomStateStore({ request: call });
+  await a.loadRooms(); await a.saveRooms([room()]);
+  const b = createRemoteRoomStateStore({ request: call });
+  const recovered = await b.loadRooms();
+  await b.saveRooms(recovered); // Recovery metadata is a real change.
+  const unchanged = await b.saveRooms(recovered);
+  assert.equal(unchanged.unchanged, true);
+  const edited = room(); edited.game.revision++;
+  await assert.rejects(a.saveRooms([edited]), { code: "RUNTIME_UNAVAILABLE" });
+  // Returning to an earlier payload must not hide an uncertain/stale commit.
+  await assert.rejects(a.saveRooms([room()]), { code: "RUNTIME_UNAVAILABLE" });
+  assert.equal(a.status().lastSaveFailed, true);
+  const fresh = createRemoteRoomStateStore({ request: call });
+  assert.equal((await fresh.loadRooms())[0].game.revision, 4);
+});
+
 test("PostgreSQL atomically commits runtime state, rejects stale writers and protects private tables", async t => {
   const { db, call } = await database(t);
   await db.exec("set role service_role");
