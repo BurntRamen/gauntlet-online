@@ -30,6 +30,9 @@ test("authoring projection retains every compatible card effect without repeatin
   assert.ok(Buffer.byteLength(JSON.stringify(state.fields)) < 9 * 1024 * 1024, "Per-row editor metadata must stay within 9 MiB after the complete Continuants catalog is included.");
   assert.deepEqual(require("../authoredContent").FIELDS.cards.effect.options, effects, "Response projection must not modify shared validation metadata.");
   assert.deepEqual(state.live, baseline, "Projection must preserve the public content snapshot.");
+  assert.equal(state.validation.source, "live");
+  assert.equal(state.validation.hash, hash(state.live));
+  assert.equal(state.validation.revision, state.revision);
 });
 
 test("saving an unpublished card's faction and type refreshes its compatible effect choices", () => {
@@ -50,6 +53,9 @@ test("saving an unpublished card's faction and type refreshes its compatible eff
     assert.ok(compatible.length > 0);
     assert.deepEqual(state.fields.cards[card.id].effect.options, compatible, `The ${field} save response must include the new choices.`);
     assert.deepEqual(store.status().fields.cards[card.id].effect.options, compatible, "Reloading must retain those choices.");
+    assert.equal(state.validation.source, "draft");
+    assert.equal(state.validation.hash, state.draft.hash);
+    assert.equal(state.validation.revision, state.revision);
   }
   assert.deepEqual(require("../authoredContent").FIELDS.cards.effect.options, effects);
 });

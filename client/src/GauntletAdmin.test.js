@@ -14,14 +14,14 @@ const catalog = {
   game: { modes: [{ id: "basic", name: "Basic duel" }], startingState: { life: 42 }, deckRules: { size: 52 }, abilities: {}, season: {} },
   publishing: { model: "source-controlled", source: "server/gameContent.js", snapshot: { sha256: "fingerprint" }, stages: [{ name: "Draft", status: "Source branch", detail: "No stored draft." }] }
 };
-const system = { environment: "test", checkedAt: "2026-10-02T00:00:00Z", issues: [], versions: {}, storage: {}, sources: [], boundaries: [], validation: { message: "Registry passed." } };
+const system = { guide: require("../../server/adminSystemGuide.json"), environment: "test", checkedAt: "2026-10-02T00:00:00Z", issues: [], versions: {}, storage: {}, sources: [], boundaries: [], validation: { message: "Registry passed." } };
 const respond = async (path) => {
-  if (path.endsWith("/home")) return { seasons: [], events: [], purchases: [], modules: [], tasks: [], storefront: { accountProducts: 0, digitalProducts: 0 }, players: { seenLastDay: 1, scope: "Account sample" }, publication: { activeReleaseId: "content-v1" } };
+  if (path.endsWith("/home")) return { guide: require("../../server/adminHomeGuide.json"), seasons: [], events: [], purchases: [], modules: [], tasks: [], storefront: { accountProducts: 0, digitalProducts: 0 }, players: { seenLastDay: 1, scope: "Account sample" }, publication: { activeReleaseId: "content-v1" } };
   if (path.endsWith("/catalog")) return catalog;
   if (path.endsWith("/system")) return system;
-  if (path.endsWith(`/matches/${id}`)) return { match: record, provenance: { source: "canonical archive", integrity: "verified" } };
-  if (path.endsWith("/matches")) return { matches: [record], issues: [], scope: "Recent 100 per store" };
-  if (path.includes("/players?")) return { players: [{ id, name: "Player A", campaigns: [], decks: [], matchReferences: [], unlocks: {} }], source: "local JSON", hasMore: false };
+  if (path.endsWith(`/matches/${id}`)) return { guide: require("../../server/adminMatchGuide.json"), match: record, provenance: { source: "canonical archive", integrity: "verified" } };
+  if (path.endsWith("/matches")) return { guide: require("../../server/adminMatchGuide.json"), matches: [record], issues: [], scope: "Recent 100 per store" };
+  if (path.includes("/players?")) return { guide: require("../../server/adminPlayerGuide.json"), players: [{ id, name: "Player A", campaigns: [], decks: [], matchReferences: [], unlocks: {} }], source: "local JSON", hasMore: false };
   throw new Error("Unexpected route");
 };
 const request = jest.fn();
@@ -33,11 +33,11 @@ function select(area) {
   if (area === "System") fireEvent.click(screen.getByRole("button", { name: "Health" }));
 }
 
-test("the redesigned shell follows the eligible account's optional brand and clears it for public use", async () => {
+test("the private workspace uses SuitFire while return navigation follows the selected public appearance", async () => {
   setAccountBrand({ id: "admin-brand-preview", brandPreview: "suitfire" });
   chooseBrand("suitfire");
   const view = render(<GauntletAdmin request={request} onClose={() => {}} />);
-  await screen.findByRole("heading", { name: "Make your next move." });
+  await screen.findByRole("heading", { name: "Your production workspace" });
   expect(screen.getByRole("region", { name: "SuitFire Admin" })).toBeVisible();
   expect(screen.getByText("SUITFIRE")).toBeVisible();
   expect(screen.getAllByRole("button", { name: /Back to SuitFire/ })).toHaveLength(2);
@@ -45,7 +45,7 @@ test("the redesigned shell follows the eligible account's optional brand and cle
   setAccountBrand(null);
   view.rerender(<GauntletAdmin request={request} onClose={() => {}} />);
   expect(screen.getByRole("region", { name: "Gauntlet Admin" })).toBeVisible();
-  expect(screen.getByText("GAUNTLET")).toBeVisible();
+  expect(screen.getByText("SUITFIRE")).toBeVisible();
   expect(screen.getAllByRole("button", { name: /Back to Gauntlet/ })).toHaveLength(2);
 });
 
@@ -53,16 +53,16 @@ test.each(["Content", "Players"])("Home defers the catalog until %s needs it, th
   const catalogReads = () => request.mock.calls.filter(([path]) => path === "/api/admin/catalog").length;
   const ready = () => screen.findByText(area === "Content" ? "Catalog ready" : "Player A");
   render(<GauntletAdmin request={request} onClose={() => {}} />);
-  await screen.findByRole("heading", { name: "Make your next move." });
+  await screen.findByRole("heading", { name: "Your production workspace" });
   expect(catalogReads()).toBe(0);
   fireEvent.click(screen.getByText("Refresh admin"));
-  await screen.findByRole("heading", { name: "Make your next move." });
+  await screen.findByRole("heading", { name: "Your production workspace" });
   expect(catalogReads()).toBe(0);
   select(area);
   await waitFor(() => expect(catalogReads()).toBe(1));
   await ready();
   select("Home");
-  await screen.findByRole("heading", { name: "Make your next move." });
+  await screen.findByRole("heading", { name: "Your production workspace" });
   select(area);
   await ready();
   expect(catalogReads()).toBe(1);

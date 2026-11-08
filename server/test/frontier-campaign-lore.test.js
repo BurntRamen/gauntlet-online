@@ -16,7 +16,6 @@ test("Mercaw campaign centers Gerrick and preserves political divisions inside t
   assert.equal(FRONTIER_CAMPAIGN_CHARACTERS.mercaw.gerrick.role, "Commander of the Mercaw Revolution");
   assert.match(FRONTIER_CAMPAIGN_CHARACTERS.mercaw.mara.description, /without replacing Gerrick/i);
 });
-
 test("Ingles campaign is a generational chronicle rather than a single invented commander's story", () => {
   assert.equal(FRONTIER_CAMPAIGNS.ingles.length, 12);
   const perspectives = new Set(FRONTIER_CAMPAIGNS.ingles.map((chapter) => chapter.playableName));
@@ -26,4 +25,3 @@ test("Ingles campaign is a generational chronicle rather than a single invented 
   assert.match(FRONTIER_FACTIONS.ingles.reathArrival, /meeting place/i);
   assert.doesNotMatch(FRONTIER_FACTIONS.ingles.origin, /Reath/i);
 });
-

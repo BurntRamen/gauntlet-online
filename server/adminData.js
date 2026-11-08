@@ -191,7 +191,7 @@ function createAdminData(deps) {
       accounts = readLocalRows(deps.accountFile, "accounts").filter(a => !search || (byId ? a.id === search : String(a.name).toLowerCase().includes(search.toLowerCase()))).sort((a, b) => String(a.id).localeCompare(String(b.id))).slice(offset, offset + limit + 1);
     }
     accounts = accounts.map(account => deps.projectAccount ? deps.projectAccount(account) : account);
-    return { source: accountSource(), offset, limit, query: search, hasMore: accounts.length > limit, players: accounts.slice(0, limit).map((account) => ({ ...projectPlayer(account, deps.runtime, accountSource()), commerce: {
+    return { guide: require("./adminPlayerGuide.json"), source: accountSource(), offset, limit, query: search, hasMore: accounts.length > limit, players: accounts.slice(0, limit).map((account) => ({ ...projectPlayer(account, deps.runtime, accountSource()), commerce: {
       source: deps.gold?.enabled ? "Finite Gold ledger owns Gold; account Gold is historical only." : "Account balances",
       gold: deps.gold?.enabled ? null : require("./economy").normalizeEconomy(account.stats).gold,
       timetwisters: require("./economy").normalizeEconomy(account.stats).timetwisters,
@@ -213,14 +213,14 @@ function createAdminData(deps) {
     const value = i => reads[i].status === "fulfilled" ? reads[i].value : null;
     const registry = value(0), state = value(1), people = value(2), health = value(3);
     const config = state?.live?.paraLeague || {};
-    const tasks = (registry?.modules || []).flatMap(row => row.blockers.map(message => ({ area: row.area, title: row.name, message })));
+    const tasks = (registry?.modules || []).flatMap(row => row.blockers.map(message => ({ area: row.area, title: row.name, message, kind: ["gems", "payments", "legacy"].includes(row.gate) ? "capability" : "attention" })));
     if (state?.draft) tasks.unshift({ area: "Publishing", title: "Shared draft needs review", message: `${state.changes.length} saved changes; validation ${state.validation.valid ? "passes" : "needs attention"}.` });
     if (state?.pending) tasks.unshift({ area: "Publishing", title: "Release pending", message: `Publication is ${state.pending.phase}. Verify deployment before calling it active.` });
     const para = value(4), pinned = new Map((para?.events || []).map(event => [event.id, event]));
     if (para?.failures?.length) tasks.push({ area: "Competition", title: "Para settlement needs review", message: `${para.failures.length} recorded failures. Inspect results and recovery evidence before intervening.` });
     for (const message of health?.issues || []) tasks.push({ area: "Operations", title: "Storage or recovery needs attention", message });
     for (let i = 0; i < reads.length; i++) if (reads[i].status === "rejected") tasks.push({ area: "Operations", title: "A data source could not be read", message: `${["Module capabilities", "Shared authoring", "Player accounts", "System health", "Para runtime"][i]} is unavailable; no empty-success state is inferred.` });
-    return { checkedAt: new Date().toISOString(), tasks, modules: registry?.modules || [],
+    return { guide: require("./adminHomeGuide.json"), pipelines: require("./adminProductionPipelines").definitions, checkedAt: new Date().toISOString(), tasks, modules: registry?.modules || [],
       seasons: [deps.runtime.season(), ...(state?.live?.competition?.ranked || []).map(s => ({ ...s, kind: "Ranked" })), ...(config.seasons || []).map(s => ({ ...s, kind: "Para", runtimeEnabled: !!deps.para?.enabled }))].filter(Boolean).filter((s, i, all) => all.findIndex(other => (other.id || other.seasonId) === (s.id || s.seasonId)) === i),
       events: [...require("./events").listEventDefinitions().map(e => ({ ...e, availability: deps.gold?.enabled ? { ...e.availability, label: "New entry closed after finite Gold cutover" } : e.availability })), ...[...new Set([...(config.events || []).map(e => e.id), ...pinned.keys()])].map(id => {
         const runtime = pinned.get(id), e = runtime?.definition || config.events.find(e => e.id === id);
@@ -275,7 +275,7 @@ function createAdminData(deps) {
       });
     } else issues.push("Match archive index could not be read.");
     if (!deps.archive.status().available) issues.push("Optional canonical archive is unavailable; storage records may still be available.");
-    return { scope: "Up to 100 recent records from each server store, merged by match ID. Search is limited to this window; exact ID lookup can find older records. Browser-only Match Libraries are not included.",
+    return { guide: require("./adminMatchGuide.json"), scope: "Up to 100 recent records from each server store, merged by match ID. Search is limited to this window; exact ID lookup can find older records. Browser-only Match Libraries are not included.",
       issues, matches: [...records.values()].sort((a, b) => String(b.record.completedAt).localeCompare(String(a.record.completedAt))).map(({ record, ...provenance }) => ({ ...publicMatchSummary(record), provenance })) };
   }
 
@@ -292,7 +292,7 @@ function createAdminData(deps) {
     let status = null;
     try { status = deps.publication ? await deps.publication.status() : null; } catch { /* Recorded evidence remains readable when current authoring is unavailable. */ }
     const projected = publicMatchRecord(record);
-    return { match: projected, design: require("./adminMatchDesign").projectMatchDesign(projected, status?.live, status?.draft?.snapshot), provenance: { source: archived ? "canonical archive" : deps.persistence.status().mode,
+    return { guide: require("./adminMatchGuide.json"), match: projected, design: require("./adminMatchDesign").projectMatchDesign(projected, status?.live, status?.draft?.snapshot), provenance: { source: archived ? "canonical archive" : deps.persistence.status().mode,
       integrity: archived ? "verified" : "not-verified", sha256: archived?.index.sha256 || null,
       note: "Existing public evidence projection. Private hands, room snapshots and reconnect credentials are not read. No events or provenance are rewritten." } };
   }
@@ -305,7 +305,7 @@ function createAdminData(deps) {
     const current = await catalog();
     const runtime = deps.runtimeStorage?.();
     return {
-      checkedAt, environment: deps.environment || "unspecified", applicationVersion: require("./package.json").version,
+      guide: require("./adminSystemGuide.json"), checkedAt, environment: deps.environment || "unspecified", applicationVersion: require("./package.json").version,
       backendCommit: deps.backendCommit || null,
       adminAccess: { model: "Two authenticated account IDs", configuredAccounts: deps.adminAccountCount, expectedAccounts: 2 },
       versions: { ...current.versions, record: MATCH_RECORD_VERSION, leagueEvidence: LEAGUE_EVIDENCE_VERSION, publicReplayFrame: PUBLIC_REPLAY_FRAME_VERSION,

@@ -1,17 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useOperatorPreferences } from "./OperatorPreferences";
 
-const domains = new Set(["encounters", "cards", "sets", "rule-modifiers", "mechanics", "card-effects", "faction-effects", "encounter-mechanics", "game", "modes", "campaigns", "factions", "decks", "offers", "characters", "assets", "asset-library"]);
+import { domains, workshopTarget, targetFromLocation } from "./workshopTargets";
+export { workshopTarget, targetFromLocation } from "./workshopTargets";
+
 const filterKeys = ["query", "campaign", "sort", "faction", "type"];
 const boundedFilters = values => Object.fromEntries(Object.entries(values || {}).filter(([name, value]) => filterKeys.includes(name) && typeof value === "string").map(([name, value]) => [name, value.slice(0, 240)]));
-export function workshopTarget(value, fallback = { domain: "encounters", id: null }) {
-  if (!value || !domains.has(value.domain)) return fallback;
-  return { domain: value.domain, id: typeof value.id === "string" && value.id.length <= 240 ? value.id : null, ...(typeof value.field === "string" && /^[a-zA-Z][a-zA-Z0-9]{0,59}$/.test(value.field) ? { field: value.field } : {}), section: typeof value.section === "string" && /^[a-z-]{1,60}$/.test(value.section) ? value.section : null, ...(typeof value.cardId === "string" && value.cardId.length <= 240 ? { cardId: value.cardId } : {}) };
-}
-export function targetFromLocation(fallback) {
-  const params = new URLSearchParams(window.location.search);
-  return workshopTarget({ domain: params.get("workshop"), id: params.get("object"), section: params.get("section"), cardId: params.get("testCard"), field: params.get("field") }, fallback);
-}
 
 // One editing buffer belongs to the active object. Navigation stores context,
 // never form values; server draft revisions remain the save authority.
@@ -60,13 +54,14 @@ export default function useWorkshopContext({ initialTarget, dirty, busy, onDisca
     const previous = current.current.target;
     setContexts(values => ({ ...values, [previous.domain]: { ...values[previous.domain], target: previous, scroll: window.scrollY } }));
   }, []);
-  const navigate = useCallback((value) => {
+  const navigate = useCallback((value, accepted) => {
     const next = workshopTarget(value, current.current.target);
     return requestLeave(() => {
     if (JSON.stringify(next) === JSON.stringify(current.current.target)) {
       // The object may already be selected while Publishing hides its workshop.
       // Reopen that view without adding history or resetting its saved context.
       current.current.onNavigate?.(current.current.target);
+      accepted?.();
       return;
     }
     const saved = current.current.contexts[next.domain];
@@ -83,6 +78,7 @@ export default function useWorkshopContext({ initialTarget, dirty, busy, onDisca
     if (next.cardId) url.searchParams.set("testCard", next.cardId); else url.searchParams.delete("testCard");
     window.history.pushState({ ...window.history.state, gauntletWorkshop: index.current, workshopTarget: next }, "", url);
     applyTarget(next);
+    accepted?.();
     requestAnimationFrame(() => {
       if (mounted.current && current.current.target === next && !next.section && !next.field) {
         document.getElementById("workshop-context")?.focus({ preventScroll: true });

@@ -11,7 +11,7 @@ const definition = { type: "object", label: "Encounter mechanics", rules: { boss
 const state = { revision: 3, activeReleaseId: "release-live", guide: {}, validation: { valid: true, errors: [], warnings: [] }, assetLibrary: [{ id: "scene", path: "/immutable/scene.webp" }, { id: "portrait", path: "/immutable/commander.webp" }, { id: "voice", path: "/immutable/voice.ogg" }], live: { domains: { campaigns: [{ id: "rumin", commanderName: "Rumin campaign", encounterIds: ["chapter-one"] }], characters: [{ id: "opponent-one", name: "Opponent source" }, { id: "rumin:commander", factionId: "rumin", role: "commander", name: "Commander source", image: "portrait" }], factions: [{ id: "rumin", name: "Rumin" }], cards } } };
 const renderField = (name, overrides) => name === "setup" ? <form key={name} aria-label="Saved setup contract">{overrides.renderContract({ value: setup, definition, row, cards, onChange: () => {}, onInspect: () => {} })}<button>Save setup</button></form> : <div key={name}>{name} field</div>;
 const field = jest.fn();
-function View(props) { return <EncounterWorkshop row={row} state={state} field={field} search={<input aria-label="Search encounters" />} list={<button aria-pressed="true">First battle</button>} onInspect={() => {}} {...props} />; }
+function View(props) { return <EncounterWorkshop row={row} state={state} field={field} search={<input aria-label="Search encounters" />} list={<button data-object={row.id} aria-current="true">First battle</button>} onInspect={() => {}} {...props} />; }
 
 beforeEach(() => {
   field.mockImplementation(renderField);

@@ -1,3 +1,4 @@
+import { useHelp } from "./AuthoringHelp";
 import ValueControl from "./ValueControl";
 import Help from "./AuthoringHelp";
 import { useState } from "react";
@@ -12,6 +13,7 @@ export function DeckField({ definition, value, row, state, disabled, onChange })
 }
 
 export default function DeckCompositionField({ value, state, disabled, onChange }) {
+  const helpCopy = useHelp();
   const [query, setQuery] = useState("");
   const snapshot = state.draft?.snapshot || state.live;
   const factions = state.deckFactions || [];
@@ -26,8 +28,8 @@ export default function DeckCompositionField({ value, state, disabled, onChange 
   return <fieldset disabled={disabled}><legend>52-card composition · {selected.length} replacements</legend>
     <ValueControl label="Deck faction" aria-label="Template faction" value={value.factionId} options={factions.map(row => [row.id, row.name])} onChange={id => { const next = factions.find(row => row.id === id); onChange({ factionId: next.id, generalId: next.general?.id || null, cards: [] }); }} />
     <ValueControl label="General" aria-label="Template general" value={value.generalId || ""} empty={null} options={(faction?.generals || [faction?.general]).filter(Boolean).map(row => [row.id || "", row.name])} onChange={generalId => onChange({ ...value, generalId })} />
-    <p>Commander: {faction?.commander?.name} · City: {faction?.city?.name}. These follow the selected faction; additional role slots are unsupported.</p>
-    <div className="admin-deck-slots"><table><caption>Local composition · 52 slots</caption><thead><tr><th scope="col">Suit</th>{ranks.map(value => <th key={value} scope="col">{rank(value)}</th>)}</tr></thead><tbody>{[["spades", "♠"], ["hearts", "♥"], ["diamonds", "♦"], ["clubs", "♣"]].map(([suit, mark]) => <tr key={suit}><th scope="row"><span aria-hidden="true">{mark}</span><span className="sr-only">{suit}</span></th>{ranks.map(value => { const replacements = selectedCards.filter(card => card.suit === suit && card.value === value), names = replacements.map(card => card.name).join(", "); return <td key={value} className={replacements.length ? "has-replacement" : ""} title={names || `Standard ${rank(value)} of ${suit}`}><span aria-hidden="true">{replacements.length ? "◆" : "·"}</span><span className="sr-only">{names || "Standard card"}</span></td>; })}</tr>)}</tbody></table><p className="admin-note">◆ Replacement selected · follows your local edits. Saved validation and engine tests are separate.</p></div>
+    <p>Commander: {faction?.commander?.name} · City: {faction?.city?.name}{helpCopy.deckSlotNote1}</p>
+    <div className="admin-deck-slots"><table><caption>Local composition · 52 slots</caption><thead><tr><th scope="col">Suit</th>{ranks.map(value => <th key={value} scope="col">{rank(value)}</th>)}</tr></thead><tbody>{[["spades", "♠"], ["hearts", "♥"], ["diamonds", "♦"], ["clubs", "♣"]].map(([suit, mark]) => <tr key={suit}><th scope="row"><span aria-hidden="true">{mark}</span><span className="sr-only">{suit}</span></th>{ranks.map(value => { const replacements = selectedCards.filter(card => card.suit === suit && card.value === value), names = replacements.map(card => card.name).join(", "); return <td key={value} className={replacements.length ? "has-replacement" : ""} title={names || `Standard ${rank(value)} of ${suit}`}><span aria-hidden="true">{replacements.length ? "◆" : "·"}</span><span className="sr-only">{names || "Standard card"}</span></td>; })}</tr>)}</tbody></table><p className="admin-note">{helpCopy.deckSlotNote2}</p></div>
     <ValueControl label="Find deck cards" type="search" value={query} onChange={setQuery} />
     <p className="admin-note">{options.length} compatible cards{query && <> · <button type="button" onClick={() => setQuery("")}>Clear search</button></>}</p>
     <div className="admin-catalog-members">{options.map(card => {

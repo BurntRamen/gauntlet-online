@@ -1,0 +1,86 @@
+{
+  "capturedAt": "2026-11-08T04:16:24.762Z",
+  "browser": "Playwright Chromium persistent isolated profile",
+  "profile": "Fresh temporary profile under ignored artifacts; no user browser profile reused.",
+  "method": "chrome://settings/appearance Page zoom control selected 200%; no CSS zoom, page scale emulation, or viewport emulation.",
+  "capture": {
+    "method": "CDP compositor surface, no clip",
+    "width": 1366,
+    "height": 768
+  },
+  "baseline": {
+    "innerWidth": 1366,
+    "innerHeight": 768,
+    "outerWidth": 1382,
+    "outerHeight": 863,
+    "devicePixelRatio": 1,
+    "visualScale": 1,
+    "documentWidth": 1351
+  },
+  "zoom200": {
+    "innerWidth": 683,
+    "innerHeight": 384,
+    "outerWidth": 1382,
+    "outerHeight": 863,
+    "devicePixelRatio": 2,
+    "visualScale": 1,
+    "documentWidth": 675
+  },
+  "keyboardSearch": "pass",
+  "navigationDrawer": "pass",
+  "axeViolations": [],
+  "client": "http://127.0.0.1:3188",
+  "backend": "http://127.0.0.1:4188",
+  "views": {
+    "home": {
+      "innerWidth": 683,
+      "innerHeight": 384,
+      "outerWidth": 1382,
+      "outerHeight": 863,
+      "devicePixelRatio": 2,
+      "visualScale": 1,
+      "documentWidth": 675,
+      "axeViolations": []
+    },
+    "collection": {
+      "innerWidth": 683,
+      "innerHeight": 384,
+      "outerWidth": 1382,
+      "outerHeight": 863,
+      "devicePixelRatio": 2,
+      "visualScale": 1,
+      "documentWidth": 675,
+      "axeViolations": []
+    },
+    "editor-preview": {
+      "innerWidth": 683,
+      "innerHeight": 384,
+      "outerWidth": 1382,
+      "outerHeight": 863,
+      "devicePixelRatio": 2,
+      "visualScale": 1,
+      "documentWidth": 675,
+      "axeViolations": []
+    },
+    "validation": {
+      "innerWidth": 683,
+      "innerHeight": 384,
+      "outerWidth": 1382,
+      "outerHeight": 863,
+      "devicePixelRatio": 2,
+      "visualScale": 1,
+      "documentWidth": 675,
+      "axeViolations": []
+    },
+    "review": {
+      "innerWidth": 683,
+      "innerHeight": 384,
+      "outerWidth": 1382,
+      "outerHeight": 863,
+      "devicePixelRatio": 2,
+      "visualScale": 1,
+      "documentWidth": 675,
+      "axeViolations": []
+    }
+  }
+}

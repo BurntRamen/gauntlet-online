@@ -1,4 +1,6 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { HelpProvider } from "./AuthoringHelp";
+const render = element => renderWithoutHelp(element, { wrapper: ({ children }) => <HelpProvider value={require("../../../server/adminAuthoringGuide").help}>{children}</HelpProvider> });
+import { fireEvent, render as renderWithoutHelp, screen, waitFor } from "@testing-library/react";
 import AssetUpload from "./AssetUpload";
 import AssetPicker from "./AssetPicker";
 import AssetCapacity from "./AssetCapacity";

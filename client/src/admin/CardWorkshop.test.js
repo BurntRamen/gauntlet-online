@@ -47,7 +47,7 @@ test("authored mechanics retain printing controls and show their deployed Suppor
 test("card-local changes never relabel the saved card face and do not block another clean printing", () => {
   const data = { ...state(), draft: { hash: "hash", snapshot: state().live }, localDirtyRecords: { "cards:spear": true } };
   const { rerender } = render(<CardWorkshop row={card} state={data} field={() => null} unsaved />, { wrapper });
-  expect(screen.getByText("Saved draft · player card face")).toBeInTheDocument();
+  expect(screen.getByText(/Saved draft · revision .* · player card face/)).toBeInTheDocument();
   expect(screen.getByText(/Local edits are not included in this preview/)).toBeInTheDocument();
   expect(screen.getByLabelText("Collector version")).toBeEnabled();
   rerender(<CardWorkshop row={card} state={{ ...data, localDirtyRecords: { "assets:spear-first": true } }} field={() => null} unsaved />);

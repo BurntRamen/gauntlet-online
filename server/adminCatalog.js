@@ -64,10 +64,11 @@ function createObject(snapshot, input) {
   if (!set || set.status === "archived") fail("Choose an active authored set first.");
   const source = input.sourceId && snapshot.domains.cards.find(c => c.id === input.sourceId);
   if (input.sourceId && !source) fail("The card to duplicate no longer exists.");
-  const mechanicId = input.effectId ? input.effectId.startsWith("mechanic-") ? input.effectId : null : source?.effect?.mechanicId;
+  const program = require("../shared/duel-rules/mechanicProgram");
+  const mechanicId = input.effectId ? input.effectId !== program.ID && input.effectId.startsWith("mechanic-") ? input.effectId : null : source?.effect?.mechanicId;
   const mechanic = mechanicId && snapshot.studio?.mechanics.find(row => row.id === mechanicId);
   if (mechanicId && (!mechanic || mechanic.status !== "active")) fail("Choose an active saved mechanic.");
-  const composedSource = source?.effect?.id === composition.ID && (!input.effectId || input.effectId === composition.ID);
+  const composedSource = [composition.ID, program.ID].includes(source?.effect?.id) && (!input.effectId || input.effectId === source.effect.id);
   const effect = effects.cardEffectDefinitions().find(e => e.id === (mechanic || composedSource ? "coin-scale-spear" : input.effectId || source?.effect?.id));
   if (!effect) fail("Choose a supported mechanical effect.");
   const id = `auth-card-${crypto.randomUUID()}`;
@@ -124,7 +125,7 @@ function validateCatalog(snapshot, baseline, validateLegacy) {
     if (!Number.isInteger(row.value) || !registry.PLAYING_DECK_VALUES.includes(row.value) || row.replacementSuit !== row.suit) issue("cards", row.id, "value", "A card must occupy a valid printed value and fixed suit slot.");
     if (!effects.validateCardEffect(row.effect, row)) issue("cards", row.id, "effect", "Choose a compatible faction/type effect and its declared parameter bounds. Custom scripts and undeclared costs, targets or triggers are unsupported.");
     if (row.effect?.id === composition.ID && composition.validate(row.effect, row) && row.text !== explain(row.effect, row)) warnings.push({ domain: "cards", id: row.id, field: "text", message: "Printed wording differs from the generated mechanics explanation. Review it after every mechanical edit; arbitrary prose is not verified as equivalent." });
-    if (snapshot.domains.factions.some(f => f.id === row.factionId && f.origin === "admin-faction-v1") && (row.effect?.id !== "authored-mechanic" || ["constructed", "earnedPacks", "draft", "sealed"].some(key => row.availability?.[key]))) issue("cards", row.id, "availability", "Authored campaign factions support authored mechanics, library display and encounter additions only. Competitive and pack channels require separate qualification.");
+    if (snapshot.domains.factions.some(f => f.id === row.factionId && f.origin === "admin-faction-v1") && (!require("../shared/duel-rules/mechanicProgram").isAuthored(row.effect) || ["constructed", "earnedPacks", "draft", "sealed"].some(key => row.availability?.[key]))) issue("cards", row.id, "availability", "Authored campaign factions support authored mechanics, library display and encounter additions only. Competitive and pack channels require separate qualification.");
     if (!flags(row.availability, availabilityKeys)) issue("cards", row.id, "availability", "Configure visibility, legality and each acquisition channel separately.");
     if (!variants.has(row.defaultVariantId)) issue("cards", row.id, "defaultVariantId", "A free standard printing is required.");
     if (!snapshot.domains.sets.some(s => Array.isArray(s?.members) && s.members.includes(row.id))) issue("cards", row.id, "availability", "Keep at least one set membership, including for archived cards.");

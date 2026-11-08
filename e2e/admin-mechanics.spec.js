@@ -51,6 +51,7 @@ test("operator composes a reusable mechanic, creates a card, executes it and pub
   await page.screenshot({ path: "artifacts/phase2-mechanic-studio.png", fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 }); expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true); expect((await new AxeBuilder({ page }).include(".mechanic-studio").analyze()).violations).toEqual([]); await page.screenshot({ path: "artifacts/phase2-mechanic-mobile.png", fullPage: true }); await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/admin/gauntlet?workshop=sets"); await page.getByRole("button", { name: "Create set", exact: true }).click(); await page.getByLabel("New content name").fill("Browser Studio set"); await page.getByRole("button", { name: "Save new set to draft", exact: true }).click();
+  await page.getByRole("button", { name: "Back to list", exact: true }).click();
   await page.getByRole("button", { name: "Create card", exact: true }).click(); await page.getByLabel("New content name").fill("Browser Studio guard"); await page.getByLabel("Mechanical effect", { exact: true }).selectOption(mechanic.id);
   pending = waitForBufferedAdminResponse(page, r => r.url().endsWith("/authoring/create") && r.request().method() === "POST"); await page.getByRole("button", { name: "Save new card to draft", exact: true }).click();
   const created = await (await pending).json(), card = created.draft.snapshot.domains.cards.at(-1); expect(card.effect.mechanicId).toBe(mechanic.id);

@@ -1,0 +1,9 @@
+{
+  "label1": "Validation and dependencies",
+  "label2": "Storage capabilities",
+  "label3": "Schema and rules versions",
+  "label4": "Content and runtime boundaries",
+  "label5": "Live service and archive recovery",
+  "label6": "Live service & archive recovery",
+  "label7": "Inspect active rooms, recorded matches, collector receipts and recovery evidence. Archive imports require preview and confirmation."
+}

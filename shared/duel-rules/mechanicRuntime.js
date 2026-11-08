@@ -1,8 +1,12 @@
 "use strict";
 const contract = require("./mechanicContract");
+const composition = require("./mechanicProgram");
 const invalid = message => Object.assign(new Error(message), { code: "MECHANIC_ACTION_INVALID" });
-const isAuthored = card => card?.effect?.id === contract.ID;
+const isAuthored = card => composition.isAuthored(card?.effect);
 const definition = card => isAuthored(card) && card.effect.definition && contract.validateEffect(card.effect, card) ? card.effect.definition : null;
+const programs = card => card?.effect?.id === composition.ID
+  ? composition.validate(card.effect, card, true) ? card.effect.mechanics.map(effect => ({ ...card, effect })) : []
+  : definition(card) ? [card] : [];
 const sources = (game, player) => game.lanes.flatMap((lane, laneIndex) => lane.support?.[player] ? [{ card: lane.support[player], laneIndex, slot: "support", player }] : []);
 const counter = (game, player, source) => Number(game.players[player].mechanicCounters?.[source.effect.mechanicId] || 0);
 const key = (source, index) => `${source.id}:${source.effect.mechanicId}:${index}`;
@@ -88,14 +92,16 @@ function run(game, player, source, ability, index, context, api) {
   mark(game, player, source, index);
 }
 function trigger(game, player, source, timing, context, api) {
-  const program = definition(source);
-  if (!program) { if (isAuthored(source)) throw invalid("The captured mechanic definition is invalid or unresolved."); return; }
+  const modules = programs(source);
+  if (!modules.length && isAuthored(source) && !(source.effect.id === composition.ID && composition.validate(source.effect, source, true))) throw invalid("The captured mechanic definition is invalid or unresolved.");
   // Fix eligibility once before the ordered effects execute; effects cannot
   // enqueue triggers or create a recursion loop.
-  const eligible = program.abilities.map((a, index) => a.trigger === timing && available(game, player, source, index, a) && conditionPasses(context.conditionGame || game, player, source, a, context));
-  for (const [index, a] of program.abilities.entries()) if (eligible[index]) {
-    if (program.interpreter === 2 && a.decision !== "automatic" || game.mechanicQueue?.length) enqueue(game, player, source, a, index, context);
-    else run(game, player, source, a, index, context, api);
+  // Freeze eligibility across the entire program, not after each preceding
+  // module's effects. A Heal module cannot retroactively enable another one.
+  const eligible = modules.flatMap(card => definition(card).abilities.flatMap((a, index) => a.trigger === timing && available(game, player, card, index, a) && conditionPasses(context.conditionGame || game, player, card, a, context) ? [{ card, a, index }] : []));
+  for (const { card, a, index } of eligible) {
+    if (definition(card).interpreter === 2 && a.decision !== "automatic" || game.mechanicQueue?.length) enqueue(game, player, card, a, index, context);
+    else run(game, player, card, a, index, context, api);
   }
 }
 function boardTrigger(game, timing, api) {
@@ -103,30 +109,31 @@ function boardTrigger(game, timing, api) {
   for (const entry of captured) trigger(game, entry.player, entry.card, timing, {}, api);
 }
 function paymentReduction(game, player, card) {
-  return (definition(card)?.abilities || []).reduce((total, a, index) => total + (a.trigger === "payment" && available(game, player, card, index, a) && conditionPasses(game, player, card, a, {}) ? a.effects.reduce((n, e) => n + e.amount, 0) : 0), 0);
+  return programs(card).reduce((sum, source) => sum + definition(source).abilities.reduce((total, a, index) => total + (a.trigger === "payment" && available(game, player, source, index, a) && conditionPasses(game, player, source, a, {}) ? a.effects.reduce((n, e) => n + e.amount, 0) : 0), 0), 0);
 }
 function actions(game, player, pending) {
   if (game.phase !== "priority" || game.priority !== player) return [];
-  return sources(game, player).flatMap(({ card }) => (definition(card)?.abilities || []).flatMap((a, index) => {
+  return sources(game, player).flatMap(({ card: physical }) => programs(physical).flatMap(card => definition(card).abilities.flatMap((a, index) => {
     if (a.trigger !== (pending ? "response" : "activate") || !available(game, player, card, index, a) || !conditionPasses(game, player, card, a, { attack: pending, deferPayment: true }) || (a.cost.life > 0 && game.players[player].life <= a.cost.life) || counter(game, player, card) < a.cost.counters || a.effects.some(op => op.kind === "attackBonus" && pending?.player !== player || op.kind === "preventDamage" && pending?.targetPlayer !== player)) return [];
     return targetOptions(game, player, a.target).flatMap(t => {
       if (a.cost.consumeSource && t.cardId === card.id) return [];
       const destinations = a.effects.some(e => e.kind === "moveLane") ? game.lanes.flatMap((lane, i) => i !== t.laneIndex && !lane[a.target === "lane" ? "facedown" : "support"]?.[player] ? [i] : []) : [null];
-      return destinations.map(destinationLane => ({ type: "useFactionAbility", abilityId: `mechanic:${card.id}:${index}:${t.cardId || "none"}:${destinationLane ?? "none"}`, sourceCardId: card.id, mechanicAbility: index, targetCardId: t.cardId, ...(destinationLane === null ? {} : { destinationLane }), requiredPayment: a.cost.payment + Math.max(0, ...a.conditions.filter(c => c.kind === "overpay").map(c => c.amount)), label: `${card.name} · ${a.label}${t.label ? ` · ${t.label}` : ""}${destinationLane === null ? "" : ` → Lane ${destinationLane + 1}`}`, intent: contract.explain({ ...definition(card), abilities: [a] }), paymentOptions: game.players[player].hand.filter(c => c.id !== t.cardId).map(c => ({ cardId: c.id, value: c.value })) }));
+      return destinations.map(destinationLane => ({ type: "useFactionAbility", abilityId: `mechanic:${card.id}:${physical.effect.id === composition.ID ? card.effect.mechanicId + ":" : ""}${index}:${t.cardId || "none"}:${destinationLane ?? "none"}`, sourceCardId: card.id, mechanicId: card.effect.mechanicId, mechanicAbility: index, targetCardId: t.cardId, ...(destinationLane === null ? {} : { destinationLane }), requiredPayment: a.cost.payment + Math.max(0, ...a.conditions.filter(c => c.kind === "overpay").map(c => c.amount)), label: `${card.name} · ${a.label}${t.label ? ` · ${t.label}` : ""}${destinationLane === null ? "" : ` → Lane ${destinationLane + 1}`}`, intent: contract.explain({ ...definition(card), abilities: [a] }), paymentOptions: game.players[player].hand.filter(c => c.id !== t.cardId).map(c => ({ cardId: c.id, value: c.value })) }));
     });
-  }));
+  })));
 }
 function activate(game, player, command, pending, api) {
   const action = actions(game, player, pending).find(a => a.abilityId === command.abilityId && a.targetCardId === (command.targetCardId || null) && a.destinationLane === command.destinationLane);
   if (!action) throw invalid("That mechanic source, target, window or usage is unavailable.");
-  const source = sources(game, player).find(s => s.card.id === action.sourceCardId), a = definition(source.card).abilities[action.mechanicAbility];
+  const physical = sources(game, player).find(s => s.card.id === action.sourceCardId);
+  const source = { ...physical, card: programs(physical.card).find(card => card.effect.mechanicId === action.mechanicId) }, a = definition(source.card).abilities[action.mechanicAbility];
   const payment = api.payment(command.paymentCardIds || [], a.cost.payment, [source.card.id, command.targetCardId].filter(Boolean));
   if (payment.error) throw invalid(payment.error);
   if (!conditionPasses(game, player, source.card, a, { attack: pending, payment })) throw invalid("The selected payment does not satisfy this ability's conditions.");
   const actor = game.players[player];
   api.pay(payment.cardIds); actor.life -= a.cost.life;
   actor.mechanicCounters ||= {}; actor.mechanicCounters[source.card.effect.mechanicId] = counter(game, player, source.card) - a.cost.counters;
-  if (a.cost.consumeSource) { game.lanes[source.laneIndex].support[player] = null; actor.discard.push(source.card); }
+  if (a.cost.consumeSource) { game.lanes[source.laneIndex].support[player] = null; actor.discard.push(physical.card); }
   api.emit("payment.discarded", { player, cardIds: payment.cardIds, total: payment.total, required: payment.required, source: source.card.name });
   run(game, player, source.card, a, action.mechanicAbility, { command, attack: pending, payment }, api);
   return `${source.card.name}: ${a.label}.`;
@@ -206,4 +213,4 @@ function decisionView(game) {
   const a = definition(entry.source)?.abilities[entry.index];
   return { id: entry.id, player: entry.player, label: `${entry.source.name} · ${a.label}`, optional: a.decision === "optional", deadline: entry.deadline || null };
 }
-module.exports = { isAuthored, definition, sources, trigger, boardTrigger, paymentReduction, actions, activate, decisionActions, resolveDecision, drain, decisionView };
+module.exports = { isAuthored, definition, programs, sources, trigger, boardTrigger, paymentReduction, actions, activate, decisionActions, resolveDecision, drain, decisionView };

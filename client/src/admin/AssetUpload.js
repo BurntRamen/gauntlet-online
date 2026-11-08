@@ -1,7 +1,9 @@
+import { useHelp } from "./AuthoringHelp";
 import Help from "./AuthoringHelp";
 import { useRef, useState } from "react";
 
 export default function AssetUpload({ selected, onUpload, onDone, media = "image", limits }) {
+  const helpCopy = useHelp();
   const audio = media === "audio", maxBytes = (audio ? limits?.maxAudioUploadBytes : limits?.maxUploadBytes) || (audio ? 10 : 3) * 1024 * 1024;
   const attempt = useRef(null);
   const [replacement, setReplacement] = useState(false);
@@ -23,18 +25,18 @@ export default function AssetUpload({ selected, onUpload, onDone, media = "image
       const key = JSON.stringify(input);
       if (attempt.current?.key !== key) attempt.current = { key, requestId: crypto.randomUUID() };
       const result = await onUpload({ ...input, requestId: attempt.current.requestId });
-      if (!result) throw new Error("Upload was not confirmed. Check the message in Admin and retry after refreshing.");
+      if (!result) throw new Error(helpCopy.uploadNote1);
       setPhase("Uploaded"); onDone(result.uploaded.id);
     } catch (failure) { setError(failure.message); setPhase(""); }
   }
   return <details className="asset-upload"><summary>{audio ? "Upload audio" : "Upload artwork"}</summary><form onSubmit={upload}>
-    {audio ? <p>PCM WAV · mono or stereo · up to 10 MiB and 10 minutes. Metadata is removed. Uploading does not publish or assign the recording.</p> : <Help topic="AssetUpload1" />}
+    {audio ? <p>{helpCopy.uploadNote2}</p> : <Help topic="AssetUpload1" />}
     {selected?.assetId && !selected.archived && <label><input type="checkbox" checked={replacement} disabled={pending} onChange={event => { setReplacement(event.target.checked); if (event.target.checked) { setTitle(selected.label); setDescription(selected.description || ""); setNotes(selected.notes || ""); } }} />New version of {selected.label}. Existing references keep their current version.</label>}
     <label>{audio ? "Audio title" : "Artwork title"}<input required maxLength={160} value={title} disabled={pending} onChange={event => setTitle(event.target.value)} /></label>
     <label>Description<textarea aria-label="Description" maxLength={1000} value={description} disabled={pending} onChange={event => setDescription(event.target.value)} /></label>
     <label>Attribution / source notes<textarea aria-label="Attribution / source notes" maxLength={2000} value={notes} disabled={pending} onChange={event => setNotes(event.target.value)} /></label>
     <label>{audio ? "Audio file" : "Image file"}<input type="file" accept={audio ? "audio/wav,.wav" : "image/png,image/jpeg,image/webp"} disabled={pending} onChange={event => setFile(event.target.files[0])} /></label><small>Current upload limit: {(maxBytes/1048576).toFixed(2)} MiB.</small>
     <button className="admin-primary" disabled={pending || !file || !title.trim()}>{replacement ? "Upload new version" : audio ? "Upload new audio" : "Upload new artwork"}</button>
-    {phase && <p role="status">{phase}{phase === "Uploaded" ? " · Select this exact version, save the field, then review and publish separately." : ""}</p>}{error && <p role="alert">{error}</p>}
+    {phase && <p role="status">{phase}{phase === "Uploaded" ? helpCopy.uploadNote3 : ""}</p>}{error && <p role="alert">{error}</p>}
   </form></details>;
 }

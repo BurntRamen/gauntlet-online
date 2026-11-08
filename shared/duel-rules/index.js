@@ -2252,6 +2252,7 @@ function applyCommandInternal(current, rawCommand, trace) {
     );
   }
   if (current.contentBinding?.mechanicVersion && !mechanicContract.supportedVersions.includes(current.contentBinding.mechanicVersion)) return reject(current, command, "Unsupported authored mechanic interpreter binding.");
+  if (current.contentBinding?.mechanicProgramVersion && current.contentBinding.mechanicProgramVersion !== require("./mechanicProgram").VERSION) return reject(current, command, "Unsupported mechanic program binding.");
   if (current.phase === "gameOver") return reject(current, command, "The match is already over.");
   const game = clone(current);
   const player = Number(command.player);

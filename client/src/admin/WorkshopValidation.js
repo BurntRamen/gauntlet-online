@@ -1,6 +1,6 @@
-export default function WorkshopValidation({ validation, domain, id, field, guide }) {
-  const messages = [...validation.errors.map((entry) => ({ ...entry, severity: "Error" })), ...validation.warnings.map((entry) => ({ ...entry, severity: "Warning" }))]
+export default function WorkshopValidation({ validation, domain, id, field, guide, onInspect, errorId }) {
+  const messages = [...(validation.errors || []).map((entry) => ({ ...entry, severity: "Error" })), ...(validation.warnings || []).map((entry) => ({ ...entry, severity: "Warning" }))]
     .filter((entry) => !domain || (entry.domain === domain && entry.id === id && (!field || entry.field === field)));
-  if (!messages.length) return domain ? null : <p className="admin-good">{guide.validationPassed}</p>;
-  return <ul className="admin-alert">{messages.map((entry, index) => <li key={index}><strong>{entry.severity}</strong> · {!domain && [entry.domain, entry.id, entry.field].filter(Boolean).join(" / ")} {entry.message}</li>)}</ul>;
+  if (!messages.length) return domain ? null : <p className="admin-good">{guide?.validationPassed || "Validation passed."}</p>;
+  return <div id={errorId} className="admin-validation">{!domain && validation.hash && <p className="admin-note">{validation.source === "draft" ? "Shared draft" : "Live content"} · revision {validation.revision} · {validation.hash.slice(0, 12)}</p>}<ul className="admin-alert">{messages.map((entry, index) => <li key={index}><strong>{entry.severity === "Error" ? "Blocking error" : "Warning"}</strong> · {!domain && [entry.domain, entry.id, entry.field].filter(Boolean).join(" / ")} {entry.message}{onInspect && entry.domain && entry.id && <button onClick={() => onInspect(entry.domain, entry.id, entry.field)}>Fix {entry.field || "record"}</button>}</li>)}</ul></div>;
 }

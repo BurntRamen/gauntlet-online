@@ -1,0 +1,189 @@
+{
+  "conditions": "Production builds; isolated synthetic localhost fixtures; Chromium; 1366x768; fresh contexts; cache disabled; uncompressed no-store local asset delivery; no network throttle. Three host-speed samples and one 4x CPU simulation per build, run without concurrent test suites. Timings are local QA, not production SLA or statistically significant speedup evidence.",
+  "baselineCommit": "d3e6f364f5ea061cb85f9156ec99049900a8fdb6",
+  "budgetsBytes": {
+    "initialAdmin": 20480,
+    "aggregateAdmin": 76800,
+    "main": 184320,
+    "player": 777216,
+    "largestAsync": 358400
+  },
+  "before": {
+    "measuredAt": "2026-11-07T23:41:29.531Z",
+    "bundles": {
+      "initialAdminBytes": 14674,
+      "aggregateAdminBytes": 76666,
+      "mainBytes": 183135,
+      "playerBytes": 770355,
+      "largestAsyncBytes": 275721,
+      "failures": []
+    },
+    "samples": [
+      {
+        "cpuRate": 1,
+        "homeReadyMs": 2116,
+        "firstContentMs": 1443,
+        "editorMs": 323,
+        "mechanicsMs": 210,
+        "returnDetailsMs": 262,
+        "typingToTwoFramesMs": [
+          67,
+          25,
+          18
+        ],
+        "typingLongTasks": 0,
+        "homeGzipJsBytes": 241019,
+        "throughContentGzipJsBytes": 456481,
+        "homeCatalogRequests": 0,
+        "homeWorkshopChunks": 0,
+        "pageErrors": []
+      },
+      {
+        "cpuRate": 1,
+        "homeReadyMs": 1574,
+        "firstContentMs": 1416,
+        "editorMs": 213,
+        "mechanicsMs": 286,
+        "returnDetailsMs": 236,
+        "typingToTwoFramesMs": [
+          59,
+          28,
+          18
+        ],
+        "typingLongTasks": 0,
+        "homeGzipJsBytes": 241019,
+        "throughContentGzipJsBytes": 456481,
+        "homeCatalogRequests": 0,
+        "homeWorkshopChunks": 0,
+        "pageErrors": []
+      },
+      {
+        "cpuRate": 1,
+        "homeReadyMs": 1523,
+        "firstContentMs": 1118,
+        "editorMs": 197,
+        "mechanicsMs": 158,
+        "returnDetailsMs": 117,
+        "typingToTwoFramesMs": [
+          65,
+          22,
+          28
+        ],
+        "typingLongTasks": 0,
+        "homeGzipJsBytes": 241019,
+        "throughContentGzipJsBytes": 456481,
+        "homeCatalogRequests": 0,
+        "homeWorkshopChunks": 0,
+        "pageErrors": []
+      },
+      {
+        "cpuRate": 4,
+        "homeReadyMs": 2519,
+        "firstContentMs": 3600,
+        "editorMs": 1537,
+        "mechanicsMs": 497,
+        "returnDetailsMs": 384,
+        "typingToTwoFramesMs": [
+          328,
+          111,
+          175
+        ],
+        "typingLongTasks": 5,
+        "homeGzipJsBytes": 241019,
+        "throughContentGzipJsBytes": 456481,
+        "homeCatalogRequests": 0,
+        "homeWorkshopChunks": 0,
+        "pageErrors": []
+      }
+    ]
+  },
+  "after": {
+    "measuredAt": "2026-11-08T00:16:36.375Z",
+    "bundles": {
+      "initialAdminBytes": 14470,
+      "aggregateAdminBytes": 76794,
+      "mainBytes": 183135,
+      "playerBytes": 770355,
+      "largestAsyncBytes": 275721,
+      "failures": []
+    },
+    "samples": [
+      {
+        "cpuRate": 1,
+        "homeReadyMs": 1604,
+        "firstContentMs": 1232,
+        "editorMs": 275,
+        "mechanicsMs": 182,
+        "returnDetailsMs": 259,
+        "typingToTwoFramesMs": [
+          43,
+          33,
+          17
+        ],
+        "typingLongTasks": 0,
+        "homeGzipJsBytes": 240815,
+        "throughContentGzipJsBytes": 456609,
+        "homeCatalogRequests": 0,
+        "homeWorkshopChunks": 0,
+        "pageErrors": []
+      },
+      {
+        "cpuRate": 1,
+        "homeReadyMs": 1535,
+        "firstContentMs": 1196,
+        "editorMs": 383,
+        "mechanicsMs": 175,
+        "returnDetailsMs": 317,
+        "typingToTwoFramesMs": [
+          57,
+          44,
+          19
+        ],
+        "typingLongTasks": 0,
+        "homeGzipJsBytes": 240815,
+        "throughContentGzipJsBytes": 456609,
+        "homeCatalogRequests": 0,
+        "homeWorkshopChunks": 0,
+        "pageErrors": []
+      },
+      {
+        "cpuRate": 1,
+        "homeReadyMs": 1512,
+        "firstContentMs": 1187,
+        "editorMs": 303,
+        "mechanicsMs": 247,
+        "returnDetailsMs": 202,
+        "typingToTwoFramesMs": [
+          49,
+          19,
+          19
+        ],
+        "typingLongTasks": 0,
+        "homeGzipJsBytes": 240815,
+        "throughContentGzipJsBytes": 456609,
+        "homeCatalogRequests": 0,
+        "homeWorkshopChunks": 0,
+        "pageErrors": []
+      },
+      {
+        "cpuRate": 4,
+        "homeReadyMs": 2580,
+        "firstContentMs": 3856,
+        "editorMs": 1809,
+        "mechanicsMs": 704,
+        "returnDetailsMs": 567,
+        "typingToTwoFramesMs": [
+          292,
+          104,
+          213
+        ],
+        "typingLongTasks": 3,
+        "homeGzipJsBytes": 240815,
+        "throughContentGzipJsBytes": 456609,
+        "homeCatalogRequests": 0,
+        "homeWorkshopChunks": 0,
+        "pageErrors": []
+      }
+    ]
+  }
+}
