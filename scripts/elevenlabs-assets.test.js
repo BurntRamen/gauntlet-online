@@ -56,7 +56,7 @@ test("published faction themes are full-length songs matching the approved Eleve
   const validated = validateManifest(musicManifest, root);
   const approvedByOutput = new Map(provenance.tracks.map((track) => [track.output, track]));
 
-  assert.equal(validated.jobs.length, 16);
+  assert.equal(validated.jobs.length, 17);
   assert.equal(provenance.model, "Music v2.5");
   for (const job of validated.jobs) {
     const outputPath = path.join(root, job.clientOutput);
@@ -76,16 +76,20 @@ test("faction music manifest expands every preserved theme into a four-song libr
   const root = path.resolve(__dirname, "..");
   const musicManifest = JSON.parse(fs.readFileSync(path.join(root, "scripts", "elevenlabs-faction-music.json"), "utf8"));
   const expanded = validateManifest(expandCompanionMusicJobs(musicManifest), root);
-  assert.equal(expanded.jobs.length, 65);
+  assert.equal(expanded.jobs.length, 69);
   for (const base of musicManifest.jobs) {
     const family = expanded.jobs.filter((job) => job.clientOutput.replace(/-v[1-5]\.mp3$/, "") === base.clientOutput.replace(/-v1\.mp3$/, ""));
     const versions = base.id === "indela-turning-omen" ? [1, 2, 3, 4, 5] : [1, 2, 3, 4];
     assert.deepEqual(family.map((job) => path.basename(job.clientOutput)).sort(), versions.map((version) => path.basename(base.clientOutput).replace("-v1.mp3", `-v${version}.mp3`)));
+    const arrangements = new Set();
     family.forEach((job) => {
       assert.equal(job.parameters.music_length_ms, 180000);
-      assert.equal(fs.existsSync(path.join(root, job.clientOutput)), true, `${job.id}: published theme`);
-      assert.ok(fs.statSync(path.join(root, job.clientOutput)).size > 3500000, `${job.id}: substantial full-song audio`);
+      const outputPath = path.join(root, job.clientOutput);
+      assert.equal(fs.existsSync(outputPath), true, `${job.id}: published theme`);
+      assert.ok(fs.statSync(outputPath).size > 3500000, `${job.id}: substantial full-song audio`);
+      arrangements.add(crypto.createHash("sha256").update(fs.readFileSync(outputPath)).digest("hex"));
     });
+    assert.equal(arrangements.size, versions.length, `${base.id}: every library slot is a distinct arrangement`);
   }
 });
 
