@@ -38,6 +38,12 @@ export function useRegistryEditor({ state, act, registry, domain, action, scope,
   const opened = useRef(null);
   useEffect(() => {
     if (!initialTarget || opened.current === initialTarget) return;
+    if (initialTarget.id == null) {
+      if (onTarget?.(initialTarget) === false) return;
+      opened.current = initialTarget; select(null);
+      requestAnimationFrame(() => document.querySelector('.para-workspace button[aria-pressed="true"]')?.focus());
+      return;
+    }
     const row = config[initialTarget.domain]?.find(row => row.id === initialTarget.id);
     if (!row || onTarget?.(initialTarget) === false) return;
     opened.current = initialTarget; select(row);

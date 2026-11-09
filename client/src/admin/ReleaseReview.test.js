@@ -1,8 +1,10 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { HelpProvider } from "./AuthoringHelp";
+const render = element => renderWithoutHelp(element, { wrapper: ({ children }) => <HelpProvider value={require("../../../server/adminAuthoringGuide").help}>{children}</HelpProvider> });
+import { fireEvent, render as renderWithoutHelp, screen } from "@testing-library/react";
 import ReleaseReview from "./ReleaseReview";
 
-const state = { writable: true, draft: { hash: "draft-hash" } };
-const review = { readiness: { saved: true, validated: true, previewed: true, engineTestRequired: true, engineTested: true, ready: true }, groups: [{ id: "mechanics", label: "Mechanics", changes: [{ domain: "encounters", id: "first", label: "First battle", field: "setup", fieldLabel: "Boss life", before: 40, after: 44 }] }] };
+const state = { guide: require("../../../server/adminAuthoringGuide"), revision: 1, writable: true, draft: { hash: "draft-hash" } };
+const review = { revision: 1, hash: "draft-hash", readiness: { saved: true, validated: true, previewed: true, engineTestRequired: true, engineTested: true, ready: true }, groups: [{ id: "mechanics", label: "Mechanics", changes: [{ domain: "encounters", id: "first", label: "First battle", field: "setup", fieldLabel: "Boss life", before: 40, after: 44 }] }] };
 
 test("review shows grouped human differences and cannot publish unsaved local values", () => {
   const publish = jest.fn(), inspect = jest.fn();
@@ -19,7 +21,7 @@ test("review shows grouped human differences and cannot publish unsaved local va
 
 test("missing or invalidated receipt keeps publishing disabled", () => {
   render(<ReleaseReview state={state} review={{ ...review, readiness: { ...review.readiness, engineTested: false, ready: false } }} releaseName="Release" />);
-  expect(screen.getByText("○ Accepted engine action recorded")).toBeVisible();
+  expect(screen.getByRole("status")).toHaveTextContent("Record an accepted engine action");
   expect(screen.getByRole("button", { name: "Publish release" })).toBeDisabled();
 });
 
@@ -48,7 +50,7 @@ test("validation issues lead to the exact record field and activation is never i
   expect(screen.getByRole("button", { name: "Preview saved draft" })).toBeDisabled();
   expect(screen.queryByText("Published release verified active on this server")).not.toBeInTheDocument();
   rerender(<ReleaseReview state={{ ...invalid, draft: null }} review={{ ...review, groups: [] }} />);
-  expect(screen.getByRole("status")).toHaveTextContent("Active status unavailable");
+  expect(screen.getByLabelText("Release readiness")).toHaveTextContent("Unverified");
   rerender(<ReleaseReview state={{ ...invalid, draft: null, publication: { activeReleaseId: "live", deployment: "active-on-this-server" } }} review={{ ...review, groups: [] }} />);
-  expect(screen.getByRole("status")).toHaveTextContent("Published release verified active on this server");
+  expect(screen.getByLabelText("Release readiness")).toHaveTextContent("Active on this server");
 });

@@ -69,7 +69,7 @@ test("field focus waits for CSS visibility and observes the class that reveals i
 
 test("a field link reveals the editor from a remembered preview layout and retains its local value", async () => {
   const width = window.innerWidth;
-  window.innerWidth = 1200;
+  window.innerWidth = 1100;
   const scope = "field-link-test";
   localStorage.setItem(`gauntlet-admin:${scope}`, JSON.stringify({ version: 1, preview: true }));
   const content = target => <OperatorPreferences scope={scope}><EditorSessionContext.Provider value={{ target }}><style>{".preview-open .design-editor { display:none }"}</style><WorkshopNavigation target={target} /><WorkshopShell name="Card Workshop" title="Card" selectionId="one" preview={<p>Saved preview</p>}><section id="admin-field-name"><input aria-label="Name" defaultValue="Retained local name" /></section></WorkshopShell></EditorSessionContext.Provider></OperatorPreferences>;

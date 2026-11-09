@@ -14,6 +14,20 @@ function Harness({ initialDirty = false, busy = false, onDiscard = jest.fn(), on
 beforeEach(() => { localStorage.clear(); window.history.replaceState(null, "", "/admin/gauntlet"); jest.spyOn(window, "scrollTo").mockImplementation(() => {}); });
 afterEach(() => jest.restoreAllMocks());
 
+test("typed registry links round-trip through the guarded URL and only acknowledge an accepted detour", () => {
+  const accepted = jest.fn();
+  render(<Harness initialDirty />);
+  const target = { domain: "competition:events", id: "event-one", field: "name" };
+  act(() => workspace.navigate(target, accepted));
+  expect(accepted).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button", { name: "Keep editing" }));
+  act(() => workspace.navigate(target, accepted));
+  fireEvent.click(screen.getByRole("button", { name: "Discard local edits and continue" }));
+  expect(accepted).toHaveBeenCalledTimes(1);
+  expect(targetFromLocation()).toEqual({ ...target, section: null });
+  expect(workshopTarget({ domain: "account:balances", id: "private" }, target)).toBe(target);
+});
+
 test("departure retains dirty values on cancel and only discards local values before continuation", () => {
   const discarded = jest.fn(), navigated = jest.fn();
   render(<Harness initialDirty onDiscard={discarded} onNavigate={navigated} />);

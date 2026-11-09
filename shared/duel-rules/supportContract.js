@@ -27,10 +27,11 @@ const DEFINITIONS = Object.fromEntries(cardEffectDefinitions().filter(row => TYP
 function definition(card) {
   const effect = cardEffect(card);
   if (!TYPES.has(card?.type) || !validateCardEffect(effect, card)) return null;
-  if (effect.id === "composed-rumin-armament" || effect.id === "authored-mechanic" && effect.definition) {
-    const composed = effect.id === "composed-rumin-armament";
+  const program = require("./mechanicProgram");
+  if (effect.id === "composed-rumin-armament" || effect.id === "authored-mechanic" && effect.definition || effect.id === program.ID && program.validate(effect, card, true)) {
+    const composed = program.armingCard(card)?.effect?.id === "composed-rumin-armament";
     return { version: VERSION, effectId: effect.id, timing: "open-priority", cost: "printed-value",
-      responseTiming: null, onPlay: effect.definition?.abilities.some(a => a.trigger === "placed") ? "captured-mechanic" : null,
+      responseTiming: null, onPlay: program.references(effect).some(ref => ref.definition?.abilities.some(a => a.trigger === "placed")) ? "captured-mechanic" : null,
       ongoing: effect.id, paymentEffect: null, duration: composed ? "until-armed-combat-ends" : "until-text-removes",
       charges: composed ? 1 : null, discardCondition: composed ? "after-armed-combat" : "captured-cost-or-explicit-removal",
       concealed: card.type === "ambush" };

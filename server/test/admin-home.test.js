@@ -14,6 +14,9 @@ test("Home reports pinned Para operation state, digital purchases and unreadable
   assert.match(home.events.find(e => e.id === "event").availability.label, /paused.*pinned/);
   assert.equal(home.purchases[0].price, 25); assert.equal(home.purchases[0].productName, "Publication");
   assert.ok(home.tasks.some(t => /settlement/.test(t.title)));
+  assert.equal(home.tasks.find(t => t.title === "Payments and premium currency").kind, "capability");
+  assert.equal(home.tasks.find(t => /settlement/.test(t.title)).kind, undefined, "Operational failures remain in attention, not disabled capabilities.");
+  assert.ok(home.guide.releaseUnavailable);
   assert.ok(home.events.filter(e => e.id !== "event").every(e => /cutover/.test(e.availability.label)));
   unavailable = true; home = await data.home();
   assert.match(home.events.find(e => e.id === "event").availability.label, /unavailable/);

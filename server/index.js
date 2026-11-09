@@ -6135,7 +6135,7 @@ function sanitizeGameForViewer(game, viewerPlayerNum, spectatorCount) {
   }
   for (const [laneIndex, lane] of (visibleGame.lanes || []).entries()) {
     for (const playerNum of [1, 2]) {
-      if (viewerPlayerNum !== playerNum && lane.facedown?.[playerNum] && !lane.facedown[playerNum].revealed) {
+      if (viewerPlayerNum !== playerNum && lane.facedown?.[playerNum] && !lane.facedown[playerNum].revealed && !lane.facedown[playerNum].zynarthEgg) {
         lane.facedown[playerNum] = {
           id: `hidden-lane-${laneIndex}-p${playerNum}`,
           hidden: true
@@ -8313,8 +8313,11 @@ function prepareCampaignRoom(roomState, resolvedContent, factionId, chapterId) {
     startDialogue: chapter.dialogue || [],
     dialogueAudio: chapter.dialogueAudio || [],
     startDialogueAudio: chapter.dialogueAudio || [],
+    dialogueTrack: chapter.dialogueTrack || null,
+    startDialogueTrack: chapter.dialogueTrack || null,
     endDialogue: buildCampaignEndDialogue(chapter, faction),
     endDialogueAudio: chapter.endDialogueAudio || [],
+    endDialogueTrack: chapter.endDialogueTrack || null,
     cinematic: clonePlain(chapter.cinematic || null),
     playerCampaignCardCount: playerCampaignCards.length,
     bossCampaignCardCount: bossCampaignCards.length,

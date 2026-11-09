@@ -1,6 +1,6 @@
 const { test, expect } = require("./admin-release-test");
 const { origin } = require("./admin-urls");
-const { saveRecord, area } = require("./admin-navigation");
+const { saveRecord, area, searchCollection } = require("./admin-navigation");
 const { navigatePlayer } = require("./player-navigation");
 const AxeBuilder = require("@axe-core/playwright").default;
 const fs = require("node:fs"), path = require("node:path");
@@ -12,7 +12,8 @@ test.beforeEach(async ({ page }) => {
 
 test("production links guard edits and resume the selected card, filter and section", async ({ page }) => {
   await page.goto("/admin/gauntlet?workshop=cards&object=rumin-vault-shield-bearer&section=identity");
-  await page.getByLabel("Search cards").fill("Sentry");
+  await searchCollection(page, "Search cards", "Sentry");
+  if (await page.getByRole("button", { name: "Return to editor", exact: true }).isVisible()) await page.getByRole("button", { name: "Return to editor", exact: true }).click();
   const name = page.getByLabel("Draft name", { exact: true });
   const original = await name.inputValue();
   await name.fill("Unsubmitted fixture name");

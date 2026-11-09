@@ -11,6 +11,7 @@ export default function LiveBabylonMatchExperience({
   onContinueJourney,
   onOpenReplay,
   onOpenMatches,
+  onOpenEarnedPack,
   onRendererFailure,
   onLeaveMatch
 }) {
@@ -34,6 +35,7 @@ export default function LiveBabylonMatchExperience({
       onContinueJourney={onContinueJourney}
       onOpenReplay={onOpenReplay}
       onOpenMatches={onOpenMatches}
+      onOpenEarnedPack={onOpenEarnedPack}
       onRendererFailure={onRendererFailure}
     />
   );

@@ -140,6 +140,16 @@ jobs:
         run: npx playwright test --config=playwright.production.config.js
       - name: Test separate Gems and atomic split-price purchases
         run: npx playwright test --config=playwright.gems.config.js
+      - name: Test Admin refinement, accessibility and exact-revision review
+        env:
+          GAUNTLET_ADMIN_USE_BUILD: 'true'
+          GAUNTLET_ADMIN_FIXTURE_PORT: '4117'
+          GAUNTLET_ADMIN_CLIENT_PORT: '3117'
+          GAUNTLET_ADMIN_EVIDENCE_DIR: '../artifacts/admin-refinement-regression'
+        run: |
+          npx playwright test --config=playwright.admin-redesign.config.js
+          npx playwright test --config=playwright.admin-refinement.config.js
+          npx playwright test --config=playwright.admin-pipelines.config.js
       - name: Upload failed Admin diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
@@ -150,6 +160,10 @@ jobs:
             artifacts/immutable-assets/
             artifacts/printings/browser/
             artifacts/purpose/browser/
+            artifacts/admin-refinement-regression/
+            artifacts/admin-pipeline-*.png
+            artifacts/admin-pipelines-results.json
+            docs/reviews/admin-refinement/after/
           if-no-files-found: ignore
           retention-days: 7
 

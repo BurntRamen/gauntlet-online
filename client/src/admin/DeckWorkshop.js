@@ -1,3 +1,4 @@
+import { useHelp } from "./AuthoringHelp";
 import { useState } from "react";
 import Help from "./AuthoringHelp";
 import { PrivateCard } from "./PrivateAsset";
@@ -6,6 +7,7 @@ import WorkshopShell, { WorkshopFacts, WorkshopSection } from "./WorkshopShell";
 
 const sections = [["details", "Details"], ["composition", "Composition"], ["test", "Test"], ["related", "Related content"]];
 export default function DeckWorkshop({ row, state, fields, list, search, playtest, onReview, onInspect, notes, onNotes, onSaveNotes, busy, unsaved, section, onSection, onSelectList }) {
+  const helpCopy = useHelp();
   const [localSection, setSection] = useState("details");
   const active = sections.some(([id]) => id === section) ? section : localSection;
   const manifest = state.previewContent?.manifest || state.previewContent;
@@ -45,7 +47,7 @@ export default function DeckWorkshop({ row, state, fields, list, search, playtes
           return <tr key={id}><th scope="row">{manifest?.cards?.find(card => card.id === id)?.name || id}</th><td>{printingName(before)}</td><td>{printingName(after)}</td></tr>;
         })}</tbody></table></div></details>}
       </WorkshopSection></div>
-      <div hidden={active !== "test"}><WorkshopSection title="Test this recipe" id="deck-test"><p className="admin-note">{state.draft?.playtestedHash === state.draft?.hash && state.draft ? "Accepted action recorded for this exact shared draft; inspect the test subject below." : "No current shared-draft test receipt."}</p>{playtest || <Help topic="workspaceDeckWorkshop9" />}</WorkshopSection></div>
+      <div hidden={active !== "test"}><WorkshopSection title="Test this recipe" id="deck-test"><p className="admin-note">{state.draft?.playtestedHash === state.draft?.hash && state.draft ? helpCopy.deckNote1 : "No current shared-draft test receipt."}</p>{playtest || <Help topic="workspaceDeckWorkshop9" />}</WorkshopSection></div>
       <div hidden={active !== "related"}><WorkshopSection title="Used by" id="deck-related"><RelatedContent data={state.relationshipData} domain="decks" id={row.id} onInspect={onInspect} /></WorkshopSection></div>
       <details className="admin-json"><summary>Technical · recipe identity and revision</summary><pre>{JSON.stringify({ id: row.id, revision: template?.revision || null, release: manifest?.contentVersion || state.activeReleaseId }, null, 2)}</pre></details>
     </> : <Help topic="workspaceDeckWorkshop10" className="admin-note" />}

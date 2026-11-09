@@ -3,6 +3,7 @@
   "installCommand": "npm ci",
   "buildCommand": "npm run build",
   "outputDirectory": "build",
+  "git": { "deploymentEnabled": { "codex/admin-refinement": false, "codex/admin-home-read-pressure": false, "codex/admin-defer-operations": false } },
   "rewrites": [
     { "source": "/admin/gauntlet", "destination": "/index.html" },
     { "source": "/admin/gauntlet/:path*", "destination": "/index.html" }

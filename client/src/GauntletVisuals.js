@@ -12,13 +12,14 @@ export const FACTION_VISUALS = {
   sheen: { name: "Sheen", accent: "#71b187", art: "/assets/gauntlet/sheen-card.webp" },
   frumo: { name: "Frumo", accent: "#69a8dc", art: "/assets/gauntlet/frumo-card.webp" },
   bizi: { name: "Bizi", accent: "#b080ce", art: "/assets/gauntlet/factions/bizi/constanti-technology-hub.webp" },
-  zynarth: { name: "Zynarth", accent: "#a3e635", art: "/assets/gauntlet/factions/zynarth/brood-nest.webp" },
-  "astral-vanguard": { name: "Astral Vanguard", accent: "#60a5fa", art: "/assets/gauntlet/factions/astral-vanguard/vanguard-outpost.webp" },
+  zynarth: { name: "Zynarth", accent: "#d5963d", art: "/assets/gauntlet/factions/zynarth/brood-nest.webp" },
+  "astral-vanguard": { name: "Astral Vanguard", accent: "#f28a38", art: "/assets/gauntlet/factions/astral-vanguard/vanguard-outpost.webp" },
   ingles: { name: "Ingles", accent: "#e9c46a", art: "/assets/gauntlet/ingles-emblem.svg" },
   mercaw: { name: "Mercaw", accent: "#60a5fa", art: "/assets/gauntlet/mercaw-emblem.svg" },
   mtano: { name: "M'Tano", accent: "#9ccf9b", art: "/assets/gauntlet/mtano-emblem.svg" },
   russo: { name: "Russo", accent: "#b9d7ea", art: "/assets/gauntlet/russo-emblem.svg" },
-  xendra: { name: "XenDra", accent: "#a88ad8", art: "" },
+  morphlings: { name: "The Continuants", accent: "#8ee7df", art: "" },
+  xendra: { name: "XenDra", accent: "#b9a6d8", art: "" },
   basic: { get name() { return brandText("Basic SuitFire", "Basic Gauntlet"); }, accent: "#d0a863", art: "" }
 };
 
@@ -100,6 +101,7 @@ export function factionIdFrom(value) {
   if (normalized.includes("voltari")) return "voltari";
   if (normalized.includes("zynarth")) return "zynarth";
   if (normalized.includes("astralvanguard")) return "astral-vanguard";
+  if (normalized.includes("morphling") || normalized.includes("continuant")) return "morphlings";
   if (normalized.includes("xendra")) return "xendra";
   return "basic";
 }

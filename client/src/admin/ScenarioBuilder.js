@@ -1,6 +1,6 @@
 import ValueControl, { EditorValues, replaceAt, removeAt, moveUp } from "./ValueControl";
 import Help from "./AuthoringHelp";
-import { useEffect, useState } from "react";
+import useAdminData from "./useAdminData";
 import "./TestHarness.css";
 
 const suits = ["spades", "hearts", "diamonds", "clubs"];
@@ -22,8 +22,8 @@ function freeSlot(player, allowedSuits = suits, allowedValues = Array.from({ len
   return null;
 }
 export default function ScenarioBuilder({ request, value, onChange, factions, cards, disabled, onClose }) {
-  const [spec, setSpec] = useState(null), [error, setError] = useState("");
-  useEffect(() => { let active = true; request("/api/admin/authoring/playtest/scenario-spec").then(data => { if (active) setSpec(data.scenarioSpec || data); }).catch(failure => { if (active) setError(failure.message); }); return () => { active = false; }; }, [request]);
+  const { data, error } = useAdminData(request, "/api/admin/authoring/playtest/scenario-spec");
+  const spec = data?.scenarioSpec || data;
   const updatePlayer = (id, patch) => onChange({ ...value, players: { ...value.players, [id]: { ...value.players[id], ...patch } } });
   if (!spec) return <p role={error ? "alert" : "status"}>{error || "Loading supported scenario controls…"}</p>;
   const allowedSuits = spec.suits || suits, allowedValues = spec.values || Array.from({ length: 13 }, (_, i) => i + 2);

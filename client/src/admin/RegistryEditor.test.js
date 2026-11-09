@@ -63,3 +63,11 @@ test("an already-open deep link does not overwrite edits when shared state refre
   expect(hook.result.current.editing.name).toBe("Unsaved");
   expect(props.onTarget).toHaveBeenCalledTimes(1);
 });
+
+test.each([undefined, { records: [first], events: [] }])("a pipeline can open a category on a legacy or empty snapshot without mutating a record (%j)", registry => {
+  const props = { ...settings(), state: { live: { registry } }, initialTarget: { domain: "events", id: null }, onTarget: jest.fn(), fieldId: () => "missing" };
+  const hook = renderHook(() => useRegistryEditor(props));
+  expect(props.onTarget).toHaveBeenCalledWith(props.initialTarget);
+  expect(hook.result.current.editing).toBeUndefined();
+  expect(props.act).not.toHaveBeenCalled();
+});

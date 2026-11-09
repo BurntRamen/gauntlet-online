@@ -226,11 +226,12 @@ function validateAuthoredFields(snapshot, baseline, catalogCards) {
 function validateAuthoredRecord(snapshot, baseline, domain, id) {
   const errors = validateAuthoredFields(snapshot, baseline).errors.filter(issue => !issue.domain || issue.domain === domain && (issue.id == null || issue.id === id));
   const row = snapshot.domains[domain]?.find(item => item.id === id);
-  const authoredEffect = domain === "cards" && row?.effect?.id === require("../shared/duel-rules/mechanicContract").ID;
+  const program = require("../shared/duel-rules/mechanicProgram");
+  const authoredEffect = domain === "cards" && program.isAuthored(row?.effect);
   const modifierId = domain === "encounters" && row?.ruleModifierId;
   if (authoredEffect || modifierId) {
     const studio = snapshot.studio && { ...snapshot.studio };
-    if (Array.isArray(studio?.mechanics)) studio.mechanics = studio.mechanics.filter(item => item?.id === row.effect?.mechanicId);
+    if (Array.isArray(studio?.mechanics)) studio.mechanics = studio.mechanics.filter(item => program.references(row.effect).some(ref => ref.mechanicId === item?.id));
     if (Array.isArray(studio?.modifiers)) studio.modifiers = studio.modifiers.filter(item => item?.id === modifierId);
     errors.push(...require("./mechanicAuthoring").validate({ ...snapshot, studio, domains: { cards: authoredEffect ? [row] : [], encounters: modifierId ? [row] : [] } }));
   }
@@ -284,8 +285,10 @@ function resolveEngineContent(snapshot, releaseId) {
   manifest.contentBinding = { authoredRelease: releaseId, rulesVersion: duel.RULES_VERSION, cardEffectContractVersion: effects.CARD_EFFECT_CONTRACT_VERSION, factionEffectContractVersion: effects.FACTION_EFFECT_CONTRACT_VERSION, encounterContractVersion: encounterContract.ENCOUNTER_CONTRACT_VERSION, assetManifestVersion: assets.assetManifest.version, gameConfigVersion: config.GAME_CONFIG_VERSION };
   if (domains.encounters.some(row => row.aiProfile === "support-first")) manifest.contentBinding.encounterAiVersion = require("./encounterAiProfiles").VERSION;
   if (domains.factions.some(f => f.origin === "admin-faction-v1")) manifest.contentBinding.factionFamilyVersion = domains.factions.some(f => f.origin === "admin-faction-v1" && f.family !== "rumin") ? "gauntlet.faction-families.v2" : "gauntlet.faction-families.v1";
-  if (domains.cards.some(card => card.effect?.id === require("../shared/duel-rules/mechanicContract").ID)) manifest.contentBinding.mechanicVersion = domains.cards.some(card => card.effect?.id === "authored-mechanic" && card.effect.version === 2) ? require("../shared/duel-rules/mechanicContract").VERSION2 : require("../shared/duel-rules/mechanicContract").VERSION;
-  if (domains.cards.some(card => card.effect?.id === composition.ID)) manifest.contentBinding.compositionVersion = composition.VERSION;
+  const program = require("../shared/duel-rules/mechanicProgram"), mechanics = domains.cards.flatMap(card => program.references(card.effect));
+  if (mechanics.length) manifest.contentBinding.mechanicVersion = mechanics.some(ref => ref.version === 2) ? require("../shared/duel-rules/mechanicContract").VERSION2 : require("../shared/duel-rules/mechanicContract").VERSION;
+  if (domains.cards.some(card => card.effect?.id === program.ID)) manifest.contentBinding.mechanicProgramVersion = program.VERSION;
+  if (domains.cards.some(card => card.effect?.id === composition.ID || card.effect?.armament?.id === composition.ID)) manifest.contentBinding.compositionVersion = composition.VERSION;
   const source = registry.getPublicGameContent();
   for (const card of manifest.cards) {
     card.presentation = assets.cardPresentation(card, manifest.collectorVariants.find((row) => row.variantId === card.defaultVariantId), source.cards.find((row) => row.id === card.id), source.collectorVariants.find((row) => row.variantId === card.defaultVariantId), releaseId, versions);

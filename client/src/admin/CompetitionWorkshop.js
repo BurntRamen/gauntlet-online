@@ -8,10 +8,10 @@ import "../EventHub.css";
 import { RegistryForm, RegistrySearch, RegistryWorkspace, useRegistryEditor } from "./RegistryEditor";
 import ValueControl, { replaceAt, removeAt } from "./ValueControl";
 
-export default function CompetitionWorkshop({ state, act, busy, onDirty, initialTarget }) {
+export default function CompetitionWorkshop({ state, act, busy, onDirty, initialTarget, onSelect }) {
   const [domain, setDomain] = useState("ranked");
-  const editor = useRegistryEditor({ state, act, registry: "competition", domain, action: "competition-draft", scope: { domain }, onDirty, initialTarget,
-    onTarget: target => setDomain(target.domain), fieldId: target => `competition-${target.field || "name"}`, label: "competition definition" });
+  const editor = useRegistryEditor({ state, act, registry: "competition", domain, action: "competition-draft", scope: { domain }, onDirty, initialTarget, initialId: initialTarget?.id, onSelect: id => onSelect?.(domain, id),
+    onTarget: target => { if (!Object.hasOwn(state.competition.fields, target.domain)) return false; setDomain(target.domain); }, fieldId: target => `competition-${target.field || "name"}`, label: "competition definition" });
   const { editing, dirty, update, mutate: save, leave, select } = editor;
   const disabled = busy || !state.writable;
   const pinned = (state.live.competition?.[domain] || []).some(r => r.id === editing?.id && r.status !== "draft");

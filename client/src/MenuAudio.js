@@ -132,10 +132,10 @@ export function createMenuAudioController({
     return ambience;
   }
 
-  function stopAmbience() {
+  function stopAmbience({ immediate = false } = {}) {
     const current = ambience;
     if (!current) return;
-    fadeAudio(current, 0, fadeMs, () => {
+    fadeAudio(current, 0, immediate ? 0 : fadeMs, () => {
       current.pause?.();
       try { current.currentTime = 0; } catch (_error) {}
     });
@@ -144,7 +144,9 @@ export function createMenuAudioController({
   function syncAmbience() {
     const shouldPlay = settings.active && !settings.masterMuted && settings.ambienceEnabled && settings.ambienceVolume > 0;
     if (!shouldPlay) {
-      stopAmbience();
+      // Route changes and dialogue hand-offs must not leave a fading menu
+      // loop underneath campaign music. Preference changes can still fade.
+      stopAmbience({ immediate: !settings.active });
       return;
     }
     const current = ensureAmbience();

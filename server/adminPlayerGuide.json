@@ -1,0 +1,23 @@
+{
+  "playerNote1": "Complete a valid player name and correction reason before saving. Choose Keep editing to review the fields.",
+  "playerNote2": "No repair is needed from the available evidence.",
+  "playerNote3": "Applying this repair changes the account immediately and records your reason. It does not enter the shared content draft.",
+  "playerNote4": "This is also the name used to sign in. Changes save directly to this account.",
+  "playerNote5": "Use latest name as correction baseline",
+  "playerNote6": "Review both names before retrying. Your correction and reason are retained.",
+  "playerNote7": "Compare the latest account name before retrying this correction.",
+  "playerNote8": "Purchase evidence is unavailable. Refresh Admin to retry.",
+  "playerNote9": "Receipts capture the product, price and grants at purchase. Current storefront changes do not rewrite these terms.",
+  "playerNote10": ". Future prices do not change this receipt.",
+  "playerNote11": "No purchase receipts were returned for this player.",
+  "playerNote12": "No currency transactions were returned.",
+  "playerNote13": "No match evidence references recorded for this player.",
+  "playerNote14": "Profile corrections affect this account immediately and are recorded in Support history.",
+  "playerNote15": ". Choose a section above to see more.",
+  "playerNote16": "Refresh admin to reload chapter names.",
+  "playerNote17": "Account identity and source records.",
+  "playerNote18": "Find an account, understand its progress, and follow the original purchase or match evidence.",
+  "playerNote19": "No players match this search. Try part of the player name or their exact account ID.",
+  "playerNote20": "Search by name or account ID, then open a profile to inspect progress, collection, decks and captured purchase terms.",
+  "playerNote21": "Viewing a profile does not change the account."
+}

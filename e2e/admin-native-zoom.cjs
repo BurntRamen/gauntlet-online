@@ -5,7 +5,7 @@ const path = require('node:path');
 const expect = rawExpect.configure({ timeout: 30000 });
 const base = `http://127.0.0.1:${process.env.GAUNTLET_ADMIN_CLIENT_PORT || '3188'}`;
 const backend = `http://127.0.0.1:${process.env.GAUNTLET_ADMIN_FIXTURE_PORT || '4188'}`;
-const evidence = path.resolve(__dirname, '../docs/reviews/admin-workspace/after');
+const evidence = process.env.GAUNTLET_NATIVE_EVIDENCE_DIR || path.resolve(__dirname, '../docs/reviews/admin-workspace/after');
 const profileDirectory = path.resolve(__dirname, '../artifacts');
 fs.mkdirSync(profileDirectory, { recursive: true });
 fs.mkdirSync(evidence, { recursive: true });
@@ -70,6 +70,39 @@ const metrics = page => page.evaluate(() => ({ innerWidth, innerHeight, outerWid
     expect(result.capture.width).toBe(initial.innerWidth);
     expect(result.capture.height).toBe(initial.innerHeight);
     expect(a11y.violations).toEqual([]);
+    if (process.env.GAUNTLET_NATIVE_MATRIX === 'true') {
+      const headers = { Authorization: `Bearer ${sessions.simply}` };
+      const api = async (method, route, data) => {
+        const response = await context.request[method](backend + '/api/admin/authoring' + route, { headers, ...(data ? { data } : {}) });
+        expect(response.ok()).toBe(true); return response.json();
+      };
+      const before = await api('get', '');
+      expect(before.draft).toBeFalsy(); // Matrix mutations require a clean owned fixture.
+      let createdDraft = false;
+      result.views = {};
+      const captureView = async name => {
+        const measure = await metrics(page);
+        expect(measure.devicePixelRatio).toBe(2); expect(measure.visualScale).toBe(1);
+        expect(measure.documentWidth).toBeLessThanOrEqual(measure.innerWidth);
+        await page.evaluate(async () => { await document.fonts.ready; await Promise.all([...document.images].filter(img => { const b = img.getBoundingClientRect(); return b.width && b.height && b.top < innerHeight && b.bottom > 0; }).map(img => img.decode().catch(() => {}))); });
+        const session = await context.newCDPSession(page);
+        const image = await session.send('Page.captureScreenshot', { format: 'png', fromSurface: true, captureBeyondViewport: false });
+        await session.detach(); fs.writeFileSync(path.join(evidence, `${name}-native-200-percent.png`), Buffer.from(image.data, 'base64'));
+        const axe = await new AxeBuilder({ page }).include('.gauntlet-admin').analyze(); expect(axe.violations).toEqual([]);
+        result.views[name] = { ...measure, axeViolations: axe.violations };
+      };
+      try {
+        await page.goto(base + '/admin/gauntlet'); const task = page.getByRole('button', { name: 'Build a card set', exact: true }); await expect(task).toBeVisible(); await task.scrollIntoViewIfNeeded(); await captureView('home');
+        await page.goto(base + '/admin/gauntlet?workshop=cards'); const search = page.getByLabel('Search cards', { exact: true }); await expect(search).toBeVisible(); await search.scrollIntoViewIfNeeded(); await captureView('collection');
+        await page.goto(base + '/admin/gauntlet?workshop=cards&object=rumin-coin-scale-spear'); await expect(page.getByLabel('Draft name', { exact: true })).toBeVisible();
+        await page.getByRole('button', { name: 'Preview', exact: true }).click(); const preview = page.getByRole('region', { name: 'Card Workshop preview and test', exact: true }); const card = preview.getByRole('img', { name: /Dividend Yield Blade/ }).first(); await expect(card).toBeVisible(); await card.scrollIntoViewIfNeeded(); await captureView('editor-preview');
+        await api('patch', '/draft', { expectedRevision: before.revision, domain: 'cards', id: 'rumin-coin-scale-spear', field: 'name', value: '' }); createdDraft = true;
+        await page.goto(base + '/admin/gauntlet?area=Publishing'); const fix = page.getByRole('region', { name: 'Shared release review', exact: true }).getByRole('button', { name: 'Fix name', exact: true }); await expect(fix).toBeVisible(); await fix.scrollIntoViewIfNeeded(); await expect(fix).toBeInViewport(); await captureView('validation');
+        const invalid = await api('get', ''); await api('patch', '/draft', { expectedRevision: invalid.revision, domain: 'cards', id: 'rumin-coin-scale-spear', field: 'name', value: 'Native zoom review candidate' });
+        await page.reload(); await expect(page.getByRole('region', { name: 'Shared release review', exact: true })).toContainText('Native zoom review candidate'); const release = page.getByLabel('Release name', { exact: true }); await release.scrollIntoViewIfNeeded(); await release.fill('Native zoom review'); await expect(release).toBeInViewport(); await captureView('review');
+      } finally { if (createdDraft) { const current = await api('get', ''); await api('post', '/discard', { expectedRevision: current.revision }); } }
+      fs.writeFileSync(path.join(evidence, 'native-zoom.json'), JSON.stringify(result, null, 2) + '\n');
+    }
     console.log(JSON.stringify(result, null, 2));
   } finally { await context.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "factionId": "astral-vanguard",
+  "voiceProvider": "ElevenLabs",
+  "chapters": {
+    "new-horizon": {
+      "dialogueTrack": "/assets/gauntlet/voices/astral-vanguard/new-horizon-opening.mp3",
+      "endDialogueTrack": "/assets/gauntlet/voices/astral-vanguard/new-horizon-ending.mp3"
+    },
+    "something-beneath-us": {
+      "dialogueTrack": "/assets/gauntlet/voices/astral-vanguard/something-beneath-us-opening.mp3",
+      "endDialogueTrack": "/assets/gauntlet/voices/astral-vanguard/something-beneath-us-ending.mp3"
+    },
+    "the-brood": {
+      "dialogueTrack": "/assets/gauntlet/voices/astral-vanguard/the-brood-opening.mp3",
+      "endDialogueTrack": "/assets/gauntlet/voices/astral-vanguard/the-brood-ending.mp3"
+    },
+    "other-intelligence": {
+      "dialogueTrack": "/assets/gauntlet/voices/astral-vanguard/other-intelligence-opening.mp3",
+      "endDialogueTrack": "/assets/gauntlet/voices/astral-vanguard/other-intelligence-ending.mp3"
+    },
+    "golden-machine": {
+      "dialogueTrack": "/assets/gauntlet/voices/astral-vanguard/golden-machine-opening.mp3",
+      "endDialogueTrack": "/assets/gauntlet/voices/astral-vanguard/golden-machine-ending.mp3"
+    },
+    "conduit": {
+      "dialogueTrack": "/assets/gauntlet/voices/astral-vanguard/conduit-opening.mp3",
+      "endDialogueTrack": "/assets/gauntlet/voices/astral-vanguard/conduit-ending.mp3"
+    },
+    "city-that-wasnt-there": {
+      "dialogueTrack": "/assets/gauntlet/voices/astral-vanguard/city-that-wasnt-there-opening.mp3",
+      "endDialogueTrack": "/assets/gauntlet/voices/astral-vanguard/city-that-wasnt-there-ending.mp3"
+    },
+    "fracture": {
+      "dialogueTrack": "/assets/gauntlet/voices/astral-vanguard/fracture-opening.mp3",
+      "endDialogueTrack": "/assets/gauntlet/voices/astral-vanguard/fracture-ending.mp3"
+    },
+    "enemy-of-my-enemy": {
+      "dialogueTrack": "/assets/gauntlet/voices/astral-vanguard/enemy-of-my-enemy-opening.mp3",
+      "endDialogueTrack": "/assets/gauntlet/voices/astral-vanguard/enemy-of-my-enemy-ending.mp3"
+    },
+    "first-empire": {
+      "dialogueTrack": "/assets/gauntlet/voices/astral-vanguard/first-empire-opening.mp3",
+      "endDialogueTrack": "/assets/gauntlet/voices/astral-vanguard/first-empire-ending.mp3"
+    },
+    "world-between": {
+      "dialogueTrack": "/assets/gauntlet/voices/astral-vanguard/world-between-opening.mp3",
+      "endDialogueTrack": "/assets/gauntlet/voices/astral-vanguard/world-between-ending.mp3"
+    },
+    "when-stars-remember": {
+      "dialogueTrack": "/assets/gauntlet/voices/astral-vanguard/when-stars-remember-opening.mp3",
+      "endDialogueTrack": "/assets/gauntlet/voices/astral-vanguard/when-stars-remember-ending.mp3"
+    }
+  }
+}

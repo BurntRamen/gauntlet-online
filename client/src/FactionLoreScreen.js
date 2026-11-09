@@ -81,6 +81,7 @@ export default function FactionLoreScreen({ manifest, onBack, onOpenCampaign, em
   const faction = filtered.find((entry) => entry.id === selectedId) || filtered[0] || factions.find((entry) => entry.id === selectedId) || factions[0];
   const campaign = campaigns[faction?.id] || {};
   const artwork = resolveVisualAsset(getFactionCover(faction?.id, campaign.coverImage, faction?.city?.image, faction?.cardImage));
+  const artDirection = faction?.artDirection;
   const leaders = leaderEntries(faction, campaign);
   const acts = storyActs(campaign);
   const setName = manifest?.draftSets?.find((set) => set.factionIds?.includes(faction?.id))?.name || SET_NAMES[faction?.setId] || brandText("SuitFire", "Gauntlet");
@@ -136,6 +137,7 @@ export default function FactionLoreScreen({ manifest, onBack, onOpenCampaign, em
               <a href={`#${headingId}-origin`}>Origin</a>
               <a href={`#${headingId}-convergence`}>Path to Reath</a>
               <a href={`#${headingId}-doctrine`}>Doctrine</a>
+              {artDirection && <a href={`#${headingId}-visual-identity`}>Visual identity</a>}
               {acts.length > 0 && <a href={`#${headingId}-arc`}>Story</a>}
               {leaders.length > 0 && <a href={`#${headingId}-figures`}>Key figures</a>}
               {campaign.chapters?.length > 0 && <a href={`#${headingId}-chronicle`}>Chapters</a>}
@@ -158,6 +160,16 @@ export default function FactionLoreScreen({ manifest, onBack, onOpenCampaign, em
               <blockquote>{faction.commander?.text || faction.city?.text}</blockquote>
               {faction.city && <p><strong>{faction.city.name}:</strong> {faction.city.text}</p>}
             </section>
+
+            {artDirection && <section className="faction-lore-visual-identity" aria-labelledby={`${headingId}-visual-identity`}>
+              <div><span>Art direction</span><SectionHeading id={`${headingId}-visual-identity`}>How to recognize them</SectionHeading></div>
+              <dl>
+                <div><dt>Silhouette</dt><dd>{artDirection.silhouette}</dd></div>
+                <div><dt>Materials</dt><dd>{artDirection.materials}</dd></div>
+                <div><dt>Recurring motifs</dt><dd>{artDirection.motifs}</dd></div>
+              </dl>
+              <p><strong>Identity guardrail:</strong> {artDirection.guardrail}</p>
+            </section>}
 
             {acts.length > 0 && <section className="faction-lore-arc" aria-labelledby={`${headingId}-arc`}>
               <div className="faction-lore-section-heading"><span>Narrative overview</span><SectionHeading id={`${headingId}-arc`}>The faction's story</SectionHeading></div>

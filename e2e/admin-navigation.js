@@ -17,7 +17,7 @@ async function destination(page, name) {
   if (name === "Store") { await area(page, "Store & Economy"); await page.getByRole("navigation", { name: "Store & Economy workspaces" }).getByRole("button", { name: "Products", exact: true }).click(); return; }
   const targets = {
     Cards: ["Cards"], Decks: ["Decks"], Encounters: ["Campaigns & Encounters", "encounters"], Campaigns: ["Campaigns & Encounters", "campaigns"], Factions: ["Factions & Characters", "factions"], Characters: ["Factions & Characters", "characters"], "Characters / opponents": ["Factions & Characters", "characters"],
-    "Engine / Rules": ["Mechanics & Rules", "card-effects"], "Website prose": ["Website Text"], "Collector artwork": ["Printings & Sets", "assets"], Sets: ["Printings & Sets", "sets"], "Other content": ["Campaigns & Encounters", "campaigns"]
+    "Engine / Rules": ["Mechanics & Rules", "card-effects"], "Website prose": ["Lore & Website Text"], "Collector artwork": ["Printings & Sets", "assets"], Sets: ["Printings & Sets", "sets"], "Other content": ["Campaigns & Encounters", "campaigns"]
   };
   const [group, type] = targets[name] || [name];
   const nav = await navigation(page);
@@ -30,16 +30,18 @@ async function destination(page, name) {
   if (await page.getByRole("dialog", { name: "Unsaved local changes" }).isVisible()) return;
   if (type) await page.getByRole("combobox", { name: "Content type", exact: true }).selectOption(type);
   await workspaceView(page, "Editor");
+  const backToList = page.getByRole("button", { name: "Back to list", exact: true });
+  if (await backToList.isVisible()) await backToList.click();
 }
 async function workspaceView(page, name) {
   const controls = page.locator('[aria-label="Workspace view"]');
   if (name === "Preview") await controls.waitFor({ state: "visible" });
   if (await controls.isVisible()) await controls.getByRole("button", { name, exact: true }).click();
   else if (name === "Editor") {
-    // A retained Preview preference can outlive a test section or selection.
+    // A retained or automatic Preview preference can outlive a selection.
     // Use its actual preference control when there is no selected-record toggle.
     const preference = page.getByRole("combobox", { name: "Preview visibility", exact: true });
-    if (await preference.count() && await preference.inputValue() === "true") {
+    if (await preference.count() && await preference.inputValue() !== "false") {
       const options = page.getByLabel("Workspace options", { exact: true });
       if (!await preference.isVisible()) await options.click();
       await preference.selectOption("false");
@@ -54,6 +56,12 @@ async function workspaceSection(page, workshop, label) {
   if (await select.isVisible()) await select.selectOption({ label });
   else await page.getByRole("navigation", { name: `${workshop} sections`, exact: true }).getByRole("button", { name: label, exact: true }).click();
   await workspaceView(page, "Editor");
+}
+async function searchCollection(page, label, value) {
+  const search = page.getByLabel(label, { exact: true });
+  await search.waitFor({ state: "attached" });
+  if (!await search.isVisible()) await page.getByRole("button", { name: "Back to list", exact: true }).click();
+  await search.fill(value);
 }
 async function saveRecord(page, recordName) {
   await page.getByRole("region", { name: "Save record changes", exact: true }).getByRole("button", { name: recordName ? `Save changes to ${recordName}` : /^Save changes/ }).click();
@@ -101,4 +109,4 @@ async function identity(page, value) {
   await page.getByText("Advanced · permanent identity", { exact: true }).click();
   await page.getByLabel("ID", { exact: true }).fill(value);
 }
-module.exports = { area, paraTab, identity, navigation, destination, workspaceSection, workspaceView, saveRecord, saveDefinition, previewSavedDraft, refreshAdmin };
+module.exports = { searchCollection, area, paraTab, identity, navigation, destination, workspaceSection, workspaceView, saveRecord, saveDefinition, previewSavedDraft, refreshAdmin };
