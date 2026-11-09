@@ -1197,7 +1197,4298 @@
     "/assets/gauntlet/releases/149ee7713328f74b4a9be6cb4be403975280c41bd15201802b3e794fc66f367c.webp": "/assets/gauntlet/tang.webp",
     "/assets/gauntlet/releases/1692d5e4ef53a4aa206922395ea9c800dc4849de823e4f312b1f86cc645dba4c.svg": "/assets/gauntlet/morphlings-emblem.svg"
   },
-  "replacements": {},
+  "replacements": {
+    "/assets/gauntlet/constructed/faces/sheen-rootwatch-initiate-clubs.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-rootwatch-initiate",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-rootwatch-initiate.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-rootwatch-initiate-diamonds.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-rootwatch-initiate",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-rootwatch-initiate.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-rootwatch-initiate-hearts.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-rootwatch-initiate",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-rootwatch-initiate.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-rootwatch-initiate-spades.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-rootwatch-initiate",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-rootwatch-initiate.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/sheen/sheen-rootwatch-initiate.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-rootwatch-initiate",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-rootwatch-initiate.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-quiet-grove-sentinel-clubs.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-quiet-grove-sentinel",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-quiet-grove-sentinel.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-quiet-grove-sentinel-diamonds.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-quiet-grove-sentinel",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-quiet-grove-sentinel.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-quiet-grove-sentinel-hearts.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-quiet-grove-sentinel",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-quiet-grove-sentinel.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-quiet-grove-sentinel-spades.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-quiet-grove-sentinel",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-quiet-grove-sentinel.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/sheen/sheen-quiet-grove-sentinel.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-quiet-grove-sentinel",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-quiet-grove-sentinel.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-mossbound-staff-clubs.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-mossbound-staff",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-mossbound-staff.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-mossbound-staff-diamonds.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-mossbound-staff",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-mossbound-staff.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-mossbound-staff-hearts.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-mossbound-staff",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-mossbound-staff.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-mossbound-staff-spades.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-mossbound-staff",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-mossbound-staff.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/sheen/sheen-mossbound-staff.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-mossbound-staff",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-mossbound-staff.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-living-bark-guard-clubs.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-living-bark-guard",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-living-bark-guard.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-living-bark-guard-diamonds.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-living-bark-guard",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-living-bark-guard.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-living-bark-guard-hearts.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-living-bark-guard",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-living-bark-guard.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-living-bark-guard-spades.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-living-bark-guard",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-living-bark-guard.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/sheen/sheen-living-bark-guard.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-living-bark-guard",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-living-bark-guard.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-beli-vinebinder-clubs.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-beli-vinebinder",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-beli-vinebinder.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-beli-vinebinder-diamonds.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-beli-vinebinder",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-beli-vinebinder.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-beli-vinebinder-hearts.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-beli-vinebinder",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-beli-vinebinder.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-beli-vinebinder-spades.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-beli-vinebinder",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-beli-vinebinder.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/sheen/sheen-beli-vinebinder.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-beli-vinebinder",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-beli-vinebinder.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-harmony-ward-clubs.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-harmony-ward",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-harmony-ward.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-harmony-ward-diamonds.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-harmony-ward",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-harmony-ward.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-harmony-ward-hearts.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-harmony-ward",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-harmony-ward.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-harmony-ward-spades.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-harmony-ward",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-harmony-ward.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/sheen/sheen-harmony-ward.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-harmony-ward",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-harmony-ward.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-thornroot-counterstroke-clubs.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-thornroot-counterstroke",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-thornroot-counterstroke.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-thornroot-counterstroke-diamonds.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-thornroot-counterstroke",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-thornroot-counterstroke.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-thornroot-counterstroke-hearts.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-thornroot-counterstroke",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-thornroot-counterstroke.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-thornroot-counterstroke-spades.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-thornroot-counterstroke",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-thornroot-counterstroke.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/sheen/sheen-thornroot-counterstroke.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-thornroot-counterstroke",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-thornroot-counterstroke.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-beli-canopy-shield-clubs.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-beli-canopy-shield",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-beli-canopy-shield.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-beli-canopy-shield-diamonds.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-beli-canopy-shield",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-beli-canopy-shield.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-beli-canopy-shield-hearts.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-beli-canopy-shield",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-beli-canopy-shield.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-beli-canopy-shield-spades.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-beli-canopy-shield",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-beli-canopy-shield.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/sheen/sheen-beli-canopy-shield.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-beli-canopy-shield",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-beli-canopy-shield.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-nus-verdant-edict-clubs.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-nus-verdant-edict",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-nus-verdant-edict.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-nus-verdant-edict-diamonds.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-nus-verdant-edict",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-nus-verdant-edict.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-nus-verdant-edict-hearts.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-nus-verdant-edict",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-nus-verdant-edict.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-nus-verdant-edict-spades.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-nus-verdant-edict",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-nus-verdant-edict.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/sheen/sheen-nus-verdant-edict.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-nus-verdant-edict",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-nus-verdant-edict.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-roots-that-remember-clubs.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-roots-that-remember",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-roots-that-remember.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-roots-that-remember-diamonds.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-roots-that-remember",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-roots-that-remember.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-roots-that-remember-hearts.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-roots-that-remember",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-roots-that-remember.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-roots-that-remember-spades.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-roots-that-remember",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-roots-that-remember.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/sheen/sheen-roots-that-remember.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-roots-that-remember",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-roots-that-remember.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-tangs-patient-hand-clubs.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-tangs-patient-hand",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-tangs-patient-hand.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-tangs-patient-hand-diamonds.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-tangs-patient-hand",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-tangs-patient-hand.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-tangs-patient-hand-hearts.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-tangs-patient-hand",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-tangs-patient-hand.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-tangs-patient-hand-spades.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-tangs-patient-hand",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-tangs-patient-hand.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/sheen/sheen-tangs-patient-hand.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-tangs-patient-hand",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-tangs-patient-hand.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-seedwall-acolyte-clubs.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-seedwall-acolyte",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-seedwall-acolyte.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-seedwall-acolyte-diamonds.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-seedwall-acolyte",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-seedwall-acolyte.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-seedwall-acolyte-hearts.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-seedwall-acolyte",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-seedwall-acolyte.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-seedwall-acolyte-spades.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-seedwall-acolyte",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-seedwall-acolyte.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/sheen/sheen-seedwall-acolyte.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-seedwall-acolyte",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-seedwall-acolyte.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-raincall-mender-clubs.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-raincall-mender",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-raincall-mender.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-raincall-mender-diamonds.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-raincall-mender",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-raincall-mender.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-raincall-mender-hearts.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-raincall-mender",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-raincall-mender.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-raincall-mender-spades.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-raincall-mender",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-raincall-mender.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/sheen/sheen-raincall-mender.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-raincall-mender",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-raincall-mender.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-ringroot-bastion-clubs.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-ringroot-bastion",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-ringroot-bastion.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-ringroot-bastion-diamonds.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-ringroot-bastion",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-ringroot-bastion.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-ringroot-bastion-hearts.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-ringroot-bastion",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-ringroot-bastion.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-ringroot-bastion-spades.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-ringroot-bastion",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-ringroot-bastion.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/sheen/sheen-ringroot-bastion.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-ringroot-bastion",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-ringroot-bastion.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-sapling-chorus-clubs.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-sapling-chorus",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-sapling-chorus.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-sapling-chorus-diamonds.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-sapling-chorus",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-sapling-chorus.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-sapling-chorus-hearts.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-sapling-chorus",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-sapling-chorus.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-sapling-chorus-spades.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-sapling-chorus",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-sapling-chorus.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/sheen/sheen-sapling-chorus.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-sapling-chorus",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-sapling-chorus.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-nus-calm-command-clubs.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-nus-calm-command",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-nus-calm-command.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-nus-calm-command-diamonds.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-nus-calm-command",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-nus-calm-command.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-nus-calm-command-hearts.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-nus-calm-command",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-nus-calm-command.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-nus-calm-command-spades.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-nus-calm-command",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-nus-calm-command.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/sheen/sheen-nus-calm-command.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-nus-calm-command",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-nus-calm-command.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-emperors-heartwood-clubs.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-emperors-heartwood",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-emperors-heartwood.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-emperors-heartwood-diamonds.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-emperors-heartwood",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-emperors-heartwood.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-emperors-heartwood-hearts.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-emperors-heartwood",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-emperors-heartwood.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-emperors-heartwood-spades.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-emperors-heartwood",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-emperors-heartwood.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/sheen/sheen-emperors-heartwood.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-emperors-heartwood",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-emperors-heartwood.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-beli-awakened-clubs.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-beli-awakened",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-beli-awakened.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-beli-awakened-diamonds.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-beli-awakened",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-beli-awakened.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-beli-awakened-hearts.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-beli-awakened",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-beli-awakened.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-beli-awakened-spades.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-beli-awakened",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-beli-awakened.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/sheen/sheen-beli-awakened.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-beli-awakened",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-beli-awakened.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-canopy-wayfinder-clubs.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-canopy-wayfinder",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-canopy-wayfinder.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-canopy-wayfinder-diamonds.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-canopy-wayfinder",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-canopy-wayfinder.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-canopy-wayfinder-hearts.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-canopy-wayfinder",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-canopy-wayfinder.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-canopy-wayfinder-spades.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-canopy-wayfinder",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-canopy-wayfinder.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/sheen/sheen-canopy-wayfinder.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-canopy-wayfinder",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-canopy-wayfinder.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-rootsong-matriarch-clubs.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-rootsong-matriarch",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-rootsong-matriarch.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-rootsong-matriarch-diamonds.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-rootsong-matriarch",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-rootsong-matriarch.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-rootsong-matriarch-hearts.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-rootsong-matriarch",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-rootsong-matriarch.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-rootsong-matriarch-spades.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-rootsong-matriarch",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-rootsong-matriarch.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/sheen/sheen-rootsong-matriarch.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-rootsong-matriarch",
+      "cardType": "shelter",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-rootsong-matriarch.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-elder-first-grove-clubs.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-elder-first-grove",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-elder-first-grove.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-elder-first-grove-diamonds.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-elder-first-grove",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-elder-first-grove.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-elder-first-grove-hearts.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-elder-first-grove",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-elder-first-grove.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-elder-first-grove-spades.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-elder-first-grove",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-elder-first-grove.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/sheen/sheen-elder-first-grove.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-elder-first-grove",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-elder-first-grove.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-heartwood-avatar-clubs.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-heartwood-avatar",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-heartwood-avatar.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-heartwood-avatar-diamonds.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-heartwood-avatar",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-heartwood-avatar.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-heartwood-avatar-hearts.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-heartwood-avatar",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-heartwood-avatar.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/sheen-heartwood-avatar-spades.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-heartwood-avatar",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-heartwood-avatar.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/sheen/sheen-heartwood-avatar.webp": {
+      "status": "approved",
+      "factionId": "sheen",
+      "cardId": "sheen-heartwood-avatar",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-heartwood-avatar.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-deckhand-diver-clubs.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-deckhand-diver",
+      "cardType": "ambush",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-deckhand-diver.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-deckhand-diver-diamonds.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-deckhand-diver",
+      "cardType": "ambush",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-deckhand-diver.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-deckhand-diver-hearts.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-deckhand-diver",
+      "cardType": "ambush",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-deckhand-diver.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-deckhand-diver-spades.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-deckhand-diver",
+      "cardType": "ambush",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-deckhand-diver.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/frumo/frumo-deckhand-diver.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-deckhand-diver",
+      "cardType": "ambush",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-deckhand-diver.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-tideglass-cutlass-clubs.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-tideglass-cutlass",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-tideglass-cutlass.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-tideglass-cutlass-diamonds.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-tideglass-cutlass",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-tideglass-cutlass.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-tideglass-cutlass-hearts.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-tideglass-cutlass",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-tideglass-cutlass.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-tideglass-cutlass-spades.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-tideglass-cutlass",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-tideglass-cutlass.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/frumo/frumo-tideglass-cutlass.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-tideglass-cutlass",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-tideglass-cutlass.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-sunken-coin-clubs.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-sunken-coin",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-sunken-coin.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-sunken-coin-diamonds.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-sunken-coin",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-sunken-coin.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-sunken-coin-hearts.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-sunken-coin",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-sunken-coin.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-sunken-coin-spades.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-sunken-coin",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-sunken-coin.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/frumo/frumo-sunken-coin.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-sunken-coin",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-sunken-coin.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-coral-hull-guard-clubs.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-coral-hull-guard",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-coral-hull-guard.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-coral-hull-guard-diamonds.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-coral-hull-guard",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-coral-hull-guard.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-coral-hull-guard-hearts.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-coral-hull-guard",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-coral-hull-guard.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-coral-hull-guard-spades.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-coral-hull-guard",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-coral-hull-guard.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/frumo/frumo-coral-hull-guard.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-coral-hull-guard",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-coral-hull-guard.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-riptide-smuggler-clubs.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-riptide-smuggler",
+      "cardType": "ambush",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-riptide-smuggler.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-riptide-smuggler-diamonds.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-riptide-smuggler",
+      "cardType": "ambush",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-riptide-smuggler.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-riptide-smuggler-hearts.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-riptide-smuggler",
+      "cardType": "ambush",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-riptide-smuggler.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-riptide-smuggler-spades.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-riptide-smuggler",
+      "cardType": "ambush",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-riptide-smuggler.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/frumo/frumo-riptide-smuggler.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-riptide-smuggler",
+      "cardType": "ambush",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-riptide-smuggler.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-lafayettes-chart-clubs.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-lafayettes-chart",
+      "cardType": "ambush",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-lafayettes-chart.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-lafayettes-chart-diamonds.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-lafayettes-chart",
+      "cardType": "ambush",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-lafayettes-chart.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-lafayettes-chart-hearts.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-lafayettes-chart",
+      "cardType": "ambush",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-lafayettes-chart.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-lafayettes-chart-spades.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-lafayettes-chart",
+      "cardType": "ambush",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-lafayettes-chart.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/frumo/frumo-lafayettes-chart.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-lafayettes-chart",
+      "cardType": "ambush",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-lafayettes-chart.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-pressure-lock-pistol-clubs.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-pressure-lock-pistol",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-pressure-lock-pistol.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-pressure-lock-pistol-diamonds.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-pressure-lock-pistol",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-pressure-lock-pistol.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-pressure-lock-pistol-hearts.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-pressure-lock-pistol",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-pressure-lock-pistol.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-pressure-lock-pistol-spades.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-pressure-lock-pistol",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-pressure-lock-pistol.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/frumo/frumo-pressure-lock-pistol.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-pressure-lock-pistol",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-pressure-lock-pistol.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-ristus-blackwake-clubs.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-ristus-blackwake",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-ristus-blackwake.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-ristus-blackwake-diamonds.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-ristus-blackwake",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-ristus-blackwake.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-ristus-blackwake-hearts.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-ristus-blackwake",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-ristus-blackwake.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-ristus-blackwake-spades.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-ristus-blackwake",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-ristus-blackwake.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/frumo/frumo-ristus-blackwake.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-ristus-blackwake",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-ristus-blackwake.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-captains-bad-wager-clubs.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-captains-bad-wager",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-captains-bad-wager.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-captains-bad-wager-diamonds.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-captains-bad-wager",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-captains-bad-wager.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-captains-bad-wager-hearts.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-captains-bad-wager",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-captains-bad-wager.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-captains-bad-wager-spades.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-captains-bad-wager",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-captains-bad-wager.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/frumo/frumo-captains-bad-wager.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-captains-bad-wager",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-captains-bad-wager.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-poleas-sunken-order-clubs.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-poleas-sunken-order",
+      "cardType": "ambush",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-poleas-sunken-order.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-poleas-sunken-order-diamonds.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-poleas-sunken-order",
+      "cardType": "ambush",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-poleas-sunken-order.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-poleas-sunken-order-hearts.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-poleas-sunken-order",
+      "cardType": "ambush",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-poleas-sunken-order.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-poleas-sunken-order-spades.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-poleas-sunken-order",
+      "cardType": "ambush",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-poleas-sunken-order.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/frumo/frumo-poleas-sunken-order.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-poleas-sunken-order",
+      "cardType": "ambush",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-poleas-sunken-order.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-leviathan-salvage-clubs.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-leviathan-salvage",
+      "cardType": "ambush",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-leviathan-salvage.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-leviathan-salvage-diamonds.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-leviathan-salvage",
+      "cardType": "ambush",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-leviathan-salvage.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-leviathan-salvage-hearts.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-leviathan-salvage",
+      "cardType": "ambush",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-leviathan-salvage.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-leviathan-salvage-spades.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-leviathan-salvage",
+      "cardType": "ambush",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-leviathan-salvage.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/frumo/frumo-leviathan-salvage.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-leviathan-salvage",
+      "cardType": "ambush",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-leviathan-salvage.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-kelpcloak-trickster-clubs.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-kelpcloak-trickster",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-kelpcloak-trickster.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-kelpcloak-trickster-diamonds.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-kelpcloak-trickster",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-kelpcloak-trickster.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-kelpcloak-trickster-hearts.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-kelpcloak-trickster",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-kelpcloak-trickster.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-kelpcloak-trickster-spades.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-kelpcloak-trickster",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-kelpcloak-trickster.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/frumo/frumo-kelpcloak-trickster.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-kelpcloak-trickster",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-kelpcloak-trickster.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-ballast-hook-clubs.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-ballast-hook",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-ballast-hook.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-ballast-hook-diamonds.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-ballast-hook",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-ballast-hook.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-ballast-hook-hearts.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-ballast-hook",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-ballast-hook.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-ballast-hook-spades.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-ballast-hook",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-ballast-hook.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/frumo/frumo-ballast-hook.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-ballast-hook",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-ballast-hook.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-tide-debt-ledger-clubs.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-tide-debt-ledger",
+      "cardType": "ambush",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-tide-debt-ledger.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-tide-debt-ledger-diamonds.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-tide-debt-ledger",
+      "cardType": "ambush",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-tide-debt-ledger.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-tide-debt-ledger-hearts.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-tide-debt-ledger",
+      "cardType": "ambush",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-tide-debt-ledger.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-tide-debt-ledger-spades.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-tide-debt-ledger",
+      "cardType": "ambush",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-tide-debt-ledger.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/frumo/frumo-tide-debt-ledger.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-tide-debt-ledger",
+      "cardType": "ambush",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-tide-debt-ledger.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-abyssal-switchboard-clubs.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-abyssal-switchboard",
+      "cardType": "ambush",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-abyssal-switchboard.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-abyssal-switchboard-diamonds.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-abyssal-switchboard",
+      "cardType": "ambush",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-abyssal-switchboard.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-abyssal-switchboard-hearts.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-abyssal-switchboard",
+      "cardType": "ambush",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-abyssal-switchboard.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-abyssal-switchboard-spades.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-abyssal-switchboard",
+      "cardType": "ambush",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-abyssal-switchboard.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/frumo/frumo-abyssal-switchboard.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-abyssal-switchboard",
+      "cardType": "ambush",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-abyssal-switchboard.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-poleas-moonlit-map-clubs.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-poleas-moonlit-map",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-poleas-moonlit-map.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-poleas-moonlit-map-diamonds.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-poleas-moonlit-map",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-poleas-moonlit-map.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-poleas-moonlit-map-hearts.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-poleas-moonlit-map",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-poleas-moonlit-map.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-poleas-moonlit-map-spades.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-poleas-moonlit-map",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-poleas-moonlit-map.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/frumo/frumo-poleas-moonlit-map.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-poleas-moonlit-map",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-poleas-moonlit-map.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-the-last-gamble-clubs.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-the-last-gamble",
+      "cardType": "ambush",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-the-last-gamble.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-the-last-gamble-diamonds.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-the-last-gamble",
+      "cardType": "ambush",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-the-last-gamble.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-the-last-gamble-hearts.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-the-last-gamble",
+      "cardType": "ambush",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-the-last-gamble.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-the-last-gamble-spades.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-the-last-gamble",
+      "cardType": "ambush",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-the-last-gamble.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/frumo/frumo-the-last-gamble.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-the-last-gamble",
+      "cardType": "ambush",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-the-last-gamble.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-ristus-rises-clubs.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-ristus-rises",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-ristus-rises.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-ristus-rises-diamonds.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-ristus-rises",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-ristus-rises.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-ristus-rises-hearts.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-ristus-rises",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-ristus-rises.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-ristus-rises-spades.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-ristus-rises",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-ristus-rises.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/frumo/frumo-ristus-rises.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-ristus-rises",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-ristus-rises.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-tideglass-corsair-clubs.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-tideglass-corsair",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-tideglass-corsair.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-tideglass-corsair-diamonds.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-tideglass-corsair",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-tideglass-corsair.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-tideglass-corsair-hearts.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-tideglass-corsair",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-tideglass-corsair.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-tideglass-corsair-spades.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-tideglass-corsair",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-tideglass-corsair.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/frumo/frumo-tideglass-corsair.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-tideglass-corsair",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-tideglass-corsair.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-pearl-republic-admiral-clubs.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-pearl-republic-admiral",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-pearl-republic-admiral.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-pearl-republic-admiral-diamonds.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-pearl-republic-admiral",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-pearl-republic-admiral.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-pearl-republic-admiral-hearts.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-pearl-republic-admiral",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-pearl-republic-admiral.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-pearl-republic-admiral-spades.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-pearl-republic-admiral",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-pearl-republic-admiral.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/frumo/frumo-pearl-republic-admiral.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-pearl-republic-admiral",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-pearl-republic-admiral.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-storm-crowned-navigator-clubs.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-storm-crowned-navigator",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-storm-crowned-navigator.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-storm-crowned-navigator-diamonds.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-storm-crowned-navigator",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-storm-crowned-navigator.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-storm-crowned-navigator-hearts.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-storm-crowned-navigator",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-storm-crowned-navigator.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-storm-crowned-navigator-spades.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-storm-crowned-navigator",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-storm-crowned-navigator.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/frumo/frumo-storm-crowned-navigator.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-storm-crowned-navigator",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-storm-crowned-navigator.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-leviathans-chosen-clubs.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-leviathans-chosen",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-leviathans-chosen.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-leviathans-chosen-diamonds.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-leviathans-chosen",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-leviathans-chosen.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-leviathans-chosen-hearts.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-leviathans-chosen",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-leviathans-chosen.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/frumo-leviathans-chosen-spades.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-leviathans-chosen",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-leviathans-chosen.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/frumo/frumo-leviathans-chosen.webp": {
+      "status": "approved",
+      "factionId": "frumo",
+      "cardId": "frumo-leviathans-chosen",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-leviathans-chosen.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/bizi/bizi-copperline-technician.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-copperline-technician",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-copperline-technician.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-copperline-technician-clubs.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-copperline-technician",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-copperline-technician.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-copperline-technician-diamonds.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-copperline-technician",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-copperline-technician.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-copperline-technician-hearts.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-copperline-technician",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-copperline-technician.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-copperline-technician-spades.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-copperline-technician",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-copperline-technician.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/bizi/bizi-voltage-ration.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-voltage-ration",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-voltage-ration.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-voltage-ration-clubs.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-voltage-ration",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-voltage-ration.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-voltage-ration-diamonds.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-voltage-ration",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-voltage-ration.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-voltage-ration-hearts.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-voltage-ration",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-voltage-ration.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-voltage-ration-spades.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-voltage-ration",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-voltage-ration.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/bizi/bizi-dune-circuit-runner.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-dune-circuit-runner",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-dune-circuit-runner.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-dune-circuit-runner-clubs.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-dune-circuit-runner",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-dune-circuit-runner.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-dune-circuit-runner-diamonds.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-dune-circuit-runner",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-dune-circuit-runner.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-dune-circuit-runner-hearts.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-dune-circuit-runner",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-dune-circuit-runner.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-dune-circuit-runner-spades.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-dune-circuit-runner",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-dune-circuit-runner.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/bizi/bizi-gearplate-shield.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-gearplate-shield",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-gearplate-shield.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-gearplate-shield-clubs.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-gearplate-shield",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-gearplate-shield.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-gearplate-shield-diamonds.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-gearplate-shield",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-gearplate-shield.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-gearplate-shield-hearts.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-gearplate-shield",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-gearplate-shield.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-gearplate-shield-spades.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-gearplate-shield",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-gearplate-shield.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/bizi/bizi-heras-calibration.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-heras-calibration",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-heras-calibration.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-heras-calibration-clubs.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-heras-calibration",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-heras-calibration.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-heras-calibration-diamonds.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-heras-calibration",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-heras-calibration.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-heras-calibration-hearts.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-heras-calibration",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-heras-calibration.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-heras-calibration-spades.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-heras-calibration",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-heras-calibration.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/bizi/bizi-solar-array-adept.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-solar-array-adept",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-solar-array-adept.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-solar-array-adept-clubs.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-solar-array-adept",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-solar-array-adept.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-solar-array-adept-diamonds.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-solar-array-adept",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-solar-array-adept.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-solar-array-adept-hearts.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-solar-array-adept",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-solar-array-adept.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-solar-array-adept-spades.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-solar-array-adept",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-solar-array-adept.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/bizi/bizi-constanti-conduit.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-constanti-conduit",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-constanti-conduit.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-constanti-conduit-clubs.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-constanti-conduit",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-constanti-conduit.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-constanti-conduit-diamonds.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-constanti-conduit",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-constanti-conduit.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-constanti-conduit-hearts.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-constanti-conduit",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-constanti-conduit.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-constanti-conduit-spades.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-constanti-conduit",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-constanti-conduit.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/bizi/bizi-sandstorm-processor.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-sandstorm-processor",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-sandstorm-processor.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-sandstorm-processor-clubs.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-sandstorm-processor",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-sandstorm-processor.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-sandstorm-processor-diamonds.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-sandstorm-processor",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-sandstorm-processor.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-sandstorm-processor-hearts.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-sandstorm-processor",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-sandstorm-processor.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-sandstorm-processor-spades.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-sandstorm-processor",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-sandstorm-processor.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/bizi/bizi-focus-overclock.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-focus-overclock",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-focus-overclock.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-focus-overclock-clubs.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-focus-overclock",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-focus-overclock.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-focus-overclock-diamonds.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-focus-overclock",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-focus-overclock.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-focus-overclock-hearts.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-focus-overclock",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-focus-overclock.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-focus-overclock-spades.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-focus-overclock",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-focus-overclock.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/bizi/bizi-regnum-voltage-bank.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-regnum-voltage-bank",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-regnum-voltage-bank.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-regnum-voltage-bank-clubs.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-regnum-voltage-bank",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-regnum-voltage-bank.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-regnum-voltage-bank-diamonds.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-regnum-voltage-bank",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-regnum-voltage-bank.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-regnum-voltage-bank-hearts.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-regnum-voltage-bank",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-regnum-voltage-bank.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-regnum-voltage-bank-spades.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-regnum-voltage-bank",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-regnum-voltage-bank.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/bizi/bizi-desert-logic-engine.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-desert-logic-engine",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-desert-logic-engine.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-desert-logic-engine-clubs.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-desert-logic-engine",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-desert-logic-engine.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-desert-logic-engine-diamonds.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-desert-logic-engine",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-desert-logic-engine.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-desert-logic-engine-hearts.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-desert-logic-engine",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-desert-logic-engine.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-desert-logic-engine-spades.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-desert-logic-engine",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-desert-logic-engine.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/bizi/bizi-brass-spark.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-brass-spark",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-brass-spark.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-brass-spark-clubs.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-brass-spark",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-brass-spark.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-brass-spark-diamonds.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-brass-spark",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-brass-spark.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-brass-spark-hearts.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-brass-spark",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-brass-spark.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-brass-spark-spades.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-brass-spark",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-brass-spark.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/bizi/bizi-railspike-marshal.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-railspike-marshal",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-railspike-marshal.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-railspike-marshal-clubs.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-railspike-marshal",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-railspike-marshal.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-railspike-marshal-diamonds.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-railspike-marshal",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-railspike-marshal.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-railspike-marshal-hearts.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-railspike-marshal",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-railspike-marshal.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-railspike-marshal-spades.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-railspike-marshal",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-railspike-marshal.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/bizi/bizi-heat-sink-matrix.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-heat-sink-matrix",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-heat-sink-matrix.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-heat-sink-matrix-clubs.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-heat-sink-matrix",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-heat-sink-matrix.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-heat-sink-matrix-diamonds.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-heat-sink-matrix",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-heat-sink-matrix.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-heat-sink-matrix-hearts.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-heat-sink-matrix",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-heat-sink-matrix.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-heat-sink-matrix-spades.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-heat-sink-matrix",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-heat-sink-matrix.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/bizi/bizi-clockwork-caravan.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-clockwork-caravan",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-clockwork-caravan.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-clockwork-caravan-clubs.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-clockwork-caravan",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-clockwork-caravan.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-clockwork-caravan-diamonds.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-clockwork-caravan",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-clockwork-caravan.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-clockwork-caravan-hearts.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-clockwork-caravan",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-clockwork-caravan.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-clockwork-caravan-spades.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-clockwork-caravan",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-clockwork-caravan.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/bizi/bizi-voltaric-ultimatum.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-voltaric-ultimatum",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-voltaric-ultimatum.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-voltaric-ultimatum-clubs.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-voltaric-ultimatum",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-voltaric-ultimatum.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-voltaric-ultimatum-diamonds.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-voltaric-ultimatum",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-voltaric-ultimatum.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-voltaric-ultimatum-hearts.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-voltaric-ultimatum",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-voltaric-ultimatum.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-voltaric-ultimatum-spades.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-voltaric-ultimatum",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-voltaric-ultimatum.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/bizi/bizi-focus-prime-signal.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-focus-prime-signal",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-focus-prime-signal.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-focus-prime-signal-clubs.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-focus-prime-signal",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-focus-prime-signal.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-focus-prime-signal-diamonds.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-focus-prime-signal",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-focus-prime-signal.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-focus-prime-signal-hearts.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-focus-prime-signal",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-focus-prime-signal.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-focus-prime-signal-spades.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-focus-prime-signal",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-focus-prime-signal.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/bizi/bizi-constanti-sunforge.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-constanti-sunforge",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-constanti-sunforge.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-constanti-sunforge-clubs.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-constanti-sunforge",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-constanti-sunforge.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-constanti-sunforge-diamonds.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-constanti-sunforge",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-constanti-sunforge.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-constanti-sunforge-hearts.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-constanti-sunforge",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-constanti-sunforge.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-constanti-sunforge-spades.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-constanti-sunforge",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-constanti-sunforge.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/bizi/bizi-clockwork-envoy.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-clockwork-envoy",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-clockwork-envoy.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-clockwork-envoy-clubs.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-clockwork-envoy",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-clockwork-envoy.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-clockwork-envoy-diamonds.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-clockwork-envoy",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-clockwork-envoy.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-clockwork-envoy-hearts.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-clockwork-envoy",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-clockwork-envoy.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-clockwork-envoy-spades.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-clockwork-envoy",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-clockwork-envoy.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/bizi/bizi-foundry-savant.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-foundry-savant",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-foundry-savant.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-foundry-savant-clubs.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-foundry-savant",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-foundry-savant.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-foundry-savant-diamonds.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-foundry-savant",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-foundry-savant.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-foundry-savant-hearts.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-foundry-savant",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-foundry-savant.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-foundry-savant-spades.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-foundry-savant",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-foundry-savant.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/bizi/bizi-prime-artificer.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-prime-artificer",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-prime-artificer.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-prime-artificer-clubs.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-prime-artificer",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-prime-artificer.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-prime-artificer-diamonds.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-prime-artificer",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-prime-artificer.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-prime-artificer-hearts.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-prime-artificer",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-prime-artificer.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-prime-artificer-spades.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-prime-artificer",
+      "cardType": "servitor",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-prime-artificer.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/bizi/bizi-living-engine.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-living-engine",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-living-engine.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-living-engine-clubs.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-living-engine",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-living-engine.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-living-engine-diamonds.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-living-engine",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-living-engine.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-living-engine-hearts.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-living-engine",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-living-engine.webp",
+      "kind": "illustration"
+    },
+    "/assets/gauntlet/constructed/faces/bizi-living-engine-spades.webp": {
+      "status": "approved",
+      "factionId": "bizi",
+      "cardId": "bizi-living-engine",
+      "cardType": "contraption",
+      "surfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-living-engine.webp",
+      "kind": "illustration"
+    }
+  },
   "portraitAliases": {
     "augustus": "meerus",
     "meerus augustus": "meerus",
@@ -1270,5 +5561,32 @@
       "source": "/assets/gauntlet/leafen-gao.png",
       "status": "retained-exact"
     }
+  },
+  "covers": {
+    "rumin": {
+      "status": "approved",
+      "source": "/assets/gauntlet/rumie.webp",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/rumin/rumin-rumie-hero.webp"
+    },
+    "sheen": {
+      "status": "approved",
+      "source": "/assets/gauntlet/beli.webp",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-beli-hero.webp"
+    },
+    "frumo": {
+      "status": "approved",
+      "source": "/assets/gauntlet/ristus.webp",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-ristus-hero.webp"
+    },
+    "bizi": {
+      "status": "approved",
+      "source": "/assets/gauntlet/factions/bizi/constanti-technology-hub.webp",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-constanti-hero.webp"
+    }
+  },
+  "release": {
+    "handoffCommit": "bb39699fbfb9f44ff3bdf50d1476cb4641c05d1e",
+    "cardIllustrations": 66,
+    "decorativeCovers": 4
   }
 }

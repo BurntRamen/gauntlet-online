@@ -3661,3 +3661,17 @@
   .production-campaign-aftermath,
   .production-match-result > p { font-size: 14px; line-height: 1.45; }
 }
+
+/* On portrait phones, long printed names and rules need the full dialog width. */
+@media (max-width: 600px) and (orientation: portrait) {
+  .production-card-inspection {
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+    overflow-y: auto;
+    gap: 18px;
+    padding: 76px 20px 24px;
+  }
+  .production-inspection-card { width: min(200px, 100%); justify-self: center; }
+  .production-inspection-copy { min-width: 0; }
+  .production-inspection-copy h2 { font-size: 28px; overflow-wrap: anywhere; }
+}

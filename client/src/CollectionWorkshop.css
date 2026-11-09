@@ -418,8 +418,13 @@
 
 /* Keep every catalog face on the same 5:7 baseline. The rules copy can make a
    tile taller, but it must not stretch the neighboring card artwork with it. */
-.catalog-card-tile {
+.catalog-card-tile,
+.cd-shell .catalog-card-tile {
+  display: grid;
+  grid-template-columns: 74px minmax(0, 1fr);
   align-items: start;
+  gap: 9px;
+  padding: 0;
 }
 
 .catalog-card-tile > .special-card-presentation {

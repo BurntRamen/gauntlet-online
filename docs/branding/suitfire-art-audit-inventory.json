@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "auditDate": "2026-11-08",
+  "auditDate": "2026-11-09",
   "branch": "codex/suitfire-approved-art",
   "integratedMain": "a8a19757ca21656bca270ad723314ff23230f90b",
-  "mergeCommit": "6daa3a01",
+  "mergeCommit": "9a678f4a",
   "scope": {
     "approvedCards": 66,
     "approvedCovers": 4,
@@ -15,32 +15,33 @@
     "productionPreferencesChanged": false
   },
   "handoff": {
-    "verifiedCommit": null,
-    "reportedUploadedImages": 64,
+    "verifiedCommit": "bb39699fbfb9f44ff3bdf50d1476cb4641c05d1e",
+    "reportedUploadedImages": 70,
     "expectedImages": 70,
     "manifestReportedUploaded": true,
-    "activeNewAssets": 0,
-    "missing": [
-      "bizi-focus-overclock.webp",
-      "bizi-sandstorm-processor.webp",
-      "bizi-living-engine.webp",
-      "bizi-prime-artificer.webp",
-      "bizi-focus-prime-signal.webp",
-      "bizi-heras-calibration.webp"
-    ],
+    "activeNewAssets": 70,
+    "missing": [],
     "deniedOperation": "GitHub create_blob",
     "deniedTarget": "client/public/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-focus-overclock.webp",
     "reason": "Uploader reports denial because available instruction did not explicitly authorize public upload.",
-    "outcome": "Uploader reports stopped; no tree, commit, branch or deployment. This task has not retried or duplicated uploads."
+    "outcome": "Complete approved handoff verified and integrated: 70 byte sizes, SHA-256 and Git blob SHA-1 hashes; all source pixels and current card semantics reviewed. Active only after eligible SuitFire opt-in. Remote release checks and deployment remain pending.",
+    "publicUploadApproval": {
+      "date": "2026-11-09",
+      "status": "approved",
+      "scope": "The six remaining Bizi files, the defined 70 baseline artworks and necessary integration/deployment; public GO unchanged; SuitFire optional only for simply and BurntRamen.",
+      "uploader": "existing sole cloud uploader"
+    },
+    "integrityVerified": 70,
+    "previousUploadBlockerResolved": true
   },
   "direction": "Frumo predominantly frozen/underwater, aquatic emotional merfolk-pirate identity. Rare story-appropriate warmth is allowed. Separate publication proof is not an online asset source.",
-  "mappingDecision": "Stable ID + exact original path/hash + faction + captured type establish candidate routing, not image approval. Source filenames/titles may differ; do not rename gameplay records. Inspect actual illustration semantics before activation.",
+  "mappingDecision": "Reviewed pixels plus stable ID, exact original path/hash, faction and captured type select approved presentation only. Source titles do not rename gameplay records; symbolic interpretations are recorded per card.",
   "frumo": {
     "rows": 22,
     "nameDifferences": 21,
     "typeDifferences": 0,
     "confirmedNewIllustrationSemanticMismatches": [],
-    "reasonNoVerdict": "No verified handoff bytes received; cannot honestly identify an actual new-image mismatch from its title alone."
+    "reasonNoVerdict": "All 22 source illustrations inspected. Current types and faction match. Several are symbolic interpretations of current names/rules; individual notes record those limits. No hard identity/type contradiction requires renaming a card."
   },
   "retainedLeafen": {
     "source": "/assets/gauntlet/leafen-gao.png",
@@ -56,9 +57,9 @@
         "server/brandPreview.js"
       ],
       "releaseAction": "retain-public-GO-and-existing-two-account-choice",
-      "auditStatus": "completed-code-inspection",
-      "evidence": "Eligibility remains server supplied; saved preference is per authenticated ID. No production preference writes.",
-      "next": "Final desktop/mobile GO and both-choice checks on final commit."
+      "auditStatus": "baseline-browser-verified",
+      "evidence": "Public GO has no switch or art-manifest fetch. Local eligible fixture opts into SuitFire and returns to GO at desktop/phone sizes. Real account preferences untouched.",
+      "next": "Required final release CI and public live verification."
     },
     {
       "id": "constructed-cards-66",
@@ -68,9 +69,9 @@
         "client/src/brand/presentationRegistry.js"
       ],
       "releaseAction": "replace-only-approved-66-after-review",
-      "auditStatus": "pending-assets",
-      "evidence": "Exact source/hash aliases, faction, stable ID and captured type guard; composition retains captured labels/rules.",
-      "next": "Verify 66 hashes/pixels/semantics and all supported suits/reveals."
+      "auditStatus": "baseline-pixels-and-composition-verified",
+      "evidence": "All 66 verified illustrations reviewed and loaded in catalog at both sizes; 264 captured suit/face combinations preserve names, rules, type and saved objects in component tests.",
+      "next": "Complete final release CI; broader art refresh remains separate."
     },
     {
       "id": "ordinary-playing-cards-208",
@@ -101,9 +102,9 @@
         "client/src/App.js"
       ],
       "releaseAction": "approved-covers-decorative-contexts-only",
-      "auditStatus": "pending-assets",
-      "evidence": "Cover and booster contexts are separate from event scenes and portraits.",
-      "next": "Inspect all four pixels/crops; wire exact city/source routes without overwriting chapter scenes."
+      "auditStatus": "baseline-pixels-and-crops-verified",
+      "evidence": "All four hashes/pixels reviewed. Desktop and phone lore crops load; text overlays remain readable. Actual board cities and chapter-event art retain their existing sources.",
+      "next": "No additional cover activation in this release."
     },
     {
       "id": "masthead-backdrop",
@@ -112,9 +113,9 @@
         "client/src/brand/brandArtwork.js"
       ],
       "releaseAction": "four-approved-covers-outside-unchanged-logo",
-      "auditStatus": "pending-assets",
-      "evidence": "Set configuration is modular; crest remains a separate unchanged PNG.",
-      "next": "Desktop/phone contrast and crop check after mappings."
+      "auditStatus": "baseline-browser-verified",
+      "evidence": "Approved Initiative covers remain separate from the unchanged crest; desktop/phone masthead visible with no horizontal overflow.",
+      "next": "Broader all-set artwork refresh remains separate."
     },
     {
       "id": "faction-identity",
@@ -136,9 +137,9 @@
         "client/src/AnimatedCharacterPortrait.js"
       ],
       "releaseAction": "retain-exact-identities",
-      "auditStatus": "completed-code-inspection",
-      "evidence": "13 retained aliases for eight existing image sources. Leafen/Leafen Gao retains exact PNG; Nu cannot borrow it.",
-      "next": "Final rendered dialogue/lore/board check."
+      "auditStatus": "retained-identities-verified",
+      "evidence": "Leafen retains exact original SHA-256. Identity tests reject alias borrowing; four baseline factions render retained portraits or the existing neutral mark.",
+      "next": "Broader character-by-character portrait audit remains pending."
     },
     {
       "id": "held-kaiser-meerus-and-draft-portraits",
@@ -157,9 +158,9 @@
         "client/src/FactionLoreScreen.js"
       ],
       "releaseAction": "retain-text-and-exact-character-identities",
-      "auditStatus": "pending-visual-review",
-      "evidence": "Current-main lore metadata retained in merge. Existing text-only entries remain text-only.",
-      "next": "Review all faction lore at desktop/phone; current audit includes prior Frumo screenshots only."
+      "auditStatus": "baseline-four-factions-reviewed",
+      "evidence": "Sheen, Frumo, Rumin and Bizi lore covers/portrait sections checked at desktop and phone sizes. Existing authored text retained.",
+      "next": "Remaining factions and full chronicles remain pending broader visual audit."
     },
     {
       "id": "campaign-chapter-scenes",
@@ -193,9 +194,9 @@
         "client/src/App.js"
       ],
       "releaseAction": "approved-set-covers-and-unchanged-crest",
-      "auditStatus": "pending-assets",
-      "evidence": "Initiative can use four covers; other sets retain neutral layout. Reveals use actual captured card data.",
-      "next": "Inspect all set/faction tiles and actual approved-art reveals."
+      "auditStatus": "baseline-pack-layout-reviewed",
+      "evidence": "Desktop/phone pack presentation and unchanged crest checked. Shared composed card faces tested with all 66 cards and four suits; no real claims or purchases made.",
+      "next": "CI exercises pack reveals and collector journeys; broader all-set artwork remains retained/pending."
     },
     {
       "id": "collector-claim-and-deck-thumbnails",
@@ -205,9 +206,9 @@
         "client/src/GauntletVisuals.js"
       ],
       "releaseAction": "exact-source-decorative-thumbnails",
-      "auditStatus": "completed-code-inspection",
-      "evidence": "Thumbnail surface is separate from cards with printed type/rules. Wrong faction or explicit card ID stays original.",
-      "next": "Verify pixels after assets arrive; no purchases or claims required."
+      "auditStatus": "baseline-exact-mappings-tested",
+      "evidence": "Exact source/faction checks, separate thumbnail surface and wrong-ID rejection tested. All 66 catalog targets load.",
+      "next": "Broader collector-claim visual audit remains pending; no real claims required."
     },
     {
       "id": "loading",
@@ -239,9 +240,9 @@
         "client/src/babylon/factionBoard.js"
       ],
       "releaseAction": "approved-card-presentation-and-exact-named-portraits",
-      "auditStatus": "pending-visual-review",
-      "evidence": "Actual card composition receives captured type. Board portrait route now receives speaker identity.",
-      "next": "Final browser match/phone/inspector and retained Leafen check."
+      "auditStatus": "baseline-live-browser-reviewed",
+      "evidence": "Compiled Sheen campaign at desktop/phone; deterministic Frumo constructed hand uses exact approved art and phone canvas inspector. Appearance does not change captured hand or public replay snapshot. Existing Nu fallback and board-city sources retained.",
+      "next": "Broader all-faction scene/portrait audit remains pending; required final CI includes live journeys."
     },
     {
       "id": "immutable-replay",
@@ -251,9 +252,9 @@
         "client/src/babylon/MatchCardFace.jsx"
       ],
       "releaseAction": "ephemeral-display-only",
-      "auditStatus": "completed-code-inspection",
-      "evidence": "Captured rules, name, rank, suit, type, release and stored objects remain unchanged. Type disagreement or missing type retains old art.",
-      "next": "Final replay checks including old armament versus current servitor and current approved mapping."
+      "auditStatus": "captured-records-tested",
+      "evidence": "All 66 cards/four suits preserve frozen captured objects. Historical type mismatch retains old face; release metadata and stored replay data never changed. Live browser inspection also leaves captured hand and public replay snapshot byte-equivalent.",
+      "next": "Required replay browser suite remains in final release CI."
     },
     {
       "id": "generic-and-failed-image-fallbacks",
@@ -263,9 +264,9 @@
         "client/src/brand/presentationArt.js"
       ],
       "releaseAction": "retain-own-faction-or-existing-neutral-fallback",
-      "auditStatus": "pending-visual-review",
-      "evidence": "Missing manifest remains original; unapproved likeness uses existing unavailable-art mark. New mappings still zero.",
-      "next": "Final unavailable-target and delayed-registry browser checks."
+      "auditStatus": "baseline-fallback-tested",
+      "evidence": "Failed optional card image retains card name/rules and own-faction fallback. Unapproved portraits retain the neutral mark; missing registry preserves originals.",
+      "next": "Broader network-failure browser matrix remains pending."
     },
     {
       "id": "private-admin-authoring",
@@ -274,9 +275,9 @@
         "client/src/SpecialCardFace.js"
       ],
       "releaseAction": "retain-stored-original-art",
-      "auditStatus": "completed-code-inspection",
-      "evidence": "Admin stored-art preview disables player presentation replacement.",
-      "next": "Required Admin release checks remain mandatory on final commit."
+      "auditStatus": "stored-originals-tested",
+      "evidence": "All 66 card faces/four suits keep stored original art when Admin preview disables player replacements.",
+      "next": "Required Admin release journeys remain mandatory in final CI."
     }
   ],
   "cards": [
@@ -322,10 +323,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-rootwatch-initiate.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "56bd220de324367417a974f75782635629be8ee79a181f3c640ef5bf2f595540",
+      "pixelReviewNote": "Reviewed wood-bodied figure or rooted sanctuary consistent with the captured servitor/shelter type; no baked rules or named-portrait substitution."
     },
     {
       "cardId": "sheen-quiet-grove-sentinel",
@@ -369,10 +372,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-quiet-grove-sentinel.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "5c10f9be3a0ad5a6ee8e6f073458552ffe9cb9259635ea68e64db447fa9713b5",
+      "pixelReviewNote": "Reviewed wood-bodied figure or rooted sanctuary consistent with the captured servitor/shelter type; no baked rules or named-portrait substitution."
     },
     {
       "cardId": "sheen-mossbound-staff",
@@ -416,10 +421,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-mossbound-staff.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "86b68c1aa57759942d75907b9ed319fdd79c189b6a14e678a69b328742762327",
+      "pixelReviewNote": "Reviewed wood-bodied figure or rooted sanctuary consistent with the captured servitor/shelter type; no baked rules or named-portrait substitution."
     },
     {
       "cardId": "sheen-living-bark-guard",
@@ -463,10 +470,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-living-bark-guard.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "b623c4fc3f08d4c3c9cc5c5f55406967e821dfbc822176725a91e6d9af7c2fc2",
+      "pixelReviewNote": "Reviewed wood-bodied figure or rooted sanctuary consistent with the captured servitor/shelter type; no baked rules or named-portrait substitution."
     },
     {
       "cardId": "sheen-beli-vinebinder",
@@ -510,10 +519,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-beli-vinebinder.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "a28eb6e34a7825ef696dfbd6567259e12dbf354195376c84e52fa5305a4c8a32",
+      "pixelReviewNote": "Reviewed wood-bodied figure or rooted sanctuary consistent with the captured servitor/shelter type; no baked rules or named-portrait substitution."
     },
     {
       "cardId": "sheen-harmony-ward",
@@ -557,10 +568,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-harmony-ward.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "860d47ee8f58516dd727ac3bb1d13c89479bb5839a186de834083be23d673580",
+      "pixelReviewNote": "Reviewed wood-bodied figure or rooted sanctuary consistent with the captured servitor/shelter type; no baked rules or named-portrait substitution."
     },
     {
       "cardId": "sheen-thornroot-counterstroke",
@@ -604,10 +617,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-thornroot-counterstroke.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "2f512a5464df574a693572100718ebd52686bea9fe54846b41fc867c7aa38e6e",
+      "pixelReviewNote": "Reviewed wood-bodied figure or rooted sanctuary consistent with the captured servitor/shelter type; no baked rules or named-portrait substitution."
     },
     {
       "cardId": "sheen-beli-canopy-shield",
@@ -651,10 +666,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-beli-canopy-shield.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "d4a0af59d639ffef7bb58fb9e657a6c6295d0990171bda70a292068727db201f",
+      "pixelReviewNote": "Reviewed wood-bodied figure or rooted sanctuary consistent with the captured servitor/shelter type; no baked rules or named-portrait substitution."
     },
     {
       "cardId": "sheen-nus-verdant-edict",
@@ -698,10 +715,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-nus-verdant-edict.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "bcea805fa6840bbcf0cadfa396756f1680ca987c8f68159c02e71a1e81b53d2f",
+      "pixelReviewNote": "Reviewed wood-bodied figure or rooted sanctuary consistent with the captured servitor/shelter type; no baked rules or named-portrait substitution."
     },
     {
       "cardId": "sheen-roots-that-remember",
@@ -745,10 +764,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-roots-that-remember.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "ce3d56471d1e3ece587158d0502f82d02f7682e9ef6e9453827f2be91873b317",
+      "pixelReviewNote": "Reviewed wood-bodied figure or rooted sanctuary consistent with the captured servitor/shelter type; no baked rules or named-portrait substitution."
     },
     {
       "cardId": "sheen-tangs-patient-hand",
@@ -792,10 +813,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-tangs-patient-hand.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "5e3185993a3a0a89e2ef15acb9ac8c8c19913ff6e61c26b270389c7033fc2cde",
+      "pixelReviewNote": "Reviewed wood-bodied figure or rooted sanctuary consistent with the captured servitor/shelter type; no baked rules or named-portrait substitution."
     },
     {
       "cardId": "sheen-seedwall-acolyte",
@@ -839,10 +862,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-seedwall-acolyte.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "fc1045ab18ef4b1d983df532b64b5f535bd4e80e30ced87d1223de5425abdc18",
+      "pixelReviewNote": "Reviewed wood-bodied figure or rooted sanctuary consistent with the captured servitor/shelter type; no baked rules or named-portrait substitution."
     },
     {
       "cardId": "sheen-raincall-mender",
@@ -886,10 +911,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-raincall-mender.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "26d83db66039ad8a52e227504e4eb0e008ffd1f8082bb42b36762d0934a621e9",
+      "pixelReviewNote": "Reviewed wood-bodied figure or rooted sanctuary consistent with the captured servitor/shelter type; no baked rules or named-portrait substitution."
     },
     {
       "cardId": "sheen-ringroot-bastion",
@@ -933,10 +960,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-ringroot-bastion.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "37a67dfc2702fcc438a947e5e84879c0a2420bc75b276ba870fcb752b0b23ddd",
+      "pixelReviewNote": "Reviewed wood-bodied figure or rooted sanctuary consistent with the captured servitor/shelter type; no baked rules or named-portrait substitution."
     },
     {
       "cardId": "sheen-sapling-chorus",
@@ -980,10 +1009,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-sapling-chorus.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "dc2b2f6d9a4c4b9afd091739f84e4d9fe16b61711ac5f08a682857ac780d261e",
+      "pixelReviewNote": "Reviewed wood-bodied figure or rooted sanctuary consistent with the captured servitor/shelter type; no baked rules or named-portrait substitution."
     },
     {
       "cardId": "sheen-nus-calm-command",
@@ -1027,10 +1058,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-nus-calm-command.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "499bcac483638e2dd5cd088b8120654fe9f3a649b985d67218d25cc48b38402e",
+      "pixelReviewNote": "Reviewed wood-bodied figure or rooted sanctuary consistent with the captured servitor/shelter type; no baked rules or named-portrait substitution."
     },
     {
       "cardId": "sheen-emperors-heartwood",
@@ -1074,10 +1107,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-emperors-heartwood.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "36bbd15b1312da449e88fd6a51446835893aa829cfdb7f2c9934d6ad01e027fe",
+      "pixelReviewNote": "Reviewed wood-bodied figure or rooted sanctuary consistent with the captured servitor/shelter type; no baked rules or named-portrait substitution."
     },
     {
       "cardId": "sheen-beli-awakened",
@@ -1121,10 +1156,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-beli-awakened.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "8757ade5c22457ac4b83b069c3bdd71d18ea99958cd45a199e0d1c7d0faa3dd1",
+      "pixelReviewNote": "Reviewed wood-bodied figure or rooted sanctuary consistent with the captured servitor/shelter type; no baked rules or named-portrait substitution."
     },
     {
       "cardId": "sheen-canopy-wayfinder",
@@ -1168,10 +1205,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-canopy-wayfinder.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "aea51dc43b432fcb221a4c41878b7c50e1b2fac586bede4f2b494326abb96e47",
+      "pixelReviewNote": "Reviewed wood-bodied figure or rooted sanctuary consistent with the captured servitor/shelter type; no baked rules or named-portrait substitution."
     },
     {
       "cardId": "sheen-rootsong-matriarch",
@@ -1215,10 +1254,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-rootsong-matriarch.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "addce0f83ff63a89437b1c0cf6160adf36a575170ce3fbf71edc587567f4fc47",
+      "pixelReviewNote": "Reviewed wood-bodied figure or rooted sanctuary consistent with the captured servitor/shelter type; no baked rules or named-portrait substitution."
     },
     {
       "cardId": "sheen-elder-first-grove",
@@ -1262,10 +1303,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-elder-first-grove.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "5fdbf40cf59b08503b7f04f062cecbd6c229d086ee35bd1794647b72e46e398b",
+      "pixelReviewNote": "Reviewed wood-bodied figure or rooted sanctuary consistent with the captured servitor/shelter type; no baked rules or named-portrait substitution."
     },
     {
       "cardId": "sheen-heartwood-avatar",
@@ -1309,10 +1352,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-heartwood-avatar.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "fdcea7e3ccf5a286cc33f1d77fdf657e03a153b67301532d363809147b583f55",
+      "pixelReviewNote": "Reviewed wood-bodied figure or rooted sanctuary consistent with the captured servitor/shelter type; no baked rules or named-portrait substitution."
     },
     {
       "cardId": "frumo-deckhand-diver",
@@ -1356,10 +1401,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Concealed information, inspection or discovery; ambush scene rather than an unrelated named hero.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-deckhand-diver.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "ed6c702799e9a84465a7aeaab242d42323cfba755053bdff08cd6f9d9dd28cc0",
+      "pixelReviewNote": "Open submerged hold and concealed chest support inspection/discovery."
     },
     {
       "cardId": "frumo-tideglass-cutlass",
@@ -1403,10 +1450,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Aquatic deckhand/recruit; depict a living crew member, not only a cutlass.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-tideglass-cutlass.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "298f02f490363992935c7b54a37818dc1a7543ad934f2f76e0ed2327e464450b",
+      "pixelReviewNote": "Living aquatic deckhand handling ship rope; not a weapon-only illustration."
     },
     {
       "cardId": "frumo-sunken-coin",
@@ -1450,10 +1499,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Raider/resource-taking identity must remain plausible. An oath-taking ally alone may not represent Vault Raider.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-sunken-coin.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "91ebf3cf8dfc5ce407f6dfe0acdf649d4f879e9a20485dcbdefc58fc8580a237",
+      "pixelReviewNote": "Aquatic pirate crew member with rope and pouch; broad raider identity, rather than a literal vault breach."
     },
     {
       "cardId": "frumo-coral-hull-guard",
@@ -1497,10 +1548,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Aquatic fighting crew member with defensive/wave-breaking action; a loyal mutineer can fit if the scene supports that role.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-coral-hull-guard.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "c723cffd476ac63a7329c9c328a72744c8ae19e59f810524b1a83d73250d13d8",
+      "pixelReviewNote": "Aquatic armed crew member braced against a ship structure supports a defensive marauder."
     },
     {
       "cardId": "frumo-riptide-smuggler",
@@ -1544,10 +1597,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Lure, deception and exploitation of hidden information. A relief seal needs visual context tying it to that ambush, not a generic document product shot.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-riptide-smuggler.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "bcb63e9cbb3abd32d74314530dcc4adaf1c864bb2c834a3b669871bac912215f",
+      "pixelReviewNote": "Broken pearl seal tied at a submerged dock is a symbolic deception cue; not a literal hauntling depiction."
     },
     {
       "cardId": "frumo-lafayettes-chart",
@@ -1591,10 +1646,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Feint, evasive attack or withdrawal scene; no need to rename Hit & Run as Breakwater Feint.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-lafayettes-chart.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "697a5909eb43a8deac60aa2bdcc45d697e08b7fb460a02f48d23918ca3694297",
+      "pixelReviewNote": "Submerged breakwater route is an ambush-setting vignette, not a named character substitution."
     },
     {
       "cardId": "frumo-pressure-lock-pistol",
@@ -1638,10 +1695,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "A merfolk sharpshooter/gunner is type-compatible; a weapon alone is not the current servitor.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-pressure-lock-pistol.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "594ef4e7c4caafd1803ef943064c28a07d9859e66a68e2907abd0ad6eba1ae6a",
+      "pixelReviewNote": "Aquatic gunner holding a pistol matches the current servitor rather than the legacy armament filename."
     },
     {
       "cardId": "frumo-ristus-blackwake",
@@ -1685,10 +1744,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Experienced aquatic sailor/fighter; rescue-route helmsman needs credible veteran identity.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-ristus-blackwake.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "b588fd9c3d2f50d542e5cb0bebebf6c38f3af8ef986912722ff8023c3cef65ec",
+      "pixelReviewNote": "Experienced aquatic helmsman at a ship wheel supports the veteran role."
     },
     {
       "cardId": "frumo-captains-bad-wager",
@@ -1732,10 +1793,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Renegade/outlaw character; blockade-running can fit if depicted as the outlaw rather than an unrelated delivery scene.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-captains-bad-wager.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "b9fa1ff1f20d80749f1a96a912a62dc0ad0bed578e2fab69f706d7be9400764a",
+      "pixelReviewNote": "Aquatic runner clutching a parcel supports an outlaw or blockade-runner interpretation."
     },
     {
       "cardId": "frumo-poleas-sunken-order",
@@ -1779,10 +1842,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Command, coordination or revolutionary orders; retain the current Polea-mode rules.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-poleas-sunken-order.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "c22109311617fc55c93bfd66adbfb7327c8d026ee596b45e5621eff2a5664cbc",
+      "pixelReviewNote": "Anchor-marked order case and signal cloth support the command-event interpretation without asserting a new Polea likeness."
     },
     {
       "cardId": "frumo-leviathan-salvage",
@@ -1826,10 +1891,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Loot/salvage action in a hold or comparable maritime context; event image, not a new named servitor.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-leviathan-salvage.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "1186c73b177c408d7791c16c0e434cf51c4b905e28a523ec47636cd6184c8e44",
+      "pixelReviewNote": "Chest hoisted from a submerged hold directly supports loot/salvage."
     },
     {
       "cardId": "frumo-kelpcloak-trickster",
@@ -1873,10 +1940,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Stealthy aquatic corsair; keep quiet/secretive identity visible.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-kelpcloak-trickster.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "460e37be7166afac8ba022844fddca41f003cc8ca88348576a2892bb4eae9645",
+      "pixelReviewNote": "Quiet aquatic corsair carrying a concealed object supports stealth."
     },
     {
       "cardId": "frumo-ballast-hook",
@@ -1920,10 +1989,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Aquatic enforcer/interceptor character; not a hook-only armament illustration.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-ballast-hook.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "5a5cdb891c1dcc91d4d2d2477a495978f357f754ba54c533af8c54dd5a5df311",
+      "pixelReviewNote": "Living aquatic enforcer holding a long hook; not an armament-only image."
     },
     {
       "cardId": "frumo-tide-debt-ledger",
@@ -1967,10 +2038,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "A risky pirate manoeuvre or concealed signal can fit; retain ambush identity.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-tide-debt-ledger.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "85d4dabfe1f2fa048d2aefbf59ef51d8316ffdedf6de3b7d5cfc81817bb4e861",
+      "pixelReviewNote": "Concealed signal lights support a symbolic pirate gambit."
     },
     {
       "cardId": "frumo-abyssal-switchboard",
@@ -2014,10 +2087,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Coordinated naval combat/drill can fit an attack/block ambush.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-abyssal-switchboard.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "2963d953d4d87fa6ac49a63e29944f0b2421d4a6e9ca7caf08db4ebd1dc1ad64",
+      "pixelReviewNote": "Underwater coordinated projectile drill supports a combat-ambush vignette."
     },
     {
       "cardId": "frumo-poleas-moonlit-map",
@@ -2061,10 +2136,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Aquatic tide-working/navigation specialist; sounding master must read as the current Tide Shaper, not an unrelated officer.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-poleas-moonlit-map.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "11e39ef8f753f09b75cd9911a677e6b17ba4c2a135fd3281341aeefd344c0d28",
+      "pixelReviewNote": "Aquatic sounding specialist manipulating a depth line supports tide navigation."
     },
     {
       "cardId": "frumo-the-last-gamble",
@@ -2108,10 +2185,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Crew rally/coordination or the triggering concealed-information moment; a sealed manifest alone may not express Rally the Crew.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-the-last-gamble.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "12b66c0dc630a519c948243a0bc8988ab9020bb39f46a3815a82035a5b702c86",
+      "pixelReviewNote": "Locked manifest symbolizes the hidden-information trigger in the current rules; no literal crew rally is depicted."
     },
     {
       "cardId": "frumo-ristus-rises",
@@ -2155,10 +2234,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "A living aquatic pilot/crew member in forceful tide/lane-entry action; open water is not automatically invalid.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-ristus-rises.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "ee757d312b9f4ead175f10fb33b1a90c0dea01c6fdda31c1c91b7ddaf40d5f1c",
+      "pixelReviewNote": "Living aquatic pilot braced at a wheel supports the current servitor, not the historical Ristus Rises ambush face."
     },
     {
       "cardId": "frumo-tideglass-corsair",
@@ -2202,10 +2283,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Same named aquatic corsair; still inspect anatomy, mood, setting and absence of baked rules.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-tideglass-corsair.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "15002a9b3e4c4af82c141481ed0a019bee38fb3eba5dda0c86ea0aa67ac78aec",
+      "pixelReviewNote": "Aquatic corsair with curved blade matches the current identity."
     },
     {
       "cardId": "frumo-pearl-republic-admiral",
@@ -2249,10 +2332,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Republic-serving fleet commander; relief fleet imagery may fit without changing the card name.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-pearl-republic-admiral.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "7db611e1776816beb81a2e65c37a8e9d3c4cf7545cd29a0902ff74cb0fecfc42",
+      "pixelReviewNote": "Aquatic senior fleet figure with lantern supports fleet leadership."
     },
     {
       "cardId": "frumo-storm-crowned-navigator",
@@ -2296,10 +2381,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Navigation and storm identity should be legible; a generic oath-taking admiral alone may not fit.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-storm-crowned-navigator.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "b511734969e9663338b377c1c760510073f2bbec3a227cf1da13d2689ed75a73",
+      "pixelReviewNote": "Aquatic officer with a pronounced fin crown and commanding gesture supports navigation; a literal storm is not depicted."
     },
     {
       "cardId": "frumo-leviathans-chosen",
@@ -2343,10 +2430,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Show a credible relationship to the deep/Leviathan; a generic survivor without that identity needs correction.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-leviathans-chosen.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "ed7dcce72db13ff18595c91914cb7b02e53d11a152b4a7e2b20f0a09b3c49bdf",
+      "pixelReviewNote": "Solitary aquatic figure reaching through deep water supports the current deep-calling flavor; no literal Leviathan is depicted."
     },
     {
       "cardId": "bizi-copperline-technician",
@@ -2390,10 +2479,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-copperline-technician.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "036f4ea53a5f5c7bf5dbe4c0ce6ee3297dd53b2176a183dec60b79058065689e",
+      "pixelReviewNote": "Reviewed brass automaton or mechanical installation consistent with the captured servitor/contraption type; no baked rules or named-portrait substitution."
     },
     {
       "cardId": "bizi-voltage-ration",
@@ -2437,10 +2528,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-voltage-ration.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "7d9777a344102f1e7c558595d309f81053b1d0bd8312b1d6da6045b44e84a573",
+      "pixelReviewNote": "Reviewed brass automaton or mechanical installation consistent with the captured servitor/contraption type; no baked rules or named-portrait substitution."
     },
     {
       "cardId": "bizi-dune-circuit-runner",
@@ -2484,10 +2577,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-dune-circuit-runner.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "20b764a6863f7fc1302e515c9745ca9f24d69ce3af367992a89b5f8e373439f0",
+      "pixelReviewNote": "Grounded signal-carrying automaton is compatible with the servitor type and suit-sequencing rule; literal aerial motion is not depicted."
     },
     {
       "cardId": "bizi-gearplate-shield",
@@ -2531,10 +2626,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-gearplate-shield.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "931791fed00678518a0ea911dd762c9fd663fbeeb8b4ffffbf4323a5b10327bb",
+      "pixelReviewNote": "Reviewed brass automaton or mechanical installation consistent with the captured servitor/contraption type; no baked rules or named-portrait substitution."
     },
     {
       "cardId": "bizi-heras-calibration",
@@ -2578,10 +2675,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-heras-calibration.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "5822935a4a8220da7646e7d2e8ef11124e5e26aabc7da44f1c1478c892d9b472",
+      "pixelReviewNote": "Reviewed brass automaton or mechanical installation consistent with the captured servitor/contraption type; no baked rules or named-portrait substitution."
     },
     {
       "cardId": "bizi-solar-array-adept",
@@ -2625,10 +2724,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-solar-array-adept.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "bb1394b6892a99647d64d71a546d80f96d8b29ea24176540a837506608e8b206",
+      "pixelReviewNote": "Reviewed brass automaton or mechanical installation consistent with the captured servitor/contraption type; no baked rules or named-portrait substitution."
     },
     {
       "cardId": "bizi-constanti-conduit",
@@ -2672,10 +2773,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-constanti-conduit.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "12d79ebc34203cfb2b465a609659dd3bc8dd10ed45741b57231001c87e88d688",
+      "pixelReviewNote": "Reviewed brass automaton or mechanical installation consistent with the captured servitor/contraption type; no baked rules or named-portrait substitution."
     },
     {
       "cardId": "bizi-sandstorm-processor",
@@ -2719,10 +2822,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-sandstorm-processor.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "af51146443ac1212ff455c64c2d0e5e5a9e9fa498b1863328ef5b587353b5a4f",
+      "pixelReviewNote": "Automaton traffic officer at rail infrastructure supports the controller role; aviation is not depicted."
     },
     {
       "cardId": "bizi-focus-overclock",
@@ -2766,10 +2871,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-focus-overclock.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "fbc2a9b867e5d67d2edc08d8bc51ba811206b518fe319b2695aef84c6922c9a0",
+      "pixelReviewNote": "Reviewed brass automaton or mechanical installation consistent with the captured servitor/contraption type; no baked rules or named-portrait substitution."
     },
     {
       "cardId": "bizi-regnum-voltage-bank",
@@ -2813,10 +2920,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-regnum-voltage-bank.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "bf02b216632bc613c67797de3cdce01687097b8f2e7c7dff4dcac0477fa6e799",
+      "pixelReviewNote": "Reviewed brass automaton or mechanical installation consistent with the captured servitor/contraption type; no baked rules or named-portrait substitution."
     },
     {
       "cardId": "bizi-desert-logic-engine",
@@ -2860,10 +2969,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-desert-logic-engine.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "6e880ddb1d701e7fdcd104db36bc2a34caeb070c8507340264b1a9cc790fdfe3",
+      "pixelReviewNote": "Reviewed brass automaton or mechanical installation consistent with the captured servitor/contraption type; no baked rules or named-portrait substitution."
     },
     {
       "cardId": "bizi-brass-spark",
@@ -2907,10 +3018,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-brass-spark.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "25149958f94f5d8a9d0b9a8af3449d5a75516251f03c98903f9f39c4b8932350",
+      "pixelReviewNote": "Reviewed brass automaton or mechanical installation consistent with the captured servitor/contraption type; no baked rules or named-portrait substitution."
     },
     {
       "cardId": "bizi-railspike-marshal",
@@ -2954,10 +3067,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-railspike-marshal.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "f16a93cf5f9ef435ce0afc0b5373a2e3a662e013b696d04b782aca82bd4368f8",
+      "pixelReviewNote": "Reviewed brass automaton or mechanical installation consistent with the captured servitor/contraption type; no baked rules or named-portrait substitution."
     },
     {
       "cardId": "bizi-heat-sink-matrix",
@@ -3001,10 +3116,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-heat-sink-matrix.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "d3e92d7344956fc433a8bf4cbcfbddbbf94cec5e1a83824a68c04c1f0952d3ff",
+      "pixelReviewNote": "Reviewed brass automaton or mechanical installation consistent with the captured servitor/contraption type; no baked rules or named-portrait substitution."
     },
     {
       "cardId": "bizi-clockwork-caravan",
@@ -3048,10 +3165,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-clockwork-caravan.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "8c25d350cfc36a40bddb8aadadcb0a82b1f46b250179b1a1870fbe7ca9d54cfa",
+      "pixelReviewNote": "Reviewed brass automaton or mechanical installation consistent with the captured servitor/contraption type; no baked rules or named-portrait substitution."
     },
     {
       "cardId": "bizi-voltaric-ultimatum",
@@ -3095,10 +3214,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-voltaric-ultimatum.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "8b62ce39f66e9c94c552e4a55574265a0aac1b3d2beb54a1f20e18760a9e9821",
+      "pixelReviewNote": "Reviewed brass automaton or mechanical installation consistent with the captured servitor/contraption type; no baked rules or named-portrait substitution."
     },
     {
       "cardId": "bizi-focus-prime-signal",
@@ -3142,10 +3263,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-focus-prime-signal.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "74d4503a8f21116278f6efbb6ac98bcdb530dfc87801d2a43566fa65484713fb",
+      "pixelReviewNote": "Reviewed brass automaton or mechanical installation consistent with the captured servitor/contraption type; no baked rules or named-portrait substitution."
     },
     {
       "cardId": "bizi-constanti-sunforge",
@@ -3189,10 +3312,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-constanti-sunforge.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "633b636c83674b77605c1d44ef3e381abfa19430d771843bc0b481531e2a11aa",
+      "pixelReviewNote": "Reviewed brass automaton or mechanical installation consistent with the captured servitor/contraption type; no baked rules or named-portrait substitution."
     },
     {
       "cardId": "bizi-clockwork-envoy",
@@ -3236,10 +3361,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-clockwork-envoy.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "81f869600aa035a07fae8d351151eebada432e9b00a9e93074a16e08800b9575",
+      "pixelReviewNote": "Reviewed brass automaton or mechanical installation consistent with the captured servitor/contraption type; no baked rules or named-portrait substitution."
     },
     {
       "cardId": "bizi-foundry-savant",
@@ -3283,10 +3410,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-foundry-savant.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "f5d2dcfc2b97414d638b5ad2d2855e65c1f1e494ad759d3912cb4297719acac6",
+      "pixelReviewNote": "Reviewed brass automaton or mechanical installation consistent with the captured servitor/contraption type; no baked rules or named-portrait substitution."
     },
     {
       "cardId": "bizi-prime-artificer",
@@ -3330,10 +3459,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-prime-artificer.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "8942e05cbb2c5a6a99fb3c25176ed39b8884a2555cf0bc89fd0e09e8dbe1f778",
+      "pixelReviewNote": "Reviewed brass automaton or mechanical installation consistent with the captured servitor/contraption type; no baked rules or named-portrait substitution."
     },
     {
       "cardId": "bizi-living-engine",
@@ -3377,10 +3508,12 @@
         "illustration",
         "thumbnail"
       ],
-      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
-      "pixelReview": "blocked-no-verified-handoff-bytes",
-      "target": null,
-      "activation": "inactive"
+      "semanticReview": "Completed against current card name, type and rules; see pixelReviewNote for literal and symbolic limits.",
+      "pixelReview": "reviewed-approved-baseline",
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-living-engine.webp",
+      "activation": "active-in-selected-suitfire-only",
+      "targetSha256": "54069b0e1d69d7031b22d925f825eae98bc43f25276126a417787e072d5e80e7",
+      "pixelReviewNote": "Reviewed brass automaton or mechanical installation consistent with the captured servitor/contraption type; no baked rules or named-portrait substitution."
     }
   ],
   "finalChecksPending": [
@@ -3397,39 +3530,99 @@
       "name": "Rumie, City of the Empire",
       "source": "/assets/gauntlet/rumie.webp",
       "immutablePath": "/assets/gauntlet/releases/4a477cb909dfde7ae272305137e9f499a8c28405dc086f28b8ec6b9ed5aa04cd.webp",
-      "target": null,
-      "activation": "inactive",
-      "pixelReview": "blocked-no-verified-handoff-bytes"
+      "target": "/assets/gauntlet/faction-art-2026-11-07/rumin/rumin-rumie-hero.webp",
+      "activation": "active-in-decorative-suitfire-contexts-only",
+      "pixelReview": "reviewed-source-pixels; rendered-crops-pending",
+      "targetSha256": "d269b8378dba06e8b6c682df192210fd7e16d8934ab4419a33db4b9509364b47",
+      "renderedReview": "desktop-and-phone-lore-crops-reviewed"
     },
     {
       "factionId": "sheen",
       "name": "Beli, Living City",
       "source": "/assets/gauntlet/beli.webp",
       "immutablePath": "/assets/gauntlet/releases/7ed4c19ad0b2088f6f07a892d1d0a3e905f05ecf2cd5287b9dbb9dc9281d6192.webp",
-      "target": null,
-      "activation": "inactive",
-      "pixelReview": "blocked-no-verified-handoff-bytes"
+      "target": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-beli-hero.webp",
+      "activation": "active-in-decorative-suitfire-contexts-only",
+      "pixelReview": "reviewed-source-pixels; rendered-crops-pending",
+      "targetSha256": "328229730cd1db71a3e64df12ef1155ad2db6b6f18c030cb90a094362c4617aa",
+      "renderedReview": "desktop-and-phone-lore-crops-reviewed"
     },
     {
       "factionId": "frumo",
       "name": "Ristus, Sunken City",
       "source": "/assets/gauntlet/ristus.webp",
       "immutablePath": "/assets/gauntlet/releases/2ffaf9bb987ba5bcd0201208f938f82cda3447566f1914cd700c9ecf7efde655.webp",
-      "target": null,
-      "activation": "inactive",
-      "pixelReview": "blocked-no-verified-handoff-bytes"
+      "target": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-ristus-hero.webp",
+      "activation": "active-in-decorative-suitfire-contexts-only",
+      "pixelReview": "reviewed-source-pixels; rendered-crops-pending",
+      "targetSha256": "eea86fde991060e53b3064582a10945522f2bbfb266cfe8fbb668aaae4a29684",
+      "renderedReview": "desktop-and-phone-lore-crops-reviewed"
     },
     {
       "factionId": "bizi",
       "name": "Constanti, Technology Hub",
       "source": "/assets/gauntlet/factions/bizi/constanti-technology-hub.webp",
       "immutablePath": "/assets/gauntlet/releases/26727fa9d22b5577a08f3ed35028fd3e3966d2252f67cbcb61630196b4a07960.webp",
-      "target": null,
-      "activation": "inactive",
-      "pixelReview": "blocked-no-verified-handoff-bytes"
+      "target": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-constanti-hero.webp",
+      "activation": "active-in-decorative-suitfire-contexts-only",
+      "pixelReview": "reviewed-source-pixels; rendered-crops-pending",
+      "targetSha256": "dfdc8d8c11ab5c5c2fc5df6d04a3979ccf464224cbbf1434d04240eb9400dc68",
+      "renderedReview": "desktop-and-phone-lore-crops-reviewed"
     }
   ],
   "verification": {
+    "scope": "Activated approved baseline; release checks and deployment recorded separately in the PR/CI evidence.",
+    "integrity": {
+      "result": "passed",
+      "assets": 70,
+      "cardIllustrations": 66,
+      "exactSourceMappings": 330,
+      "decorativeCovers": 4,
+      "originalsRetained": true,
+      "leafenExact": true
+    },
+    "focusedClient": {
+      "result": "passed",
+      "tests": 82,
+      "suites": 3
+    },
+    "qualification": {
+      "result": "passed",
+      "tests": 57
+    },
+    "finalRelease": "pending-required-CI",
+    "fullClient": {
+      "result": "passed",
+      "tests": 1068,
+      "suites": 134
+    },
+    "toolchain": {
+      "result": "passed",
+      "tests": 4
+    },
+    "strictAssets": {
+      "result": "passed",
+      "productionCutoverBlockers": 0,
+      "checksumMismatches": 0
+    },
+    "browser": {
+      "result": "passed",
+      "viewports": [
+        "1440x1000",
+        "390x844"
+      ],
+      "catalogCards": 66,
+      "loreCovers": 4,
+      "publicGO": true,
+      "optInAndReturn": true,
+      "normalCampaign": true
+    },
+    "bundle": {
+      "result": "passed",
+      "budgetsUnchanged": true
+    }
+  },
+  "previousCheckpointVerification": {
     "focusedClient": {
       "suites": 12,
       "tests": 63,
@@ -3458,7 +3651,7 @@
       "budgetsUnchanged": true,
       "staleSharedModules": 0
     },
-    "scope": "code-checkpoint-only; final artwork release checks remain pending",
+    "scope": "Previous code-checkpoint results retained; final activated baseline validation pending.",
     "aliasIntegrity": {
       "pathsVerified": 1195,
       "byteIdenticalPairs": 1194,
