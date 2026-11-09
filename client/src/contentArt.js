@@ -4,7 +4,7 @@ export const findCollectorVariant = resolvePrinting;
 
 export function getGameplayCardArt(gameplayCardId, collectorCatalog = [], selectedVariantId = "") {
   const printing = findCollectorVariant(gameplayCardId, collectorCatalog, selectedVariantId);
-  return presentationArt(printing?.art || "", { factionId: printing?.factionId, cardId: gameplayCardId, surface: "illustration" });
+  return presentationArt(printing?.art || "", { factionId: printing?.factionId || gameplayCardId?.split("-")[0], cardId: gameplayCardId, surface: "thumbnail" });
 }
 
 export function getCurrentDeckVersion(deck) {
@@ -17,7 +17,7 @@ export function getCurrentDeckVersion(deck) {
 
 export function getDeckFeaturedArt(deck, collectorCatalog = [], limit = 3) {
   if (Array.isArray(deck?.featuredArt) && deck.featuredArt.length > 0) {
-    return [...new Set(deck.featuredArt.map(source => presentationArt(source, { factionId: deck.factionId, surface: "illustration" })).filter(Boolean))].slice(0, limit);
+    return [...new Set(deck.featuredArt.map(source => presentationArt(source, { factionId: deck.factionId, surface: "thumbnail" })).filter(Boolean))].slice(0, limit);
   }
 
   const version = getCurrentDeckVersion(deck) || {};

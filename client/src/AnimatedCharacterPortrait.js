@@ -1,3 +1,4 @@
+import { usePresentationArt } from "./brand/presentationArt";
 import { CHARACTER_PORTRAIT_FRAME, portraitAssetUrl, resolveCharacterPortrait } from "./characterPortraits";
 import "./AnimatedCharacterPortrait.css";
 
@@ -11,6 +12,7 @@ export default function AnimatedCharacterPortrait({
   decorative = false,
   className = ""
 }) {
+  usePresentationArt();
   const source = portraitAssetUrl(resolveCharacterPortrait(speaker, factionId, image));
   const classes = [
     "animated-character-portrait",

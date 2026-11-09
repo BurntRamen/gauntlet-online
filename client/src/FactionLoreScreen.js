@@ -1,3 +1,4 @@
+import { resolveCharacterPortrait } from "./characterPortraits";
 import { brandText, useBrandPreview } from './brand/brandPreview';
 import { useId, useMemo, useState } from "react";
 import { usePresentationArt } from "./brand/presentationArt";
@@ -180,7 +181,8 @@ export default function FactionLoreScreen({ manifest, onBack, onOpenCampaign, em
               <div className="faction-lore-section-heading"><span>People and presences</span><SectionHeading id={`${headingId}-figures`}>Major characters</SectionHeading><p>Each record follows the character's place in the campaign.</p></div>
               <div className="faction-lore-figure-grid">
                 {leaders.map((leader, index) => {
-                  const portrait = getFactionAsset(faction.id, leader.image || [faction.commander, faction.general].find((entry) => entry?.name === leader.name)?.image);
+                  const source = getFactionAsset(faction.id, leader.image || [faction.commander, faction.general].find((entry) => entry?.name === leader.name)?.image);
+                  const portrait = source ? resolveCharacterPortrait(leader.name, faction.id, source) : "";
                   return <article key={`${leader.name}-${index}`}>
                     {portrait && <img className="faction-lore-portrait" src={resolveVisualAsset(portrait)} alt="" loading="lazy" draggable={false} />}
                     <div><span>{leader.role || "Archive subject"}</span><FigureHeading>{leader.name}</FigureHeading><p>{leader.description || "This figure's complete record remains contested."}</p>

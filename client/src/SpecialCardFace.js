@@ -10,7 +10,7 @@ export function getCardIllustration(card, art = "", preview = true) {
   const source = card.presentation ? card.presentation.illustration || card.presentation.face || ""
     : art || card.collector?.art || getCustomCardArtDefinition(card)?.illustration || card.image
       || (preview ? getFactionArtwork(card.factionId) : FACTION_VISUALS[card.factionId]?.art) || "/assets/gauntlet/ui/faction-art-unavailable.svg";
-  return preview ? presentationArt(source, { factionId: card.factionId, surface: "illustration", cardId: card.gameplayCardId || card.definitionId || card.id }) : source;
+  return preview ? presentationArt(source, { factionId: card.factionId, surface: "illustration", cardId: card.gameplayCardId || card.definitionId || card.id, cardType: card.type || card.cardType || "" }) : source;
 }
 
 export default function SpecialCardFace({ card, art = "", presentation = null, previewArt = true }) {

@@ -175,7 +175,7 @@ export default function CollectorClaimScreen({
                 <ul>
                   {variants.map((variant, index) => (
                     <li key={`${variant.variantId}-${index}`}>
-                      {variant.art && <span className="collector-claim-art"><CollectorCardPresentation card={variant}><img src={resolveVisualAsset(presentationArt(variant.art, { factionId: variant.factionId, cardId: variant.gameplayCardId, surface: "illustration" }))} alt="" loading="lazy" decoding="async" /></CollectorCardPresentation></span>}
+                      {variant.art && <span className="collector-claim-art"><CollectorCardPresentation card={variant}><img src={resolveVisualAsset(presentationArt(variant.art, { factionId: variant.factionId || variant.gameplayCardId?.split("-")[0], cardId: variant.gameplayCardId, surface: "thumbnail" }))} alt="" loading="lazy" decoding="async" /></CollectorCardPresentation></span>}
                       <span className="collector-claim-reward-copy">
                         <strong>{variant.name || variant.variantId}</strong>
                         <small>{variant.edition || claim.product.edition} / {variant.finish || claim.product.finish}{variant.animated ? " / animated" : ""}</small>

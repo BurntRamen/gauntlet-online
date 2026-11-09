@@ -129,7 +129,7 @@ export function DeckVisual({ deck, factionId, art = null, className = "", decora
   const id = factionIdFrom(factionId || deck?.factionId);
   const visual = FACTION_VISUALS[id] || FACTION_VISUALS.basic;
   const featuredArt = (Array.isArray(art) ? art : Array.isArray(deck?.featuredArt) ? deck.featuredArt : [])
-    .map(source => resolveVisualAsset(presentationArt(source, { factionId: id, surface: "illustration" })))
+    .map(source => resolveVisualAsset(presentationArt(source, { factionId: id, surface: "thumbnail" })))
     .filter(Boolean)
     .slice(0, 3);
   return (

@@ -8,7 +8,7 @@ export default function MatchCardFace({ card, alt = "", fallbackClassName = "" }
   const canvasRef = useRef(null);
   const publishedCard = getCardForPresentation(card.raw || card, card.factionId || card.raw?.factionId);
   const composed = Boolean(publishedCard.presentation?.composed);
-  const artPath = presentationArt((composed ? publishedCard.presentation?.illustration : card.artPath) || card.artPath, { factionId: publishedCard.factionId || card.factionId, surface: composed ? "illustration" : "card", cardId: publishedCard.gameplayCardId || publishedCard.definitionId || publishedCard.id });
+  const artPath = presentationArt((composed ? publishedCard.presentation?.illustration : card.artPath) || card.artPath, { factionId: publishedCard.factionId || card.factionId, surface: composed ? "illustration" : "card", cardId: publishedCard.gameplayCardId || publishedCard.definitionId || publishedCard.id, cardType: publishedCard.type || publishedCard.cardType || "" });
 
   useEffect(() => {
     if (!composed) return undefined;

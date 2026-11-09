@@ -98,7 +98,7 @@ export function getPlayingCardArtPath(card, factionId) {
   const shown = getCardForPresentation(card, factionId || card?.factionId);
   if (shown !== card) return shown.presentation.illustration;
   const path = originalPlayingCardArtPath(card, factionId);
-  if (card?.presentation?.composed) return presentationArt(path, { factionId: factionId || card.factionId, surface: "illustration", cardId: card.gameplayCardId || card.definitionId || card.id });
+  if (card?.presentation?.composed) return presentationArt(path, { factionId: factionId || card.factionId, surface: "illustration", cardId: card.gameplayCardId || card.definitionId || card.id, cardType: card.type || card.cardType || "" });
   return presentationFace(path, card, factionId || card?.factionId);
 }
 

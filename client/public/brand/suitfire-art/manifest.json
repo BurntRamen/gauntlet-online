@@ -1194,7 +1194,81 @@
     "/assets/gauntlet/releases/9ca19b20fc4aeefc11241734a5c6142cc6f3b2edd10cefc06708d6ce08903dc4.webp": "/assets/gauntlet/rumin-card.webp",
     "/assets/gauntlet/releases/0e581d50db91a8c579b87668963f2b4afea1e3a15131d905a5d4d969bac5c28e.svg": "/assets/gauntlet/russo-emblem.svg",
     "/assets/gauntlet/releases/0f0500bbab04885102a73a5427711c7079e3452489be158bd833672474d87678.webp": "/assets/gauntlet/sheen-card.webp",
-    "/assets/gauntlet/releases/149ee7713328f74b4a9be6cb4be403975280c41bd15201802b3e794fc66f367c.webp": "/assets/gauntlet/tang.webp"
+    "/assets/gauntlet/releases/149ee7713328f74b4a9be6cb4be403975280c41bd15201802b3e794fc66f367c.webp": "/assets/gauntlet/tang.webp",
+    "/assets/gauntlet/releases/1692d5e4ef53a4aa206922395ea9c800dc4849de823e4f312b1f86cc645dba4c.svg": "/assets/gauntlet/morphlings-emblem.svg"
   },
-  "replacements": {}
+  "replacements": {},
+  "portraitAliases": {
+    "augustus": "meerus",
+    "meerus augustus": "meerus",
+    "kaiser the jewel": "kaiser",
+    "emperor nu": "nu"
+  },
+  "portraits": {
+    "focus": {
+      "factionId": "bizi",
+      "source": "/assets/gauntlet/factions/bizi/focus-conductor-of-progress.webp",
+      "status": "retained-exact"
+    },
+    "focus conductor of progress": {
+      "factionId": "bizi",
+      "source": "/assets/gauntlet/factions/bizi/focus-conductor-of-progress.webp",
+      "status": "retained-exact"
+    },
+    "hera": {
+      "factionId": "bizi",
+      "source": "/assets/gauntlet/factions/bizi/hera-general.webp",
+      "status": "retained-exact"
+    },
+    "tang": {
+      "factionId": "sheen",
+      "source": "/assets/gauntlet/tang.webp",
+      "status": "retained-exact"
+    },
+    "polea": {
+      "factionId": "frumo",
+      "source": "/assets/gauntlet/polea.webp",
+      "status": "retained-exact"
+    },
+    "lord commander polea": {
+      "factionId": "frumo",
+      "source": "/assets/gauntlet/polea.webp",
+      "status": "retained-exact"
+    },
+    "lafayette": {
+      "factionId": "frumo",
+      "source": "/assets/gauntlet/lafayette.webp",
+      "status": "retained-exact"
+    },
+    "alden": {
+      "factionId": "astralvanguard",
+      "source": "/assets/gauntlet/factions/astral-vanguard/high-marshal-alden.webp",
+      "status": "retained-exact"
+    },
+    "high marshal alden": {
+      "factionId": "astralvanguard",
+      "source": "/assets/gauntlet/factions/astral-vanguard/high-marshal-alden.webp",
+      "status": "retained-exact"
+    },
+    "myra cross": {
+      "factionId": "astralvanguard",
+      "source": "/assets/gauntlet/factions/astral-vanguard/sergeant-myra-cross.webp",
+      "status": "retained-exact"
+    },
+    "sergeant myra cross": {
+      "factionId": "astralvanguard",
+      "source": "/assets/gauntlet/factions/astral-vanguard/sergeant-myra-cross.webp",
+      "status": "retained-exact"
+    },
+    "leafen": {
+      "factionId": "sheen",
+      "source": "/assets/gauntlet/leafen-gao.png",
+      "status": "retained-exact"
+    },
+    "leafen gao": {
+      "factionId": "sheen",
+      "source": "/assets/gauntlet/leafen-gao.png",
+      "status": "retained-exact"
+    }
+  }
 }

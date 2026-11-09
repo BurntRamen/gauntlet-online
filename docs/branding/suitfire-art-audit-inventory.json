@@ -1,0 +1,3502 @@
+{
+  "schemaVersion": 1,
+  "auditDate": "2026-11-08",
+  "branch": "codex/suitfire-approved-art",
+  "integratedMain": "a8a19757ca21656bca270ad723314ff23230f90b",
+  "mergeCommit": "6daa3a01",
+  "scope": {
+    "approvedCards": 66,
+    "approvedCovers": 4,
+    "publicBrand": "Gauntlet Online",
+    "previewAccounts": [
+      "simply",
+      "BurntRamen"
+    ],
+    "productionPreferencesChanged": false
+  },
+  "handoff": {
+    "verifiedCommit": null,
+    "reportedUploadedImages": 64,
+    "expectedImages": 70,
+    "manifestReportedUploaded": true,
+    "activeNewAssets": 0,
+    "missing": [
+      "bizi-focus-overclock.webp",
+      "bizi-sandstorm-processor.webp",
+      "bizi-living-engine.webp",
+      "bizi-prime-artificer.webp",
+      "bizi-focus-prime-signal.webp",
+      "bizi-heras-calibration.webp"
+    ],
+    "deniedOperation": "GitHub create_blob",
+    "deniedTarget": "client/public/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-focus-overclock.webp",
+    "reason": "Uploader reports denial because available instruction did not explicitly authorize public upload.",
+    "outcome": "Uploader reports stopped; no tree, commit, branch or deployment. This task has not retried or duplicated uploads."
+  },
+  "direction": "Frumo predominantly frozen/underwater, aquatic emotional merfolk-pirate identity. Rare story-appropriate warmth is allowed. Separate publication proof is not an online asset source.",
+  "mappingDecision": "Stable ID + exact original path/hash + faction + captured type establish candidate routing, not image approval. Source filenames/titles may differ; do not rename gameplay records. Inspect actual illustration semantics before activation.",
+  "frumo": {
+    "rows": 22,
+    "nameDifferences": 21,
+    "typeDifferences": 0,
+    "confirmedNewIllustrationSemanticMismatches": [],
+    "reasonNoVerdict": "No verified handoff bytes received; cannot honestly identify an actual new-image mismatch from its title alone."
+  },
+  "retainedLeafen": {
+    "source": "/assets/gauntlet/leafen-gao.png",
+    "immutablePath": "/assets/gauntlet/releases/e7db39aeb8f4a467cdc17b0eb9aa52c8d851c959c31654fa429c44ac59ed1b06.png",
+    "sha256": "e7db39aeb8f4a467cdc17b0eb9aa52c8d851c959c31654fa429c44ac59ed1b06"
+  },
+  "aliases": 1195,
+  "surfaces": [
+    {
+      "id": "public-and-account-choice",
+      "files": [
+        "client/src/brand/brandPreview.js",
+        "server/brandPreview.js"
+      ],
+      "releaseAction": "retain-public-GO-and-existing-two-account-choice",
+      "auditStatus": "completed-code-inspection",
+      "evidence": "Eligibility remains server supplied; saved preference is per authenticated ID. No production preference writes.",
+      "next": "Final desktop/mobile GO and both-choice checks on final commit."
+    },
+    {
+      "id": "constructed-cards-66",
+      "files": [
+        "client/src/cardArt.js",
+        "client/src/SpecialCardFace.js",
+        "client/src/brand/presentationRegistry.js"
+      ],
+      "releaseAction": "replace-only-approved-66-after-review",
+      "auditStatus": "pending-assets",
+      "evidence": "Exact source/hash aliases, faction, stable ID and captured type guard; composition retains captured labels/rules.",
+      "next": "Verify 66 hashes/pixels/semantics and all supported suits/reveals."
+    },
+    {
+      "id": "ordinary-playing-cards-208",
+      "files": [
+        "client/src/cardArt.js",
+        "client/src/App.js"
+      ],
+      "releaseAction": "retain-original",
+      "auditStatus": "retained",
+      "evidence": "Four Initiative decks × 52 faces are outside the 66 constructed-illustration subset.",
+      "next": "No claim that this subset replaces every visible card."
+    },
+    {
+      "id": "superseded-rumin-constructed-22",
+      "files": [
+        "client/src/cardArt.js"
+      ],
+      "releaseAction": "exclude-new-art-retain-existing",
+      "auditStatus": "retained",
+      "evidence": "No new Rumin constructed illustration may be activated.",
+      "next": "Keep explicit exclusion in release validator."
+    },
+    {
+      "id": "city-and-campaign-covers-4",
+      "files": [
+        "client/src/GauntletVisuals.js",
+        "client/src/FactionLoreScreen.js",
+        "client/src/App.js"
+      ],
+      "releaseAction": "approved-covers-decorative-contexts-only",
+      "auditStatus": "pending-assets",
+      "evidence": "Cover and booster contexts are separate from event scenes and portraits.",
+      "next": "Inspect all four pixels/crops; wire exact city/source routes without overwriting chapter scenes."
+    },
+    {
+      "id": "masthead-backdrop",
+      "files": [
+        "client/src/brand/SuitFireBrand.jsx",
+        "client/src/brand/brandArtwork.js"
+      ],
+      "releaseAction": "four-approved-covers-outside-unchanged-logo",
+      "auditStatus": "pending-assets",
+      "evidence": "Set configuration is modular; crest remains a separate unchanged PNG.",
+      "next": "Desktop/phone contrast and crop check after mappings."
+    },
+    {
+      "id": "faction-identity",
+      "files": [
+        "client/src/GauntletVisuals.js",
+        "client/src/CompetitiveIdentity.js",
+        "client/src/IdentityArchiveVisuals.js"
+      ],
+      "releaseAction": "retain-own-faction-or-neutral",
+      "auditStatus": "retained-code-inspected",
+      "evidence": "Known cross-faction borrowed sources are rejected. Unreviewed Voltari/XenDra studies are absent.",
+      "next": "Final review of all factions; do not substitute covers for named characters."
+    },
+    {
+      "id": "leafen-and-retained-portraits",
+      "files": [
+        "client/src/characterPortraits.js",
+        "client/src/brand/presentationRegistry.js",
+        "client/src/AnimatedCharacterPortrait.js"
+      ],
+      "releaseAction": "retain-exact-identities",
+      "auditStatus": "completed-code-inspection",
+      "evidence": "13 retained aliases for eight existing image sources. Leafen/Leafen Gao retains exact PNG; Nu cannot borrow it.",
+      "next": "Final rendered dialogue/lore/board check."
+    },
+    {
+      "id": "held-kaiser-meerus-and-draft-portraits",
+      "files": [
+        "client/src/characterPortraits.js",
+        "client/src/brand/presentationRegistry.js"
+      ],
+      "releaseAction": "exclude-held-and-draft-sources",
+      "auditStatus": "retained-code-inspected",
+      "evidence": "Established Augustus→Meerus alias retained; no approved likeness means existing neutral unavailable-art mark. No draft SVG study copied.",
+      "next": "New likenesses require their own approved handoff; not included here."
+    },
+    {
+      "id": "lore-characters-and-chronicle",
+      "files": [
+        "client/src/FactionLoreScreen.js"
+      ],
+      "releaseAction": "retain-text-and-exact-character-identities",
+      "auditStatus": "pending-visual-review",
+      "evidence": "Current-main lore metadata retained in merge. Existing text-only entries remain text-only.",
+      "next": "Review all faction lore at desktop/phone; current audit includes prior Frumo screenshots only."
+    },
+    {
+      "id": "campaign-chapter-scenes",
+      "files": [
+        "client/src/CampaignChapterBriefing.js",
+        "client/src/App.js"
+      ],
+      "releaseAction": "retain-event-art-and-text",
+      "auditStatus": "retained-code-inspected",
+      "evidence": "Chapter images do not use decorative cover mappings. Prior audit reported 11 Bizi scenes retained; not re-inspected in this resume.",
+      "next": "Review scene pixels independently; held human-Kharon draft remains excluded."
+    },
+    {
+      "id": "campaign-dialogue-and-cinematics",
+      "files": [
+        "client/src/CampaignDialogueBlock.js",
+        "client/src/CampaignCinematic.js",
+        "client/src/AnimatedCharacterPortrait.js"
+      ],
+      "releaseAction": "retain-scenes-exact-retained-portraits-neutral-for-unapproved",
+      "auditStatus": "pending-visual-review",
+      "evidence": "Upstream authored-audio changes preserved. No dialogue text or audio rewritten by artwork task.",
+      "next": "Check speaker aliases, focus changes, unknown-speaker fallback, mobile layout."
+    },
+    {
+      "id": "packs-earned-collector-and-reveals",
+      "files": [
+        "client/src/brand/PreviewPackArtwork.jsx",
+        "client/src/CollectorSetPackTile.js",
+        "client/src/PackOpening.js",
+        "client/src/App.js"
+      ],
+      "releaseAction": "approved-set-covers-and-unchanged-crest",
+      "auditStatus": "pending-assets",
+      "evidence": "Initiative can use four covers; other sets retain neutral layout. Reveals use actual captured card data.",
+      "next": "Inspect all set/faction tiles and actual approved-art reveals."
+    },
+    {
+      "id": "collector-claim-and-deck-thumbnails",
+      "files": [
+        "client/src/CollectorClaimScreen.js",
+        "client/src/contentArt.js",
+        "client/src/GauntletVisuals.js"
+      ],
+      "releaseAction": "exact-source-decorative-thumbnails",
+      "auditStatus": "completed-code-inspection",
+      "evidence": "Thumbnail surface is separate from cards with printed type/rules. Wrong faction or explicit card ID stays original.",
+      "next": "Verify pixels after assets arrive; no purchases or claims required."
+    },
+    {
+      "id": "loading",
+      "files": [
+        "client/src/App.js",
+        "client/src/brand/presentationRegistry.js"
+      ],
+      "releaseAction": "neutral-existing-table-art-in-selected-preview",
+      "auditStatus": "completed-code-inspection",
+      "evidence": "No held Kaiser art is introduced; public loading remains unchanged.",
+      "next": "Check initial/auth-loading and network-error states on final build."
+    },
+    {
+      "id": "tutorial",
+      "files": [
+        "client/src/App.js"
+      ],
+      "releaseAction": "retain-existing-neutral-table-and-ordinary-faces",
+      "auditStatus": "retained-code-inspected",
+      "evidence": "Tutorial artwork and ordinary faces are not part of the authorized 66 cards.",
+      "next": "Final tutorial visual check; do not imply new full tutorial art."
+    },
+    {
+      "id": "live-board-phone-inspection",
+      "files": [
+        "client/src/babylon/createGauntletScene.js",
+        "client/src/babylon/PhoneHandRail.jsx",
+        "client/src/babylon/ProductionMatchExperience.jsx",
+        "client/src/babylon/factionBoard.js"
+      ],
+      "releaseAction": "approved-card-presentation-and-exact-named-portraits",
+      "auditStatus": "pending-visual-review",
+      "evidence": "Actual card composition receives captured type. Board portrait route now receives speaker identity.",
+      "next": "Final browser match/phone/inspector and retained Leafen check."
+    },
+    {
+      "id": "immutable-replay",
+      "files": [
+        "client/src/babylon/ReplayMatchAdapter.js",
+        "client/src/babylon/MatchReplayScreen.jsx",
+        "client/src/babylon/MatchCardFace.jsx"
+      ],
+      "releaseAction": "ephemeral-display-only",
+      "auditStatus": "completed-code-inspection",
+      "evidence": "Captured rules, name, rank, suit, type, release and stored objects remain unchanged. Type disagreement or missing type retains old art.",
+      "next": "Final replay checks including old armament versus current servitor and current approved mapping."
+    },
+    {
+      "id": "generic-and-failed-image-fallbacks",
+      "files": [
+        "client/src/GauntletVisuals.js",
+        "client/src/SpecialCardFace.js",
+        "client/src/brand/presentationArt.js"
+      ],
+      "releaseAction": "retain-own-faction-or-existing-neutral-fallback",
+      "auditStatus": "pending-visual-review",
+      "evidence": "Missing manifest remains original; unapproved likeness uses existing unavailable-art mark. New mappings still zero.",
+      "next": "Final unavailable-target and delayed-registry browser checks."
+    },
+    {
+      "id": "private-admin-authoring",
+      "files": [
+        "client/src/admin/PrivateAsset.js",
+        "client/src/SpecialCardFace.js"
+      ],
+      "releaseAction": "retain-stored-original-art",
+      "auditStatus": "completed-code-inspection",
+      "evidence": "Admin stored-art preview disables player presentation replacement.",
+      "next": "Required Admin release checks remain mandatory on final commit."
+    }
+  ],
+  "cards": [
+    {
+      "cardId": "sheen-rootwatch-initiate",
+      "factionId": "sheen",
+      "currentName": "Verdant Guardian",
+      "currentType": "servitor",
+      "rules": "When this blocks, it gets +1 value if you have already blocked this turn.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-rootwatch-initiate-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/3841a3c13f71daf4ff6e716d0d0967fc615c9a3de306edbd0418aa52413962b4.webp",
+          "sha256": "3841a3c13f71daf4ff6e716d0d0967fc615c9a3de306edbd0418aa52413962b4"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-rootwatch-initiate-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/1b8b5445098f6b9aecfa87192f90b78d32abce7b4cd9cb8dd8036dd677d46a33.webp",
+          "sha256": "1b8b5445098f6b9aecfa87192f90b78d32abce7b4cd9cb8dd8036dd677d46a33"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-rootwatch-initiate-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/379b1278061aff692ca29ffd94a4a6e02a80db1ef0c4498cc2ded53403aff385.webp",
+          "sha256": "379b1278061aff692ca29ffd94a4a6e02a80db1ef0c4498cc2ded53403aff385"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-rootwatch-initiate-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/65d66523a9318f38861344c6988d2350729bdc7faccefcc02eb4e35b81ad2621.webp",
+          "sha256": "65d66523a9318f38861344c6988d2350729bdc7faccefcc02eb4e35b81ad2621"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/sheen/sheen-rootwatch-initiate.webp",
+          "immutablePath": "/assets/gauntlet/releases/49eef9380d09a4837b4757779f391f33bfe16540a6345b140657c4da13cdd325.webp",
+          "sha256": "49eef9380d09a4837b4757779f391f33bfe16540a6345b140657c4da13cdd325"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "sheen-quiet-grove-sentinel",
+      "factionId": "sheen",
+      "currentName": "Harmonic Warden",
+      "currentType": "servitor",
+      "rules": "If this prevents all damage from an attack, gain 1 life.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-quiet-grove-sentinel-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/d3a06c6e9f1284949e3aac99715d3d01c69b20a36bbe6f2ba6936a10581cdd90.webp",
+          "sha256": "d3a06c6e9f1284949e3aac99715d3d01c69b20a36bbe6f2ba6936a10581cdd90"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-quiet-grove-sentinel-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/4a90bdacb8dbd80b709fd4413656cc932894bf940b7c83ed1e81b7e16f5c8e11.webp",
+          "sha256": "4a90bdacb8dbd80b709fd4413656cc932894bf940b7c83ed1e81b7e16f5c8e11"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-quiet-grove-sentinel-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/141b20e7adf3c40d92e7e72e8c1136e5133ece9ce3fed7cf1a798d461100c451.webp",
+          "sha256": "141b20e7adf3c40d92e7e72e8c1136e5133ece9ce3fed7cf1a798d461100c451"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-quiet-grove-sentinel-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/09e03fff8573eec8b5b728a4dd801d24fb44a6f7c758daad24f7e3b82efd6c11.webp",
+          "sha256": "09e03fff8573eec8b5b728a4dd801d24fb44a6f7c758daad24f7e3b82efd6c11"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/sheen/sheen-quiet-grove-sentinel.webp",
+          "immutablePath": "/assets/gauntlet/releases/730d5cc36124340d024446a7443b9801b7dc416acf63ea7bee0e7938d3563ea4.webp",
+          "sha256": "730d5cc36124340d024446a7443b9801b7dc416acf63ea7bee0e7938d3563ea4"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "sheen-mossbound-staff",
+      "factionId": "sheen",
+      "currentName": "Starroot Observer",
+      "currentType": "servitor",
+      "rules": "When paid for a block, the first blocking card gets +1 value.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-mossbound-staff-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/3161f0e57ca69c802833adcb14cd3cbafd2b5ae91fd9059e52fea8be3b2497ed.webp",
+          "sha256": "3161f0e57ca69c802833adcb14cd3cbafd2b5ae91fd9059e52fea8be3b2497ed"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-mossbound-staff-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/4c7f52a9de05b3ef40109c473cea34347816a3ea3326dae975d4fd9723a07f8c.webp",
+          "sha256": "4c7f52a9de05b3ef40109c473cea34347816a3ea3326dae975d4fd9723a07f8c"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-mossbound-staff-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/0f606e4582d82840c975dfec54f43317a8dcefae087a875253be6e1a5f85f51e.webp",
+          "sha256": "0f606e4582d82840c975dfec54f43317a8dcefae087a875253be6e1a5f85f51e"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-mossbound-staff-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/1012d0382fb5920338950e0af3dced0b2ca8b5a7d462184187a8d0e47f190581.webp",
+          "sha256": "1012d0382fb5920338950e0af3dced0b2ca8b5a7d462184187a8d0e47f190581"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/sheen/sheen-mossbound-staff.webp",
+          "immutablePath": "/assets/gauntlet/releases/9f2769947e98d4ee968ccc313e4557f6c628493d505dd51f78d4db292045ed32.webp",
+          "sha256": "9f2769947e98d4ee968ccc313e4557f6c628493d505dd51f78d4db292045ed32"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "sheen-living-bark-guard",
+      "factionId": "sheen",
+      "currentName": "Greenhouse Guardian",
+      "currentType": "servitor",
+      "rules": "This may block hand attacks as though it had +1 value.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-living-bark-guard-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/d6e15c00fabbc97fb4f88360875d0addfc581004b24bdcc1c5953babe03b4cae.webp",
+          "sha256": "d6e15c00fabbc97fb4f88360875d0addfc581004b24bdcc1c5953babe03b4cae"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-living-bark-guard-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/14dd00bdb71b362d5100eaa1ee9fe72c37fdc2f4876706f5d8fee812a5c20c36.webp",
+          "sha256": "14dd00bdb71b362d5100eaa1ee9fe72c37fdc2f4876706f5d8fee812a5c20c36"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-living-bark-guard-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/bcdf64ae85382c22a528dd78e5c0e350bb64cbec411869daa94b85b238ab1965.webp",
+          "sha256": "bcdf64ae85382c22a528dd78e5c0e350bb64cbec411869daa94b85b238ab1965"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-living-bark-guard-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/3f032e5bb661d6a68d13a5371db9ecd3b83b0ff56cd5627a1bb6b0006de490e9.webp",
+          "sha256": "3f032e5bb661d6a68d13a5371db9ecd3b83b0ff56cd5627a1bb6b0006de490e9"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/sheen/sheen-living-bark-guard.webp",
+          "immutablePath": "/assets/gauntlet/releases/31ca632353bdf1c8458119d0d6dfda8b311dcbd648d334fb7758ff6c8a224857.webp",
+          "sha256": "31ca632353bdf1c8458119d0d6dfda8b311dcbd648d334fb7758ff6c8a224857"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "sheen-beli-vinebinder",
+      "factionId": "sheen",
+      "currentName": "Entwined Thicket",
+      "currentType": "shelter",
+      "rules": "While Entwined Thicket occupies a support slot, after your second block each turn, your next attack that turn gets +1 value.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-beli-vinebinder-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/2ff30728c900a8cb948b76ff6f7e3751fac2abb4b0ec4e0083c6a880d54b7a2f.webp",
+          "sha256": "2ff30728c900a8cb948b76ff6f7e3751fac2abb4b0ec4e0083c6a880d54b7a2f"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-beli-vinebinder-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/0fa3e05f3f9f823337892234a17f6458159b07ebbe5eac36b43811a107662bfa.webp",
+          "sha256": "0fa3e05f3f9f823337892234a17f6458159b07ebbe5eac36b43811a107662bfa"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-beli-vinebinder-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/377682f0c32dab8fb6304d9de4872c80fa2aa86352ac353a580aebe6f20644ea.webp",
+          "sha256": "377682f0c32dab8fb6304d9de4872c80fa2aa86352ac353a580aebe6f20644ea"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-beli-vinebinder-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/d1046eb0616781259f73385dc39d06c803e642be7ccdbcb6adce5b35b19452a4.webp",
+          "sha256": "d1046eb0616781259f73385dc39d06c803e642be7ccdbcb6adce5b35b19452a4"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/sheen/sheen-beli-vinebinder.webp",
+          "immutablePath": "/assets/gauntlet/releases/a835f47cc80f1e8c1af5e52e5d6e8e957ea1b9d004d4b8c56a6c3b0a899503a9.webp",
+          "sha256": "a835f47cc80f1e8c1af5e52e5d6e8e957ea1b9d004d4b8c56a6c3b0a899503a9"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "sheen-harmony-ward",
+      "factionId": "sheen",
+      "currentName": "Harmony Lab",
+      "currentType": "shelter",
+      "rules": "While Harmony Lab occupies a support slot, your second and each later block during the turn gets +1 value.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-harmony-ward-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/630c9609ed302021fc5104eb3781e52bcf4e39df250ab564e8e78203f843a791.webp",
+          "sha256": "630c9609ed302021fc5104eb3781e52bcf4e39df250ab564e8e78203f843a791"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-harmony-ward-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/76c9d0ed0a9d119f8685da5bf7d8d6b29663fad5cc6f6089f9c4f152ee74d9ab.webp",
+          "sha256": "76c9d0ed0a9d119f8685da5bf7d8d6b29663fad5cc6f6089f9c4f152ee74d9ab"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-harmony-ward-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/edb9f85a6c20289209835cddbcadda1bc3821f809f929f9c6396b18c65af8d80.webp",
+          "sha256": "edb9f85a6c20289209835cddbcadda1bc3821f809f929f9c6396b18c65af8d80"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-harmony-ward-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/0e63b492615a9b7167fe5e411397bce8ad96f4f1d2acdbc608750d2c7d414a25.webp",
+          "sha256": "0e63b492615a9b7167fe5e411397bce8ad96f4f1d2acdbc608750d2c7d414a25"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/sheen/sheen-harmony-ward.webp",
+          "immutablePath": "/assets/gauntlet/releases/8c1e7fd3daa8be8ebad827c839585ab3021f17f83174f5a218f2f42842873684.webp",
+          "sha256": "8c1e7fd3daa8be8ebad827c839585ab3021f17f83174f5a218f2f42842873684"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "sheen-thornroot-counterstroke",
+      "factionId": "sheen",
+      "currentName": "Thorn Weaver",
+      "currentType": "servitor",
+      "rules": "If you took no damage this turn, this gets +2 value while attacking.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-thornroot-counterstroke-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/8d548bd4c998913046e924c5d76f4dcff978bb60774535eedaa057acd85bed48.webp",
+          "sha256": "8d548bd4c998913046e924c5d76f4dcff978bb60774535eedaa057acd85bed48"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-thornroot-counterstroke-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/0672b081f0a4cb9bda626174d619ffb64b1f3617e1e7a45338d47d8d991c7dda.webp",
+          "sha256": "0672b081f0a4cb9bda626174d619ffb64b1f3617e1e7a45338d47d8d991c7dda"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-thornroot-counterstroke-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/455e8bd1377136b8cc16473eaaf2a960268037aa4e48c26dca917545dcf52275.webp",
+          "sha256": "455e8bd1377136b8cc16473eaaf2a960268037aa4e48c26dca917545dcf52275"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-thornroot-counterstroke-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/1a72fb27d92184e6f26a5de89a76577042f50f48c9813ce5fbc1927ec1fa1e91.webp",
+          "sha256": "1a72fb27d92184e6f26a5de89a76577042f50f48c9813ce5fbc1927ec1fa1e91"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/sheen/sheen-thornroot-counterstroke.webp",
+          "immutablePath": "/assets/gauntlet/releases/6329e2e927b160b3d140c607ddb12a27f82d39791600128bfefc422a03f4b7b3.webp",
+          "sha256": "6329e2e927b160b3d140c607ddb12a27f82d39791600128bfefc422a03f4b7b3"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "sheen-beli-canopy-shield",
+      "factionId": "sheen",
+      "currentName": "Verdant Canopy",
+      "currentType": "shelter",
+      "rules": "While Verdant Canopy occupies a support slot, once each turn after you block, prevent 1 additional damage from that attack.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-beli-canopy-shield-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/0b6865b382adad9bfad0a5a57a923d3d452077eeb19e2584bf45a9125fc92ea5.webp",
+          "sha256": "0b6865b382adad9bfad0a5a57a923d3d452077eeb19e2584bf45a9125fc92ea5"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-beli-canopy-shield-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/36cd5415078c3337de126311b7a94d94e4746bc306875c9bf303761571c53f41.webp",
+          "sha256": "36cd5415078c3337de126311b7a94d94e4746bc306875c9bf303761571c53f41"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-beli-canopy-shield-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/bbfc40daf7475a44164a0952806efa284f519d015ea4b00f20641e9418f09075.webp",
+          "sha256": "bbfc40daf7475a44164a0952806efa284f519d015ea4b00f20641e9418f09075"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-beli-canopy-shield-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/807531f96168ac4cad5f123b500365385b5eb02aeacddd46efd64cd8a6b811ad.webp",
+          "sha256": "807531f96168ac4cad5f123b500365385b5eb02aeacddd46efd64cd8a6b811ad"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/sheen/sheen-beli-canopy-shield.webp",
+          "immutablePath": "/assets/gauntlet/releases/b7e2103204f3d75105c5d0a1b0c5a51b462cb44f27c9f80d4d0b515170c724c1.webp",
+          "sha256": "b7e2103204f3d75105c5d0a1b0c5a51b462cb44f27c9f80d4d0b515170c724c1"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "sheen-nus-verdant-edict",
+      "factionId": "sheen",
+      "currentName": "Verdant Dome",
+      "currentType": "shelter",
+      "rules": "While Verdant Dome occupies a support slot, your third block during the turn gets +1 additional value.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-nus-verdant-edict-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/456e11397f748d1a7701d5b3effaf4d0dde4838592e6d115acee8ce01c9037bd.webp",
+          "sha256": "456e11397f748d1a7701d5b3effaf4d0dde4838592e6d115acee8ce01c9037bd"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-nus-verdant-edict-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/614314d6ece11504519c3225ddf2434b398c9ab8a8a16071721d296c1063d1b8.webp",
+          "sha256": "614314d6ece11504519c3225ddf2434b398c9ab8a8a16071721d296c1063d1b8"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-nus-verdant-edict-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/93e13537b75c1d493fd68d0cc7ade904a0a0b946fe9c1594ae3041064942fb78.webp",
+          "sha256": "93e13537b75c1d493fd68d0cc7ade904a0a0b946fe9c1594ae3041064942fb78"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-nus-verdant-edict-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/6e4858eee333ee4183f7af3d5be4670a844458d0407ffb48ed50683c0a95bb2d.webp",
+          "sha256": "6e4858eee333ee4183f7af3d5be4670a844458d0407ffb48ed50683c0a95bb2d"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/sheen/sheen-nus-verdant-edict.webp",
+          "immutablePath": "/assets/gauntlet/releases/835e0eae7aae0c8fd852fe4fa27d169d0a621444dd093e714535a07a22c20108.webp",
+          "sha256": "835e0eae7aae0c8fd852fe4fa27d169d0a621444dd093e714535a07a22c20108"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "sheen-roots-that-remember",
+      "factionId": "sheen",
+      "currentName": "Eternal Archive",
+      "currentType": "shelter",
+      "rules": "While Eternal Archive occupies a support slot, whenever you gain life from blocking, your next block that turn gets +1 value.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-roots-that-remember-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/ce234b3c4e9e4285b8ebe5f03b178d4de8ecf5be5751344ce4e4f0878cdc882d.webp",
+          "sha256": "ce234b3c4e9e4285b8ebe5f03b178d4de8ecf5be5751344ce4e4f0878cdc882d"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-roots-that-remember-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/6da3fd9da20b19bc542d6d4e98b7d3b94725f9b593f6ad93575eb98a2d53a211.webp",
+          "sha256": "6da3fd9da20b19bc542d6d4e98b7d3b94725f9b593f6ad93575eb98a2d53a211"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-roots-that-remember-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/0c3a397bb65f42402a157025d6fce129737f803e4e1dd9771abf75066dd60442.webp",
+          "sha256": "0c3a397bb65f42402a157025d6fce129737f803e4e1dd9771abf75066dd60442"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-roots-that-remember-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/353c191f42bfb249902a5ea0b5f449734d9e69bc6c9b5ae09b22eba625aa4686.webp",
+          "sha256": "353c191f42bfb249902a5ea0b5f449734d9e69bc6c9b5ae09b22eba625aa4686"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/sheen/sheen-roots-that-remember.webp",
+          "immutablePath": "/assets/gauntlet/releases/68cf17bc515607f27b3da71c6feed3ea84569d8657d15e4ae5cd4a4f2929ac15.webp",
+          "sha256": "68cf17bc515607f27b3da71c6feed3ea84569d8657d15e4ae5cd4a4f2929ac15"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "sheen-tangs-patient-hand",
+      "factionId": "sheen",
+      "currentName": "Meditation Retreat",
+      "currentType": "shelter",
+      "rules": "While Meditation Retreat occupies a support slot, after your second block each turn, gain 1 life and draw one extra card at the end of the turn.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-tangs-patient-hand-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/3ab0d172625dfb4955965ff68f89380507215ec4286e57b4c84edad142f9a4f1.webp",
+          "sha256": "3ab0d172625dfb4955965ff68f89380507215ec4286e57b4c84edad142f9a4f1"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-tangs-patient-hand-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/4ddc89e7205893caa8c3e3ccf8399f75d193e67bf7da4cdf503f3ee837b0401c.webp",
+          "sha256": "4ddc89e7205893caa8c3e3ccf8399f75d193e67bf7da4cdf503f3ee837b0401c"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-tangs-patient-hand-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/9cdb54a0014a53807c124f6a5ec3b07baf64f5bf75a5ca27391848f2b17a91e5.webp",
+          "sha256": "9cdb54a0014a53807c124f6a5ec3b07baf64f5bf75a5ca27391848f2b17a91e5"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-tangs-patient-hand-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/3e1b9a5ccd19fc426a61392a487385cc8c1f2c41e6e666c192c7364259d0ca21.webp",
+          "sha256": "3e1b9a5ccd19fc426a61392a487385cc8c1f2c41e6e666c192c7364259d0ca21"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/sheen/sheen-tangs-patient-hand.webp",
+          "immutablePath": "/assets/gauntlet/releases/4f141751580d3a08f9ba1137c76bfd3107e3e0e83a5fdbf65a8b6bd14e31d5ed.webp",
+          "sha256": "4f141751580d3a08f9ba1137c76bfd3107e3e0e83a5fdbf65a8b6bd14e31d5ed"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "sheen-seedwall-acolyte",
+      "factionId": "sheen",
+      "currentName": "Root Guardian",
+      "currentType": "servitor",
+      "rules": "When this blocks the first incoming attack each turn, it gets +1 value.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-seedwall-acolyte-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/d94c6ac0fa090ee1c8a7330ddd3bdc32234f007043d3eb49f91a5e4e4fe1fa6d.webp",
+          "sha256": "d94c6ac0fa090ee1c8a7330ddd3bdc32234f007043d3eb49f91a5e4e4fe1fa6d"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-seedwall-acolyte-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/67770b76af9fecb8826648a0127664a014e87f0621feb87b0a3795c6b5f29bd8.webp",
+          "sha256": "67770b76af9fecb8826648a0127664a014e87f0621feb87b0a3795c6b5f29bd8"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-seedwall-acolyte-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/efed881e841ef8e583b80dd2cbe90827a7b730f0482eb63288e3d1221b9691e3.webp",
+          "sha256": "efed881e841ef8e583b80dd2cbe90827a7b730f0482eb63288e3d1221b9691e3"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-seedwall-acolyte-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/6c124f7a11eb53a93ec0b5f6a68325a2e198eebdfce8d45c7dbb2657bdf124e0.webp",
+          "sha256": "6c124f7a11eb53a93ec0b5f6a68325a2e198eebdfce8d45c7dbb2657bdf124e0"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/sheen/sheen-seedwall-acolyte.webp",
+          "immutablePath": "/assets/gauntlet/releases/31ce0efe9d60566dbe2f9fad5db15d5ccfe41d7cf77de51e3ad000af121b4619.webp",
+          "sha256": "31ce0efe9d60566dbe2f9fad5db15d5ccfe41d7cf77de51e3ad000af121b4619"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "sheen-raincall-mender",
+      "factionId": "sheen",
+      "currentName": "Sheen Mender",
+      "currentType": "servitor",
+      "rules": "After this blocks, gain 1 life if you took no damage from that attack.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-raincall-mender-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/6700574118cd784b98c570f1bc3694c2668cb54a9f69d2b8fb225f95195aee40.webp",
+          "sha256": "6700574118cd784b98c570f1bc3694c2668cb54a9f69d2b8fb225f95195aee40"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-raincall-mender-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/1486ca818bbf3c0117510e0b59eedfaa2f567822656ee35e6e5828efa0b4c491.webp",
+          "sha256": "1486ca818bbf3c0117510e0b59eedfaa2f567822656ee35e6e5828efa0b4c491"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-raincall-mender-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/a0cd188d5ab8f1b066480ccbb3af31338603c14d3fea3f580da4efa375b79966.webp",
+          "sha256": "a0cd188d5ab8f1b066480ccbb3af31338603c14d3fea3f580da4efa375b79966"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-raincall-mender-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/2e76b9d8a00194a6bc4670339c1b2c26973a93e6bc45cd0cf257191870dc7174.webp",
+          "sha256": "2e76b9d8a00194a6bc4670339c1b2c26973a93e6bc45cd0cf257191870dc7174"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/sheen/sheen-raincall-mender.webp",
+          "immutablePath": "/assets/gauntlet/releases/0271b492b73abc0d7f99ecf44fc89c59fb061a49ac28506b239488b8b16c9865.webp",
+          "sha256": "0271b492b73abc0d7f99ecf44fc89c59fb061a49ac28506b239488b8b16c9865"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "sheen-ringroot-bastion",
+      "factionId": "sheen",
+      "currentName": "Oakheart Sentinel",
+      "currentType": "servitor",
+      "rules": "When this blocks from a lane, it gets +2 value.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-ringroot-bastion-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/ef2fb9566bf05997975f8b12de15223e205ba83853459271976e688fb658c6aa.webp",
+          "sha256": "ef2fb9566bf05997975f8b12de15223e205ba83853459271976e688fb658c6aa"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-ringroot-bastion-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/4185749ee8329ad93ecb2a2fd17d91772377a2f5866abd7f7cce0457a63f92aa.webp",
+          "sha256": "4185749ee8329ad93ecb2a2fd17d91772377a2f5866abd7f7cce0457a63f92aa"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-ringroot-bastion-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/86adefeddfef738660ec137d579b194502eff9daecc3b5803b61c4b1007ad70a.webp",
+          "sha256": "86adefeddfef738660ec137d579b194502eff9daecc3b5803b61c4b1007ad70a"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-ringroot-bastion-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/9ebf25bf2eb333f1a3eaa6614b4b4e87e0bd1269af236da02f9b008895b8a9f4.webp",
+          "sha256": "9ebf25bf2eb333f1a3eaa6614b4b4e87e0bd1269af236da02f9b008895b8a9f4"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/sheen/sheen-ringroot-bastion.webp",
+          "immutablePath": "/assets/gauntlet/releases/6b3e292704a3a600adb3803829e00a7cf41564b21813dc63a0c35134db94f2fb.webp",
+          "sha256": "6b3e292704a3a600adb3803829e00a7cf41564b21813dc63a0c35134db94f2fb"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "sheen-sapling-chorus",
+      "factionId": "sheen",
+      "currentName": "Goldenbloom Sower",
+      "currentType": "servitor",
+      "rules": "When paid for your second or later block each turn, that blocker gets +1 value.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-sapling-chorus-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/822feed785f21aefcd9258c5c156c337656c12998de8e783ea4b9b7f3545fb71.webp",
+          "sha256": "822feed785f21aefcd9258c5c156c337656c12998de8e783ea4b9b7f3545fb71"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-sapling-chorus-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/39319714a8489877fec27d182379deca407b5250c98ce68192f388f87aa19721.webp",
+          "sha256": "39319714a8489877fec27d182379deca407b5250c98ce68192f388f87aa19721"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-sapling-chorus-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/05922fc1de518abb3803dcf77b600a9519b915b01e1c77576c917218cb7c767b.webp",
+          "sha256": "05922fc1de518abb3803dcf77b600a9519b915b01e1c77576c917218cb7c767b"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-sapling-chorus-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/d30b8d6faf350aeb670bd223bfb1c648d6bb25519d0f1bf232f623e9092498ec.webp",
+          "sha256": "d30b8d6faf350aeb670bd223bfb1c648d6bb25519d0f1bf232f623e9092498ec"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/sheen/sheen-sapling-chorus.webp",
+          "immutablePath": "/assets/gauntlet/releases/e19359a0ce6d0505a2398f7aebb77a5dd560039b61d37214bf04529415a39217.webp",
+          "sha256": "e19359a0ce6d0505a2398f7aebb77a5dd560039b61d37214bf04529415a39217"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "sheen-nus-calm-command",
+      "factionId": "sheen",
+      "currentName": "Concordant Elder",
+      "currentType": "servitor",
+      "rules": "If you have blocked three or more times this turn, this attacks with +3 value.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-nus-calm-command-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/b0f237fa20b6f1b2b17067e2542dbf1ce51aadae3debf2bf0a9f63435c1ab096.webp",
+          "sha256": "b0f237fa20b6f1b2b17067e2542dbf1ce51aadae3debf2bf0a9f63435c1ab096"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-nus-calm-command-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/bb2bccd7ca6640ef3a3d2df6b420a34ac8be82d0a29c72ffbb839e3a6f75f0f4.webp",
+          "sha256": "bb2bccd7ca6640ef3a3d2df6b420a34ac8be82d0a29c72ffbb839e3a6f75f0f4"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-nus-calm-command-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/885a45311ab7b030293487cbeb9e95c06cf57da4bcb07a3241aad43516b0aaed.webp",
+          "sha256": "885a45311ab7b030293487cbeb9e95c06cf57da4bcb07a3241aad43516b0aaed"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-nus-calm-command-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/1bab5717a443848704327da14df519e6aef049d8fff914de3bb58a05a5d7b0ee.webp",
+          "sha256": "1bab5717a443848704327da14df519e6aef049d8fff914de3bb58a05a5d7b0ee"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/sheen/sheen-nus-calm-command.webp",
+          "immutablePath": "/assets/gauntlet/releases/00517430877291603942b57f7517bdef9b173d5507beb33ce194d4a0faa15a87.webp",
+          "sha256": "00517430877291603942b57f7517bdef9b173d5507beb33ce194d4a0faa15a87"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "sheen-emperors-heartwood",
+      "factionId": "sheen",
+      "currentName": "Evergreen Arbor",
+      "currentType": "shelter",
+      "rules": "While Evergreen Arbor occupies a support slot, each of your blocking cards gets +1 value; on your third and later blocks each turn, also gain 1 life.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-emperors-heartwood-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/49ad964fe9fd042c75397e5b011bdf8b29b1516dcaf644585966c482ffe9426a.webp",
+          "sha256": "49ad964fe9fd042c75397e5b011bdf8b29b1516dcaf644585966c482ffe9426a"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-emperors-heartwood-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/ca6d409d8a3eaf6baa9a0f3413088421903bc217b91136ffe191b14b48b325e4.webp",
+          "sha256": "ca6d409d8a3eaf6baa9a0f3413088421903bc217b91136ffe191b14b48b325e4"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-emperors-heartwood-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/1f21fdf08d886248628b5e00212a6a0dc9b4500e2f184fd5bd8495837d55308f.webp",
+          "sha256": "1f21fdf08d886248628b5e00212a6a0dc9b4500e2f184fd5bd8495837d55308f"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-emperors-heartwood-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/d1d598f829ad8ddecbc79a58ff0e5e105321c553b4b95c19ece0456ad53ab227.webp",
+          "sha256": "d1d598f829ad8ddecbc79a58ff0e5e105321c553b4b95c19ece0456ad53ab227"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/sheen/sheen-emperors-heartwood.webp",
+          "immutablePath": "/assets/gauntlet/releases/936be510812302e0dd8c0640daba6aa945945e3b36d27f4f72021365d5ae6221.webp",
+          "sha256": "936be510812302e0dd8c0640daba6aa945945e3b36d27f4f72021365d5ae6221"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "sheen-beli-awakened",
+      "factionId": "sheen",
+      "currentName": "Vital Grove",
+      "currentType": "shelter",
+      "rules": "While Vital Grove occupies a support slot, after you block without taking damage, you may give your next attack that turn +3 value.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-beli-awakened-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/bfbf52eb81dc731811e6ea598079e00a7e4389d5a2eaa9f099ac445dfcde97b6.webp",
+          "sha256": "bfbf52eb81dc731811e6ea598079e00a7e4389d5a2eaa9f099ac445dfcde97b6"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-beli-awakened-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/02be13dacfa8495ee3b494ea2746dc27b9b476f67e31545ec2b09082f5fe1cf2.webp",
+          "sha256": "02be13dacfa8495ee3b494ea2746dc27b9b476f67e31545ec2b09082f5fe1cf2"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-beli-awakened-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/a6f8d087f4c8782b26f0ab386c780f8f0ecaf0697045da6e828b60948e50cecf.webp",
+          "sha256": "a6f8d087f4c8782b26f0ab386c780f8f0ecaf0697045da6e828b60948e50cecf"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-beli-awakened-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/bef021413b92a9c7e383b8079493ee209f3749088386716f6a96858aca7751f9.webp",
+          "sha256": "bef021413b92a9c7e383b8079493ee209f3749088386716f6a96858aca7751f9"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/sheen/sheen-beli-awakened.webp",
+          "immutablePath": "/assets/gauntlet/releases/adaef4e5a55e6f04636fb4e65c6b03f45fab2c44b04f26b066a4a6c66a4822ee.webp",
+          "sha256": "adaef4e5a55e6f04636fb4e65c6b03f45fab2c44b04f26b066a4a6c66a4822ee"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "sheen-canopy-wayfinder",
+      "factionId": "sheen",
+      "currentName": "Canopy Wayfinder",
+      "currentType": "servitor",
+      "rules": "This card has no additional ability beyond the normal rules for its card type and printed value. She reads the paths written in shade, rain, and new growth.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-canopy-wayfinder-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/679565f4e0932972514266a2cf739d5e1fdaf555ab9d18ed859ce9ea969b966e.webp",
+          "sha256": "679565f4e0932972514266a2cf739d5e1fdaf555ab9d18ed859ce9ea969b966e"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-canopy-wayfinder-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/110fe49cc6efb6c744796023a37eb93e84c5e5dad7eaa904efff32754591c782.webp",
+          "sha256": "110fe49cc6efb6c744796023a37eb93e84c5e5dad7eaa904efff32754591c782"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-canopy-wayfinder-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/8f530d7eb515327879685383401c69e60196fdc7ee9beab582ca44267a9b3871.webp",
+          "sha256": "8f530d7eb515327879685383401c69e60196fdc7ee9beab582ca44267a9b3871"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-canopy-wayfinder-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/ab96d875d801af2cc8139325b74b32f4056cf660e113ff4c4f38d87249885371.webp",
+          "sha256": "ab96d875d801af2cc8139325b74b32f4056cf660e113ff4c4f38d87249885371"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/sheen/sheen-canopy-wayfinder.webp",
+          "immutablePath": "/assets/gauntlet/releases/7f30d051c109565ddb2f1eafd49ec18084249a45d609839358d97b93bda84520.webp",
+          "sha256": "7f30d051c109565ddb2f1eafd49ec18084249a45d609839358d97b93bda84520"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "sheen-rootsong-matriarch",
+      "factionId": "sheen",
+      "currentName": "Rootsong Matriarch",
+      "currentType": "shelter",
+      "rules": "This card has no additional ability beyond the normal rules for its card type and printed value. Her oldest songs pass beneath the soil from grove to grove.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-rootsong-matriarch-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/b7f521c44dac3798cf91c581f9a123d244c99f3da8ad6678b3c54ca00086a8a4.webp",
+          "sha256": "b7f521c44dac3798cf91c581f9a123d244c99f3da8ad6678b3c54ca00086a8a4"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-rootsong-matriarch-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/30c7cbe88de5b0ba69d5144bbc56dda51cc6e0f447379f965407ef316bcc4eea.webp",
+          "sha256": "30c7cbe88de5b0ba69d5144bbc56dda51cc6e0f447379f965407ef316bcc4eea"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-rootsong-matriarch-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/4e69b90ab4f3068915c197b9bb20bc2224c63f2187e63cd33cede759cba7eb25.webp",
+          "sha256": "4e69b90ab4f3068915c197b9bb20bc2224c63f2187e63cd33cede759cba7eb25"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-rootsong-matriarch-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/239b9f30da9a388a11a4c3cae2a323dc07fc3f57e58161764e836f8c808a6a2c.webp",
+          "sha256": "239b9f30da9a388a11a4c3cae2a323dc07fc3f57e58161764e836f8c808a6a2c"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/sheen/sheen-rootsong-matriarch.webp",
+          "immutablePath": "/assets/gauntlet/releases/7f10fbe3aee01980432ba6088c83f7152556d8b3aa673a27b2ba8be066431240.webp",
+          "sha256": "7f10fbe3aee01980432ba6088c83f7152556d8b3aa673a27b2ba8be066431240"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "sheen-elder-first-grove",
+      "factionId": "sheen",
+      "currentName": "Elder of the First Grove",
+      "currentType": "servitor",
+      "rules": "This card has no additional ability beyond the normal rules for its card type and printed value. The first forest remembers every season through its elder.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-elder-first-grove-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/0dff9a4a3a25d385fece058dce69e3ebd2f072929fc45568bfac7510c87bae46.webp",
+          "sha256": "0dff9a4a3a25d385fece058dce69e3ebd2f072929fc45568bfac7510c87bae46"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-elder-first-grove-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/ef89ea939d5797a124ab99f9c5b7a1b94b8002040b445dd7ee0180e63d2b52a3.webp",
+          "sha256": "ef89ea939d5797a124ab99f9c5b7a1b94b8002040b445dd7ee0180e63d2b52a3"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-elder-first-grove-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/205f8d29f30f53e0c15f3d7cc1e243b125a5e98018fd273733cd45d33bb13ee4.webp",
+          "sha256": "205f8d29f30f53e0c15f3d7cc1e243b125a5e98018fd273733cd45d33bb13ee4"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-elder-first-grove-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/6b414c7e13758228037171904f4ae75f15bebb2a5831f788a26ea92867852b94.webp",
+          "sha256": "6b414c7e13758228037171904f4ae75f15bebb2a5831f788a26ea92867852b94"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/sheen/sheen-elder-first-grove.webp",
+          "immutablePath": "/assets/gauntlet/releases/b2197543a8c640595536f9890d914153c727257617706d80a62437f4511e904f.webp",
+          "sha256": "b2197543a8c640595536f9890d914153c727257617706d80a62437f4511e904f"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "sheen-heartwood-avatar",
+      "factionId": "sheen",
+      "currentName": "Heartwood Avatar",
+      "currentType": "servitor",
+      "rules": "This card has no additional ability beyond the normal rules for its card type and printed value. An entire living covenant walks within its wooden frame.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-heartwood-avatar-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/5583bcaab14c2a030645a8cccf8a9a15808264353439aabd2a6e249ce67d34f4.webp",
+          "sha256": "5583bcaab14c2a030645a8cccf8a9a15808264353439aabd2a6e249ce67d34f4"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-heartwood-avatar-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/051e49fb92ebdc83a3e0b4f0cfd3c9db27e0ef18e6fd295d933729e9c1be87ca.webp",
+          "sha256": "051e49fb92ebdc83a3e0b4f0cfd3c9db27e0ef18e6fd295d933729e9c1be87ca"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-heartwood-avatar-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/fc947fc61becdd83e97e00c21ae5756366e0e9240ce0b0cbdfdee4bf6f16d015.webp",
+          "sha256": "fc947fc61becdd83e97e00c21ae5756366e0e9240ce0b0cbdfdee4bf6f16d015"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/sheen-heartwood-avatar-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/d8ed0195c8591847198c31184afb0082adc44028488fc0cf9707cda0bac74d17.webp",
+          "sha256": "d8ed0195c8591847198c31184afb0082adc44028488fc0cf9707cda0bac74d17"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/sheen/sheen-heartwood-avatar.webp",
+          "immutablePath": "/assets/gauntlet/releases/7c64f406aba594094f81eba5e2829ec5d09a6f2642ec2d85d36ec506a2de273d.webp",
+          "sha256": "7c64f406aba594094f81eba5e2829ec5d09a6f2642ec2d85d36ec506a2de273d"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "frumo-deckhand-diver",
+      "factionId": "frumo",
+      "currentName": "Deep Dive",
+      "currentType": "ambush",
+      "rules": "When Deep Dive enters a support slot, you may reveal it to privately inspect the top card of your deck, then discard Deep Dive.",
+      "sourceReferenceName": "Below the Manifest",
+      "sourceReferenceType": "ambush",
+      "typeAgreement": true,
+      "nameAgreement": false,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-deckhand-diver-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/67ce2700e55c849ee64e5911126fef6936f7b2dae1c38abe22d5c8aac5b7b2eb.webp",
+          "sha256": "67ce2700e55c849ee64e5911126fef6936f7b2dae1c38abe22d5c8aac5b7b2eb"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-deckhand-diver-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/7d05255963322dc8c2eb700a0d3a649e7ee2a9ba2d78b1e83b879610c71e5583.webp",
+          "sha256": "7d05255963322dc8c2eb700a0d3a649e7ee2a9ba2d78b1e83b879610c71e5583"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-deckhand-diver-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/42429a3bed32d4b052485bbec5b83cba208d727d8e7dc0787674c557fe4dff4b.webp",
+          "sha256": "42429a3bed32d4b052485bbec5b83cba208d727d8e7dc0787674c557fe4dff4b"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-deckhand-diver-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/1d58e6d1ff621034d81b7e032ec7f79028f062d9879a8b6ed680413c74c76f82.webp",
+          "sha256": "1d58e6d1ff621034d81b7e032ec7f79028f062d9879a8b6ed680413c74c76f82"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/frumo/frumo-deckhand-diver.webp",
+          "immutablePath": "/assets/gauntlet/releases/8cf5c81c642880990740573b2c26d582545cfcebe07e8b777f037dcc9fbff300.webp",
+          "sha256": "8cf5c81c642880990740573b2c26d582545cfcebe07e8b777f037dcc9fbff300"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Concealed information, inspection or discovery; ambush scene rather than an unrelated named hero.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "frumo-tideglass-cutlass",
+      "factionId": "frumo",
+      "currentName": "Deckhand Recruit",
+      "currentType": "servitor",
+      "rules": "Reveal by attacking from a lane. If you have swapped a lane card this turn, this gets +2 value.",
+      "sourceReferenceName": "Second-Tack Deckhand",
+      "sourceReferenceType": "servitor",
+      "typeAgreement": true,
+      "nameAgreement": false,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-tideglass-cutlass-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/a8032d312e672c97c283e294023efa0d9de3b838b1e74f89da84122fba655abe.webp",
+          "sha256": "a8032d312e672c97c283e294023efa0d9de3b838b1e74f89da84122fba655abe"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-tideglass-cutlass-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/c881790dd4803fd5fa8c7d00d2cda020d11f89572a655c8c072b5592564d7605.webp",
+          "sha256": "c881790dd4803fd5fa8c7d00d2cda020d11f89572a655c8c072b5592564d7605"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-tideglass-cutlass-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/4cb3fd407657c152d43dbd07340d6ed9de99d3c6a9d9cb376bb77a138e70ed94.webp",
+          "sha256": "4cb3fd407657c152d43dbd07340d6ed9de99d3c6a9d9cb376bb77a138e70ed94"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-tideglass-cutlass-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/4e0022357d8822effa4f27496f604bb6fc74ef7e2e5eb1824b1a04e27bfa0be0.webp",
+          "sha256": "4e0022357d8822effa4f27496f604bb6fc74ef7e2e5eb1824b1a04e27bfa0be0"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/frumo/frumo-tideglass-cutlass.webp",
+          "immutablePath": "/assets/gauntlet/releases/499d9b1b9238b532618643f5738792708b6f384a1bcc9e0e5429275b4a6f3b10.webp",
+          "sha256": "499d9b1b9238b532618643f5738792708b6f384a1bcc9e0e5429275b4a6f3b10"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Aquatic deckhand/recruit; depict a living crew member, not only a cutlass.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "frumo-sunken-coin",
+      "factionId": "frumo",
+      "currentName": "Vault Raider",
+      "currentType": "servitor",
+      "rules": "When paid for an attack, block, or ability, this pays +1 value if you control an empty lane.",
+      "sourceReferenceName": "Iceway Oathmate",
+      "sourceReferenceType": "servitor",
+      "typeAgreement": true,
+      "nameAgreement": false,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-sunken-coin-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/9e39cd9f928a55928ee530bb13ca2ad6a86a26edf7a2a152ee5f87dcb4753f70.webp",
+          "sha256": "9e39cd9f928a55928ee530bb13ca2ad6a86a26edf7a2a152ee5f87dcb4753f70"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-sunken-coin-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/7578dd6fc1efaf2e294d3f8149ee37cfcd5c7c2b75252035545e88ac310acfb8.webp",
+          "sha256": "7578dd6fc1efaf2e294d3f8149ee37cfcd5c7c2b75252035545e88ac310acfb8"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-sunken-coin-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/f025fa849d6490fda469a6a5470cac620dd03a96678483df368dad8109470cc8.webp",
+          "sha256": "f025fa849d6490fda469a6a5470cac620dd03a96678483df368dad8109470cc8"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-sunken-coin-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/d04cc2956535a50e90ceeb6c6f2830ece05e189df4661549457faf5b440782f9.webp",
+          "sha256": "d04cc2956535a50e90ceeb6c6f2830ece05e189df4661549457faf5b440782f9"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/frumo/frumo-sunken-coin.webp",
+          "immutablePath": "/assets/gauntlet/releases/6bcb6777b341b0bfbf7414d53da80243a8523f51b44080c72a329b1ef377d894.webp",
+          "sha256": "6bcb6777b341b0bfbf7414d53da80243a8523f51b44080c72a329b1ef377d894"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Raider/resource-taking identity must remain plausible. An oath-taking ally alone may not represent Vault Raider.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "frumo-coral-hull-guard",
+      "factionId": "frumo",
+      "currentName": "Wavebreaker Maurauder",
+      "currentType": "servitor",
+      "rules": "When this blocks from a lane, it gets +1 value and counts as a lane swap for your Frumo cards this turn.",
+      "sourceReferenceName": "The Last Loyal Mutineer",
+      "sourceReferenceType": "servitor",
+      "typeAgreement": true,
+      "nameAgreement": false,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-coral-hull-guard-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/66d8c3178dd450926a89388a54de6539f2ecf7230617480e62479c733ac2b16b.webp",
+          "sha256": "66d8c3178dd450926a89388a54de6539f2ecf7230617480e62479c733ac2b16b"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-coral-hull-guard-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/79622ca00ee2ae784ba9cf1f2375cf4eeeb40b75cbb4255cf81b9a1724823c60.webp",
+          "sha256": "79622ca00ee2ae784ba9cf1f2375cf4eeeb40b75cbb4255cf81b9a1724823c60"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-coral-hull-guard-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/262a9b324d9cae22e3536f030b260b527aa34b046d56d9f0f50339cb2c84a887.webp",
+          "sha256": "262a9b324d9cae22e3536f030b260b527aa34b046d56d9f0f50339cb2c84a887"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-coral-hull-guard-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/356f92efa050378715f1e035935f5643396b01358c89748d5361f48a49b0b609.webp",
+          "sha256": "356f92efa050378715f1e035935f5643396b01358c89748d5361f48a49b0b609"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/frumo/frumo-coral-hull-guard.webp",
+          "immutablePath": "/assets/gauntlet/releases/faa40bfedae3b9c1b4729a4078de6268af7584baf95aa0c40fd607c200eb042b.webp",
+          "sha256": "faa40bfedae3b9c1b4729a4078de6268af7584baf95aa0c40fd607c200eb042b"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Aquatic fighting crew member with defensive/wave-breaking action; a loyal mutineer can fit if the scene supports that role.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "frumo-riptide-smuggler",
+      "factionId": "frumo",
+      "currentName": "Hauntling Lure",
+      "currentType": "ambush",
+      "rules": "After your first face-down-card inspection each turn, reveal Hauntling Lure to give your next attack +1 value, then discard Hauntling Lure.",
+      "sourceReferenceName": "False Relief Seal",
+      "sourceReferenceType": "ambush",
+      "typeAgreement": true,
+      "nameAgreement": false,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-riptide-smuggler-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/aa4d128def0a16099a8c97af5d277ba4f4d86432bc054a286708da3d5565aa49.webp",
+          "sha256": "aa4d128def0a16099a8c97af5d277ba4f4d86432bc054a286708da3d5565aa49"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-riptide-smuggler-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/5af20e0fc2c64b3be5a9334e7a03018885c45f219a1538939a7071934a0243a3.webp",
+          "sha256": "5af20e0fc2c64b3be5a9334e7a03018885c45f219a1538939a7071934a0243a3"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-riptide-smuggler-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/664ebb420e75cd8950db8073dfd60aa16688763f04af33ef644dc183c7d4265e.webp",
+          "sha256": "664ebb420e75cd8950db8073dfd60aa16688763f04af33ef644dc183c7d4265e"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-riptide-smuggler-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/98120692309e4f49b20bbe450a1a50add36f9e3ece01fb22b795c86e7db6314a.webp",
+          "sha256": "98120692309e4f49b20bbe450a1a50add36f9e3ece01fb22b795c86e7db6314a"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/frumo/frumo-riptide-smuggler.webp",
+          "immutablePath": "/assets/gauntlet/releases/c0fadb5fe793a70dedbc2d2a3a3f176be2b69ae51d0da3b5022a63855c008df4.webp",
+          "sha256": "c0fadb5fe793a70dedbc2d2a3a3f176be2b69ae51d0da3b5022a63855c008df4"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Lure, deception and exploitation of hidden information. A relief seal needs visual context tying it to that ambush, not a generic document product shot.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "frumo-lafayettes-chart",
+      "factionId": "frumo",
+      "currentName": "Hit & Run",
+      "currentType": "ambush",
+      "rules": "After you exchange a hand card with a lane card, reveal Hit & Run so your next payment card pays +1 additional value, then discard Hit & Run.",
+      "sourceReferenceName": "Breakwater Feint",
+      "sourceReferenceType": "ambush",
+      "typeAgreement": true,
+      "nameAgreement": false,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-lafayettes-chart-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/d216352f750f71b1650a5e3fadab27c1bfeb074fadda01405b036bbf81e09021.webp",
+          "sha256": "d216352f750f71b1650a5e3fadab27c1bfeb074fadda01405b036bbf81e09021"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-lafayettes-chart-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/f4dc2bc6b7bde97c43e23c97ddbb7bf3b21e499174841d685aec05eb4636935f.webp",
+          "sha256": "f4dc2bc6b7bde97c43e23c97ddbb7bf3b21e499174841d685aec05eb4636935f"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-lafayettes-chart-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/c51c191beaf834e8e362ab002e3febab5fedebd67bd32d65837f10645e626e75.webp",
+          "sha256": "c51c191beaf834e8e362ab002e3febab5fedebd67bd32d65837f10645e626e75"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-lafayettes-chart-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/4b64ca7019ba5a8df0f63d646784bf708a40c3be8f8a96797f4052ff6e36eb51.webp",
+          "sha256": "4b64ca7019ba5a8df0f63d646784bf708a40c3be8f8a96797f4052ff6e36eb51"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/frumo/frumo-lafayettes-chart.webp",
+          "immutablePath": "/assets/gauntlet/releases/532fda6f331c5ca14dd23109fb0708228ed006f1ce6d1e0d039e653ac3733e03.webp",
+          "sha256": "532fda6f331c5ca14dd23109fb0708228ed006f1ce6d1e0d039e653ac3733e03"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Feint, evasive attack or withdrawal scene; no need to rename Hit & Run as Breakwater Feint.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "frumo-pressure-lock-pistol",
+      "factionId": "frumo",
+      "currentName": "Frumo Sharpshooter",
+      "currentType": "servitor",
+      "rules": "When this attacks after a consecutive-value card was played, it gets +2 value.",
+      "sourceReferenceName": "Gallant's Mercy Gunner",
+      "sourceReferenceType": "servitor",
+      "typeAgreement": true,
+      "nameAgreement": false,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-pressure-lock-pistol-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/edf3a2d4aedbb905fbd3ae3ade9af70072fe99b3dd9f14b2dca9bbf348df1366.webp",
+          "sha256": "edf3a2d4aedbb905fbd3ae3ade9af70072fe99b3dd9f14b2dca9bbf348df1366"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-pressure-lock-pistol-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/8d7060bf732f91f8fb65681f0c7d108d04635f3880e7eb66de66c9711e89202b.webp",
+          "sha256": "8d7060bf732f91f8fb65681f0c7d108d04635f3880e7eb66de66c9711e89202b"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-pressure-lock-pistol-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/cfbeb62a18f5635466223d9f2915122f426d7472da9624ca5ef05e405f75a25c.webp",
+          "sha256": "cfbeb62a18f5635466223d9f2915122f426d7472da9624ca5ef05e405f75a25c"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-pressure-lock-pistol-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/d23ae4d9259ad784a2d60d973a4adde9ef7e336c1b8e84129c361e5a8e636317.webp",
+          "sha256": "d23ae4d9259ad784a2d60d973a4adde9ef7e336c1b8e84129c361e5a8e636317"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/frumo/frumo-pressure-lock-pistol.webp",
+          "immutablePath": "/assets/gauntlet/releases/5f9dc7062a5ae81f4c162ece528eab84589f93a167b5c8e9110002cacbc8f7e7.webp",
+          "sha256": "5f9dc7062a5ae81f4c162ece528eab84589f93a167b5c8e9110002cacbc8f7e7"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "A merfolk sharpshooter/gunner is type-compatible; a weapon alone is not the current servitor.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "frumo-ristus-blackwake",
+      "factionId": "frumo",
+      "currentName": "Riptide Veteran",
+      "currentType": "servitor",
+      "rules": "When this attacks from a lane while you control an empty lane, it gets +1 value.",
+      "sourceReferenceName": "Rescue-Route Helmsman",
+      "sourceReferenceType": "servitor",
+      "typeAgreement": true,
+      "nameAgreement": false,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-ristus-blackwake-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/ae5ffec7ae4cdf5ab0ec4a0e322dea2737d9225eeab366be9558dae34a61949c.webp",
+          "sha256": "ae5ffec7ae4cdf5ab0ec4a0e322dea2737d9225eeab366be9558dae34a61949c"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-ristus-blackwake-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/6c0d90c0eeb62a1cfe0f407cb31e7a2bb1873318299d6f51542d671ca0a58074.webp",
+          "sha256": "6c0d90c0eeb62a1cfe0f407cb31e7a2bb1873318299d6f51542d671ca0a58074"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-ristus-blackwake-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/47fc2e46dfc00872b3fefc2b9ec5c10eedd92c97862cdd0c9a3250b2b193a934.webp",
+          "sha256": "47fc2e46dfc00872b3fefc2b9ec5c10eedd92c97862cdd0c9a3250b2b193a934"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-ristus-blackwake-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/d49aefbb09b83cd906d0fc1e5a0d651a9af337ff4a769a3b23de4f29c37eb246.webp",
+          "sha256": "d49aefbb09b83cd906d0fc1e5a0d651a9af337ff4a769a3b23de4f29c37eb246"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/frumo/frumo-ristus-blackwake.webp",
+          "immutablePath": "/assets/gauntlet/releases/1ec3ae3cf8fd9e5e98e9a12738b413982eed08038889055a31fff4523208fea6.webp",
+          "sha256": "1ec3ae3cf8fd9e5e98e9a12738b413982eed08038889055a31fff4523208fea6"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Experienced aquatic sailor/fighter; rescue-route helmsman needs credible veteran identity.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "frumo-captains-bad-wager",
+      "factionId": "frumo",
+      "currentName": "Renegade Outlaw",
+      "currentType": "servitor",
+      "rules": "When this attacks from a lane after you played an even-value card, it gets +3 value this turn.",
+      "sourceReferenceName": "Breadfish Blockade Runner",
+      "sourceReferenceType": "servitor",
+      "typeAgreement": true,
+      "nameAgreement": false,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-captains-bad-wager-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/3b7fdfad46e24f0e4b65381b5a454cfc1afd6a578c717a33807b03ab4c49c7b4.webp",
+          "sha256": "3b7fdfad46e24f0e4b65381b5a454cfc1afd6a578c717a33807b03ab4c49c7b4"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-captains-bad-wager-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/c8546eafd34861c82e4f9d19638c3d94253492ff1f720b12090bc76b1660d1e8.webp",
+          "sha256": "c8546eafd34861c82e4f9d19638c3d94253492ff1f720b12090bc76b1660d1e8"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-captains-bad-wager-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/dab4f49cb4aba2c6d4a806b37081c6a8acc1337d51ae2b30c8da201407cc8848.webp",
+          "sha256": "dab4f49cb4aba2c6d4a806b37081c6a8acc1337d51ae2b30c8da201407cc8848"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-captains-bad-wager-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/8d84c1dee4b55c2c36893fecd438784e068fe37484e68125717a60b69700b77c.webp",
+          "sha256": "8d84c1dee4b55c2c36893fecd438784e068fe37484e68125717a60b69700b77c"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/frumo/frumo-captains-bad-wager.webp",
+          "immutablePath": "/assets/gauntlet/releases/e60d0571128279bf724a27be93c37555fec2057c7642f49334279bf824582639.webp",
+          "sha256": "e60d0571128279bf724a27be93c37555fec2057c7642f49334279bf824582639"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Renegade/outlaw character; blockade-running can fit if depicted as the outlaw rather than an unrelated delivery scene.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "frumo-poleas-sunken-order",
+      "factionId": "frumo",
+      "currentName": "Command the Revolution",
+      "currentType": "ambush",
+      "rules": "Reveal Command the Revolution to use one Polea mode an additional time this turn, targeting only your own cards, then discard this Ambush.",
+      "sourceReferenceName": "Iron Tide Emergency Order",
+      "sourceReferenceType": "ambush",
+      "typeAgreement": true,
+      "nameAgreement": false,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-poleas-sunken-order-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/19ae81b88dc85b0c7601ab8ee5f32789d72eb609f2abaed0d02963612a175a42.webp",
+          "sha256": "19ae81b88dc85b0c7601ab8ee5f32789d72eb609f2abaed0d02963612a175a42"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-poleas-sunken-order-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/b366d3e2540f14d98af32d540225d6943f2aa5e3688a8ecf014958d27a3bbf53.webp",
+          "sha256": "b366d3e2540f14d98af32d540225d6943f2aa5e3688a8ecf014958d27a3bbf53"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-poleas-sunken-order-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/9a655c102bbe13dbe524163fe608bbf0ec894696516a4427443a3294afe072f1.webp",
+          "sha256": "9a655c102bbe13dbe524163fe608bbf0ec894696516a4427443a3294afe072f1"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-poleas-sunken-order-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/be0a856015383ca02fc5695c259e069113b85ecffabe6828f737786b68b50981.webp",
+          "sha256": "be0a856015383ca02fc5695c259e069113b85ecffabe6828f737786b68b50981"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/frumo/frumo-poleas-sunken-order.webp",
+          "immutablePath": "/assets/gauntlet/releases/4767fe27b3e6f6b4c1bff831c7758db2214a909d8123cffff5cd6775c73a3749.webp",
+          "sha256": "4767fe27b3e6f6b4c1bff831c7758db2214a909d8123cffff5cd6775c73a3749"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Command, coordination or revolutionary orders; retain the current Polea-mode rules.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "frumo-leviathan-salvage",
+      "factionId": "frumo",
+      "currentName": "Loot the Hold",
+      "currentType": "ambush",
+      "rules": "When your first played card of the turn receives a Ristus consecutive-value bonus, reveal Loot the Hold to gain 1 life, then discard this Ambush.",
+      "sourceReferenceName": "Holdover Salvage",
+      "sourceReferenceType": "ambush",
+      "typeAgreement": true,
+      "nameAgreement": false,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-leviathan-salvage-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/08f566f85636bdfef127dc995e302ca792dbe0413bf6f4b26adfdac8d27969ad.webp",
+          "sha256": "08f566f85636bdfef127dc995e302ca792dbe0413bf6f4b26adfdac8d27969ad"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-leviathan-salvage-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/634100b1d5d54ed705123ac687345f0ff12a4a5adff55417466574be6dffe097.webp",
+          "sha256": "634100b1d5d54ed705123ac687345f0ff12a4a5adff55417466574be6dffe097"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-leviathan-salvage-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/a9f53bf7512dcf4036ec4afa972a271cabf12523870efd9a9d07a5bed6932b60.webp",
+          "sha256": "a9f53bf7512dcf4036ec4afa972a271cabf12523870efd9a9d07a5bed6932b60"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-leviathan-salvage-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/06ebf9a51a558704ffa17e17cabfd7dc27ecd128d71058e290fd4b4bd3f1b117.webp",
+          "sha256": "06ebf9a51a558704ffa17e17cabfd7dc27ecd128d71058e290fd4b4bd3f1b117"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/frumo/frumo-leviathan-salvage.webp",
+          "immutablePath": "/assets/gauntlet/releases/cfeba133dbfdc884209cad8d221e75f1a44b7223fc7fa5d2f84fdd2285b886a8.webp",
+          "sha256": "cfeba133dbfdc884209cad8d221e75f1a44b7223fc7fa5d2f84fdd2285b886a8"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Loot/salvage action in a hold or comparable maritime context; event image, not a new named servitor.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "frumo-kelpcloak-trickster",
+      "factionId": "frumo",
+      "currentName": "Silent Corsair",
+      "currentType": "servitor",
+      "rules": "When this enters a lane, it counts as a lane swap for your Frumo cards this turn.",
+      "sourceReferenceName": "Fellowwake Corsair",
+      "sourceReferenceType": "servitor",
+      "typeAgreement": true,
+      "nameAgreement": false,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-kelpcloak-trickster-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/8fd41ca060ace6b166ddd19d4ff1d88272f008a32007852145ebc013b96d59ae.webp",
+          "sha256": "8fd41ca060ace6b166ddd19d4ff1d88272f008a32007852145ebc013b96d59ae"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-kelpcloak-trickster-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/8e1009bf6aecb7da226201cadfa5449ee571a9b9a0d7d53cea150c31566d3eb0.webp",
+          "sha256": "8e1009bf6aecb7da226201cadfa5449ee571a9b9a0d7d53cea150c31566d3eb0"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-kelpcloak-trickster-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/ad088dac5bcd5e0010498b61330ae4e639113a22f2c366f3b45cb290a5ae31c0.webp",
+          "sha256": "ad088dac5bcd5e0010498b61330ae4e639113a22f2c366f3b45cb290a5ae31c0"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-kelpcloak-trickster-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/5d03a6e51e7af789ee9e699418cf152834858eccda604e7dd2bb7ef70a3f8896.webp",
+          "sha256": "5d03a6e51e7af789ee9e699418cf152834858eccda604e7dd2bb7ef70a3f8896"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/frumo/frumo-kelpcloak-trickster.webp",
+          "immutablePath": "/assets/gauntlet/releases/118745a77d3a5bd9c9f0cc793000426474ca141349c7d9c9a7915b5f310f6a27.webp",
+          "sha256": "118745a77d3a5bd9c9f0cc793000426474ca141349c7d9c9a7915b5f310f6a27"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Stealthy aquatic corsair; keep quiet/secretive identity visible.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "frumo-ballast-hook",
+      "factionId": "frumo",
+      "currentName": "Ocean Enforcer",
+      "currentType": "servitor",
+      "rules": "When this attacks from a lane while you control an empty lane, it gets +1 value.",
+      "sourceReferenceName": "Ice-Route Interceptor",
+      "sourceReferenceType": "servitor",
+      "typeAgreement": true,
+      "nameAgreement": false,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-ballast-hook-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/f04a7c1ea2c573277fe8fe846f2f7f837d2d8af72887d57f956c219b5c8cd693.webp",
+          "sha256": "f04a7c1ea2c573277fe8fe846f2f7f837d2d8af72887d57f956c219b5c8cd693"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-ballast-hook-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/5840de361b4011dd0c6a6895a13049502051411ce90aec7d74b088e6b51400ea.webp",
+          "sha256": "5840de361b4011dd0c6a6895a13049502051411ce90aec7d74b088e6b51400ea"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-ballast-hook-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/3fd4b3680bea0f8026d064b803b8ece7f690176fe9603bfe6d848dd454e087b1.webp",
+          "sha256": "3fd4b3680bea0f8026d064b803b8ece7f690176fe9603bfe6d848dd454e087b1"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-ballast-hook-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/f04e62466387da704ce276049a9716a708e0090dcbf9bb86cfeaee980351f5ac.webp",
+          "sha256": "f04e62466387da704ce276049a9716a708e0090dcbf9bb86cfeaee980351f5ac"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/frumo/frumo-ballast-hook.webp",
+          "immutablePath": "/assets/gauntlet/releases/b038113ce21f9ff25d6e023314638ddac46d9b44ac33253b538944264ef2f73c.webp",
+          "sha256": "b038113ce21f9ff25d6e023314638ddac46d9b44ac33253b538944264ef2f73c"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Aquatic enforcer/interceptor character; not a hook-only armament illustration.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "frumo-tide-debt-ledger",
+      "factionId": "frumo",
+      "currentName": "Pirate's Gambit",
+      "currentType": "ambush",
+      "rules": "After you swap a lane card, reveal Pirate's Gambit so your next payment card pays +1 additional value, then discard Pirate's Gambit.",
+      "sourceReferenceName": "The Unwritten Signal",
+      "sourceReferenceType": "ambush",
+      "typeAgreement": true,
+      "nameAgreement": false,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-tide-debt-ledger-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/c094ec15d742d7b076ba52032c6058c96ea8ed0234bcfcb6fe15059744f8842e.webp",
+          "sha256": "c094ec15d742d7b076ba52032c6058c96ea8ed0234bcfcb6fe15059744f8842e"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-tide-debt-ledger-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/e58ff0ce485729a0747a4470b6efdf0da0d0b89e3bcf567043184addf753009f.webp",
+          "sha256": "e58ff0ce485729a0747a4470b6efdf0da0d0b89e3bcf567043184addf753009f"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-tide-debt-ledger-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/604e9b759a8ccabe8b084d5860e8c3e5528960754265bfab6b0e75c011d2edf3.webp",
+          "sha256": "604e9b759a8ccabe8b084d5860e8c3e5528960754265bfab6b0e75c011d2edf3"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-tide-debt-ledger-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/ea96605ca6e65539e2a1f47c1a3a8bad7538babc10cd8d35124410a1320a087e.webp",
+          "sha256": "ea96605ca6e65539e2a1f47c1a3a8bad7538babc10cd8d35124410a1320a087e"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/frumo/frumo-tide-debt-ledger.webp",
+          "immutablePath": "/assets/gauntlet/releases/07db4d8780232b5d1f40d9613dc67d7658b7095acd9966548e04289af496a65f.webp",
+          "sha256": "07db4d8780232b5d1f40d9613dc67d7658b7095acd9966548e04289af496a65f"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "A risky pirate manoeuvre or concealed signal can fit; retain ambush identity.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "frumo-abyssal-switchboard",
+      "factionId": "frumo",
+      "currentName": "Coordinated Strike",
+      "currentType": "ambush",
+      "rules": "When Coordinated Strike enters a support slot, reveal it to give your next attack or block +1 value, then discard it.",
+      "sourceReferenceName": "Under-Ice Battle Drill",
+      "sourceReferenceType": "ambush",
+      "typeAgreement": true,
+      "nameAgreement": false,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-abyssal-switchboard-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/4cb14645ddf434d2972d37adc30f7824a4a5f49326cdde7d4d058e791af705fc.webp",
+          "sha256": "4cb14645ddf434d2972d37adc30f7824a4a5f49326cdde7d4d058e791af705fc"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-abyssal-switchboard-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/79a2b2166bc4abde214271d36e743fdbf5f29e230a4576a40c0c589b9be86942.webp",
+          "sha256": "79a2b2166bc4abde214271d36e743fdbf5f29e230a4576a40c0c589b9be86942"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-abyssal-switchboard-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/6e890949ca74741ce83337023d81d5a59172a1f0771bc6cb8d34c2429e11d544.webp",
+          "sha256": "6e890949ca74741ce83337023d81d5a59172a1f0771bc6cb8d34c2429e11d544"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-abyssal-switchboard-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/8365b4a905c5a5f5b2a48c1587ebc9d9285bca481dd86cab2411f8d5ec17143f.webp",
+          "sha256": "8365b4a905c5a5f5b2a48c1587ebc9d9285bca481dd86cab2411f8d5ec17143f"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/frumo/frumo-abyssal-switchboard.webp",
+          "immutablePath": "/assets/gauntlet/releases/85fc347dbeadeda741b12b35de1918f2e7f3444d8bc5c7b9437aaa026aedeab8.webp",
+          "sha256": "85fc347dbeadeda741b12b35de1918f2e7f3444d8bc5c7b9437aaa026aedeab8"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Coordinated naval combat/drill can fit an attack/block ambush.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "frumo-poleas-moonlit-map",
+      "factionId": "frumo",
+      "currentName": "Tide Shaper",
+      "currentType": "servitor",
+      "rules": "If this receives the Ristus consecutive-value bonus, it gets +1 additional value.",
+      "sourceReferenceName": "Iron Tide Sounding Master",
+      "sourceReferenceType": "servitor",
+      "typeAgreement": true,
+      "nameAgreement": false,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-poleas-moonlit-map-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/856b350dad7ee7aeb7922d65415d5370779a405b9ca041477f3401f393e8ecf7.webp",
+          "sha256": "856b350dad7ee7aeb7922d65415d5370779a405b9ca041477f3401f393e8ecf7"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-poleas-moonlit-map-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/61712feee347fa9609d8f961b346299bf6fca9438e4238f6091b9ab9cbfac92d.webp",
+          "sha256": "61712feee347fa9609d8f961b346299bf6fca9438e4238f6091b9ab9cbfac92d"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-poleas-moonlit-map-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/04f87dcf209dafc153ce31b30ba9d23c9d495d5a95a1a53115f044d0d719321a.webp",
+          "sha256": "04f87dcf209dafc153ce31b30ba9d23c9d495d5a95a1a53115f044d0d719321a"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-poleas-moonlit-map-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/e273f8abec7097d70c0d8ec94b8431e56a581d8e4a63ba9b9523dc1793d76f56.webp",
+          "sha256": "e273f8abec7097d70c0d8ec94b8431e56a581d8e4a63ba9b9523dc1793d76f56"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/frumo/frumo-poleas-moonlit-map.webp",
+          "immutablePath": "/assets/gauntlet/releases/a90f5310536ae69b8adfdcf5a44a777df03bfb8cd8c1c49ecb385604d43e2742.webp",
+          "sha256": "a90f5310536ae69b8adfdcf5a44a777df03bfb8cd8c1c49ecb385604d43e2742"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Aquatic tide-working/navigation specialist; sounding master must read as the current Tide Shaper, not an unrelated officer.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "frumo-the-last-gamble",
+      "factionId": "frumo",
+      "currentName": "Rally the Crew",
+      "currentType": "ambush",
+      "rules": "When you inspect a face-down card, reveal Rally the Crew and choose attack or block; your next card of that kind gets +4 value, then discard this Ambush.",
+      "sourceReferenceName": "The Last Sealed Manifest",
+      "sourceReferenceType": "ambush",
+      "typeAgreement": true,
+      "nameAgreement": false,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-the-last-gamble-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/583d509963942d8143cd287fd0cce09dcaed933b197d8fae5decad57165f6082.webp",
+          "sha256": "583d509963942d8143cd287fd0cce09dcaed933b197d8fae5decad57165f6082"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-the-last-gamble-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/55bdfab222c3a50157a069db5167cc5e112cf7bb80caa1951ba489bed0f50443.webp",
+          "sha256": "55bdfab222c3a50157a069db5167cc5e112cf7bb80caa1951ba489bed0f50443"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-the-last-gamble-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/952f06ca1d0d84c5144216c29b685aa8cf9bd46d925a6bdcc69de81cc64f7d49.webp",
+          "sha256": "952f06ca1d0d84c5144216c29b685aa8cf9bd46d925a6bdcc69de81cc64f7d49"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-the-last-gamble-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/accdb362a3cc966dd5b190fc87eb5a8edf2e25a49a3587574660ac6b98b48c5f.webp",
+          "sha256": "accdb362a3cc966dd5b190fc87eb5a8edf2e25a49a3587574660ac6b98b48c5f"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/frumo/frumo-the-last-gamble.webp",
+          "immutablePath": "/assets/gauntlet/releases/970e5b281ca4fcc3940ded57d3fac230ebd920e6f45141c8503ae5b34e6218e3.webp",
+          "sha256": "970e5b281ca4fcc3940ded57d3fac230ebd920e6f45141c8503ae5b34e6218e3"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Crew rally/coordination or the triggering concealed-information moment; a sealed manifest alone may not express Rally the Crew.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "frumo-ristus-rises",
+      "factionId": "frumo",
+      "currentName": "Frumo Tidecrasher",
+      "currentType": "servitor",
+      "rules": "When this enters a lane, it gets +1 value this turn and counts as a lane swap for your Frumo cards.",
+      "sourceReferenceName": "The Open-Water Pilot",
+      "sourceReferenceType": "servitor",
+      "typeAgreement": true,
+      "nameAgreement": false,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-ristus-rises-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/30215f0472bbe8bb499ac22637d2431663f3022e978a42a6c7a7ad126a1747ca.webp",
+          "sha256": "30215f0472bbe8bb499ac22637d2431663f3022e978a42a6c7a7ad126a1747ca"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-ristus-rises-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/0ea3e9f8f0ec319d2a42537b56b57b64aa018b4b22c93ec81955883b4ac274aa.webp",
+          "sha256": "0ea3e9f8f0ec319d2a42537b56b57b64aa018b4b22c93ec81955883b4ac274aa"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-ristus-rises-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/bc3691cfe6b2014ab29b2e38b8feca12d0fe28540e98eeda4969493bade46b29.webp",
+          "sha256": "bc3691cfe6b2014ab29b2e38b8feca12d0fe28540e98eeda4969493bade46b29"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-ristus-rises-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/fd4d4a8e5724bbc072f08857c17782d70b46a37cb6c90eeb189dabf4898501a7.webp",
+          "sha256": "fd4d4a8e5724bbc072f08857c17782d70b46a37cb6c90eeb189dabf4898501a7"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/frumo/frumo-ristus-rises.webp",
+          "immutablePath": "/assets/gauntlet/releases/082f3db97cfa46938c4c29a62ac64f25dbf40dfee7feff782cc80e3b70178370.webp",
+          "sha256": "082f3db97cfa46938c4c29a62ac64f25dbf40dfee7feff782cc80e3b70178370"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "A living aquatic pilot/crew member in forceful tide/lane-entry action; open water is not automatically invalid.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "frumo-tideglass-corsair",
+      "factionId": "frumo",
+      "currentName": "Tideglass Corsair",
+      "currentType": "servitor",
+      "rules": "This card has no additional ability beyond the normal rules for its card type and printed value. No map stays accurate after the Corsair decides to use it.",
+      "sourceReferenceName": "Tideglass Corsair",
+      "sourceReferenceType": "servitor",
+      "typeAgreement": true,
+      "nameAgreement": true,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-tideglass-corsair-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/e36cf364003aceb77dc3a85e32171fd93645a15c2e541f17745ca76d6fa48a94.webp",
+          "sha256": "e36cf364003aceb77dc3a85e32171fd93645a15c2e541f17745ca76d6fa48a94"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-tideglass-corsair-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/e723e6ba260d10a81782f3d95fd644e84d31e74edc9eabdbe40f8a7108e754f1.webp",
+          "sha256": "e723e6ba260d10a81782f3d95fd644e84d31e74edc9eabdbe40f8a7108e754f1"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-tideglass-corsair-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/d04a569b0f35ccab431ecf5091bef0e4548ffe1ee3048956d670eefb0a2ed0b7.webp",
+          "sha256": "d04a569b0f35ccab431ecf5091bef0e4548ffe1ee3048956d670eefb0a2ed0b7"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-tideglass-corsair-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/918883018453b3fbe26f8f8d4fd71522d8873e10f87c420a39488d40ee565ed1.webp",
+          "sha256": "918883018453b3fbe26f8f8d4fd71522d8873e10f87c420a39488d40ee565ed1"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/frumo/frumo-tideglass-corsair.webp",
+          "immutablePath": "/assets/gauntlet/releases/f8b747063b86abfd1af49a24b3b579c70271a961d2729ae7433350072e77939d.webp",
+          "sha256": "f8b747063b86abfd1af49a24b3b579c70271a961d2729ae7433350072e77939d"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Same named aquatic corsair; still inspect anatomy, mood, setting and absence of baked rules.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "frumo-pearl-republic-admiral",
+      "factionId": "frumo",
+      "currentName": "Pearl Republic Admiral",
+      "currentType": "servitor",
+      "rules": "This card has no additional ability beyond the normal rules for its card type and printed value. Her fleet owes allegiance to a republic built on moving water.",
+      "sourceReferenceName": "Keeper of the Relief Fleet",
+      "sourceReferenceType": "servitor",
+      "typeAgreement": true,
+      "nameAgreement": false,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-pearl-republic-admiral-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/a8476ac19706a73455bb241e5c46321d8b549ae772165dc80830aa1961f80ea7.webp",
+          "sha256": "a8476ac19706a73455bb241e5c46321d8b549ae772165dc80830aa1961f80ea7"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-pearl-republic-admiral-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/07ba061abbd9fbe671069e38ff2fef429cf4b062b8398fc7873b502fdfe14b65.webp",
+          "sha256": "07ba061abbd9fbe671069e38ff2fef429cf4b062b8398fc7873b502fdfe14b65"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-pearl-republic-admiral-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/98f31575ee7cb71de961c6d36a54fa4946cfe38504a7ca1068a2365719cbeaec.webp",
+          "sha256": "98f31575ee7cb71de961c6d36a54fa4946cfe38504a7ca1068a2365719cbeaec"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-pearl-republic-admiral-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/b8514925e2e2947d5b49cae95476b3c0bd213e4e432c3f14c96ea6621f191254.webp",
+          "sha256": "b8514925e2e2947d5b49cae95476b3c0bd213e4e432c3f14c96ea6621f191254"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/frumo/frumo-pearl-republic-admiral.webp",
+          "immutablePath": "/assets/gauntlet/releases/9ed864dfad481e6cba0aec2c1d3e7f0e48119fd7621f87100f73fd3a47f39b02.webp",
+          "sha256": "9ed864dfad481e6cba0aec2c1d3e7f0e48119fd7621f87100f73fd3a47f39b02"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Republic-serving fleet commander; relief fleet imagery may fit without changing the card name.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "frumo-storm-crowned-navigator",
+      "factionId": "frumo",
+      "currentName": "Storm-Crowned Navigator",
+      "currentType": "servitor",
+      "rules": "This card has no additional ability beyond the normal rules for its card type and printed value. Lightning marks the route that lesser captains refuse to sail.",
+      "sourceReferenceName": "Admiral of the Public Oath",
+      "sourceReferenceType": "servitor",
+      "typeAgreement": true,
+      "nameAgreement": false,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-storm-crowned-navigator-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/cf8a3e759bfc55f3daa4bc04dce41f0c102e67f0669e7aa60602b5df2c02f92c.webp",
+          "sha256": "cf8a3e759bfc55f3daa4bc04dce41f0c102e67f0669e7aa60602b5df2c02f92c"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-storm-crowned-navigator-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/b0d13b954af0807f9265e102a2e0b16de049f7c2981834da5a6e042f1dd73765.webp",
+          "sha256": "b0d13b954af0807f9265e102a2e0b16de049f7c2981834da5a6e042f1dd73765"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-storm-crowned-navigator-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/df2fee76974919b3fdddc367d8a37eb110d529a43c686df3fe6a31cca87e245a.webp",
+          "sha256": "df2fee76974919b3fdddc367d8a37eb110d529a43c686df3fe6a31cca87e245a"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-storm-crowned-navigator-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/95274bb5ebf5d269d024ab6598bd188a524321c2b9edd24b2e85867d960ca7a9.webp",
+          "sha256": "95274bb5ebf5d269d024ab6598bd188a524321c2b9edd24b2e85867d960ca7a9"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/frumo/frumo-storm-crowned-navigator.webp",
+          "immutablePath": "/assets/gauntlet/releases/d2a4cce0d260695aa95f066b598a0ea52c848a37ae45a577da2067736536fe59.webp",
+          "sha256": "d2a4cce0d260695aa95f066b598a0ea52c848a37ae45a577da2067736536fe59"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Navigation and storm identity should be legible; a generic oath-taking admiral alone may not fit.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "frumo-leviathans-chosen",
+      "factionId": "frumo",
+      "currentName": "Leviathan's Chosen",
+      "currentType": "servitor",
+      "rules": "This card has no additional ability beyond the normal rules for its card type and printed value. The deep answered once, and the Chosen has followed ever since.",
+      "sourceReferenceName": "The Unmoored Survivor",
+      "sourceReferenceType": "servitor",
+      "typeAgreement": true,
+      "nameAgreement": false,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-leviathans-chosen-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/5ee5429f4f497195e599068a55bca0499540c695096cad191883471d6a37d490.webp",
+          "sha256": "5ee5429f4f497195e599068a55bca0499540c695096cad191883471d6a37d490"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-leviathans-chosen-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/85faea692620147eac8a7657a3942b6efe79b1b9d10fc8e9aa002028add31a56.webp",
+          "sha256": "85faea692620147eac8a7657a3942b6efe79b1b9d10fc8e9aa002028add31a56"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-leviathans-chosen-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/25ebb641d54c4c299d29ad8f3d63c122a7e52072499ddc7ebbe86d24c4c3f5ee.webp",
+          "sha256": "25ebb641d54c4c299d29ad8f3d63c122a7e52072499ddc7ebbe86d24c4c3f5ee"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/frumo-leviathans-chosen-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/1f60c8ccbe59ea99ba9418bb121e632dd9e5517927aa5fa708363d7ed73976f8.webp",
+          "sha256": "1f60c8ccbe59ea99ba9418bb121e632dd9e5517927aa5fa708363d7ed73976f8"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/frumo/frumo-leviathans-chosen.webp",
+          "immutablePath": "/assets/gauntlet/releases/52c11a868d43fb41cf89bde417674d64753a7868e9299d878a0cc68443337a9e.webp",
+          "sha256": "52c11a868d43fb41cf89bde417674d64753a7868e9299d878a0cc68443337a9e"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Show a credible relationship to the deep/Leviathan; a generic survivor without that identity needs correction.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "bizi-copperline-technician",
+      "factionId": "bizi",
+      "currentName": "Bizi Technician",
+      "currentType": "servitor",
+      "rules": "When you overpay for this by 2 or more, gain 1 acceleration counter.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/bizi/bizi-copperline-technician.webp",
+          "immutablePath": "/assets/gauntlet/releases/9d2002e30be4a88748aa990ea07aacd82a7e76f11567438f1c5cfa4665186ac8.webp",
+          "sha256": "9d2002e30be4a88748aa990ea07aacd82a7e76f11567438f1c5cfa4665186ac8"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-copperline-technician-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/d4a5fbe6e678946d4bb1e9e92fb13031d057901719eb84ad376651cdbae41fbe.webp",
+          "sha256": "d4a5fbe6e678946d4bb1e9e92fb13031d057901719eb84ad376651cdbae41fbe"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-copperline-technician-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/647ea73d3a602a8e8de055a59fcc09dbc56fc8686570ffc2ad59b4b831c7658f.webp",
+          "sha256": "647ea73d3a602a8e8de055a59fcc09dbc56fc8686570ffc2ad59b4b831c7658f"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-copperline-technician-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/2df03a4ddc413545fe4eb0f240e569a1a8e2dc1f87393fbe43654eeea4c56010.webp",
+          "sha256": "2df03a4ddc413545fe4eb0f240e569a1a8e2dc1f87393fbe43654eeea4c56010"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-copperline-technician-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/6c03227e55348e36c9e32f329d6354c953bb1707d2821672500749a074a695d7.webp",
+          "sha256": "6c03227e55348e36c9e32f329d6354c953bb1707d2821672500749a074a695d7"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "bizi-voltage-ration",
+      "factionId": "bizi",
+      "currentName": "Ammo Depot",
+      "currentType": "contraption",
+      "rules": "When paid for a Bizi card, this pays +1 additional value once each turn.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/bizi/bizi-voltage-ration.webp",
+          "immutablePath": "/assets/gauntlet/releases/62b8072a173d9a4d17725dc716671d3cb5f69358a85a933cd394269b36759b52.webp",
+          "sha256": "62b8072a173d9a4d17725dc716671d3cb5f69358a85a933cd394269b36759b52"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-voltage-ration-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/3fae9326b1c87d69d6ab957ea452219fd2ef08aa5e79cf0a03e7c752988ea5ce.webp",
+          "sha256": "3fae9326b1c87d69d6ab957ea452219fd2ef08aa5e79cf0a03e7c752988ea5ce"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-voltage-ration-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/a625f2113ae6ac0b1fb085c328016e2b9d601217dce8a75391dccc334e13f524.webp",
+          "sha256": "a625f2113ae6ac0b1fb085c328016e2b9d601217dce8a75391dccc334e13f524"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-voltage-ration-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/422d2e6fad5493eca4b502b26e5d31fc57134939c5e25ba091df491f820ad331.webp",
+          "sha256": "422d2e6fad5493eca4b502b26e5d31fc57134939c5e25ba091df491f820ad331"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-voltage-ration-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/548278813b8d0a3582f2290e59dc1c6852d57dd77015d0dfb577a7468e4635f5.webp",
+          "sha256": "548278813b8d0a3582f2290e59dc1c6852d57dd77015d0dfb577a7468e4635f5"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "bizi-dune-circuit-runner",
+      "factionId": "bizi",
+      "currentName": "Aerial Drone",
+      "currentType": "servitor",
+      "rules": "If your previous attack had a different suit, this attacks with +1 value.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/bizi/bizi-dune-circuit-runner.webp",
+          "immutablePath": "/assets/gauntlet/releases/d5a7544a7d82f09c29217ae43197185b02c137f00261f927fff6a3261cfc6199.webp",
+          "sha256": "d5a7544a7d82f09c29217ae43197185b02c137f00261f927fff6a3261cfc6199"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-dune-circuit-runner-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/09225bc9dbd5fd30e7d334cb64a37771b955e808fb2d6b087f13e59a0f84e311.webp",
+          "sha256": "09225bc9dbd5fd30e7d334cb64a37771b955e808fb2d6b087f13e59a0f84e311"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-dune-circuit-runner-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/842565e04917750e2018f6e8956d997718773ae8b9f5764b0d1ec62cb678a79b.webp",
+          "sha256": "842565e04917750e2018f6e8956d997718773ae8b9f5764b0d1ec62cb678a79b"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-dune-circuit-runner-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/1724ef5a073dfadaf937837e330a9ff517f457c72f61173151f6bc6a74a704ea.webp",
+          "sha256": "1724ef5a073dfadaf937837e330a9ff517f457c72f61173151f6bc6a74a704ea"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-dune-circuit-runner-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/e4de96b5ae69058b7ffeb52ee32136869ce842d14636b06b70e4127315d35206.webp",
+          "sha256": "e4de96b5ae69058b7ffeb52ee32136869ce842d14636b06b70e4127315d35206"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "bizi-gearplate-shield",
+      "factionId": "bizi",
+      "currentName": "Bizi Guardian",
+      "currentType": "servitor",
+      "rules": "When blocking, you may remove 1 acceleration counter to give this +2 value.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/bizi/bizi-gearplate-shield.webp",
+          "immutablePath": "/assets/gauntlet/releases/568687e29d8361dffda0c0c2ca1d1c55838b1f98af344c1c4bb1eca338c880d1.webp",
+          "sha256": "568687e29d8361dffda0c0c2ca1d1c55838b1f98af344c1c4bb1eca338c880d1"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-gearplate-shield-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/1b9933f4a6bc217b9dde7ae586267d1cda7707e367d0b88b78223ad25b553724.webp",
+          "sha256": "1b9933f4a6bc217b9dde7ae586267d1cda7707e367d0b88b78223ad25b553724"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-gearplate-shield-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/6c521af96a0f4d26c3139fa6362318a356e279fc9f239e4da8c3b40ce7d6a70b.webp",
+          "sha256": "6c521af96a0f4d26c3139fa6362318a356e279fc9f239e4da8c3b40ce7d6a70b"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-gearplate-shield-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/cf013740d9444c49c0ca9e273afdd19c487ab19592762de83bcdfd7ae9b4b7c2.webp",
+          "sha256": "cf013740d9444c49c0ca9e273afdd19c487ab19592762de83bcdfd7ae9b4b7c2"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-gearplate-shield-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/aa6d318c7f52f6f1872ece8f0cc36def97541698aba0a1d4edb6f5a1387a36a2.webp",
+          "sha256": "aa6d318c7f52f6f1872ece8f0cc36def97541698aba0a1d4edb6f5a1387a36a2"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "bizi-heras-calibration",
+      "factionId": "bizi",
+      "currentName": "Signal Relay",
+      "currentType": "contraption",
+      "rules": "When paid for a Bizi card, this pays +2 additional value.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/bizi/bizi-heras-calibration.webp",
+          "immutablePath": "/assets/gauntlet/releases/0f11d0b7e3d66a24e34650bc90217b9ed83af71732b4850d6500ecae4311338e.webp",
+          "sha256": "0f11d0b7e3d66a24e34650bc90217b9ed83af71732b4850d6500ecae4311338e"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-heras-calibration-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/87cd766179f536cdf5e3bb0ac81f1582de81955903dcd55f9c0958795bd0853e.webp",
+          "sha256": "87cd766179f536cdf5e3bb0ac81f1582de81955903dcd55f9c0958795bd0853e"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-heras-calibration-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/8a1023a2dc9eea3a8ac92a2663d0b36a447f33f34132b23381b3cc8ce95907ef.webp",
+          "sha256": "8a1023a2dc9eea3a8ac92a2663d0b36a447f33f34132b23381b3cc8ce95907ef"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-heras-calibration-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/71605f4a1312f17ba1327038a1cad3693c810859a5e21573a73c881781921953.webp",
+          "sha256": "71605f4a1312f17ba1327038a1cad3693c810859a5e21573a73c881781921953"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-heras-calibration-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/ed30ac50055c1ee5c268ffd0ecc7e81698e2c678a53fe7b9f66d6048244c0e49.webp",
+          "sha256": "ed30ac50055c1ee5c268ffd0ecc7e81698e2c678a53fe7b9f66d6048244c0e49"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "bizi-solar-array-adept",
+      "factionId": "bizi",
+      "currentName": "Electrostatic Field",
+      "currentType": "contraption",
+      "rules": "While Electrostatic Field occupies a support slot, each acceleration counter you gain gives your next Bizi Servitor attack +1 value that turn.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/bizi/bizi-solar-array-adept.webp",
+          "immutablePath": "/assets/gauntlet/releases/b8e08e6c84400714189672e57f33b62ab6d9b5c5425b7782437e48ac1919c453.webp",
+          "sha256": "b8e08e6c84400714189672e57f33b62ab6d9b5c5425b7782437e48ac1919c453"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-solar-array-adept-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/714db81ccf0268ceb88cda991ff60f8930810bd55beb2ec901f59125a6bfae1d.webp",
+          "sha256": "714db81ccf0268ceb88cda991ff60f8930810bd55beb2ec901f59125a6bfae1d"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-solar-array-adept-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/393c60b0238ad60779caf772daeab405c448cb362066208dc2b82114a7376495.webp",
+          "sha256": "393c60b0238ad60779caf772daeab405c448cb362066208dc2b82114a7376495"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-solar-array-adept-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/ebc34c6e9c27e3d529dd6215583209581d492b89055e40fee91cf32919a97ec7.webp",
+          "sha256": "ebc34c6e9c27e3d529dd6215583209581d492b89055e40fee91cf32919a97ec7"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-solar-array-adept-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/2022aff23c96156e93111784ffca0167fd6c24eb179fc627128a99d5020dc472.webp",
+          "sha256": "2022aff23c96156e93111784ffca0167fd6c24eb179fc627128a99d5020dc472"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "bizi-constanti-conduit",
+      "factionId": "bizi",
+      "currentName": "Signal Line",
+      "currentType": "contraption",
+      "rules": "Your first two different-suit attacks after the first get an additional +1 value.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/bizi/bizi-constanti-conduit.webp",
+          "immutablePath": "/assets/gauntlet/releases/4a1165adcd2d2f42c84dd08a3645f8f6c90cba625952d58d5d8e65a8e9e9e21e.webp",
+          "sha256": "4a1165adcd2d2f42c84dd08a3645f8f6c90cba625952d58d5d8e65a8e9e9e21e"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-constanti-conduit-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/0988db9397c9204830b018ec3b7c946feae6bd8162b26bb410e747e1388c6dfe.webp",
+          "sha256": "0988db9397c9204830b018ec3b7c946feae6bd8162b26bb410e747e1388c6dfe"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-constanti-conduit-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/cbeb6fea63134adcda98eb746a44292d39e29aa801106faa38d5f6ee70112ca1.webp",
+          "sha256": "cbeb6fea63134adcda98eb746a44292d39e29aa801106faa38d5f6ee70112ca1"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-constanti-conduit-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/0bb102e2f4f1f5e919e14c2627070985aa4f8d2340305cdd3b37410725a3437a.webp",
+          "sha256": "0bb102e2f4f1f5e919e14c2627070985aa4f8d2340305cdd3b37410725a3437a"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-constanti-conduit-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/5a7154ef56cea69896be0295b979b36dfc3eba1f4ea1772b29b335a5288e8c08.webp",
+          "sha256": "5a7154ef56cea69896be0295b979b36dfc3eba1f4ea1772b29b335a5288e8c08"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "bizi-sandstorm-processor",
+      "factionId": "bizi",
+      "currentName": "Air Traffic Controller",
+      "currentType": "servitor",
+      "rules": "If you have 2 or more acceleration counters, this may attack with +2 value.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/bizi/bizi-sandstorm-processor.webp",
+          "immutablePath": "/assets/gauntlet/releases/3ed113dee3e3476dd68fb5544321255da9bbd10b38c8c58201fd08af5c499048.webp",
+          "sha256": "3ed113dee3e3476dd68fb5544321255da9bbd10b38c8c58201fd08af5c499048"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-sandstorm-processor-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/cea32d744abed56c1448e1329d63641ca9184ef5ad3089e5b802d75808267d8f.webp",
+          "sha256": "cea32d744abed56c1448e1329d63641ca9184ef5ad3089e5b802d75808267d8f"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-sandstorm-processor-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/66c73ce0d5fb581541d91695e4e447d84cc95aa33cf64fb1611641ef380a1260.webp",
+          "sha256": "66c73ce0d5fb581541d91695e4e447d84cc95aa33cf64fb1611641ef380a1260"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-sandstorm-processor-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/f15efb861d0ed793332601ee811c438a0cda5e76b326ae955a4e4732fb8530a4.webp",
+          "sha256": "f15efb861d0ed793332601ee811c438a0cda5e76b326ae955a4e4732fb8530a4"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-sandstorm-processor-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/af9abe399413435ed8911799557a7140ef1e56b57000db2bb268b6b25e788465.webp",
+          "sha256": "af9abe399413435ed8911799557a7140ef1e56b57000db2bb268b6b25e788465"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "bizi-focus-overclock",
+      "factionId": "bizi",
+      "currentName": "Chrono-Forge Core",
+      "currentType": "contraption",
+      "rules": "Remove 1 acceleration counter: give target card +3 value this turn instead of +1.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/bizi/bizi-focus-overclock.webp",
+          "immutablePath": "/assets/gauntlet/releases/15f0cb57a8c0fcf59759213fd790ad8a29a66267e66f6a81e817fd5105e0502a.webp",
+          "sha256": "15f0cb57a8c0fcf59759213fd790ad8a29a66267e66f6a81e817fd5105e0502a"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-focus-overclock-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/dbf47e3e54bd89bbc035c0a4309dcac6cbc9fa4c4c8b817fcd4cf5dcc927d02f.webp",
+          "sha256": "dbf47e3e54bd89bbc035c0a4309dcac6cbc9fa4c4c8b817fcd4cf5dcc927d02f"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-focus-overclock-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/f41d66d18ca381bee781c8dfbc8e59638ec43cf0aa2174cc9e3d7bad9a702e6e.webp",
+          "sha256": "f41d66d18ca381bee781c8dfbc8e59638ec43cf0aa2174cc9e3d7bad9a702e6e"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-focus-overclock-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/80499542d19dda153334f7d97efa9a51c536de9b0d9fe546d47b58dac0578727.webp",
+          "sha256": "80499542d19dda153334f7d97efa9a51c536de9b0d9fe546d47b58dac0578727"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-focus-overclock-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/707b21bf99202fdf6f31085acb65d022d67d345969c6a01d6b8c039c05e96ac5.webp",
+          "sha256": "707b21bf99202fdf6f31085acb65d022d67d345969c6a01d6b8c039c05e96ac5"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "bizi-regnum-voltage-bank",
+      "factionId": "bizi",
+      "currentName": "Gold Mine",
+      "currentType": "contraption",
+      "rules": "The first time each turn you overpay by 2 or more, gain 1 life and 1 acceleration counter.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/bizi/bizi-regnum-voltage-bank.webp",
+          "immutablePath": "/assets/gauntlet/releases/905dbd9e4c797b92618c4d06ee37a908973278e163d06543d5c99dcca820d13e.webp",
+          "sha256": "905dbd9e4c797b92618c4d06ee37a908973278e163d06543d5c99dcca820d13e"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-regnum-voltage-bank-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/44b709c21405c82bef2928d36e6d6195495908b0a05854bac227de03b7e9272a.webp",
+          "sha256": "44b709c21405c82bef2928d36e6d6195495908b0a05854bac227de03b7e9272a"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-regnum-voltage-bank-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/f77a99cf703bffa07108573c17426726b1478eb8127ca515125fe60799aa47e4.webp",
+          "sha256": "f77a99cf703bffa07108573c17426726b1478eb8127ca515125fe60799aa47e4"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-regnum-voltage-bank-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/40e46e105bcd3ef37df9ca1558d269c98c78f7e34b88395a7e600f428eed7617.webp",
+          "sha256": "40e46e105bcd3ef37df9ca1558d269c98c78f7e34b88395a7e600f428eed7617"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-regnum-voltage-bank-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/6d128f388b41a88d1511c1f2cc1d613d30de94a510de636e9c254e10bd0a570f.webp",
+          "sha256": "6d128f388b41a88d1511c1f2cc1d613d30de94a510de636e9c254e10bd0a570f"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "bizi-desert-logic-engine",
+      "factionId": "bizi",
+      "currentName": "Battle Alarm",
+      "currentType": "contraption",
+      "rules": "When you attack with a different suit from your previous attack, that attack gets +2 value.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/bizi/bizi-desert-logic-engine.webp",
+          "immutablePath": "/assets/gauntlet/releases/b616a44c9b7071eaa79ce071898a5846b3825b775b5bf06e989925bea9340708.webp",
+          "sha256": "b616a44c9b7071eaa79ce071898a5846b3825b775b5bf06e989925bea9340708"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-desert-logic-engine-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/fe47637f732a556f603c01eee8e3ee09c5528d05b924c26f666a6b5a9e5c03d4.webp",
+          "sha256": "fe47637f732a556f603c01eee8e3ee09c5528d05b924c26f666a6b5a9e5c03d4"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-desert-logic-engine-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/61d056037ee081ce15e947ec518f9094e2fde37a6bb68883c77ddf82394d11f3.webp",
+          "sha256": "61d056037ee081ce15e947ec518f9094e2fde37a6bb68883c77ddf82394d11f3"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-desert-logic-engine-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/00c3ba54d95ff76c6c4a095447f2938717a7de74e3c0bfa3bcbc319b7db9f655.webp",
+          "sha256": "00c3ba54d95ff76c6c4a095447f2938717a7de74e3c0bfa3bcbc319b7db9f655"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-desert-logic-engine-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/364bf6782230bfa6f0770759e6e148e4b177b83128e5931e05d4059b3a5f16ae.webp",
+          "sha256": "364bf6782230bfa6f0770759e6e148e4b177b83128e5931e05d4059b3a5f16ae"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "bizi-brass-spark",
+      "factionId": "bizi",
+      "currentName": "Bizi Sparksmith",
+      "currentType": "servitor",
+      "rules": "When paid for your first Bizi card each turn, this pays +1 additional value.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/bizi/bizi-brass-spark.webp",
+          "immutablePath": "/assets/gauntlet/releases/38b7f22bc3edaefd6367a5cb501381fe8298f2e624284f68e3674a42794039a4.webp",
+          "sha256": "38b7f22bc3edaefd6367a5cb501381fe8298f2e624284f68e3674a42794039a4"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-brass-spark-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/27549be7e41899e7876756238a64f0772d3681909f924a95af8b9e0702104abf.webp",
+          "sha256": "27549be7e41899e7876756238a64f0772d3681909f924a95af8b9e0702104abf"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-brass-spark-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/f28ede89198a0413b027874dd2e8d92f88d4d13945466604df51b6660488aa31.webp",
+          "sha256": "f28ede89198a0413b027874dd2e8d92f88d4d13945466604df51b6660488aa31"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-brass-spark-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/2e2423375dd2c96de3cd04e34fba2c5f452c0942ad2630a550af961df6e1254f.webp",
+          "sha256": "2e2423375dd2c96de3cd04e34fba2c5f452c0942ad2630a550af961df6e1254f"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-brass-spark-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/676a30bcb50d5a83dde0644a970ce4060ea785d8a232ad235b4750e856c6a941.webp",
+          "sha256": "676a30bcb50d5a83dde0644a970ce4060ea785d8a232ad235b4750e856c6a941"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "bizi-railspike-marshal",
+      "factionId": "bizi",
+      "currentName": "Velocity Vanguard",
+      "currentType": "servitor",
+      "rules": "If your previous attack had a different suit, this attacks with +1 value.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/bizi/bizi-railspike-marshal.webp",
+          "immutablePath": "/assets/gauntlet/releases/a1b1f0708a711df0c151bf321159debfef4dbf9296779ecf4ec9053a381c4e7f.webp",
+          "sha256": "a1b1f0708a711df0c151bf321159debfef4dbf9296779ecf4ec9053a381c4e7f"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-railspike-marshal-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/251a0889ae126f170e2b564b60c474cb74492ae26081469492c369571052c8a0.webp",
+          "sha256": "251a0889ae126f170e2b564b60c474cb74492ae26081469492c369571052c8a0"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-railspike-marshal-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/d511af80956f6b61947541482e599fae4972532c47d26505cb385d62c1f66072.webp",
+          "sha256": "d511af80956f6b61947541482e599fae4972532c47d26505cb385d62c1f66072"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-railspike-marshal-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/8c748ffd79e3076b208cdb775fae75429a29ca1b89205a146516701720bacded.webp",
+          "sha256": "8c748ffd79e3076b208cdb775fae75429a29ca1b89205a146516701720bacded"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-railspike-marshal-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/7c844725f53a0d5bedbcc469bf240a7c260b54c09d51847379e44d5ab8a339e7.webp",
+          "sha256": "7c844725f53a0d5bedbcc469bf240a7c260b54c09d51847379e44d5ab8a339e7"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "bizi-heat-sink-matrix",
+      "factionId": "bizi",
+      "currentName": "Utility Specialist",
+      "currentType": "servitor",
+      "rules": "When blocking, you may remove 1 acceleration counter to give this +2 value.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/bizi/bizi-heat-sink-matrix.webp",
+          "immutablePath": "/assets/gauntlet/releases/b3323b2a563aba73806749e13843c3e22148b2f98b75c3bac820bbe551164d98.webp",
+          "sha256": "b3323b2a563aba73806749e13843c3e22148b2f98b75c3bac820bbe551164d98"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-heat-sink-matrix-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/063c9ca01d335f3f86ab6f1e007f18be932d8ed969561e2035fa9463261ab205.webp",
+          "sha256": "063c9ca01d335f3f86ab6f1e007f18be932d8ed969561e2035fa9463261ab205"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-heat-sink-matrix-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/75eaf5ce92e2cbbfc06c23314d12cfc93493ad3ca1b93439e6b0e1cbb5490a3f.webp",
+          "sha256": "75eaf5ce92e2cbbfc06c23314d12cfc93493ad3ca1b93439e6b0e1cbb5490a3f"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-heat-sink-matrix-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/2a87b2f1d950aef46bfcd4ad337241e6d9f5285da66b84a9f677efce024b18b9.webp",
+          "sha256": "2a87b2f1d950aef46bfcd4ad337241e6d9f5285da66b84a9f677efce024b18b9"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-heat-sink-matrix-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/065841f91ff9605e3c4d4c31a25def07a8c40b0786818c91b21f2a8265aefe39.webp",
+          "sha256": "065841f91ff9605e3c4d4c31a25def07a8c40b0786818c91b21f2a8265aefe39"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "bizi-clockwork-caravan",
+      "factionId": "bizi",
+      "currentName": "Clockwork Merchant",
+      "currentType": "servitor",
+      "rules": "The first time each turn you overpay for this by 2 or more, draw 1 extra card at end of turn.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/bizi/bizi-clockwork-caravan.webp",
+          "immutablePath": "/assets/gauntlet/releases/de5092494f0265740e7e0efa5dce231f71f587a91df020c609ffc941c3473e05.webp",
+          "sha256": "de5092494f0265740e7e0efa5dce231f71f587a91df020c609ffc941c3473e05"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-clockwork-caravan-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/fdd4d667f17b84439cfa5d448bfe98861e982700ace0cabb43c4f359824c655c.webp",
+          "sha256": "fdd4d667f17b84439cfa5d448bfe98861e982700ace0cabb43c4f359824c655c"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-clockwork-caravan-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/ae9bb99ffc4d2664bd179dcfb6d7e4252c203ebc6dd54d96aec7ca8644ff51f0.webp",
+          "sha256": "ae9bb99ffc4d2664bd179dcfb6d7e4252c203ebc6dd54d96aec7ca8644ff51f0"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-clockwork-caravan-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/eab617eb200008bead0dff6a83adc92f938c47e08e3d5f8ff40e3ca0786022c9.webp",
+          "sha256": "eab617eb200008bead0dff6a83adc92f938c47e08e3d5f8ff40e3ca0786022c9"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-clockwork-caravan-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/b217dd1f837ec0da6ae4a2c757c39bc7b2342800e756fc8d6aeb52a3d517f16f.webp",
+          "sha256": "b217dd1f837ec0da6ae4a2c757c39bc7b2342800e756fc8d6aeb52a3d517f16f"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "bizi-voltaric-ultimatum",
+      "factionId": "bizi",
+      "currentName": "Shrapnel Blaster",
+      "currentType": "servitor",
+      "rules": "Remove 2 acceleration counters: this attacks with +5 value.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/bizi/bizi-voltaric-ultimatum.webp",
+          "immutablePath": "/assets/gauntlet/releases/f189ddef7733a9dcaf07601714a2b94c52d38f726a57db3b67e6108d1f3ae1a8.webp",
+          "sha256": "f189ddef7733a9dcaf07601714a2b94c52d38f726a57db3b67e6108d1f3ae1a8"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-voltaric-ultimatum-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/2ddcdfff3be009301e6719b56b68f6802500a52efb6f7703a3beb2b385059913.webp",
+          "sha256": "2ddcdfff3be009301e6719b56b68f6802500a52efb6f7703a3beb2b385059913"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-voltaric-ultimatum-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/573bd1d6343b7ab5a39168881bc2201f234bd7f02b93cc6cb4787a2b0102492e.webp",
+          "sha256": "573bd1d6343b7ab5a39168881bc2201f234bd7f02b93cc6cb4787a2b0102492e"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-voltaric-ultimatum-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/16bcd913fb2b37eece34a876091a98f3fb9972c91cd4b98d67e3a82351bf9fe2.webp",
+          "sha256": "16bcd913fb2b37eece34a876091a98f3fb9972c91cd4b98d67e3a82351bf9fe2"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-voltaric-ultimatum-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/8c94b88149458816ee068aa6b027fa7ac0f3fb7bf19557d85ef00d336fa7f9fb.webp",
+          "sha256": "8c94b88149458816ee068aa6b027fa7ac0f3fb7bf19557d85ef00d336fa7f9fb"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "bizi-focus-prime-signal",
+      "factionId": "bizi",
+      "currentName": "Interference Matrix",
+      "currentType": "contraption",
+      "rules": "When Interference Matrix enters a support slot, gain 2 acceleration counters; your next card that turn may get up to +4 value, one per acceleration counter you have.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/bizi/bizi-focus-prime-signal.webp",
+          "immutablePath": "/assets/gauntlet/releases/4f3be444c0061b833facec7066469b3b8acf83f1f585fef6539f4ca99749eda7.webp",
+          "sha256": "4f3be444c0061b833facec7066469b3b8acf83f1f585fef6539f4ca99749eda7"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-focus-prime-signal-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/1c1e07920a9bb24c199353306da5335b443ae1702b8d573920e367d9d3b06d4e.webp",
+          "sha256": "1c1e07920a9bb24c199353306da5335b443ae1702b8d573920e367d9d3b06d4e"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-focus-prime-signal-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/24b4b08e1297d789ed718dbf50d068340b8a3f057ad5f2d75fc21411ac90a3f2.webp",
+          "sha256": "24b4b08e1297d789ed718dbf50d068340b8a3f057ad5f2d75fc21411ac90a3f2"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-focus-prime-signal-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/b8853bf4ef593b52035e786321a35bd3a151842ab84ea0f0426f1435364dbe7c.webp",
+          "sha256": "b8853bf4ef593b52035e786321a35bd3a151842ab84ea0f0426f1435364dbe7c"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-focus-prime-signal-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/ab6e83418988e8d8d3e655034d98c415f8f36d1ad6f4c318cb5336a1a10b5b54.webp",
+          "sha256": "ab6e83418988e8d8d3e655034d98c415f8f36d1ad6f4c318cb5336a1a10b5b54"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "bizi-constanti-sunforge",
+      "factionId": "bizi",
+      "currentName": "Bizi Architect",
+      "currentType": "servitor",
+      "rules": "When this attacks, remove up to 3 acceleration counters. It gets +2 value for each counter removed.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/bizi/bizi-constanti-sunforge.webp",
+          "immutablePath": "/assets/gauntlet/releases/9ccb0c072cba685b495b558c10cca35887e5182618921fb36fd18212617be693.webp",
+          "sha256": "9ccb0c072cba685b495b558c10cca35887e5182618921fb36fd18212617be693"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-constanti-sunforge-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/6f234ff30bffebbf35ccba6e0bfdc690476ee1af96d5da9d873e367836e6c43a.webp",
+          "sha256": "6f234ff30bffebbf35ccba6e0bfdc690476ee1af96d5da9d873e367836e6c43a"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-constanti-sunforge-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/033bba03b990f548a6d2ce07a5757022afbffd270acd05cea425ba1cf8424995.webp",
+          "sha256": "033bba03b990f548a6d2ce07a5757022afbffd270acd05cea425ba1cf8424995"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-constanti-sunforge-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/9213f0d31309960cd5c89c23c052bd07ebe545126373e86d8a635d63502837d2.webp",
+          "sha256": "9213f0d31309960cd5c89c23c052bd07ebe545126373e86d8a635d63502837d2"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-constanti-sunforge-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/e169b45c225ce9badd0239ca44c18909402cc9404f66aaf19a38e8dd7347a7e5.webp",
+          "sha256": "e169b45c225ce9badd0239ca44c18909402cc9404f66aaf19a38e8dd7347a7e5"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "bizi-clockwork-envoy",
+      "factionId": "bizi",
+      "currentName": "Clockwork Envoy",
+      "currentType": "servitor",
+      "rules": "This card has no additional ability beyond the normal rules for its card type and printed value. Its message is delivered in precisely measured movements.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/bizi/bizi-clockwork-envoy.webp",
+          "immutablePath": "/assets/gauntlet/releases/eb6f1292633a287e8dae3802e173472133218ec19e47c0581aee86f4ccef0c9b.webp",
+          "sha256": "eb6f1292633a287e8dae3802e173472133218ec19e47c0581aee86f4ccef0c9b"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-clockwork-envoy-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/cfe562d984c9ec1e6d6f76bb8f5cdf1ab3264ce04cb1505fb1bef3474712b015.webp",
+          "sha256": "cfe562d984c9ec1e6d6f76bb8f5cdf1ab3264ce04cb1505fb1bef3474712b015"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-clockwork-envoy-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/66c356fcd4b63a0bba7c771f1c6d6f9fb870a7ac8e27dbc4141e9ca4a47385a9.webp",
+          "sha256": "66c356fcd4b63a0bba7c771f1c6d6f9fb870a7ac8e27dbc4141e9ca4a47385a9"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-clockwork-envoy-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/141334c15f2894a8f74eb83b969738bac5464e34877503e01b6abdfe45113746.webp",
+          "sha256": "141334c15f2894a8f74eb83b969738bac5464e34877503e01b6abdfe45113746"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-clockwork-envoy-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/2d479d342ea26048cc07b7fd93ebc9971e8b7ad08b21a6e2ef115e69cf5ae97c.webp",
+          "sha256": "2d479d342ea26048cc07b7fd93ebc9971e8b7ad08b21a6e2ef115e69cf5ae97c"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "bizi-foundry-savant",
+      "factionId": "bizi",
+      "currentName": "Foundry Savant",
+      "currentType": "servitor",
+      "rules": "This card has no additional ability beyond the normal rules for its card type and printed value. Every failed design becomes a tool for the next attempt.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/bizi/bizi-foundry-savant.webp",
+          "immutablePath": "/assets/gauntlet/releases/20c8d839c91750485020760b327f3ae502dee42bb301419dd2440c8fa7eacf14.webp",
+          "sha256": "20c8d839c91750485020760b327f3ae502dee42bb301419dd2440c8fa7eacf14"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-foundry-savant-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/e6446431cf6d67a9d5297024a4dd34766384cfe5e9610f2d76673a5106d654c3.webp",
+          "sha256": "e6446431cf6d67a9d5297024a4dd34766384cfe5e9610f2d76673a5106d654c3"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-foundry-savant-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/e6e37450b8598c4444debe3c5e37da7209b9d15d12e6e9919f3e256d72191731.webp",
+          "sha256": "e6e37450b8598c4444debe3c5e37da7209b9d15d12e6e9919f3e256d72191731"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-foundry-savant-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/72df41b25beada3290388300398436e2508d3d697be9354a7d55506cbca57086.webp",
+          "sha256": "72df41b25beada3290388300398436e2508d3d697be9354a7d55506cbca57086"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-foundry-savant-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/41aa1177212495bbd4436c5b8f404e41cdab4168ce74758c97df79115409da1d.webp",
+          "sha256": "41aa1177212495bbd4436c5b8f404e41cdab4168ce74758c97df79115409da1d"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "bizi-prime-artificer",
+      "factionId": "bizi",
+      "currentName": "Prime Artificer",
+      "currentType": "servitor",
+      "rules": "This card has no additional ability beyond the normal rules for its card type and printed value. The workshop grows quiet when the Prime Artificer begins.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/bizi/bizi-prime-artificer.webp",
+          "immutablePath": "/assets/gauntlet/releases/0a0ed4307ab1a12e4d7aa1c32e8e25ce6005fe8ab942231754c7f5c1d1dceb41.webp",
+          "sha256": "0a0ed4307ab1a12e4d7aa1c32e8e25ce6005fe8ab942231754c7f5c1d1dceb41"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-prime-artificer-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/baa393ba19b193b8c9a516ff91d5e2becb883eccc8cc979f7846638777f61553.webp",
+          "sha256": "baa393ba19b193b8c9a516ff91d5e2becb883eccc8cc979f7846638777f61553"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-prime-artificer-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/06432da01ca21076d92dd11f05db24ab1524f06d96950b7eb928eb459aa18b26.webp",
+          "sha256": "06432da01ca21076d92dd11f05db24ab1524f06d96950b7eb928eb459aa18b26"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-prime-artificer-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/c43451899af71de32231556b0c76a046fec7692c22d4421e285a2d4341f61141.webp",
+          "sha256": "c43451899af71de32231556b0c76a046fec7692c22d4421e285a2d4341f61141"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-prime-artificer-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/db47e0fd41a6ee1e817ff6c1a83a065601ee4b3daeff24a9642c8268c073ae8e.webp",
+          "sha256": "db47e0fd41a6ee1e817ff6c1a83a065601ee4b3daeff24a9642c8268c073ae8e"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    },
+    {
+      "cardId": "bizi-living-engine",
+      "factionId": "bizi",
+      "currentName": "The Living Engine",
+      "currentType": "contraption",
+      "rules": "This card has no additional ability beyond the normal rules for its card type and printed value. No blueprint explains where the mechanism ends and life begins.",
+      "sourceReferenceName": null,
+      "sourceReferenceType": null,
+      "typeAgreement": null,
+      "nameAgreement": null,
+      "originals": [
+        {
+          "source": "/assets/gauntlet/constructed/bizi/bizi-living-engine.webp",
+          "immutablePath": "/assets/gauntlet/releases/9e28ebc30949648481a4926e942b0a3afe7fa1cb1238e295ad4e13dd16a8f9e5.webp",
+          "sha256": "9e28ebc30949648481a4926e942b0a3afe7fa1cb1238e295ad4e13dd16a8f9e5"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-living-engine-clubs.webp",
+          "immutablePath": "/assets/gauntlet/releases/2da98496f9498851a76da134d71d62375f34d0369c8ada3618c6ecf19e978385.webp",
+          "sha256": "2da98496f9498851a76da134d71d62375f34d0369c8ada3618c6ecf19e978385"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-living-engine-diamonds.webp",
+          "immutablePath": "/assets/gauntlet/releases/50d6bf5b7efdf85645eff4827b387df02e7f59a1d7bf7dbb35b6459942f4db9c.webp",
+          "sha256": "50d6bf5b7efdf85645eff4827b387df02e7f59a1d7bf7dbb35b6459942f4db9c"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-living-engine-hearts.webp",
+          "immutablePath": "/assets/gauntlet/releases/f16d489f76dbbe652e6cb9681690d7723fc700d49592617938252eb4bce3c0c6.webp",
+          "sha256": "f16d489f76dbbe652e6cb9681690d7723fc700d49592617938252eb4bce3c0c6"
+        },
+        {
+          "source": "/assets/gauntlet/constructed/faces/bizi-living-engine-spades.webp",
+          "immutablePath": "/assets/gauntlet/releases/386a57bc7a77a455c30d4cec993df89d406c78ba8d5d1e6f9e3536aefa077989.webp",
+          "sha256": "386a57bc7a77a455c30d4cec993df89d406c78ba8d5d1e6f9e3536aefa077989"
+        }
+      ],
+      "runtimeSurfaces": [
+        "card",
+        "illustration",
+        "thumbnail"
+      ],
+      "semanticReview": "Inspect the verified illustration against the current name, card type and ability before activating.",
+      "pixelReview": "blocked-no-verified-handoff-bytes",
+      "target": null,
+      "activation": "inactive"
+    }
+  ],
+  "finalChecksPending": [
+    "Verify exact complete handoff commit and all 70 SHA-256/Git blob hashes",
+    "Inspect all 70 image pixels and record per-card semantic decisions",
+    "Verify exact-source/faction/type/surface mappings; preserve immutable records",
+    "Build and unchanged budgets, manifest npm check and strict asset report",
+    "Required final-commit PR checks, browser entry/usability/performance and SuitFire desktop/phone journeys",
+    "Normal repository merge/deploy only after final checks; verify live GO and both optional accounts"
+  ],
+  "covers": [
+    {
+      "factionId": "rumin",
+      "name": "Rumie, City of the Empire",
+      "source": "/assets/gauntlet/rumie.webp",
+      "immutablePath": "/assets/gauntlet/releases/4a477cb909dfde7ae272305137e9f499a8c28405dc086f28b8ec6b9ed5aa04cd.webp",
+      "target": null,
+      "activation": "inactive",
+      "pixelReview": "blocked-no-verified-handoff-bytes"
+    },
+    {
+      "factionId": "sheen",
+      "name": "Beli, Living City",
+      "source": "/assets/gauntlet/beli.webp",
+      "immutablePath": "/assets/gauntlet/releases/7ed4c19ad0b2088f6f07a892d1d0a3e905f05ecf2cd5287b9dbb9dc9281d6192.webp",
+      "target": null,
+      "activation": "inactive",
+      "pixelReview": "blocked-no-verified-handoff-bytes"
+    },
+    {
+      "factionId": "frumo",
+      "name": "Ristus, Sunken City",
+      "source": "/assets/gauntlet/ristus.webp",
+      "immutablePath": "/assets/gauntlet/releases/2ffaf9bb987ba5bcd0201208f938f82cda3447566f1914cd700c9ecf7efde655.webp",
+      "target": null,
+      "activation": "inactive",
+      "pixelReview": "blocked-no-verified-handoff-bytes"
+    },
+    {
+      "factionId": "bizi",
+      "name": "Constanti, Technology Hub",
+      "source": "/assets/gauntlet/factions/bizi/constanti-technology-hub.webp",
+      "immutablePath": "/assets/gauntlet/releases/26727fa9d22b5577a08f3ed35028fd3e3966d2252f67cbcb61630196b4a07960.webp",
+      "target": null,
+      "activation": "inactive",
+      "pixelReview": "blocked-no-verified-handoff-bytes"
+    }
+  ],
+  "verification": {
+    "focusedClient": {
+      "suites": 12,
+      "tests": 63,
+      "result": "passed"
+    },
+    "serverEligibility": {
+      "tests": 2,
+      "result": "passed"
+    },
+    "compiledBrowser": {
+      "tests": 1,
+      "viewports": [
+        "1440x1000",
+        "390x844"
+      ],
+      "result": "passed",
+      "screenshotsInspected": true
+    },
+    "bundle": {
+      "result": "passed",
+      "mainGzip": 182850,
+      "playerGzip": 777042,
+      "largestAsyncGzip": 275724,
+      "adminEntryGzip": 11771,
+      "adminGzip": 76788,
+      "budgetsUnchanged": true,
+      "staleSharedModules": 0
+    },
+    "scope": "code-checkpoint-only; final artwork release checks remain pending",
+    "aliasIntegrity": {
+      "pathsVerified": 1195,
+      "byteIdenticalPairs": 1194,
+      "lineEndingOnlyPairs": 1,
+      "lineEndingOnlySource": "/assets/gauntlet/morphlings-emblem.svg",
+      "leafenExact": true,
+      "newApprovedAssetsPresent": 0
+    },
+    "fullClient": {
+      "suites": 133,
+      "tests": 1001,
+      "result": "passed"
+    },
+    "toolchain": {
+      "tests": 4,
+      "result": "passed"
+    },
+    "qualification": {
+      "tests": 54,
+      "result": "passed"
+    },
+    "strictAssets": {
+      "result": "passed",
+      "productionCutoverBlockers": 0,
+      "checksumMismatches": 0
+    },
+    "fullServer": {
+      "tests": 666,
+      "result": "passed"
+    },
+    "serverSyntax": "passed",
+    "originalCiFix": {
+      "pr": 105,
+      "merged": true,
+      "head": "ecba2af3d9a3a9de1fd31894989a5181b3f57acd",
+      "merge": "f34d5aa0f7a8f6f9f44d6f4ba68211a9d32a2341",
+      "run": 42363861776,
+      "checks": "all-passed"
+    }
+  }
+}

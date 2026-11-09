@@ -10,7 +10,7 @@ import ReplayTranscript from "./ReplayTranscript";
 import "./MatchReplayScreen.css";
 
 function cardArt(card) {
-  const path = getPlayingCardArtPath(card, card?.factionId) || presentationArt(card?.collector?.art, { factionId: card?.factionId, surface: "illustration", cardId: card?.gameplayCardId || card?.definitionId || card?.id });
+  const path = getPlayingCardArtPath(card, card?.factionId) || presentationArt(card?.collector?.art, { factionId: card?.factionId, surface: "illustration", cardId: card?.gameplayCardId || card?.definitionId || card?.id, cardType: card?.type || card?.cardType || "" });
   if (path) return /^https?:/i.test(path) ? path : `${process.env.PUBLIC_URL || ""}${path}`;
   return card?.factionId && card.factionId !== "basic"
     ? resolveVisualAsset(brandText(getFactionArtwork(card.factionId), `/assets/gauntlet/${card.factionId}-card.webp`))

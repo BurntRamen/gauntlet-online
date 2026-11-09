@@ -46,7 +46,7 @@ function visualCard(card) {
   if (!card) return null;
   return {
     ...clone(card),
-    artPath: getPlayingCardArtPath(card, card.factionId) || presentationArt(card.collector?.art, { factionId: card.factionId, surface: "illustration", cardId: card.gameplayCardId || card.definitionId || card.id }) || null,
+    artPath: getPlayingCardArtPath(card, card.factionId) || presentationArt(card.collector?.art, { factionId: card.factionId, surface: "illustration", cardId: card.gameplayCardId || card.definitionId || card.id, cardType: card.type || card.cardType || "" }) || null,
     label: card.name || [card.rank || card.value, card.suit].filter(Boolean).join("") || "Public card"
   };
 }

@@ -14,7 +14,7 @@ function localPath(source) {
   if (/^(?:[a-z]+:|\/\/)/i.test(path)) return "";
   return base && path.startsWith(base + "/") ? path.slice(base.length) : path;
 }
-export function resolvePresentationArt({ source = "", factionId = "", surface = "art", cardId = "" } = {}, options = {}) {
+export function resolvePresentationArt({ source = "", factionId = "", surface = "art", cardId = "", cardType = "", speaker = "" } = {}, options = {}) {
   const preview = options.preview ?? false;
   const config = options.registry;
   const original = { src: source, status: "original", kind: "image" };
@@ -22,6 +22,16 @@ export function resolvePresentationArt({ source = "", factionId = "", surface = 
   const path = localPath(source);
   const canonical = config?.aliases?.[path] || path;
   const faction = normalizeArtIdentity(factionId).replace(/ /g, "");
+  if (surface === "portrait") {
+    const identity = normalizeArtIdentity(speaker);
+    const portrait = config?.portraits?.[config?.portraitAliases?.[identity] || identity];
+    if (portrait?.status === "retained-exact" && portrait.factionId === faction
+      && (!source || canonical === portrait.source)) {
+      return { src: portrait.source, status: "retained-exact", kind: "portrait" };
+    }
+    // Existing neutral unavailable-art mark, never a draft likeness or faction study.
+    return { src: "/assets/gauntlet/ui/faction-art-unavailable.svg", status: "pending-portrait", kind: "image" };
+  }
   if (surface === "loading") return { src: "/assets/gauntlet/menus/tutorial-table-v1.webp", status: "neutral", kind: "image" };
   // Covers are explicitly decorative, separate from event scenes and portraits.
   const cover = config?.covers?.[faction];
@@ -31,19 +41,23 @@ export function resolvePresentationArt({ source = "", factionId = "", surface = 
   const mapping = config?.replacements?.[canonical];
   // An exact source match alone is insufficient: identity and representation must agree.
   if (mapping?.status === "approved" && (!mapping.factionId || mapping.factionId === faction)
-    && (!mapping.cardId || !cardId || mapping.cardId === cardId) && mapping.surfaces?.includes(surface)) {
+    && (!mapping.cardId || (surface === "thumbnail" && !cardId) || mapping.cardId === cardId)
+    // A stable ID can refer to an older printing with a different card type.
+    // Deck decoration has no printed rules; actual cards require captured type.
+    && (!mapping.cardId || surface === "thumbnail" || (mapping.cardType && mapping.cardType === cardType))
+    && mapping.surfaces?.includes(surface)) {
     return { src: mapping.target, status: "approved", kind: mapping.kind || "image" };
   }
   return { ...original, status: config?.pending?.[canonical] || "retained-original" };
 }
 export function presentationCard(registry, card, factionId = card?.factionId, source = card?.presentation?.illustration || card?.image || "", surface = "illustration") {
   if (!card) return card;
-  const art = resolvePresentationArt({ source, factionId, surface, cardId: card.gameplayCardId || card.definitionId || card.id }, { preview: true, registry });
+  const art = resolvePresentationArt({ source, factionId, surface, cardId: card.gameplayCardId || card.definitionId || card.id, cardType: card.type || card.cardType || "" }, { preview: true, registry });
   if (art.kind !== "illustration") return card;
   return { ...card, factionId: card.factionId || factionId, presentation: { ...card.presentation, composed: true, illustration: art.src, face: "", faces: {} } };
 }
 export function presentationFace(registry, source, card, factionId = card?.factionId) {
-  const resolved = resolvePresentationArt({ source, factionId, surface: "card", cardId: card?.gameplayCardId || card?.definitionId || card?.id || "" }, { preview: true, registry });
+  const resolved = resolvePresentationArt({ source, factionId, surface: "card", cardId: card?.gameplayCardId || card?.definitionId || card?.id || "", cardType: card?.type || card?.cardType || "" }, { preview: true, registry });
   // An illustration must be composed with the existing rank, suit and rules.
   return resolved.kind === "illustration" ? "" : resolved.src;
 }
