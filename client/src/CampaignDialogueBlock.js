@@ -9,8 +9,8 @@ export function getCampaignSpeakerImage(speaker, factionId) {
   return resolveCharacterPortrait(speaker, factionId);
 }
 
-export default function CampaignDialogueBlock({ title = "Dialogue", lines = [], audio = [], factionId = "default", compact = false, light = false, autoPlayKey = "", audioOnly = false, audioEnabled = true }) {
-  const playback = useDialoguePlayback({ lines, audio, factionId, scopeKey: autoPlayKey, enabled: audioEnabled });
+export default function CampaignDialogueBlock({ title = "Dialogue", lines = [], audio = [], track = null, factionId = "default", compact = false, light = false, autoPlayKey = "", audioOnly = false, audioEnabled = true }) {
+  const playback = useDialoguePlayback({ lines, audio, track, factionId, scopeKey: autoPlayKey, enabled: audioEnabled });
   const { play, hasAudio } = playback;
   const autoPlayedRef = useRef("");
   useEffect(() => {

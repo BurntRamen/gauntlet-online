@@ -1,6 +1,7 @@
-export function playFactionVoice({ AudioCtor, source, synthesize }) {
+export function playFactionVoice({ AudioCtor, source }) {
   if (!source) {
-    synthesize?.();
+    // Missing authored audio stays silent. Captions remain available in the UI;
+    // generic OS speech would erase the faction's intended voice identity.
     return null;
   }
   if (!AudioCtor) return null;

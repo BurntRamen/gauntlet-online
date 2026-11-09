@@ -3,8 +3,8 @@ import { useDialoguePlayback } from "./dialoguePlayback";
 import DialoguePlaybackControls, { DialogueVoiceButton } from "./DialoguePlaybackControls";
 import AnimatedCharacterPortrait from "./AnimatedCharacterPortrait";
 
-export function CampaignBriefingDialogue({ title, lines = [], audio = [], factionId, scopeKey, audioEnabled = true }) {
-  const playback = useDialoguePlayback({ lines, audio, factionId, scopeKey, enabled: audioEnabled });
+export function CampaignBriefingDialogue({ title, lines = [], audio = [], track = null, factionId, scopeKey, audioEnabled = true }) {
+  const playback = useDialoguePlayback({ lines, audio, track, factionId, scopeKey, enabled: audioEnabled });
   if (playback.entries.length === 0) return null;
 
   return (
@@ -100,7 +100,7 @@ export default function CampaignChapterBriefing({
             <p>{chapter.story}</p>
           </section>
 
-          <CampaignBriefingDialogue title="Voices before the battle" lines={chapter.dialogue} audio={chapter.dialogueAudio} factionId={factionId} scopeKey={chapter.id} audioEnabled={audioEnabled} />
+          <CampaignBriefingDialogue title="Voices before the battle" lines={chapter.dialogue} audio={chapter.dialogueAudio} track={chapter.dialogueTrack} factionId={factionId} scopeKey={chapter.id} audioEnabled={audioEnabled} />
 
           {completed ? (
             <>
@@ -111,7 +111,7 @@ export default function CampaignChapterBriefing({
                 </div>
                 <p className="campaign-briefing-lede">{chapter.afterBattle}</p>
               </section>
-              <CampaignBriefingDialogue title="Voices after the battle" lines={chapter.endDialogue} audio={chapter.endDialogueAudio} factionId={factionId} scopeKey={chapter.id} audioEnabled={audioEnabled} />
+              <CampaignBriefingDialogue title="Voices after the battle" lines={chapter.endDialogue} audio={chapter.endDialogueAudio} track={chapter.endDialogueTrack} factionId={factionId} scopeKey={chapter.id} audioEnabled={audioEnabled} />
             </>
           ) : (
             <section className="campaign-briefing-section campaign-after-action is-classified">

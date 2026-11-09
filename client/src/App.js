@@ -24,8 +24,6 @@ import PackOpening, { PackPacingPicker, readPackPacing } from "./PackOpening";
 import "./CollectionWorkshop.css";
 import SpecialCardFace, { getCardIllustration } from "./SpecialCardFace";
 import CollectorCardPresentation from "./CollectorCardPresentation";
-import { useDialogueActivity } from "./dialoguePlayback";
-import { resolveCharacterVoice } from "./characterVoices";
 import { playFactionVoice } from "./factionVoicePlayback";
 import CampaignChapterBriefing from "./CampaignChapterBriefing";
 import { DeckVisual, FactionArtwork, FACTION_VISUALS, getFactionArtwork, getFactionAsset, resolveVisualAsset } from "./GauntletVisuals";
@@ -3107,7 +3105,6 @@ export default function App() {
   const [transportConnected, setTransportConnected] = useState(socket.connected);
   const [matchReconnectPending, setMatchReconnectPending] = useState(false);
   const [handSelectionRole, setHandSelectionRole] = useState("primary");
-  const dialogueActive = useDialogueActivity();
   const musicStopRef = useRef(null);
   const musicVolumeRef = useRef(musicVolume);
   const voiceAudioRef = useRef(null);
@@ -3132,7 +3129,7 @@ export default function App() {
     musicStopRef.current?.duck?.(scale, durationMs);
   }, []);
   const playMenuCue = useMenuAudio({
-    active: menuAudioActive && !showCampaign && !dialogueActive,
+    active: menuAudioActive && !showCampaign,
     settings: effectiveMenuAudioSettings,
     onDuck: duckMenuMusic
   });
@@ -3783,27 +3780,16 @@ export default function App() {
     setActionLog((prev) => (prev[0]?.text === game.message ? prev : [{ text: game.message, turn: game.turn || 1, phase: game.phase || "game" }, ...prev].slice(0, 50)));
   }, [game?.eventLog, game?.message, game?.phase, game?.turn]);
 
-  const speakFactionQuote = useCallback((voiceClip, quote = "", factionId = "default", speaker = "Commander", voiceProfile = [0.94, 0.9], voiceHints = []) => {
+  const speakFactionQuote = useCallback((voiceClip) => {
     if (voiceAudioRef.current) {
       voiceAudioRef.current.pause();
       voiceAudioRef.current = null;
     }
     window.speechSynthesis?.cancel();
     if (accountSoundMuted) return;
-    const synthesize = () => {
-      if (!quote || !window.speechSynthesis || !window.SpeechSynthesisUtterance) return;
-      const utterance = new window.SpeechSynthesisUtterance(quote);
-      const voices = window.speechSynthesis.getVoices?.() || [];
-      const profile = resolveCharacterVoice({ factionId, speaker, voices, voiceProfile, voiceHints });
-      utterance.rate = profile.rate;
-      utterance.pitch = profile.pitch;
-      utterance.voice = profile.voice;
-      window.speechSynthesis.speak(utterance);
-    };
     voiceAudioRef.current = playFactionVoice({
       AudioCtor: window.Audio,
-      source: voiceClip ? resolveAssetPath(voiceClip) : "",
-      synthesize
+      source: voiceClip ? resolveAssetPath(voiceClip) : ""
     });
   }, [accountSoundMuted]);
 
@@ -5145,6 +5131,7 @@ export default function App() {
                 audioEnabled={!accountSoundMuted}
                 lines={campaignEndDialogue}
                 audio={game.campaign.endDialogueAudio}
+                track={game.campaign.endDialogueTrack}
                 autoPlayKey={`${game.campaign.chapterId}-cinematic`}
               />
             ) : (
@@ -5154,6 +5141,7 @@ export default function App() {
                 audioEnabled={!accountSoundMuted}
                 lines={campaignEndDialogue}
                 audio={game.campaign?.endDialogueAudio}
+                track={game.campaign?.endDialogueTrack}
                 autoPlayKey={game.campaign?.chapterId ? `${game.campaign.chapterId}-ending` : ""}
                 light
               />
@@ -8273,6 +8261,7 @@ export default function App() {
           factionId={game.campaign.factionId}
           lines={game.campaign.startDialogue || game.campaign.dialogue}
           audio={game.campaign.startDialogueAudio || game.campaign.dialogueAudio}
+          track={game.campaign.startDialogueTrack || game.campaign.dialogueTrack}
           audioEnabled={!accountSoundMuted}
           autoPlayKey={game.campaign.chapterId ? `${game.matchId || "campaign"}-${game.campaign.chapterId}-opening` : ""}
           audioOnly
@@ -8542,7 +8531,7 @@ export default function App() {
               {matchDrawer === "chapter" && game.campaign && (
                 <div className="focus-drawer-scroll focus-chapter-drawer">
                   <p>{game.campaign.story}</p>
-                  <Suspense fallback={null}><CampaignDialogueBlock factionId={game.campaign.factionId} audioEnabled={!accountSoundMuted} title="Voices from the chapter" lines={game.campaign.startDialogue || game.campaign.dialogue} audio={game.campaign.startDialogueAudio || game.campaign.dialogueAudio} compact /></Suspense>
+                  <Suspense fallback={null}><CampaignDialogueBlock factionId={game.campaign.factionId} audioEnabled={!accountSoundMuted} title="Voices from the chapter" lines={game.campaign.startDialogue || game.campaign.dialogue} audio={game.campaign.startDialogueAudio || game.campaign.dialogueAudio} track={game.campaign.startDialogueTrack || game.campaign.dialogueTrack} compact /></Suspense>
                 </div>
               )}
 

@@ -56,7 +56,8 @@ export function createDialoguePlayer({
   entries,
   onChange,
   factionId = "default",
-  synthesizeMissing = true,
+  synthesizeMissing = false,
+  trackSource = null,
   AudioCtor = typeof window !== "undefined" ? window.Audio : null,
   SpeechCtor = typeof window !== "undefined" ? window.SpeechSynthesisUtterance : null,
   speechSynthesis = typeof window !== "undefined" ? window.speechSynthesis : null
@@ -77,6 +78,7 @@ export function createDialoguePlayer({
     if (!clip) return;
     clip.onended = null;
     clip.onerror = null;
+    clip.ontimeupdate = null;
     clip.pause();
     try { clip.currentTime = 0; } catch (_error) { /* Metadata may not be loaded yet. */ }
   };
@@ -129,7 +131,7 @@ export function createDialoguePlayer({
     if (!settings.enabled) { publish({ status: "Enable sound to hear dialogue." }); return; }
     const canSpeak = Boolean(synthesizeMissing && SpeechCtor && speechSynthesis?.speak);
     if (!AudioCtor && !canSpeak) { publish({ status: "Voice playback unavailable." }); return; }
-    if (!entries.some((entry, index) => index >= startIndex && (entry.source || canSpeak) && (sequence || index === startIndex))) {
+    if (!(sequence && trackSource) && !entries.some((entry, index) => index >= startIndex && (entry.source || canSpeak) && (sequence || index === startIndex))) {
       publish({ status: "No voice available." });
       return;
     }
@@ -140,6 +142,30 @@ export function createDialoguePlayer({
     skipped = 0;
     publish({ mode: sequence ? "exchange" : "line" });
     syncBed();
+
+    if (sequence && trackSource && AudioCtor) {
+      const clip = new AudioCtor(assetUrl(trackSource));
+      voice = clip;
+      clip.volume = 1;
+      const isCurrent = () => run === generation && voice === clip;
+      clip.ontimeupdate = () => {
+        if (!isCurrent() || !Number.isFinite(clip.duration) || clip.duration <= 0 || entries.length === 0) return;
+        const index = Math.min(entries.length - 1, Math.floor((clip.currentTime / clip.duration) * entries.length));
+        if (state.playingIndex !== index) publish({ playingIndex: index, paused: false, status: `Playing ${entries[index].speaker}.` });
+      };
+      clip.onended = () => { if (isCurrent()) stop("Dialogue finished."); };
+      clip.onerror = (error) => {
+        if (!isCurrent() || interruptedByPause(error)) return;
+        stop(error?.name === "NotAllowedError" ? "Playback was blocked. Try Play again." : "Recorded dialogue unavailable. Captions remain available.");
+      };
+      publish({ playingIndex: 0, paused: false, status: `Playing ${entries[0]?.speaker || "dialogue"}.` });
+      try {
+        Promise.resolve(clip.play()).then(() => {
+          if (isCurrent() && state.paused) clip.pause();
+        }).catch(clip.onerror);
+      } catch (error) { clip.onerror(error); }
+      return;
+    }
 
     const playIndex = (index) => {
       if (run !== generation) return;
@@ -254,24 +280,21 @@ export function createDialoguePlayer({
   return player;
 }
 
-export function useDialoguePlayback({ lines, audio, factionId = "default", scopeKey = "", enabled = true, musicSource = null, musicEnabled = true, musicVolume = 0.18 }) {
+export function useDialoguePlayback({ lines, audio, track = null, factionId = "default", scopeKey = "", enabled = true, musicSource = null, musicEnabled = true, musicVolume = 0.18 }) {
   // Compare content, so fresh arrays from a live snapshot do not restart playback.
-  const contentKey = JSON.stringify([scopeKey, lines, audio]);
+  const contentKey = JSON.stringify([scopeKey, lines, audio, track]);
   const entries = useMemo(() => {
     const [, transcript, recordings] = JSON.parse(contentKey);
     return dialogueEntries(transcript, recordings);
   }, [contentKey]);
+  const trackSource = useMemo(() => JSON.parse(contentKey)[3] || null, [contentKey]);
   const [state, setState] = useState(idleState);
-  // Zynarth dialogue must use the authored insectoid recordings. Browser speech
-  // synthesis made their remaining lines sound human or generically robotic,
-  // which undermined the faction identity. Missing recordings stay silent while
-  // their captions remain visible instead of falling back to an unrelated voice.
-  const synthesizeMissing = factionId !== "zynarth";
-  const player = useMemo(() => createDialoguePlayer({ entries, factionId, synthesizeMissing, onChange: setState }), [entries, factionId, synthesizeMissing]);
+  // Campaign voices are authored performances. Never substitute the browser's
+  // generic speech synthesizer when a recording is absent or temporarily fails.
+  const player = useMemo(() => createDialoguePlayer({ entries, factionId, synthesizeMissing: false, trackSource, onChange: setState }), [entries, factionId, trackSource]);
   useEffect(() => () => player.stop(""), [player]);
   useEffect(() => {
     player.configure({ enabled, musicSource, musicEnabled, musicVolume });
   }, [player, enabled, musicSource, musicEnabled, musicVolume]);
-  const synthesisAvailable = synthesizeMissing && typeof window !== "undefined" && Boolean(window.speechSynthesis && window.SpeechSynthesisUtterance);
-  return { ...state, entries, hasAudio: entries.some((entry) => entry.source) || synthesisAvailable, ...player };
+  return { ...state, entries, hasAudio: Boolean(trackSource) || entries.some((entry) => entry.source), ...player };
 }
