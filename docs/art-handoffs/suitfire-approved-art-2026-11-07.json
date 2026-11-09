@@ -1,0 +1,902 @@
+{
+  "schema_version": 2,
+  "title": "SuitFire approved artwork handoff",
+  "date": "2026-11-07",
+  "status": "assets_only_for_account_preview_integration",
+  "asset_count": 70,
+  "card_illustrations": 66,
+  "city_covers": 4,
+  "constraints": [
+    "No runtime wiring in this commit",
+    "Account-only preview integration; public presentation unchanged",
+    "Preserve original artwork and all game behavior",
+    "Superseded Rumin card illustrations and unreviewed drafts excluded"
+  ],
+  "assets": [
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-rootwatch-initiate.webp",
+      "bytes": 248878,
+      "sha256": "56bd220de324367417a974f75782635629be8ee79a181f3c640ef5bf2f595540",
+      "git_blob_sha1": "0f964da6bde787b652f88a140cbbd40b264dde3d",
+      "status": "review_approved",
+      "kind": "constructed_illustration"
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-quiet-grove-sentinel.webp",
+      "bytes": 157782,
+      "sha256": "5c10f9be3a0ad5a6ee8e6f073458552ffe9cb9259635ea68e64db447fa9713b5",
+      "git_blob_sha1": "b64eb714330dd921f00fa25087db16f8b62ed6b9",
+      "status": "review_approved",
+      "kind": "constructed_illustration"
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-mossbound-staff.webp",
+      "bytes": 218564,
+      "sha256": "86b68c1aa57759942d75907b9ed319fdd79c189b6a14e678a69b328742762327",
+      "git_blob_sha1": "6aa7bd2882ed40734c0a03ad812db95aa908b1f5",
+      "status": "review_approved",
+      "kind": "constructed_illustration"
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-living-bark-guard.webp",
+      "bytes": 256440,
+      "sha256": "b623c4fc3f08d4c3c9cc5c5f55406967e821dfbc822176725a91e6d9af7c2fc2",
+      "git_blob_sha1": "5b370fab933ab29abf7f73fd95aa90bedcbf3f5c",
+      "status": "review_approved",
+      "kind": "constructed_illustration"
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-beli-vinebinder.webp",
+      "bytes": 410432,
+      "sha256": "a28eb6e34a7825ef696dfbd6567259e12dbf354195376c84e52fa5305a4c8a32",
+      "git_blob_sha1": "ba38bd1df1094acebc68c501cc84079711ecd38e",
+      "status": "review_approved",
+      "kind": "constructed_illustration"
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-harmony-ward.webp",
+      "bytes": 237652,
+      "sha256": "860d47ee8f58516dd727ac3bb1d13c89479bb5839a186de834083be23d673580",
+      "git_blob_sha1": "c7df7b1b8a495c1552e8d50363e80494d7ce3c59",
+      "status": "review_approved",
+      "kind": "constructed_illustration",
+      "approved_source_sha256": "67b5cd1c0ba25ba839880ed768361ef59053ce97ddc4c2d77e9b5e8e22b9e4a0",
+      "approved_source_bytes": 392772,
+      "delivery_optimization": {
+        "format": "WebP",
+        "quality": 75,
+        "dimensions": [
+          1024,
+          1536
+        ],
+        "resize": false,
+        "content_changes": false
+      }
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-thornroot-counterstroke.webp",
+      "bytes": 246820,
+      "sha256": "2f512a5464df574a693572100718ebd52686bea9fe54846b41fc867c7aa38e6e",
+      "git_blob_sha1": "96b9dabe507e2ded9dd144b505a309c71c6fd5ff",
+      "status": "review_approved",
+      "kind": "constructed_illustration"
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-beli-canopy-shield.webp",
+      "bytes": 474198,
+      "sha256": "d4a0af59d639ffef7bb58fb9e657a6c6295d0990171bda70a292068727db201f",
+      "git_blob_sha1": "f6e3f34e7ee2c0493256f67478d7606d6c7dd64d",
+      "status": "review_approved",
+      "kind": "constructed_illustration"
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-nus-verdant-edict.webp",
+      "bytes": 345494,
+      "sha256": "bcea805fa6840bbcf0cadfa396756f1680ca987c8f68159c02e71a1e81b53d2f",
+      "git_blob_sha1": "4069ad9e5fd08852199389b6bcecbc57343b56a4",
+      "status": "review_approved",
+      "kind": "constructed_illustration",
+      "approved_source_sha256": "ba861cd8a776cb3abb4034041a7e559ab9f206f74cb698ff6833fe9ab55acad0",
+      "approved_source_bytes": 562464,
+      "delivery_optimization": {
+        "format": "WebP",
+        "quality": 75,
+        "dimensions": [
+          1024,
+          1536
+        ],
+        "resize": false,
+        "content_changes": false
+      }
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-roots-that-remember.webp",
+      "bytes": 520572,
+      "sha256": "ce3d56471d1e3ece587158d0502f82d02f7682e9ef6e9453827f2be91873b317",
+      "git_blob_sha1": "1eb0bb77fb16eceaf01ca64ebab3dd6b54876a7f",
+      "status": "review_approved",
+      "kind": "constructed_illustration"
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-tangs-patient-hand.webp",
+      "bytes": 363406,
+      "sha256": "5e3185993a3a0a89e2ef15acb9ac8c8c19913ff6e61c26b270389c7033fc2cde",
+      "git_blob_sha1": "4511268413681eb9f6406785cd622712e98621b0",
+      "status": "review_approved",
+      "kind": "constructed_illustration"
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-seedwall-acolyte.webp",
+      "bytes": 291616,
+      "sha256": "fc1045ab18ef4b1d983df532b64b5f535bd4e80e30ced87d1223de5425abdc18",
+      "git_blob_sha1": "40c6666605a6334e35d90a9323a8addc3fc6c1f7",
+      "status": "review_approved",
+      "kind": "constructed_illustration"
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-raincall-mender.webp",
+      "bytes": 304092,
+      "sha256": "26d83db66039ad8a52e227504e4eb0e008ffd1f8082bb42b36762d0934a621e9",
+      "git_blob_sha1": "26055117d18b23e610ad66bef1f563bbe40b8f35",
+      "status": "review_approved",
+      "kind": "constructed_illustration"
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-ringroot-bastion.webp",
+      "bytes": 377956,
+      "sha256": "37a67dfc2702fcc438a947e5e84879c0a2420bc75b276ba870fcb752b0b23ddd",
+      "git_blob_sha1": "ba44516ed3644258602063b34cdeb434bcfaf1ed",
+      "status": "review_approved",
+      "kind": "constructed_illustration"
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-sapling-chorus.webp",
+      "bytes": 224638,
+      "sha256": "dc2b2f6d9a4c4b9afd091739f84e4d9fe16b61711ac5f08a682857ac780d261e",
+      "git_blob_sha1": "87447b2e8b98e6b1811b7b5d3730c55bd9beaa85",
+      "status": "review_approved",
+      "kind": "constructed_illustration"
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-nus-calm-command.webp",
+      "bytes": 289080,
+      "sha256": "499bcac483638e2dd5cd088b8120654fe9f3a649b985d67218d25cc48b38402e",
+      "git_blob_sha1": "6313a7178317f87d955edd7f83ee4e68d25f290d",
+      "status": "review_approved",
+      "kind": "constructed_illustration"
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-emperors-heartwood.webp",
+      "bytes": 495716,
+      "sha256": "36bbd15b1312da449e88fd6a51446835893aa829cfdb7f2c9934d6ad01e027fe",
+      "git_blob_sha1": "dc42a684e696e4926a3e3c424ab08d65751c3012",
+      "status": "review_approved",
+      "kind": "constructed_illustration"
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-beli-awakened.webp",
+      "bytes": 332594,
+      "sha256": "8757ade5c22457ac4b83b069c3bdd71d18ea99958cd45a199e0d1c7d0faa3dd1",
+      "git_blob_sha1": "3f29d5947d84e2e064da4c1c78fcf1ef0e374a3c",
+      "status": "review_approved",
+      "kind": "constructed_illustration"
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-heartwood-avatar.webp",
+      "bytes": 280168,
+      "sha256": "fdcea7e3ccf5a286cc33f1d77fdf657e03a153b67301532d363809147b583f55",
+      "git_blob_sha1": "e43af73e8f926ea3b327a3487d09c24b8642721f",
+      "status": "review_approved",
+      "kind": "constructed_illustration"
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-canopy-wayfinder.webp",
+      "bytes": 172090,
+      "sha256": "aea51dc43b432fcb221a4c41878b7c50e1b2fac586bede4f2b494326abb96e47",
+      "git_blob_sha1": "8272b63e3bd43e8e020575372c5766712130efca",
+      "status": "review_approved",
+      "kind": "constructed_illustration"
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-rootsong-matriarch.webp",
+      "bytes": 305082,
+      "sha256": "addce0f83ff63a89437b1c0cf6160adf36a575170ce3fbf71edc587567f4fc47",
+      "git_blob_sha1": "8477ae2cc9035f26df8f7bdae345cf10d5de30eb",
+      "status": "review_approved",
+      "kind": "constructed_illustration",
+      "approved_source_sha256": "ccd79abd6343f1490728c04b8970d31a65174f0911473fc4cafc14752e2f0941",
+      "approved_source_bytes": 508822,
+      "delivery_optimization": {
+        "format": "WebP",
+        "quality": 75,
+        "dimensions": [
+          1024,
+          1536
+        ],
+        "resize": false,
+        "content_changes": false
+      }
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-elder-first-grove.webp",
+      "bytes": 290664,
+      "sha256": "5fdbf40cf59b08503b7f04f062cecbd6c229d086ee35bd1794647b72e46e398b",
+      "git_blob_sha1": "8f54102dde67cda0624bb44333b791684faf7fbe",
+      "status": "review_approved",
+      "kind": "constructed_illustration"
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-copperline-technician.webp",
+      "bytes": 214668,
+      "sha256": "036f4ea53a5f5c7bf5dbe4c0ce6ee3297dd53b2176a183dec60b79058065689e",
+      "git_blob_sha1": "a77e3c7f12370e37e1bab13ca19a52698ac7dc4b",
+      "status": "review_approved",
+      "kind": "constructed_illustration",
+      "approved_source_sha256": "bfa42143299902d8dbcc6016332fccc462936af52207fbc7acb2df66319d65dc",
+      "approved_source_bytes": 492606,
+      "delivery_optimization": {
+        "format": "WebP",
+        "quality": 75,
+        "dimensions": [
+          1024,
+          1536
+        ],
+        "resize": false,
+        "content_changes": false
+      }
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-voltage-ration.webp",
+      "bytes": 253290,
+      "sha256": "7d9777a344102f1e7c558595d309f81053b1d0bd8312b1d6da6045b44e84a573",
+      "git_blob_sha1": "10ec88cb0c3257da7f93782e7bc2493ff0ad6f30",
+      "status": "review_approved",
+      "kind": "constructed_illustration",
+      "approved_source_sha256": "f139c9370c33c3a321b4ac424038a565fa021c71e9b81cd0a782f8693ca59b3f",
+      "approved_source_bytes": 585628,
+      "delivery_optimization": {
+        "format": "WebP",
+        "quality": 75,
+        "dimensions": [
+          1024,
+          1536
+        ],
+        "resize": false,
+        "content_changes": false
+      }
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-dune-circuit-runner.webp",
+      "bytes": 219376,
+      "sha256": "20b764a6863f7fc1302e515c9745ca9f24d69ce3af367992a89b5f8e373439f0",
+      "git_blob_sha1": "ff3fa04fae8651297efd1ca0f129498558ce95bd",
+      "status": "review_approved",
+      "kind": "constructed_illustration",
+      "approved_source_sha256": "f1f32612329ed38a7cde3df0f2639945db2e0d349fe79c9f98117da253d080bd",
+      "approved_source_bytes": 513562,
+      "delivery_optimization": {
+        "format": "WebP",
+        "quality": 75,
+        "dimensions": [
+          1024,
+          1536
+        ],
+        "resize": false,
+        "content_changes": false
+      }
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-gearplate-shield.webp",
+      "bytes": 234412,
+      "sha256": "931791fed00678518a0ea911dd762c9fd663fbeeb8b4ffffbf4323a5b10327bb",
+      "git_blob_sha1": "b497ec43af97c019b70aab2858fa4b2d5bfd4884",
+      "status": "review_approved",
+      "kind": "constructed_illustration",
+      "approved_source_sha256": "adcd4141e54b0b3c08f97edf2b0635c42177599a6c16484e7cb317ca4e5b0c6d",
+      "approved_source_bytes": 545512,
+      "delivery_optimization": {
+        "format": "WebP",
+        "quality": 75,
+        "dimensions": [
+          1024,
+          1536
+        ],
+        "resize": false,
+        "content_changes": false
+      }
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-heras-calibration.webp",
+      "bytes": 268500,
+      "sha256": "5822935a4a8220da7646e7d2e8ef11124e5e26aabc7da44f1c1478c892d9b472",
+      "git_blob_sha1": "a5877cd00dd4965def45148cc35cfddbd20f1efd",
+      "status": "review_approved",
+      "kind": "constructed_illustration",
+      "approved_source_sha256": "94b7cfc276f2f4f40282b89eb370f9fa1523c81b01f51f98d05adeed89a848c7",
+      "approved_source_bytes": 592970,
+      "delivery_optimization": {
+        "format": "WebP",
+        "quality": 75,
+        "dimensions": [
+          1024,
+          1536
+        ],
+        "resize": false,
+        "content_changes": false
+      }
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-solar-array-adept.webp",
+      "bytes": 245370,
+      "sha256": "bb1394b6892a99647d64d71a546d80f96d8b29ea24176540a837506608e8b206",
+      "git_blob_sha1": "b4e4d42ad825cb94554e8a2044b5a2d46a9bfd49",
+      "status": "review_approved",
+      "kind": "constructed_illustration",
+      "approved_source_sha256": "098a5e3591d8353efeb2146e1e66167053c1f61d5189de072cb0e72d88c4cfb6",
+      "approved_source_bytes": 558990,
+      "delivery_optimization": {
+        "format": "WebP",
+        "quality": 75,
+        "dimensions": [
+          1024,
+          1536
+        ],
+        "resize": false,
+        "content_changes": false
+      }
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-constanti-conduit.webp",
+      "bytes": 179928,
+      "sha256": "12d79ebc34203cfb2b465a609659dd3bc8dd10ed45741b57231001c87e88d688",
+      "git_blob_sha1": "66878b49086baea276cf7ddf1dcd37b42ab5baa7",
+      "status": "review_approved",
+      "kind": "constructed_illustration",
+      "approved_source_sha256": "4c2000465a74fb7f3113a9214eed67f6da5e586b5b27dac0c623a050ee2fda39",
+      "approved_source_bytes": 429348,
+      "delivery_optimization": {
+        "format": "WebP",
+        "quality": 75,
+        "dimensions": [
+          1024,
+          1536
+        ],
+        "resize": false,
+        "content_changes": false
+      }
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-sandstorm-processor.webp",
+      "bytes": 257658,
+      "sha256": "af51146443ac1212ff455c64c2d0e5e5a9e9fa498b1863328ef5b587353b5a4f",
+      "git_blob_sha1": "0c11f34ef734a44ebacc2bf925d190e0928ee5e0",
+      "status": "review_approved",
+      "kind": "constructed_illustration",
+      "approved_source_sha256": "bac1859ab674b8aca85972e0956f859dcde0964331e04407e640987b7f564305",
+      "approved_source_bytes": 561088,
+      "delivery_optimization": {
+        "format": "WebP",
+        "quality": 75,
+        "dimensions": [
+          1024,
+          1536
+        ],
+        "resize": false,
+        "content_changes": false
+      }
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-focus-overclock.webp",
+      "bytes": 278800,
+      "sha256": "fbc2a9b867e5d67d2edc08d8bc51ba811206b518fe319b2695aef84c6922c9a0",
+      "git_blob_sha1": "661f24e97dd817c90a64ba258981b8da99a72f8a",
+      "status": "review_approved",
+      "kind": "constructed_illustration",
+      "approved_source_sha256": "ce9d775ca7a3e2a36ae802ba6575ebeab8da007e250c6352fca7e22e76a2fca4",
+      "approved_source_bytes": 601710,
+      "delivery_optimization": {
+        "format": "WebP",
+        "quality": 75,
+        "dimensions": [
+          1024,
+          1536
+        ],
+        "resize": false,
+        "content_changes": false
+      }
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-regnum-voltage-bank.webp",
+      "bytes": 233266,
+      "sha256": "bf02b216632bc613c67797de3cdce01687097b8f2e7c7dff4dcac0477fa6e799",
+      "git_blob_sha1": "964f4b6fd75744ee256083fbac1d75bca286ddfd",
+      "status": "review_approved",
+      "kind": "constructed_illustration",
+      "approved_source_sha256": "6631f7606073a1dfd6fe43221c44f972370cae2dd75ce447678cc891e0931362",
+      "approved_source_bytes": 537908,
+      "delivery_optimization": {
+        "format": "WebP",
+        "quality": 75,
+        "dimensions": [
+          1024,
+          1536
+        ],
+        "resize": false,
+        "content_changes": false
+      }
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-desert-logic-engine.webp",
+      "bytes": 303290,
+      "sha256": "6e880ddb1d701e7fdcd104db36bc2a34caeb070c8507340264b1a9cc790fdfe3",
+      "git_blob_sha1": "dd7206bbe7ce03444ee160cc72ec996a1ce46111",
+      "status": "review_approved",
+      "kind": "constructed_illustration",
+      "approved_source_sha256": "7e987448eb5297f24407ac7478bb12814ec3380450cc0a9bae8155fa6a3d2143",
+      "approved_source_bytes": 630746,
+      "delivery_optimization": {
+        "format": "WebP",
+        "quality": 75,
+        "dimensions": [
+          1024,
+          1536
+        ],
+        "resize": false,
+        "content_changes": false
+      }
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-brass-spark.webp",
+      "bytes": 223260,
+      "sha256": "25149958f94f5d8a9d0b9a8af3449d5a75516251f03c98903f9f39c4b8932350",
+      "git_blob_sha1": "d3119e3fc4207a66726b3a785111f8a69e9af0c3",
+      "status": "review_approved",
+      "kind": "constructed_illustration",
+      "approved_source_sha256": "d721216592d740ffcd1ad8a6318645c4bf39e88488092bd21fdb0ea22c600fa7",
+      "approved_source_bytes": 525224,
+      "delivery_optimization": {
+        "format": "WebP",
+        "quality": 75,
+        "dimensions": [
+          1024,
+          1536
+        ],
+        "resize": false,
+        "content_changes": false
+      }
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-railspike-marshal.webp",
+      "bytes": 235044,
+      "sha256": "f16a93cf5f9ef435ce0afc0b5373a2e3a662e013b696d04b782aca82bd4368f8",
+      "git_blob_sha1": "14511538b9c92ce9cc7daf81be2f032dfd616937",
+      "status": "review_approved",
+      "kind": "constructed_illustration",
+      "approved_source_sha256": "fe823e9313ac98c4e002c8a07d2dd4866376ccf744b9de954e85447c9e9782e3",
+      "approved_source_bytes": 537054,
+      "delivery_optimization": {
+        "format": "WebP",
+        "quality": 75,
+        "dimensions": [
+          1024,
+          1536
+        ],
+        "resize": false,
+        "content_changes": false
+      }
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-heat-sink-matrix.webp",
+      "bytes": 239674,
+      "sha256": "d3e92d7344956fc433a8bf4cbcfbddbbf94cec5e1a83824a68c04c1f0952d3ff",
+      "git_blob_sha1": "11a6c282de732f85de067662f1f6f04add045403",
+      "status": "review_approved",
+      "kind": "constructed_illustration",
+      "approved_source_sha256": "f9da442327ee7789240922ca9f3f7773da361ffd4a3b0058c80f8b2c9b2e02b3",
+      "approved_source_bytes": 555414,
+      "delivery_optimization": {
+        "format": "WebP",
+        "quality": 75,
+        "dimensions": [
+          1024,
+          1536
+        ],
+        "resize": false,
+        "content_changes": false
+      }
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-clockwork-caravan.webp",
+      "bytes": 254756,
+      "sha256": "8c25d350cfc36a40bddb8aadadcb0a82b1f46b250179b1a1870fbe7ca9d54cfa",
+      "git_blob_sha1": "be3829007a125199d3efc656683c7912b971cc76",
+      "status": "review_approved",
+      "kind": "constructed_illustration",
+      "approved_source_sha256": "c8a2dd86543d49633b9ba9141ce511b28b363aba48124e58f9b9f8dc2ceda413",
+      "approved_source_bytes": 565982,
+      "delivery_optimization": {
+        "format": "WebP",
+        "quality": 75,
+        "dimensions": [
+          1024,
+          1536
+        ],
+        "resize": false,
+        "content_changes": false
+      }
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-voltaric-ultimatum.webp",
+      "bytes": 230534,
+      "sha256": "8b62ce39f66e9c94c552e4a55574265a0aac1b3d2beb54a1f20e18760a9e9821",
+      "git_blob_sha1": "2e8a244aed905ba79cdf05e26b16e4a77468b499",
+      "status": "review_approved",
+      "kind": "constructed_illustration",
+      "approved_source_sha256": "59c17976284ed1a6f193addeea055cb0a2e8fce31329b10e044a9f448b04b1cb",
+      "approved_source_bytes": 535780,
+      "delivery_optimization": {
+        "format": "WebP",
+        "quality": 75,
+        "dimensions": [
+          1024,
+          1536
+        ],
+        "resize": false,
+        "content_changes": false
+      }
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-focus-prime-signal.webp",
+      "bytes": 273790,
+      "sha256": "74d4503a8f21116278f6efbb6ac98bcdb530dfc87801d2a43566fa65484713fb",
+      "git_blob_sha1": "ed7b9da33ddf398e9338959eb73263b132d2e485",
+      "status": "review_approved",
+      "kind": "constructed_illustration",
+      "approved_source_sha256": "7fce7bf538e7c8d73dcaa5003499aa48ca9ce61ac164b0dc9b3c3b3b10691b0e",
+      "approved_source_bytes": 592930,
+      "delivery_optimization": {
+        "format": "WebP",
+        "quality": 75,
+        "dimensions": [
+          1024,
+          1536
+        ],
+        "resize": false,
+        "content_changes": false
+      }
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-constanti-sunforge.webp",
+      "bytes": 234100,
+      "sha256": "633b636c83674b77605c1d44ef3e381abfa19430d771843bc0b481531e2a11aa",
+      "git_blob_sha1": "52ce60a88cbc331fc1e28e2e72371d58f87b1d46",
+      "status": "review_approved",
+      "kind": "constructed_illustration",
+      "approved_source_sha256": "650423af5584ec6d72554d50098dd55d26a4628d929c77b42c6bb85d7c1b170e",
+      "approved_source_bytes": 532140,
+      "delivery_optimization": {
+        "format": "WebP",
+        "quality": 75,
+        "dimensions": [
+          1024,
+          1536
+        ],
+        "resize": false,
+        "content_changes": false
+      }
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-living-engine.webp",
+      "bytes": 300144,
+      "sha256": "54069b0e1d69d7031b22d925f825eae98bc43f25276126a417787e072d5e80e7",
+      "git_blob_sha1": "5a6aec0767c9ef9c4aa0782a730b37c5d2d39f7b",
+      "status": "review_approved",
+      "kind": "constructed_illustration",
+      "approved_source_sha256": "e0626fbbd24dd153a0fcbf2512122ee6a24f0de4b6243dc42fd98288eeeb4ade",
+      "approved_source_bytes": 639750,
+      "delivery_optimization": {
+        "format": "WebP",
+        "quality": 75,
+        "dimensions": [
+          1024,
+          1536
+        ],
+        "resize": false,
+        "content_changes": false
+      }
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-clockwork-envoy.webp",
+      "bytes": 250382,
+      "sha256": "81f869600aa035a07fae8d351151eebada432e9b00a9e93074a16e08800b9575",
+      "git_blob_sha1": "93edbd7b951cc48820dca8b49f9dffcedfd51ba0",
+      "status": "review_approved",
+      "kind": "constructed_illustration",
+      "approved_source_sha256": "b050313dbda80e9044261066b50f4ac2f316e236059b46d669b4969d6647d451",
+      "approved_source_bytes": 567242,
+      "delivery_optimization": {
+        "format": "WebP",
+        "quality": 75,
+        "dimensions": [
+          1024,
+          1536
+        ],
+        "resize": false,
+        "content_changes": false
+      }
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-foundry-savant.webp",
+      "bytes": 241458,
+      "sha256": "f5d2dcfc2b97414d638b5ad2d2855e65c1f1e494ad759d3912cb4297719acac6",
+      "git_blob_sha1": "b8508e67cd5cb29a0f3b1a493cb9fd48b772baf6",
+      "status": "review_approved",
+      "kind": "constructed_illustration",
+      "approved_source_sha256": "a5c76282e09e2ab9c2f39602c83a2e57664ea10bbb243d648ba9ec0ee1497ecf",
+      "approved_source_bytes": 534784,
+      "delivery_optimization": {
+        "format": "WebP",
+        "quality": 75,
+        "dimensions": [
+          1024,
+          1536
+        ],
+        "resize": false,
+        "content_changes": false
+      }
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-prime-artificer.webp",
+      "bytes": 264542,
+      "sha256": "8942e05cbb2c5a6a99fb3c25176ed39b8884a2555cf0bc89fd0e09e8dbe1f778",
+      "git_blob_sha1": "331f349307929b5472b4da32124b0bb44e6998b7",
+      "status": "review_approved",
+      "kind": "constructed_illustration",
+      "approved_source_sha256": "472bf1fc3c744e8feaa0e9eed80d29bf24374f49eda31bd3015498ea8411b76f",
+      "approved_source_bytes": 568818,
+      "delivery_optimization": {
+        "format": "WebP",
+        "quality": 75,
+        "dimensions": [
+          1024,
+          1536
+        ],
+        "resize": false,
+        "content_changes": false
+      }
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-deckhand-diver.webp",
+      "bytes": 241052,
+      "sha256": "ed6c702799e9a84465a7aeaab242d42323cfba755053bdff08cd6f9d9dd28cc0",
+      "git_blob_sha1": "34a95e95c846e0021257c7a35f5cbc7f7612e588",
+      "status": "review_approved",
+      "kind": "constructed_illustration"
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-tideglass-cutlass.webp",
+      "bytes": 254342,
+      "sha256": "298f02f490363992935c7b54a37818dc1a7543ad934f2f76e0ed2327e464450b",
+      "git_blob_sha1": "1345cbb6846fd5f63aa3f599e3db8d63170ed7aa",
+      "status": "review_approved",
+      "kind": "constructed_illustration"
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-sunken-coin.webp",
+      "bytes": 270216,
+      "sha256": "91ebf3cf8dfc5ce407f6dfe0acdf649d4f879e9a20485dcbdefc58fc8580a237",
+      "git_blob_sha1": "85f408353957e8da748dfcea753953508f431d71",
+      "status": "review_approved",
+      "kind": "constructed_illustration"
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-coral-hull-guard.webp",
+      "bytes": 256672,
+      "sha256": "c723cffd476ac63a7329c9c328a72744c8ae19e59f810524b1a83d73250d13d8",
+      "git_blob_sha1": "e57bee385efb381adf9248e0c25074dcc70e6ae5",
+      "status": "review_approved",
+      "kind": "constructed_illustration"
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-riptide-smuggler.webp",
+      "bytes": 222452,
+      "sha256": "bcb63e9cbb3abd32d74314530dcc4adaf1c864bb2c834a3b669871bac912215f",
+      "git_blob_sha1": "e11b2d05a803f17cc23d6b0176463cf26c44453d",
+      "status": "review_approved",
+      "kind": "constructed_illustration"
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-lafayettes-chart.webp",
+      "bytes": 262106,
+      "sha256": "697a5909eb43a8deac60aa2bdcc45d697e08b7fb460a02f48d23918ca3694297",
+      "git_blob_sha1": "d8d73c06ffbaf0820285f404dd759bad3ad1e9ff",
+      "status": "review_approved",
+      "kind": "constructed_illustration"
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-pressure-lock-pistol.webp",
+      "bytes": 216310,
+      "sha256": "594ef4e7c4caafd1803ef943064c28a07d9859e66a68e2907abd0ad6eba1ae6a",
+      "git_blob_sha1": "ee5d6a47b51949811b9b944fda72ad6c4b0d4334",
+      "status": "review_approved",
+      "kind": "constructed_illustration"
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-ristus-blackwake.webp",
+      "bytes": 254462,
+      "sha256": "b588fd9c3d2f50d542e5cb0bebebf6c38f3af8ef986912722ff8023c3cef65ec",
+      "git_blob_sha1": "625e02ceeb4915cc51d083a9a519c2cc061e8f4e",
+      "status": "review_approved",
+      "kind": "constructed_illustration"
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-captains-bad-wager.webp",
+      "bytes": 299092,
+      "sha256": "b9fa1ff1f20d80749f1a96a912a62dc0ad0bed578e2fab69f706d7be9400764a",
+      "git_blob_sha1": "cfe100adfd7692e00bdce34b01d80aec06a067e8",
+      "status": "review_approved",
+      "kind": "constructed_illustration"
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-poleas-sunken-order.webp",
+      "bytes": 215910,
+      "sha256": "c22109311617fc55c93bfd66adbfb7327c8d026ee596b45e5621eff2a5664cbc",
+      "git_blob_sha1": "4ed39da37b9849c5576606e17313cfe9e77f6db8",
+      "status": "review_approved",
+      "kind": "constructed_illustration"
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-leviathan-salvage.webp",
+      "bytes": 249594,
+      "sha256": "1186c73b177c408d7791c16c0e434cf51c4b905e28a523ec47636cd6184c8e44",
+      "git_blob_sha1": "a964bb267dcbc974ec2dac0cac3900bede1d19d7",
+      "status": "review_approved",
+      "kind": "constructed_illustration"
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-kelpcloak-trickster.webp",
+      "bytes": 209684,
+      "sha256": "460e37be7166afac8ba022844fddca41f003cc8ca88348576a2892bb4eae9645",
+      "git_blob_sha1": "7a33874d7ccbc2c86e9419ee805cddae1bd96cd8",
+      "status": "review_approved",
+      "kind": "constructed_illustration"
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-ballast-hook.webp",
+      "bytes": 304902,
+      "sha256": "5a5cdb891c1dcc91d4d2d2477a495978f357f754ba54c533af8c54dd5a5df311",
+      "git_blob_sha1": "1d8c220ce87035865ee496b019ae3313fca01ccc",
+      "status": "review_approved",
+      "kind": "constructed_illustration"
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-tide-debt-ledger.webp",
+      "bytes": 177628,
+      "sha256": "85d4dabfe1f2fa048d2aefbf59ef51d8316ffdedf6de3b7d5cfc81817bb4e861",
+      "git_blob_sha1": "324f658c7ac717d6bbe10ae19cf3729f9301c50c",
+      "status": "review_approved",
+      "kind": "constructed_illustration"
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-abyssal-switchboard.webp",
+      "bytes": 253820,
+      "sha256": "2963d953d4d87fa6ac49a63e29944f0b2421d4a6e9ca7caf08db4ebd1dc1ad64",
+      "git_blob_sha1": "acba864243108eac48b8fd48382ec3b9af6ec326",
+      "status": "review_approved",
+      "kind": "constructed_illustration"
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-poleas-moonlit-map.webp",
+      "bytes": 197088,
+      "sha256": "11e39ef8f753f09b75cd9911a677e6b17ba4c2a135fd3281341aeefd344c0d28",
+      "git_blob_sha1": "9bccddbc694ec38490adf3a65a9d98ab9542358f",
+      "status": "review_approved",
+      "kind": "constructed_illustration"
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-the-last-gamble.webp",
+      "bytes": 204840,
+      "sha256": "12b66c0dc630a519c948243a0bc8988ab9020bb39f46a3815a82035a5b702c86",
+      "git_blob_sha1": "53c0a25e251f5af384f295dab7b22df93f3b483c",
+      "status": "review_approved",
+      "kind": "constructed_illustration"
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-ristus-rises.webp",
+      "bytes": 228870,
+      "sha256": "ee757d312b9f4ead175f10fb33b1a90c0dea01c6fdda31c1c91b7ddaf40d5f1c",
+      "git_blob_sha1": "f7cd73e4bcf83209c5b3c1a155a0f6f7dd2a7c3c",
+      "status": "review_approved",
+      "kind": "constructed_illustration"
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-leviathans-chosen.webp",
+      "bytes": 135804,
+      "sha256": "ed7dcce72db13ff18595c91914cb7b02e53d11a152b4a7e2b20f0a09b3c49bdf",
+      "git_blob_sha1": "5528a41f3f89e08dbae9e9b86afe63f87a5f43d8",
+      "status": "review_approved",
+      "kind": "constructed_illustration"
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-tideglass-corsair.webp",
+      "bytes": 225888,
+      "sha256": "15002a9b3e4c4af82c141481ed0a019bee38fb3eba5dda0c86ea0aa67ac78aec",
+      "git_blob_sha1": "4d6954421905fe1ca7725fded0d1ad0f9b460083",
+      "status": "review_approved",
+      "kind": "constructed_illustration"
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-pearl-republic-admiral.webp",
+      "bytes": 254930,
+      "sha256": "7db611e1776816beb81a2e65c37a8e9d3c4cf7545cd29a0902ff74cb0fecfc42",
+      "git_blob_sha1": "166055e149292dd951e4b7933298c04072377ef2",
+      "status": "review_approved",
+      "kind": "constructed_illustration"
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-storm-crowned-navigator.webp",
+      "bytes": 249644,
+      "sha256": "b511734969e9663338b377c1c760510073f2bbec3a227cf1da13d2689ed75a73",
+      "git_blob_sha1": "f1db8689170693b95fcc89a960d6b30937ecd7a6",
+      "status": "review_approved",
+      "kind": "constructed_illustration"
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/rumin/rumin-rumie-hero.webp",
+      "bytes": 457986,
+      "sha256": "d269b8378dba06e8b6c682df192210fd7e16d8934ab4419a33db4b9509364b47",
+      "git_blob_sha1": "124058a9b7adce41a1c7ab8f7ce2e7483dab5909",
+      "status": "review_approved",
+      "kind": "city_cover"
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-beli-hero.webp",
+      "bytes": 315258,
+      "sha256": "328229730cd1db71a3e64df12ef1155ad2db6b6f18c030cb90a094362c4617aa",
+      "git_blob_sha1": "6b682115ad4a23d120e1546901f196e317aa56f8",
+      "status": "review_approved",
+      "kind": "city_cover",
+      "approved_source_sha256": "9b0f4907396764ef1c5270fadbc3cebd6dcc5c9afa0414e3f5121187edd8a99b",
+      "approved_source_bytes": 488844,
+      "delivery_optimization": {
+        "format": "WebP",
+        "quality": 75,
+        "dimensions": [
+          1672,
+          941
+        ],
+        "resize": false,
+        "content_changes": false
+      }
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-ristus-hero.webp",
+      "bytes": 323230,
+      "sha256": "eea86fde991060e53b3064582a10945522f2bbfb266cfe8fbb668aaae4a29684",
+      "git_blob_sha1": "c486eedad92a512de331b99beac179a4b83023f6",
+      "status": "review_approved",
+      "kind": "city_cover"
+    },
+    {
+      "path": "client/public/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-constanti-hero.webp",
+      "bytes": 230518,
+      "sha256": "dfdc8d8c11ab5c5c2fc5df6d04a3979ccf464224cbbf1434d04240eb9400dc68",
+      "git_blob_sha1": "425a2a9553b2c7bb5347d2809ad9416540f8e4d4",
+      "status": "review_approved",
+      "kind": "city_cover",
+      "approved_source_sha256": "4277374503ac7a37259023aaacfe4ed7491435edd7a0d7c17f709da23ff311d1",
+      "approved_source_bytes": 477630,
+      "delivery_optimization": {
+        "format": "WebP",
+        "quality": 75,
+        "dimensions": [
+          1672,
+          941
+        ],
+        "resize": false,
+        "content_changes": false
+      }
+    }
+  ],
+  "delivery_note": "27 approved illustrations use WebP quality 75 at unchanged pixel dimensions. Subject, composition and identity are unchanged. Original approved SHA-256 provenance is recorded; originals remain preserved in the source review package."
+}

@@ -47,6 +47,9 @@ jobs:
       - name: Test build configuration and development server boundaries
         run: npm --prefix client run test:toolchain
 
+      - name: Verify approved SuitFire art, exact mappings and retained originals
+        run: npm run check:suitfire-art
+
       - name: Build client
         run: npm run build:client
 
@@ -76,6 +79,11 @@ jobs:
 
       - name: Test released menus with customization disabled
         run: npm run test:e2e:release-menus
+
+      - name: Test optional SuitFire presentation on desktop and phone
+        run: |
+          npx playwright test --config=playwright.suitfire.config.js
+          npm run check:bundle
 
       - name: Check compiled Babylon performance safeguards
         run: npm run test:e2e:performance

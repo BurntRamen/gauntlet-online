@@ -1,5 +1,7 @@
 import { brandText, useBrandPreview } from '../brand/brandPreview';
 import { useEffect, useMemo, useRef, useState } from "react";
+import { presentationArt, usePresentationArt } from "../brand/presentationArt";
+import { getFactionArtwork, resolveVisualAsset } from "../GauntletVisuals";
 import { getPlayingCardArtPath } from "../cardArt";
 import CollectorCardPresentation from "../CollectorCardPresentation";
 import ProductionMatchExperience from "./ProductionMatchExperience";
@@ -8,10 +10,10 @@ import ReplayTranscript from "./ReplayTranscript";
 import "./MatchReplayScreen.css";
 
 function cardArt(card) {
-  const path = getPlayingCardArtPath(card, card?.factionId) || card?.collector?.art;
+  const path = getPlayingCardArtPath(card, card?.factionId) || presentationArt(card?.collector?.art, { factionId: card?.factionId, surface: "illustration", cardId: card?.gameplayCardId || card?.definitionId || card?.id, cardType: card?.type || card?.cardType || "" });
   if (path) return /^https?:/i.test(path) ? path : `${process.env.PUBLIC_URL || ""}${path}`;
   return card?.factionId && card.factionId !== "basic"
-    ? `${process.env.PUBLIC_URL || ""}/assets/gauntlet/${card.factionId}-card.webp`
+    ? resolveVisualAsset(brandText(getFactionArtwork(card.factionId), `/assets/gauntlet/${card.factionId}-card.webp`))
     : "";
 }
 
@@ -261,6 +263,7 @@ function VisualReplay({ adapter, audioEnabled, onBack, onOpenMatches }) {
 }
 
 export default function MatchReplayScreen({ matchId, serverUrl, initialReplay = null, onBack, onOpenMatches, audioEnabled = true }) {
+  usePresentationArt();
   const [replay, setReplay] = useState(initialReplay);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(!initialReplay);

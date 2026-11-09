@@ -129,3 +129,46 @@ test("training opponent pays for support through the live session and exposes pu
   expect(inspectionAccessibility.violations).toEqual([]);
   await page.screenshot({ path: "test-results/support-training-ai-phone.png" });
 });
+
+
+test("optional SuitFire uses approved live art without changing captured game records", async ({ page, request }, testInfo) => {
+  const { navigatePlayer } = require("./player-navigation");
+  const approved = require("../docs/branding/suitfire-art-audit-inventory.json").cards
+    .find(card => card.cardId === "frumo-abyssal-switchboard");
+  const registered = await request.post(API + "/api/auth/register", { data: { name: "LiveArt" + Date.now(), password: "Local-Art-Only-42" } });
+  expect(registered.ok()).toBeTruthy();
+  const { token } = await registered.json();
+  // Local fixture account only; production eligibility/preferences are untouched.
+  await page.route(API + "/api/auth/me", async route => {
+    const response = await route.fetch(); const body = await response.json();
+    body.account = { ...body.account, brandPreview: "suitfire" };
+    await route.fulfill({ response, json: body });
+  });
+  await page.addInitScript(token => localStorage.setItem("gauntlet_auth_token", token), token);
+  await page.goto("/");
+  await navigatePlayer(page, "settings");
+  await page.getByRole("radio", { name: "SuitFire preview" }).check();
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const { fixture, peer } = await enter(page, request, "babylon");
+  try {
+    await settle(page, 0);
+    const before = await (await request.get(API + "/__support/state/" + fixture.roomCode)).json();
+    await expect.poll(() => page.evaluate(target => performance.getEntriesByType("resource").some(entry => new URL(entry.name).pathname === target), approved.target)).toBe(true);
+    await page.screenshot({ path: testInfo.outputPath("suitfire-live-desktop.png") });
+    await page.setViewportSize({ width: 390, height: 844 });
+    const first = page.locator('.phone-hand-card[data-card-index="0"]');
+    await expect(first.locator(".production-composed-card-face")).toHaveAttribute("data-art-source", approved.target);
+    await first.click({ button: "right" });
+    const inspector = page.getByRole("dialog", { name: /Inspect/ });
+    await expect(inspector).toContainText(approved.currentName);
+    await expect(inspector.locator(".production-composed-card-face")).toHaveAttribute("data-art-source", approved.target);
+    expect(await inspector.evaluate(element => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
+    await page.screenshot({ path: testInfo.outputPath("suitfire-live-phone-inspector.png") });
+    await inspector.getByRole("link", { name: /Card keyword guide/ }).scrollIntoViewIfNeeded();
+    await expect(inspector.getByRole("link", { name: /Card keyword guide/ })).toBeInViewport();
+    const after = await (await request.get(API + "/__support/state/" + fixture.roomCode)).json();
+    expect(after.game.players[1].hand).toEqual(before.game.players[1].hand);
+    expect(after.replay).toEqual(before.replay);
+    expect(after.game.revision).toBe(0);
+  } finally { peer.socket.disconnect(); }
+});

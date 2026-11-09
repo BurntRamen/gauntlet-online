@@ -1,5 +1,6 @@
 import { createGauntletMatchViewModel } from "./matchViewModel";
 import { createMatchDescriptor } from "./matchDescriptor";
+import { presentationArt } from "../brand/presentationArt";
 import { getPlayingCardArtPath } from "../cardArt";
 
 export const MIN_REPLAY_ACTION_INTERVAL_MS = 1100;
@@ -45,7 +46,7 @@ function visualCard(card) {
   if (!card) return null;
   return {
     ...clone(card),
-    artPath: getPlayingCardArtPath(card, card.factionId) || card.collector?.art || null,
+    artPath: getPlayingCardArtPath(card, card.factionId) || presentationArt(card.collector?.art, { factionId: card.factionId, surface: "illustration", cardId: card.gameplayCardId || card.definitionId || card.id, cardType: card.type || card.cardType || "" }) || null,
     label: card.name || [card.rank || card.value, card.suit].filter(Boolean).join("") || "Public card"
   };
 }

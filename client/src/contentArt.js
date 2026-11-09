@@ -1,8 +1,10 @@
+import { presentationArt } from "./brand/presentationArt";
 import { resolvePrinting } from "@gauntlet/duel-rules/printings";
 export const findCollectorVariant = resolvePrinting;
 
 export function getGameplayCardArt(gameplayCardId, collectorCatalog = [], selectedVariantId = "") {
-  return findCollectorVariant(gameplayCardId, collectorCatalog, selectedVariantId)?.art || "";
+  const printing = findCollectorVariant(gameplayCardId, collectorCatalog, selectedVariantId);
+  return presentationArt(printing?.art || "", { factionId: printing?.factionId || gameplayCardId?.split("-")[0], cardId: gameplayCardId, surface: "thumbnail" });
 }
 
 export function getCurrentDeckVersion(deck) {
@@ -15,7 +17,7 @@ export function getCurrentDeckVersion(deck) {
 
 export function getDeckFeaturedArt(deck, collectorCatalog = [], limit = 3) {
   if (Array.isArray(deck?.featuredArt) && deck.featuredArt.length > 0) {
-    return [...new Set(deck.featuredArt.filter(Boolean))].slice(0, limit);
+    return [...new Set(deck.featuredArt.map(source => presentationArt(source, { factionId: deck.factionId, surface: "thumbnail" })).filter(Boolean))].slice(0, limit);
   }
 
   const version = getCurrentDeckVersion(deck) || {};

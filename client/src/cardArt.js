@@ -1,3 +1,5 @@
+import { presentationArt, presentationFace, presentationCard } from "./brand/presentationArt";
+
 const CUSTOM_CARD_ID = /^(?:rumin|sheen|frumo|bizi|zynarth|astral-vanguard|indela|neutral)-/;
 
 export const PLAYING_CARD_ART_FACTIONS = Object.freeze(["basic", "rumin", "bizi", "sheen", "frumo"]);
@@ -11,7 +13,11 @@ export function getCustomCardArtDefinition(card) {
   return { id, factionId, illustration: `/assets/gauntlet/constructed/${factionId}/${id}.webp` };
 }
 
-export function getCustomCardFacePath(card) {
+export function getCustomCardFacePath(card, preview = true) {
+  return preview ? presentationFace(originalCustomCardFacePath(card), card) : originalCustomCardFacePath(card);
+}
+
+function originalCustomCardFacePath(card) {
   if (card?.presentation) {
     const suit = SUIT_NAMES[normalizeCardDisplayText(card.suit).trim().toLowerCase()] || "spades";
     return card.presentation.composed ? "" : card.presentation.faces?.[suit] || card.presentation.face || "";
@@ -84,9 +90,21 @@ export function expectsPlayingCardArt(card) {
   return Boolean(suit && getPlayingCardRankSlug(card));
 }
 
+export function getCardForPresentation(card, factionId = card?.factionId || getCustomCardArtDefinition(card)?.factionId) {
+  return presentationCard(card, factionId, originalPlayingCardArtPath(card, factionId), card?.presentation?.composed ? "illustration" : "card");
+}
+
 export function getPlayingCardArtPath(card, factionId) {
-  if (card?.presentation) return getCustomCardFacePath(card) || card.presentation.illustration || "";
-  const customFace = getCustomCardFacePath(card);
+  const shown = getCardForPresentation(card, factionId || card?.factionId);
+  if (shown !== card) return shown.presentation.illustration;
+  const path = originalPlayingCardArtPath(card, factionId);
+  if (card?.presentation?.composed) return presentationArt(path, { factionId: factionId || card.factionId, surface: "illustration", cardId: card.gameplayCardId || card.definitionId || card.id, cardType: card.type || card.cardType || "" });
+  return presentationFace(path, card, factionId || card?.factionId);
+}
+
+function originalPlayingCardArtPath(card, factionId) {
+  if (card?.presentation) return originalCustomCardFacePath(card) || card.presentation.illustration || "";
+  const customFace = originalCustomCardFacePath(card);
   if (customFace) return customFace;
   const requestedFaction = String(factionId || card?.factionId || "basic").toLowerCase();
   const faction = new Set(["mekan", "jali", "gracus", "indela", "zynarth", "astral-vanguard"]).has(requestedFaction) ? "basic" : requestedFaction;

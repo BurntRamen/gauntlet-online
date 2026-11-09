@@ -1,3 +1,4 @@
+import { presentationArt } from "../brand/presentationArt";
 import { BOARD_LAYOUT_PROFILES, getBoardLayoutProfile } from "./boardStage";
 import { getTableCameraProjection } from "./matchLayout";
 
@@ -22,7 +23,7 @@ export function factionBoardCards(faction, abilities = []) {
     return [{
       role,
       name: typeof profile === "string" ? profile : profile.name,
-      image: profile.image || faction.cardImage || "",
+      image: presentationArt(profile.image || faction.cardImage || "", { factionId: faction.id, speaker: profile.name, surface: role === "city" ? "faction" : "portrait" }),
       text: profile.text || "",
       activated: activatedRoles.includes(role),
       abilities: abilities.filter((ability) => factionAbilityRole(ability.id) === role)

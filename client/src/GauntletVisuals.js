@@ -1,3 +1,4 @@
+import { presentationArt, usePresentationArt } from "./brand/presentationArt";
 import { brandText } from './brand/brandPreview';
 import "./GauntletVisuals.css";
 
@@ -63,6 +64,8 @@ const LEGACY_ASSET_OWNERS = {
 export function getFactionAsset(factionId, candidate) {
   if (typeof candidate !== "string" || !candidate) return "";
   const id = factionIdFrom(factionId);
+  const resolved = presentationArt(candidate, { factionId: id, surface: "faction" });
+  if (resolved !== candidate) return resolved;
   const path = candidate.split(/[?#]/)[0].toLowerCase();
   const basename = path.split("/").pop().replace(/\.[^.]+$/, "");
   const directoryFaction = path.match(/\/(?:factions|constructed|campaigns)\/([^/]+)\//)?.[1];
@@ -72,8 +75,12 @@ export function getFactionAsset(factionId, candidate) {
 }
 
 export function getFactionArtwork(factionId, ...candidates) {
-  return [...candidates, FACTION_VISUALS[factionIdFrom(factionId)]?.art]
+  return [...candidates, presentationArt(FACTION_VISUALS[factionIdFrom(factionId)]?.art || "", { factionId: factionIdFrom(factionId), surface: "faction" })]
     .map((candidate) => getFactionAsset(factionId, candidate)).find(Boolean) || "";
+}
+
+export function getFactionCover(factionId, ...candidates) {
+  return presentationArt(getFactionArtwork(factionId, ...candidates), { factionId: factionIdFrom(factionId), surface: "cover" });
 }
 
 export function factionIdFrom(value) {
@@ -99,10 +106,11 @@ export function factionIdFrom(value) {
   return "basic";
 }
 
-export function FactionArtwork({ factionId, art: explicitArt = "", className = "", label, decorative = false, children, style = {} }) {
+export function FactionArtwork({ factionId, art: explicitArt = "", className = "", label, decorative = false, surface = "faction", children, style = {} }) {
+  usePresentationArt();
   const id = factionIdFrom(factionId);
   const visual = FACTION_VISUALS[id] || FACTION_VISUALS.basic;
-  const art = resolveVisualAsset(getFactionArtwork(id, explicitArt));
+  const art = resolveVisualAsset(surface === "cover" ? getFactionCover(id, explicitArt) : getFactionArtwork(id, explicitArt));
   return (
     <span
       className={`faction-artwork faction-artwork-${id} ${art ? "has-art" : "is-neutral"} ${className}`.trim()}
@@ -121,7 +129,7 @@ export function DeckVisual({ deck, factionId, art = null, className = "", decora
   const id = factionIdFrom(factionId || deck?.factionId);
   const visual = FACTION_VISUALS[id] || FACTION_VISUALS.basic;
   const featuredArt = (Array.isArray(art) ? art : Array.isArray(deck?.featuredArt) ? deck.featuredArt : [])
-    .map(resolveVisualAsset)
+    .map(source => resolveVisualAsset(presentationArt(source, { factionId: id, surface: "thumbnail" })))
     .filter(Boolean)
     .slice(0, 3);
   return (
@@ -151,9 +159,10 @@ export function MatchThumbnail({
   campaignImage = "",
   label = "Match thumbnail"
 }) {
+  usePresentationArt();
   const playerId = factionIdFrom(playerFaction);
   const opponentId = factionIdFrom(opponentFaction);
-  const priorityImage = resolveVisualAsset(explicitThumbnail || campaignImage);
+  const priorityImage = resolveVisualAsset(presentationArt(explicitThumbnail || campaignImage, { factionId: playerId, surface: "scene" }));
   return (
     <div className={`match-thumbnail is-${outcome}`} role="img" aria-label={label}>
       {priorityImage ? (

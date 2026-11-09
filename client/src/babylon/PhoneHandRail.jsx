@@ -1,3 +1,6 @@
+import { usePresentationArt } from "../brand/presentationArt";
+import { getPlayingCardArtPath, getCardForPresentation } from "../cardArt";
+import MatchCardFace from "./MatchCardFace";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { visibleCardIdentity } from "./presentationSnapshot";
 import CollectorCardPresentation from "../CollectorCardPresentation";
@@ -21,6 +24,7 @@ export function usePhoneHandLayout() {
 }
 
 export default function PhoneHandRail({ viewModel, commands, presentationRef, interactionLocked }) {
+  const preview = usePresentationArt();
   const railRef = useRef(null);
   const gestureRef = useRef(null);
   const selectedRef = useRef(new Set());
@@ -86,6 +90,8 @@ export default function PhoneHandRail({ viewModel, commands, presentationRef, in
         onPointerCancel={() => { if (gestureRef.current) gestureRef.current.moved = true; }}
         onScroll={() => { if (gestureRef.current) gestureRef.current.moved = true; measure(); }}>
         {hand.map((card, index) => {
+          const artPath = preview ? getPlayingCardArtPath(card.raw || card, card.factionId) || card.artPath : card.artPath;
+          const composed = preview && getCardForPresentation(card.raw || card, card.factionId) !== (card.raw || card);
           const selected = Object.values(card.selected || {}).some(Boolean);
           const role = Object.keys(card.selected || {}).find((key) => card.selected[key]);
           const visible = card.visible !== false;
@@ -105,9 +111,9 @@ export default function PhoneHandRail({ viewModel, commands, presentationRef, in
                 commands.activateHandCard?.(index);
               }}
               onContextMenu={(event) => { event.preventDefault(); if (visible) commands.inspectCard?.(card.raw); }}>
-              {visible && card.artPath && !failedArt[card.artPath] && (
-                <CollectorCardPresentation card={card}><img src={card.artPath} alt="" draggable="false"
-                  onError={() => setFailedArt((current) => ({ ...current, [card.artPath]: true }))} /></CollectorCardPresentation>
+              {visible && artPath && !failedArt[artPath] && (
+                <CollectorCardPresentation card={card}>{composed ? <MatchCardFace card={{ ...card, artPath }} /> : <img src={artPath} alt="" draggable="false"
+                  onError={() => setFailedArt((current) => ({ ...current, [artPath]: true }))} />}</CollectorCardPresentation>
               )}
               <span className="phone-hand-rank" aria-hidden="true">{visible
                 ? (card.rank || card.label) + ({ hearts: "♥", diamonds: "♦", clubs: "♣", spades: "♠" }[card.suit] || (card.rank ? card.suit : ""))

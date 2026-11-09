@@ -1,3 +1,5 @@
+import { presentationArt, usePresentationArt } from "./brand/presentationArt";
+import PreviewPackArt from "./brand/PreviewPackArt";
 import { brandText, useBrandPreview, useAccountBrand } from './brand/brandPreview';
 import SuitFireBrand from './brand/SuitFireBrand';
 import { mechanicFamily } from "@gauntlet/duel-rules/factionFamilyContract";
@@ -26,13 +28,13 @@ import SpecialCardFace, { getCardIllustration } from "./SpecialCardFace";
 import CollectorCardPresentation from "./CollectorCardPresentation";
 import { playFactionVoice } from "./factionVoicePlayback";
 import CampaignChapterBriefing from "./CampaignChapterBriefing";
-import { DeckVisual, FactionArtwork, FACTION_VISUALS, getFactionArtwork, getFactionAsset, resolveVisualAsset } from "./GauntletVisuals";
+import { DeckVisual, FactionArtwork, FACTION_VISUALS, getFactionArtwork, getFactionCover, getFactionAsset, resolveVisualAsset } from "./GauntletVisuals";
 import FactionLoadoutPicker from "./FactionLoadoutPicker";
 import { AchievementHonorCard, CampaignArchiveCard } from "./IdentityArchiveVisuals";
 import { findCollectorVariant, getCurrentDeckVersion, getDeckFeaturedArt, getNextCampaignChapter } from "./contentArt";
 import CollectorClaimScreen from "./CollectorClaimScreen";
 import { ActiveSeasonMatches, SeasonStandings } from "./SeasonZero";
-import { getPlayingCardArtPath, normalizeCardDisplayText } from "./cardArt";
+import { getPlayingCardArtPath, getCardForPresentation, normalizeCardDisplayText } from "./cardArt";
 import { createLiveMatchSession } from "./match/LiveMatchSession";
 import MatchRendererBoundary from "./match/MatchRendererBoundary";
 import { projectPostMatchResult } from "./match/completionResultProjection";
@@ -53,10 +55,10 @@ import {
 import { JOURNEY_ART, TUTORIAL_ART } from "./navigation/menuArtwork";
 import { fetchGameContent } from "./loadGameContent";
 import CurrencyWallet from "./CurrencyWallet";
-import FactionLoreScreen from "./FactionLoreScreen";
 import { canUsePrinting } from "@gauntlet/duel-rules/printings";
 
 const PlayerMenuExperience = lazy(() => import(/* webpackChunkName: "gauntlet-command-deck", webpackPrefetch: true */ "./navigation/PlayerMenuExperience"));
+const FactionLoreScreen = lazy(() => import("./FactionLoreScreen"));
 const DraftScreen = lazy(() => import("./DraftScreen"));
 const LiveBabylonMatchExperience = lazy(() => import("./babylon/LiveBabylonMatchExperience"));
 const CollectorSetPackTile = lazy(() => import("./CollectorSetPackTile"));
@@ -469,7 +471,7 @@ function getCardShortLabel(card) {
 
 function resolveAssetPath(path) {
   if (!path) return "";
-  if (/^https?:\/\//i.test(path)) return path;
+  if (/^(?:data:|https?:|\/\/)/i.test(path)) return path;
   return `${process.env.PUBLIC_URL || ""}${path}`;
 }
 
@@ -477,7 +479,7 @@ function CardBox({ card, children, bg = "white", selected = false, accent = "#25
   const suit = getSuitSymbol(card?.suit);
   const rank = getCardRank(card);
   const suitColor = isRedSuit(card?.suit) ? "#b91c1c" : "#111827";
-  const playingCardArt = getPlayingCardArtPath(card, artFactionId);
+  const playingCardArt = getCardForPresentation(card, artFactionId || card?.factionId) !== card ? "" : getPlayingCardArtPath(card, artFactionId);
   const cardSurface = bg === "white"
     ? "linear-gradient(180deg, #f8ecd5 0%, #e5c9a6 58%, #caa47a 100%)"
     : `linear-gradient(180deg, ${bg}, #ead6b8)`;
@@ -631,7 +633,8 @@ function CardInspectModal({ card, onClose, artFactionId }) {
   if (!card) return null;
   const suit = getSuitSymbol(card.suit);
   const suitColor = isRedSuit(card.suit) ? "#b91c1c" : "#111827";
-  const playingCardArt = getPlayingCardArtPath(card, artFactionId);
+  const shown = getCardForPresentation(card, artFactionId || card.factionId);
+  const playingCardArt = shown !== card ? "" : getPlayingCardArtPath(card, artFactionId);
 
   if (playingCardArt) {
     return (
@@ -649,7 +652,7 @@ function CardInspectModal({ card, onClose, artFactionId }) {
     <div role="dialog" aria-modal="true" onClick={onClose} className="app-layout-15">
       <div onClick={(event) => event.stopPropagation()} className="app-layout-16">
         <div className="app-layout-17">
-          {getCardIllustration(card) ? <CollectorCardPresentation card={card} className="collector-illustration"><img src={resolveAssetPath(getCardIllustration(card))} alt="" className="app-layout-5" /></CollectorCardPresentation> : <div style={{ color: suitColor, fontSize: 118, textAlign: "center", lineHeight: "210px", background: "#fff" }}>{suit}</div>}
+          {getCardIllustration(shown) ? <CollectorCardPresentation card={card} className="collector-illustration"><img src={resolveAssetPath(getCardIllustration(shown))} alt="" className="app-layout-5" /></CollectorCardPresentation> : <div style={{ color: suitColor, fontSize: 118, textAlign: "center", lineHeight: "210px", background: "#fff" }}>{suit}</div>}
           <button onClick={onClose} className="app-layout-18">Close</button>
         </div>
         <div className="app-layout-19">
@@ -1525,7 +1528,7 @@ function normalizeReplacementSuitId(suit) {
 }
 
 function BoosterPackTile({ booster, collectorPack, opening, canOpen, onOpen, onBuyPack }) {
-  useBrandPreview();
+  const preview = usePresentationArt();
   const theme = booster.pool === "all-factions" ? INITIATIVE_PACK_THEME : (PACK_THEMES[booster.factionId] || PACK_THEMES.rumin);
   const factionArt = resolveAssetPath(booster.artPath || `/assets/gauntlet/${booster.factionId}-card.webp`);
   const displayName = booster.displayName || theme.name;
@@ -1548,9 +1551,9 @@ function BoosterPackTile({ booster, collectorPack, opening, canOpen, onOpen, onB
       <span className="booster-pack-set">Earned Gameplay Pack</span>
       <strong>{displayName}</strong>
       <span className="booster-pack-subtitle">{subtitle}</span>
-      <span className={`booster-pack-art ${booster.artPath ? "booster-pack-art-featured" : ""}`} style={{ backgroundImage: `linear-gradient(180deg, rgba(2,6,23,0.02), rgba(2,6,23,0.28)), url(${factionArt})` }}>
+      {preview ? <PreviewPackArt setId={booster.setId || (booster.pool === "all-factions" ? "initiative" : "")} factionId={booster.pool === "all-factions" ? "" : booster.factionId} label={displayName} source={getFactionArtwork(booster.factionId)} /> : <span className={`booster-pack-art ${booster.artPath ? "booster-pack-art-featured" : ""}`} style={{ backgroundImage: `linear-gradient(180deg, rgba(2,6,23,0.02), rgba(2,6,23,0.28)), url(${factionArt})` }}>
         {!booster.artPath && <span className="booster-pack-sigil">{theme.name.slice(0, 1)}</span>}
-      </span>
+      </span>}
       <span className="booster-pack-count">{booster.cardCount || booster.slots?.length || 13} free-play gameplay unlocks</span>
       <span className="booster-pack-slots">
         {Object.entries(rarityCounts).map(([rarity, count]) => (
@@ -2491,7 +2494,7 @@ function FactionFeature({ title, feature, theme, factionId }) {
   );
 }
 
-function CompactPowerCard({ title, feature, theme, expanded, onToggle, actions = [] }) {
+function CompactPowerCard({ title, feature, factionId, theme, expanded, onToggle, actions = [] }) {
   return (
     <div
       className={`compact-power-card${expanded ? " compact-power-card-active" : ""}`}
@@ -2508,7 +2511,7 @@ function CompactPowerCard({ title, feature, theme, expanded, onToggle, actions =
     >
       <button type="button" className="compact-power-select" onClick={onToggle}>
         <span className="compact-power-portrait" style={{ borderColor: theme.border }}>
-          {feature?.image && <img src={resolveAssetPath(feature.image)} alt="" className="app-layout-5" />}
+          {feature?.image && <img src={resolveAssetPath(presentationArt(feature.image, { factionId, speaker: feature.name, surface: title === "City" ? "faction" : "portrait" }))} alt="" className="app-layout-5" />}
         </span>
         <span className="app-layout-86">
           <span style={{ display: "block", fontSize: 10, color: theme.primary, fontWeight: "bold", textTransform: "uppercase" }}>{title}</span>
@@ -2834,9 +2837,13 @@ function TutorialScreen({ embedded = false, onBack, onPlayBasicAi, onPlayFaction
           </section>
           <aside className="tutorial-practice-panel">
             <div className="tutorial-card-fan" aria-hidden="true">
-              {["rumin-7-hearts.webp", "sheen-q-spades.webp", "frumo-a-clubs.webp"].map((cardName) => (
-                <span key={cardName} style={{ backgroundImage: `url(${resolveAssetPath(`/assets/gauntlet/playing-cards/${cardName}`)})` }} />
-              ))}
+              {["rumin-7-hearts.webp", "sheen-q-spades.webp", "frumo-a-clubs.webp"].map((cardName) => {
+                const [factionId, rank, file] = cardName.split("-");
+                const card = { factionId, rank, suit: file.replace(".webp", "") };
+                return <span key={cardName} style={{ backgroundImage: `url(${resolveAssetPath(presentationArt(`/assets/gauntlet/playing-cards/${cardName}`, { surface: "card", factionId: cardName.split("-")[0] }))})` }}>
+                  {getCardForPresentation(card) !== card && <SpecialCardFace card={card} />}
+                </span>;
+              })}
             </div>
             <span className="tutorial-practice-kicker">Recommended first match</span>
             <h2>Practice the core loop</h2>
@@ -2902,7 +2909,7 @@ function CampaignScreen({ embedded = false, initialFactionId, initialChapterId =
                 aria-selected={selected}
                 className={`campaign-faction-tab${selected ? " is-active" : ""}`}
                 onClick={() => { setSelectedFactionId(factionId); changeBriefing(""); }}
-                style={{ "--faction-accent": theme.primary, backgroundImage: `linear-gradient(90deg, rgba(4,8,13,0.24), rgba(4,8,13,0.76)), url(${resolveVisualAsset(getFactionArtwork(factionId, campaign.coverImage) || "/assets/gauntlet/ui/faction-art-unavailable.svg")})` }}
+                style={{ "--faction-accent": theme.primary, backgroundImage: `linear-gradient(90deg, rgba(4,8,13,0.24), rgba(4,8,13,0.76)), url(${resolveVisualAsset(getFactionCover(factionId, campaign.coverImage) || "/assets/gauntlet/ui/faction-art-unavailable.svg")})` }}
               >
                 <span>{campaign.factionName}</span>
                 <strong>{factionClears}/{campaign.chapters.length}</strong>
@@ -3021,6 +3028,7 @@ export default function App() {
   const [factionVoice, setFactionVoice] = useState(null);
   const [account, setAccount] = useState(null);
   useAccountBrand(account);
+  usePresentationArt();
   const [authToken, setAuthToken] = useState(() => browserStorage.getItem(STORAGE_KEYS.authToken) || "");
   const [authMode, setAuthMode] = useState(INITIAL_PASSWORD_RESET_TOKEN ? "reset" : "login");
   const [authForm, setAuthForm] = useState({ name: "", password: "", email: "", token: INITIAL_PASSWORD_RESET_TOKEN });
@@ -4690,7 +4698,7 @@ export default function App() {
 
   if (!gameContent) {
     return (
-      <main className="gauntlet-loading" style={{ "--loading-art": `url(${resolveAssetPath("/assets/gauntlet/kaiser-gauntlet.webp")})` }}>
+      <main className="gauntlet-loading" style={{ "--loading-art": `url(${resolveAssetPath(presentationArt("/assets/gauntlet/kaiser-gauntlet.webp", { surface: "loading" }))})` }}>
         <section className="gauntlet-loading-shell" aria-labelledby="gauntlet-loading-title">
           <SuitFireBrand full />
           <div className="gauntlet-loading-copy">
@@ -4810,7 +4818,7 @@ export default function App() {
           events: <Suspense fallback={<SurfaceLoading label="official events" />}>{playerRoute.view === "para"
             ? <ParaEventHub serverUrl={SOCKET_URL} authToken={authToken} socket={socket} onOpenMatch={(id) => openPublicView("match", id)} />
             : <EventHub serverUrl={SOCKET_URL} socket={socket} authToken={authToken} account={account} factions={gameContent.factions} onAccountUpdated={setAccount} onError={setError} />}</Suspense>,
-          lore: <><FactionLoreScreen embedded manifest={gameContent} onBack={() => navigateHomeArea("campaign")} onOpenCampaign={(factionId) => openCampaign(factionId)} /><Suspense fallback={<p>Loading set reference…</p>}><LegaciesPanel set={gameContent.upcomingSets?.find((set) => set.id === "legacies")} /></Suspense></>,
+          lore: <><Suspense fallback={<SurfaceLoading label="faction lore" />}><FactionLoreScreen embedded manifest={gameContent} onBack={() => navigateHomeArea("campaign")} onOpenCampaign={(factionId) => openCampaign(factionId)} /></Suspense><Suspense fallback={<p>Loading set reference…</p>}><LegaciesPanel set={gameContent.upcomingSets?.find((set) => set.id === "legacies")} /></Suspense></>,
           standings: <SeasonStandings season={activeSeason} standings={leaderboard} playerStanding={playerSeasonStanding} lifetimeStandings={lifetimeLeaderboard} error={leaderboardError} onOpenProfile={(id) => openPublicView("profile", id)} />,
           liveMatches: <ActiveSeasonMatches season={activeSeason} matches={activeSeasonMatches} error={activeSeasonMatchesError} onSpectate={spectateSeasonMatch} />,
           recentMatch: <Suspense fallback={<section className="cd-utility"><div><strong>Match history</strong><small>Loading saved games…</small></div><button onClick={() => navigateHomeArea("matches")}>Open Matches</button></section>}><RecentMatchShortcut account={account} authToken={authToken} serverUrl={SOCKET_URL} onOpenReplay={openReplay} onOpenMatches={() => navigateHomeArea("matches")} /></Suspense>,
@@ -8345,6 +8353,7 @@ export default function App() {
                       key={power.id}
                       title={power.title}
                       feature={power.feature}
+                      factionId={me.faction?.id}
                       theme={myTheme}
                       expanded={selectedPower?.id === power.id}
                       onToggle={() => { handlePowerClick(power); setMatchDrawer("faction"); }}
@@ -8510,7 +8519,7 @@ export default function App() {
                 <div className="focus-drawer-scroll focus-faction-details">
                   {powerCards.map((power) => (
                     <article key={power.id} style={{ borderColor: myTheme.border }}>
-                      {power.feature?.image && <img src={resolveAssetPath(power.feature.image)} alt="" />}
+                      {power.feature?.image && <img src={resolveAssetPath(presentationArt(power.feature.image, { factionId: me.faction?.id, speaker: power.feature.name, surface: power.title === "City" ? "faction" : "portrait" }))} alt="" />}
                       <div><span>{power.title}</span><h3>{power.feature?.name}</h3><p>{power.feature?.text}</p></div>
                       {power.actions.map((action) => <button key={action.label} type="button" onClick={action.onClick} disabled={action.disabled} title={action.reason || action.label}>{action.label}</button>)}
                     </article>
