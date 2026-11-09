@@ -151,6 +151,16 @@
       "clientOutput": "client/public/assets/gauntlet/music/factions/xendra-aspect-without-form-v1.mp3"
     },
     {
+      "id": "morphlings-changing-light",
+      "kind": "music",
+      "reviewStatus": "approved",
+      "modelId": "music_v2_5",
+      "prompt": "Original complete three-minute instrumental faction theme for the Continuants of Gauntlet. Compose a full song around a wounded five-note human hymn repeatedly interrupted and rebuilt by detuned cello, bowed metal, glass harmonics, sub-bass pulses, surgical percussion, and strained breath-like synthesizer textures. These former Astral Vanguard humans survive in grotesque, unstable bodies and remain barred from the worlds they once defended. Move from intimate shame through adaptive bodily unease into stubborn dignity and credible hope. Body horror without cheap jump-scare stingers; emotionally human underneath but never sentimental. No lyrics, no recognizable melody, no generic trailer ostinato, no pop drums.",
+      "parameters": { "music_length_ms": 180000, "force_instrumental": true },
+      "outputFormat": "mp3_48000_192",
+      "clientOutput": "client/public/assets/gauntlet/music/factions/morphlings-changing-light-v1.mp3"
+    },
+    {
       "id": "ingles-unwritten-charter",
       "kind": "music",
       "reviewStatus": "approved",

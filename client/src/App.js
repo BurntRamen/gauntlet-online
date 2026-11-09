@@ -304,7 +304,7 @@ const MUSIC_TRACKS = {
   "astral-vanguard": { label: "The Hybrid Horizon", sources: factionThemeSources("astral-vanguard-hybrid-horizon"), pad: [55, 82.41, 110], notes: [220, 277.18, 329.63, 293.66, 369.99], tempo: 600, wave: "triangle" },
   voltari: { label: "The Golden Conduit", sources: factionThemeSources("voltari-golden-conduit"), pad: [46.25, 69.3, 92.5], notes: [277.18, 311.13, 415.3, 369.99], tempo: 540, wave: "sine" },
   xendra: { label: "Aspect Without Form", sources: factionThemeSources("xendra-aspect-without-form"), pad: [46.25, 69.3, 92.5], notes: [185, 174.61, 207.65, 138.59, 155.56, 123.47], tempo: 780, wave: "sine" },
-  morphlings: { label: "The Light That Changes", sources: factionThemeSources("morphlings-changing-light"), pad: [55, 73.42, 110], notes: [220, 246.94, 293.66, 329.63, 369.99], tempo: 690, wave: "sine" },
+  morphlings: { label: "The Unfinished Return", sources: factionThemeSources("morphlings-changing-light"), pad: [55, 73.42, 110], notes: [220, 246.94, 293.66, 329.63, 369.99], tempo: 690, wave: "sine" },
   ingles: { label: "The Isles Across the Ages", sources: factionThemeSources("ingles-unwritten-charter") },
   mercaw: { label: "The Many-Star Accord", sources: factionThemeSources("mercaw-many-star-accord") },
   mtano: { label: "The Mountain Remembers", sources: factionThemeSources("mtano-mountain-remembers") },

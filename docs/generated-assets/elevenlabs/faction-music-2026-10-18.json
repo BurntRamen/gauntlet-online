@@ -1,5 +1,6 @@
 {
   "generatedAt": "2026-10-19",
+  "updatedAt": "2026-11-08",
   "provider": "ElevenLabs Music",
   "model": "Music v2.5",
   "generationSurface": "ElevenLabs web app",
@@ -12,37 +13,33 @@
       "faction": "rumin",
       "title": "The Civic Imperium",
       "output": "client/public/assets/gauntlet/music/factions/rumin-civic-imperium-v1.mp3",
-      "sha256": "36dca7ef182a98cd80fc6c263f68aab9753e6ad4b7dc9bc1fbe3883608de0a2c",
+      "sha256": "583e6b637ac43d1624549af646e857a816a1c0887c1ff66495c8d895d3e5073b",
       "durationSeconds": 180,
-      "projectId": "Y5w8mHq6G0NqfcUuWGRl",
-      "songId": "QqWJ10eNKHJN7RTQbb2X"
+      "sourceFile": "March_of_the_Rumin_2026-05-29T003918.mp3"
     },
     {
       "faction": "sheen",
       "title": "The Living Renewal",
       "output": "client/public/assets/gauntlet/music/factions/sheen-living-renewal-v1.mp3",
-      "sha256": "73f7b5d02891ba89ccbf99eb7f943f43b093e857ccd8da1e94e7cc923eee52ec",
+      "sha256": "3e29866c8559888b4615dca0cc5b5e4c8faacbfea950a99986a598392975e5a5",
       "durationSeconds": 180,
-      "projectId": "Fp9U3fncmTLNTza5HkEj",
-      "songId": "HvRmPRk6f1w0E3l94ttD"
+      "sourceFile": "Song_of_the_Sheen_2026-05-29T004600.mp3"
     },
     {
       "faction": "frumo",
       "title": "The Council of Captains",
       "output": "client/public/assets/gauntlet/music/factions/frumo-council-of-captains-v1.mp3",
-      "sha256": "f62d8e2ae366e4d23bc25322dfecceb9dec8f7a0e5993506914426f3bccc5a87",
+      "sha256": "a52771d826ff6e5ea7c6896c2751c96425d48d2501084ac13f785736bf9a0cae",
       "durationSeconds": 180,
-      "projectId": "YtPRiNONIABaNxFOZRhz",
-      "songId": "SNPs2uMPFeo5XAV5936N"
+      "sourceFile": "The_Frumos_Anthem_2026-05-29T023250.mp3"
     },
     {
       "faction": "bizi",
       "title": "The Plural Machine",
       "output": "client/public/assets/gauntlet/music/factions/bizi-plural-machine-v1.mp3",
-      "sha256": "5c96e9580551071bb1b34ddf223c4c06640d6ffacb61bb2881764c618501a746",
+      "sha256": "553a6a0c1554c8f63baf8294bc6ecdaa781ad74625bd5eb84bc709b8a29f9d80",
       "durationSeconds": 180,
-      "projectId": "nNMWsmZTmYZKkcLHglc3",
-      "songId": "59RUo93OYuWTwD0xrxod"
+      "sourceFile": "Gears_of_the_Empire_2026-06-12T051903.mp3"
     },
     {
       "faction": "mekan",
@@ -76,29 +73,38 @@
       "faction": "zynarth",
       "title": "The Infinite Hive",
       "output": "client/public/assets/gauntlet/music/factions/zynarth-infinite-hive-v1.mp3",
-      "sha256": "351966768fc7b4d753ed249b6d2e767d6aa6c86412ce69c6e692f5c45b36dbf5",
+      "sha256": "aaaf9a9fbb4e256974bd0de69cfcb033c086f1bb75457458f25aadca23fef181",
       "durationSeconds": 180
     },
     {
       "faction": "astral-vanguard",
       "title": "The Hybrid Horizon",
       "output": "client/public/assets/gauntlet/music/factions/astral-vanguard-hybrid-horizon-v1.mp3",
-      "sha256": "2b2b591fca86c1ebd58e7b7e35d6f5745eccc60e5f05cf831ed02aef731ceaa4",
+      "sha256": "b54359292ab543b5fc088984ed2c50beeeb980674fac8e300466bfb10d24f550",
       "durationSeconds": 180
     },
     {
       "faction": "voltari",
       "title": "The Golden Conduit",
       "output": "client/public/assets/gauntlet/music/factions/voltari-golden-conduit-v1.mp3",
-      "sha256": "e150170193b7179ffa1c0c2fbfb04c8ed32121b7cf75b6af274ef95aef85ed51",
+      "sha256": "f8971003e59ae2ad772e1cb3efbdcbcdae0fc6167cb8e4026d1beb0094e78101",
       "durationSeconds": 180
     },
     {
       "faction": "xendra",
       "title": "Aspect Without Form",
       "output": "client/public/assets/gauntlet/music/factions/xendra-aspect-without-form-v1.mp3",
-      "sha256": "ae1cb3e62c7526f64ab9e632f8d52e1398ddaf5839b4ab0c2d948efde467b2c3",
+      "sha256": "805c21e05ed5539481667c052ce1e26147ab956858d0f88581679b6853d45c4c",
       "durationSeconds": 180
+    },
+    {
+      "faction": "morphlings",
+      "title": "The Unfinished Return",
+      "output": "client/public/assets/gauntlet/music/factions/morphlings-changing-light-v1.mp3",
+      "sha256": "e366e8b70531aba4445279f2488e137329d6d2b032c6d1c8b8edf9e78ba6416a",
+      "durationSeconds": 180,
+      "projectId": "zSmM5Iyp0cWdXNkkjhlH",
+      "songId": "1IbukDQkcdnP2LfqGJO9"
     },
     {
       "faction": "ingles",
