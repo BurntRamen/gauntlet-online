@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">The Continuants emblem</title>
+  <desc id="desc">An iridescent changing droplet held by four connected arcs.</desc>
+  <defs>
+    <linearGradient id="tide" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#b8fff1"/><stop offset=".32" stop-color="#72d8e8"/>
+      <stop offset=".66" stop-color="#b69cff"/><stop offset="1" stop-color="#ff9dd5"/>
+    </linearGradient>
+    <radialGradient id="core"><stop stop-color="#fff"/><stop offset=".28" stop-color="#b8fff1"/><stop offset="1" stop-color="#4b3d78"/></radialGradient>
+  </defs>
+  <circle cx="256" cy="256" r="220" fill="#10152b" stroke="url(#tide)" stroke-width="18"/>
+  <g fill="none" stroke="url(#tide)" stroke-width="24" stroke-linecap="round">
+    <path d="M256 70C160 104 106 169 94 256"/><path d="M442 256c-12-87-66-152-162-186"/>
+    <path d="M256 442c-96-34-150-99-162-186"/><path d="M442 256c-12 87-66 152-162 186"/>
+  </g>
+  <path d="M256 106c-28 54-112 126-112 216 0 65 50 104 112 104s112-39 112-104c0-90-84-162-112-216Z" fill="url(#core)" stroke="url(#tide)" stroke-width="12"/>
+  <path d="M203 323c23-50 60-87 108-117-16 46-11 91 16 134-39 23-88 17-124-17Z" fill="#fff" opacity=".42"/>
+  <circle cx="256" cy="256" r="18" fill="#fff"/>
+</svg>

@@ -40,6 +40,50 @@ const FACTIONS = {
     homeworld: "Ruskovia",
     origin: "The bear-like Russo survived the cold world Ruskovia through shared stores, immense forests, mass industry, and a political history divided between collective responsibility and centralized power.",
     reathArrival: "Miners uncovered a Timetwister beneath Ruskovia's ice during Petrov's industrialization. Later governments turned the discovery toward exploration and rivalry before Irina Volkov led an accountable expedition to Reath."
+  },
+  khevar: {
+    id: "khevar", name: "Khevar", setId: "crossroads", draftRules: true,
+    cardImage: "/assets/gauntlet/khevar-emblem.svg",
+    mechanic: { name: "Seal", summary: "Preserve one commitment now so it can return with greater purpose later.", gameplay: "Khevar suits reward patient lane attacks, exact sequences, and defensive timing—the playable expression of sealing testimony before reopening it." },
+    commander: { name: "Commander Satek", image: "/assets/gauntlet/khevar-emblem.svg", text: "Seal — Preserve a commitment before power can rewrite it; reopen it when the record matters most." },
+    general: { name: "Archivist Meret", image: "/assets/gauntlet/khevar-emblem.svg", text: "Open Ledger — Patient defense becomes evidence for a later, decisive answer." },
+    city: { name: "Iru-Nemeth", image: "/assets/gauntlet/khevar-emblem.svg", text: "River Archive — What the flood carries away survives in testimony, scarab seals, and the names spoken afterward." },
+    homeworld: "Neshara",
+    origin: "The jackal-like Khevar arose beside Neshara's great river. Their kingdoms joined flood agriculture, royal succession, scarab armor, funerary preservation, and public ledgers into a civilization built around one dangerous question: who controls what is remembered?",
+    reathArrival: "A sealed funerary gate beneath Iru-Nemeth proved to be a Timetwister receiver. Satek opened it under public witness and reached Reath carrying records rather than a claim of origin."
+  },
+  vardun: {
+    id: "vardun", name: "Vardun", setId: "crossroads", draftRules: true,
+    cardImage: "/assets/gauntlet/vardun-emblem.svg",
+    mechanic: { name: "Chart", summary: "Announce where an expedition will matter, then make that public commitment pay off.", gameplay: "Vardun cards favor first strikes, lane launches, and late attacks, turning a visible plan into pressure without revealing every detail." },
+    commander: { name: "Yrsa Blackwake", image: "/assets/gauntlet/vardun-emblem.svg", text: "Chart — Commit to a course openly, conceal the crew's final tactic, and return with an advantage earned through risk." },
+    general: { name: "Torven Oar-Speaker", image: "/assets/gauntlet/vardun-emblem.svg", text: "Assembly Oath — A captain commands a voyage; the harbor decides what its return means." },
+    city: { name: "Winter Harbor", image: "/assets/gauntlet/vardun-emblem.svg", text: "Carved Longships — Trade, rescue, and raiding share the same sea, but not the same obligation." },
+    homeworld: "Skeld",
+    origin: "The tusked, heavy-coated Vardun built carved longships across Skeld's black fjords. Rival captains became navigators, traders, raiders, and assembly speakers whose public expedition oaths made ambition answerable to the harbor it left behind.",
+    reathArrival: "A starless current carried one charted longship through a Timetwister and into Reath's inland sea. The Vardun marked Reath as a meeting harbor, never as the birthplace of their people."
+  },
+  qhantari: {
+    id: "qhantari", name: "Qhantari", setId: "crossroads", draftRules: true,
+    cardImage: "/assets/gauntlet/qhantari-emblem.svg",
+    mechanic: { name: "Relay", summary: "Move strength and information between linked lanes so no position stands alone.", gameplay: "Qhantari suits reward lane defense, rising sequences, and changing suits—the card-game equivalent of couriers handing a message across a living road." },
+    commander: { name: "Courier-General Amaru", image: "/assets/gauntlet/qhantari-emblem.svg", text: "Relay — Every lane is a station; every card should leave the next station stronger than it found it." },
+    general: { name: "Killa Ropekeeper", image: "/assets/gauntlet/qhantari-emblem.svg", text: "Linked Roads — A route belongs to the communities that maintain, question, and survive it." },
+    city: { name: "The High Storehouse", image: "/assets/gauntlet/qhantari-emblem.svg", text: "Terraced Reserve — Stored abundance matters only when the road can deliver it to need." },
+    homeworld: "Ayara",
+    origin: "The vicuna-like Qhantari joined Ayara's mountain valleys with terraces, rope bridges, relay couriers, public storehouses, and knotted records. Their road system is both their greatest achievement and their oldest political argument.",
+    reathArrival: "A relay station above the cloud line received an impossible answer from Reath. Amaru rebuilt the route as a consent-bound crossing, leaving Ayara unmistakably their homeworld."
+  },
+  sahravi: {
+    id: "sahravi", name: "Sahravi", setId: "crossroads", draftRules: true,
+    cardImage: "/assets/gauntlet/sahravi-emblem.svg",
+    mechanic: { name: "Commission", summary: "Match the right resource to a promise and convert exact preparation into flexible action.", gameplay: "Sahravi cards reward matching suits, contrasting suits, and ordered value growth, reflecting contracts whose strength depends on context rather than raw size." },
+    commander: { name: "Commander Naya", image: "/assets/gauntlet/sahravi-emblem.svg", text: "Commission — A promise becomes power only when its cost, beneficiary, and witness remain legible." },
+    general: { name: "Idris of the Open Ledger", image: "/assets/gauntlet/sahravi-emblem.svg", text: "Counter-Signature — Trust is not innocence; it is a system that makes deception answerable." },
+    city: { name: "Sahra Gate", image: "/assets/gauntlet/sahravi-emblem.svg", text: "Caravan University — Gold moves goods, scholarship moves meaning, and neither travels without people." },
+    homeworld: "Taziri",
+    origin: "The gazelle-like Sahravi linked Taziri's savannah cities and desert universities through caravans, merchant houses, manuscript culture, and layered contracts. Their prosperity depends less on ownership than on promises surviving distance.",
+    reathArrival: "A disputed caravan crossed a mirage that was actually a Timetwister aperture. Naya made the route public and refused every house's attempt to record Reath as acquired property."
   }
 };
 
@@ -299,6 +343,86 @@ const ARC = {
     conflict: "collective endurance can outlive monarchy, revolution, and emergency rule without making individuals expendable",
     theme: "The Winter Crown",
     chapters: RUSSO_STORY
+  },
+  khevar: {
+    hero: "Commander Satek", ally: "Archivist Meret", world: "Neshara", city: "Iru-Nemeth",
+    perspective: "Satek learning that preservation can protect truth or imprison it",
+    conflict: "memory can remain a public trust instead of becoming royal property",
+    theme: "The River Keeps No Names",
+    chapters: [
+      { title: "The Sealed Granary", foe: "The Palace Guard", when: "The third failed flood", perspective: "Satek protecting grain meant for villages", story: "A late queen's grain reserve is sealed inside her tomb while villages starve. Satek breaks the seal in public and discovers that members of his own family signed the diversion order." },
+      { title: "Scarab Witness", foe: "The Counterfeit Priests", perspective: "Meret proving ritual objects can preserve evidence" },
+      { title: "The Missing Names", foe: "The Royal Redactors", perspective: "Satek finding workers removed from the monument they built" },
+      { title: "Flood Court", foe: "The Upstream Houses", perspective: "Meret weighing testimony from communities with incompatible maps" },
+      { title: "The Queen's Original Ledger", foe: "The Coronation Council", perspective: "Satek deciding whether to read a record that may collapse the succession" },
+      { title: "The Open Tomb", foe: "The Preservation Edict", perspective: "Meret asking whether honoring the dead can require contradicting them" },
+      { title: "Cargo of Names", foe: "The River Reavers", perspective: "Satek defending testimony that cannot defend itself" },
+      { title: "What the River Forgets", foe: "The Silt Archive", perspective: "Meret restoring lives without inventing certainty" },
+      { title: "The Crown Weighs Itself", foe: "The Last Seal", perspective: "Satek placing royal memory under public law" },
+      { title: "The Door Beneath Iru-Nemeth", foe: "The Funerary Warden", perspective: "Meret recognizing a receiver inside a sacred gate" },
+      { title: "Witnesses to the Crossing", foe: "The Closed Record", perspective: "Satek refusing secret passage between worlds" },
+      { title: "The River Between Worlds", foe: "The Convergence Storm", where: "Reath, beside a river that remembers impossible skies", perspective: "Satek carrying an open ledger into a world his people did not create" }
+    ]
+  },
+  vardun: {
+    hero: "Yrsa Blackwake", ally: "Torven Oar-Speaker", world: "Skeld", city: "Winter Harbor",
+    perspective: "Yrsa balancing a captain's initiative with the assembly's right to judge the voyage",
+    conflict: "public commitments can guide risk without turning every expedition into conquest",
+    theme: "The Winter Harbor",
+    chapters: [
+      { title: "The Hostage Current", foe: "The Strait-Keeper Fleet", when: "The winter before the harbor famine", perspective: "Yrsa returning with wealth and a hostage whose family controls the safe straits", story: "Yrsa Blackwake brings home the supplies Winter Harbor needs and a hostage whose ransom could open a safe route. The assembly divides between treaty, revenge, and questions about sailors her success left behind." },
+      { title: "Oath on the Mast", foe: "The Silent Captain", perspective: "Torven making private command answer public questions" },
+      { title: "The Exposed Route", foe: "The Whitewater Teeth", perspective: "Yrsa rescuing witnesses who may end her command" },
+      { title: "Longships at Dawn", foe: "The Harbor Raiders", perspective: "rival captains coordinating without surrendering their crews" },
+      { title: "Trade Wind, War Wind", foe: "The Amber Monopoly", perspective: "Yrsa deciding when escort becomes occupation" },
+      { title: "The Tusk Assembly", foe: "The Permanent Admiral", perspective: "Torven defending temporary authority" },
+      { title: "The Ship Without a Wake", foe: "The Drowned Map", perspective: "Yrsa confronting a vessel that returns before it departs" },
+      { title: "Harbor of Rivals", foe: "The Blood-Oath Bloc", perspective: "the assembly deciding whether hospitality can survive memory" },
+      { title: "Every Captain Returns", foe: "The Last Expedition", perspective: "Yrsa handing command back before legend makes it permanent" },
+      { title: "The Inland Sea", foe: "The Starless Current", perspective: "Torven seeing an ocean beneath an unfamiliar sky" },
+      { title: "No Shore Is Ownerless", foe: "The Annexation Fleet", perspective: "Yrsa rejecting discovery as title" },
+      { title: "The Harbor Between", foe: "The Convergence Storm", where: "Reath's inland sea", perspective: "Yrsa charting a return route instead of planting a claim" }
+    ]
+  },
+  qhantari: {
+    hero: "Courier-General Amaru", ally: "Killa Ropekeeper", world: "Ayara", city: "The High Storehouse",
+    perspective: "Amaru carrying orders while learning that roads must answer the communities beneath them",
+    conflict: "connection can distribute agency rather than merely extend central command",
+    theme: "The Last Relay",
+    chapters: [
+      { title: "The Broken Road", foe: "The Capital Seal", when: "A landslide divides the high valleys", perspective: "Amaru ordered to abandon the lower villages", story: "Conflicting claimants send orders to the storehouses after a landslide cuts the imperial road. Amaru recruits bridgekeepers to reopen a route the official maps ignore." },
+      { title: "Bridgekeepers", foe: "The Ravine Wind", perspective: "Killa recovering engineering knowledge held outside the capital" },
+      { title: "The Living Dispatch", foe: "The Seal Hunters", perspective: "Amaru keeping one dispatch moving across every linked station" },
+      { title: "Storehouse Winter", foe: "The Hoarding Governor", perspective: "Killa proving abundance without delivery is guarded waste" },
+      { title: "Knots That Disagree", foe: "The Official Count", perspective: "Amaru preserving incompatible testimony instead of forcing one total" },
+      { title: "The Road Votes", foe: "The Imperial Inspector", perspective: "couriers deciding whether neutrality protects injustice" },
+      { title: "Across the Cloud Line", foe: "The Silent Relay", perspective: "Killa answering a message from no known valley" },
+      { title: "The Unmapped Community", foe: "The Erasure Order", perspective: "Amaru recognizing connection without annexation" },
+      { title: "The Last Imperial Courier", foe: "The Central Claimant", perspective: "Amaru surrendering a title so the relay remains public" },
+      { title: "Rope Bridge of Stars", foe: "The Receiver Warden", perspective: "Killa building a crossing that can be closed from either side" },
+      { title: "Every Station Consents", foe: "The Forced March", perspective: "Amaru requiring each community to ratify the passage" },
+      { title: "The Road Beyond Mountains", foe: "The Convergence Storm", where: "Reath, at a terraced convergence site", perspective: "Amaru adding Reath as a destination, never as Ayara's origin" }
+    ]
+  },
+  sahravi: {
+    hero: "Commander Naya", ally: "Idris of the Open Ledger", world: "Taziri", city: "Sahra Gate",
+    perspective: "Naya rebuilding trust after discovering that her own office authenticated the deception",
+    conflict: "trade can transfer agency and knowledge instead of disguising extraction as exchange",
+    theme: "The Price of a Promise",
+    chapters: [
+      { title: "Three Claims, One Cargo", foe: "The Forged Contract", when: "A caravan vanishes outside Sahra Gate", perspective: "Naya learning three houses sold the same promise", story: "Three merchant houses sell claims on one missing cargo. While Naya keeps a struggling city supplied, Idris traces the forged contracts back to the crown office Naya once led." },
+      { title: "The Open Ledger", foe: "The Closed House", perspective: "Idris exposing evidence without collapsing every innocent contract" },
+      { title: "Caravan of Rivals", foe: "The Salt-Road Raiders", perspective: "Naya making each house honor another's promise" },
+      { title: "University of Dust", foe: "The Manuscript Fire", perspective: "Idris treating learning as infrastructure" },
+      { title: "Gold Without Water", foe: "The Well Monopoly", perspective: "Naya confronting a legal contract that produces an intolerable result" },
+      { title: "The Counter-Signature", foe: "The Crown Auditor", perspective: "Naya testifying against the system that made her powerful" },
+      { title: "A Promise Across Distance", foe: "The Mirage Broker", perspective: "Idris identifying a temporal market no ledger can balance" },
+      { title: "The City Owes the Road", foe: "The Gate Consortium", perspective: "Naya learning merchants are not the only authors of trade" },
+      { title: "The Route Reopens", foe: "The Last Default", perspective: "rival houses honoring one another's commitments" },
+      { title: "The Contract Between Worlds", foe: "The Timetwister Custodian", perspective: "Idris writing clauses for reconstructed identities" },
+      { title: "No World for Sale", foe: "The Acquisition Houses", perspective: "Naya placing Reath outside ordinary property law" },
+      { title: "The Fourth Signature", foe: "The Convergence Storm", where: "Reath, at the caravan aperture", perspective: "Naya asking Reath's communities to countersign their own terms" }
+    ]
   }
 };
 
@@ -419,6 +543,30 @@ const CHARACTERS = {
     zhukor: { name: "Georgi Zhukor", role: "Marshal of Survival", description: "A logistics commander who mobilizes an entire society while insisting that every cost has a name and every retreat may preserve irreplaceable lives." },
     irina: { name: "Irina Volkov", role: "Warden of the Winter Oath", description: "A crisis commander who coordinates collective endurance, distributes control of identity records, and relinquishes emergency authority when the danger passes." },
     mikhail: { name: "Mikhail Saran", role: "Keeper of the Shared Hearth", description: "An engineer and organizer who keeps local networks alive whenever central certainty fails and makes interworld assistance answer to the people receiving it." }
+  },
+  khevar: {
+    satek: { name: "Commander Satek", role: "Breaker of the Granary Seal", description: "A scarab-armored commander who exposes a royal diversion of famine grain, then discovers his own family helped authorize it." },
+    meret: { name: "Archivist Meret", role: "Keeper of the Open Ledger", description: "A priest-archivist who treats ritual preservation as evidence held in trust for the living, not secrecy owed to power." },
+    neferet: { name: "Queen Neferet", role: "Author of the Disputed Reserve", description: "A dead sovereign whose intentions survive only through conflicting ledgers, sealed jars, and the people asked to interpret them." },
+    ...oppositionArchive("khevar")
+  },
+  vardun: {
+    yrsa: { name: "Yrsa Blackwake", role: "Captain of the Exposed Route", description: "A tusked navigator whose spectacular return saves Winter Harbor and forces her to account for every sailor her legend left behind." },
+    torven: { name: "Torven Oar-Speaker", role: "Voice of the Harbor Assembly", description: "An assembly speaker who makes captains announce their risks without pretending public oversight can remove uncertainty from the sea." },
+    asta: { name: "Asta Strait-Keeper", role: "Hostage and Negotiator", description: "The heir to a family controlling the safe straits, whose captivity becomes either ransom, treaty, or the first honest account of the voyage." },
+    ...oppositionArchive("vardun")
+  },
+  qhantari: {
+    amaru: { name: "Courier-General Amaru", role: "Bearer of the Last Relay", description: "A vicuna courier who begins by carrying the capital's seal and ends by making the road answer the communities that sustain it." },
+    killa: { name: "Killa Ropekeeper", role: "Bridge Engineer", description: "A keeper of local engineering traditions omitted from imperial maps, and the architect of routes that can be refused from either end." },
+    seal: { name: "The Capital Seal", role: "Authority Without a Voice", description: "An object whose conflicting orders reveal how infrastructure can extend power while disguising the people who chose it." },
+    ...oppositionArchive("qhantari")
+  },
+  sahravi: {
+    naya: { name: "Commander Naya", role: "Former Chief Bookkeeper", description: "A gazelle commander who keeps a city supplied while tracing forged claims back to the crown office she once led." },
+    idris: { name: "Idris of the Open Ledger", role: "Scholar of Counter-Signatures", description: "A young scholar who proves that trust is strongest when every promise preserves its cost, beneficiary, and witness." },
+    houses: { name: "The Three Merchant Houses", role: "Rivals Bound by One Cargo", description: "Competing institutions forced to honor one another's promises before the desert route can function again." },
+    ...oppositionArchive("sahravi")
   }
 };
 

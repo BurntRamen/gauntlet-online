@@ -28,7 +28,7 @@
       "source": "/assets/gauntlet/bizi-card.webp",
       "associations": [
         {
-          "object": "content.factions.15.cardImage",
+          "object": "content.factions.19.cardImage",
           "usage": "cardImage"
         },
         {
@@ -660,7 +660,7 @@
           "usage": "art"
         },
         {
-          "object": "content.deckRules.factions.15.cardImage",
+          "object": "content.deckRules.factions.19.cardImage",
           "usage": "cardImage"
         },
         {
@@ -2184,19 +2184,19 @@
       "source": "/assets/gauntlet/constructed/bizi/bizi-voltaric-ultimatum.webp",
       "associations": [
         {
-          "object": "content.factions.14.cardImage",
+          "object": "content.factions.18.cardImage",
           "usage": "cardImage"
         },
         {
-          "object": "content.factions.14.commander.image",
+          "object": "content.factions.18.commander.image",
           "usage": "image"
         },
         {
-          "object": "content.factions.14.general.image",
+          "object": "content.factions.18.general.image",
           "usage": "image"
         },
         {
-          "object": "content.factions.14.city.image",
+          "object": "content.factions.18.city.image",
           "usage": "image"
         },
         {
@@ -2840,19 +2840,19 @@
           "usage": "art"
         },
         {
-          "object": "content.deckRules.factions.14.cardImage",
+          "object": "content.deckRules.factions.18.cardImage",
           "usage": "cardImage"
         },
         {
-          "object": "content.deckRules.factions.14.commander.image",
+          "object": "content.deckRules.factions.18.commander.image",
           "usage": "image"
         },
         {
-          "object": "content.deckRules.factions.14.general.image",
+          "object": "content.deckRules.factions.18.general.image",
           "usage": "image"
         },
         {
-          "object": "content.deckRules.factions.14.city.image",
+          "object": "content.deckRules.factions.18.city.image",
           "usage": "image"
         },
         {
@@ -15854,11 +15854,11 @@
       "source": "/assets/gauntlet/factions/astral-vanguard/high-marshal-alden.webp",
       "associations": [
         {
-          "object": "content.factions.13.commander.image",
+          "object": "content.factions.17.commander.image",
           "usage": "image"
         },
         {
-          "object": "content.deckRules.factions.13.commander.image",
+          "object": "content.deckRules.factions.17.commander.image",
           "usage": "image"
         },
         {
@@ -15876,11 +15876,11 @@
       "source": "/assets/gauntlet/factions/astral-vanguard/sergeant-myra-cross.webp",
       "associations": [
         {
-          "object": "content.factions.13.general.image",
+          "object": "content.factions.17.general.image",
           "usage": "image"
         },
         {
-          "object": "content.deckRules.factions.13.general.image",
+          "object": "content.deckRules.factions.17.general.image",
           "usage": "image"
         },
         {
@@ -15898,11 +15898,11 @@
       "source": "/assets/gauntlet/factions/astral-vanguard/vanguard-outpost.webp",
       "associations": [
         {
-          "object": "content.factions.13.cardImage",
+          "object": "content.factions.17.cardImage",
           "usage": "cardImage"
         },
         {
-          "object": "content.factions.13.city.image",
+          "object": "content.factions.17.city.image",
           "usage": "image"
         },
         {
@@ -15962,11 +15962,11 @@
           "usage": "image"
         },
         {
-          "object": "content.deckRules.factions.13.cardImage",
+          "object": "content.deckRules.factions.17.cardImage",
           "usage": "cardImage"
         },
         {
-          "object": "content.deckRules.factions.13.city.image",
+          "object": "content.deckRules.factions.17.city.image",
           "usage": "image"
         },
         {
@@ -16066,11 +16066,11 @@
       "source": "/assets/gauntlet/factions/zynarth/brood-nest.webp",
       "associations": [
         {
-          "object": "content.factions.12.cardImage",
+          "object": "content.factions.16.cardImage",
           "usage": "cardImage"
         },
         {
-          "object": "content.factions.12.city.image",
+          "object": "content.factions.16.city.image",
           "usage": "image"
         },
         {
@@ -16082,11 +16082,11 @@
           "usage": "image"
         },
         {
-          "object": "content.deckRules.factions.12.cardImage",
+          "object": "content.deckRules.factions.16.cardImage",
           "usage": "cardImage"
         },
         {
-          "object": "content.deckRules.factions.12.city.image",
+          "object": "content.deckRules.factions.16.city.image",
           "usage": "image"
         },
         {
@@ -16108,11 +16108,11 @@
       "source": "/assets/gauntlet/factions/zynarth/broodmother-zalara.webp",
       "associations": [
         {
-          "object": "content.factions.12.commander.image",
+          "object": "content.factions.16.commander.image",
           "usage": "image"
         },
         {
-          "object": "content.deckRules.factions.12.commander.image",
+          "object": "content.deckRules.factions.16.commander.image",
           "usage": "image"
         },
         {
@@ -16130,11 +16130,11 @@
       "source": "/assets/gauntlet/factions/zynarth/klar-biomass-keeper.webp",
       "associations": [
         {
-          "object": "content.factions.12.general.image",
+          "object": "content.factions.16.general.image",
           "usage": "image"
         },
         {
-          "object": "content.deckRules.factions.12.general.image",
+          "object": "content.deckRules.factions.16.general.image",
           "usage": "image"
         },
         {
@@ -16156,7 +16156,7 @@
           "usage": "cardImage"
         },
         {
-          "object": "content.factions.15.city.image",
+          "object": "content.factions.19.city.image",
           "usage": "image"
         },
         {
@@ -16164,7 +16164,7 @@
           "usage": "cardImage"
         },
         {
-          "object": "content.deckRules.factions.15.city.image",
+          "object": "content.deckRules.factions.19.city.image",
           "usage": "image"
         },
         {
@@ -19036,6 +19036,904 @@
       "bytes": 122246
     },
     {
+      "id": "asset:khevar-emblem.svg",
+      "source": "/assets/gauntlet/khevar-emblem.svg",
+      "associations": [
+        {
+          "object": "content.factions.12.cardImage",
+          "usage": "cardImage"
+        },
+        {
+          "object": "content.factions.12.commander.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.factions.12.general.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.factions.12.city.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.campaigns.khevar.coverImage",
+          "usage": "coverImage"
+        },
+        {
+          "object": "content.campaigns.khevar.chapters.11.cinematic.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.cards.696.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.697.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.698.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.699.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.700.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.701.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.702.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.703.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.704.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.705.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.706.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.707.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.708.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.709.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.710.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.711.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.712.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.713.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.714.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.715.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.716.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.717.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.718.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.719.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.720.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.721.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.722.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.723.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.724.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.725.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.726.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.727.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.728.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.729.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.730.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.731.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.732.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.733.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.734.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.735.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.736.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.737.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.738.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.739.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.740.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.741.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.742.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.743.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.744.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.745.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.746.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.747.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1392.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1393.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1394.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1395.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1396.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1397.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1398.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1399.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1400.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1401.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1402.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1403.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1404.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1405.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1406.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1407.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1408.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1409.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1410.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1411.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1412.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1413.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1414.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1415.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1416.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1417.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1418.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1419.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1420.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1421.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1422.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1423.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1424.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1425.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1426.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1427.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1428.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1429.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1430.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1431.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1432.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1433.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1434.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1435.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1436.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1437.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1438.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1439.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1440.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1441.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1442.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1443.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1444.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1445.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1446.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1447.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1448.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1449.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1450.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1451.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1452.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1453.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1454.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1455.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1456.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1457.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1458.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1459.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1460.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1461.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1462.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1463.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1464.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1465.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1466.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1467.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1468.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1469.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1470.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1471.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1472.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1473.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1474.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1475.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1476.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1477.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1478.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1479.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1480.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1481.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1482.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1483.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1484.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1485.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1486.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1487.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1488.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1489.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1490.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1491.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1492.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1493.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1494.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1495.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.deckRules.factions.12.cardImage",
+          "usage": "cardImage"
+        },
+        {
+          "object": "content.deckRules.factions.12.commander.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.deckRules.factions.12.general.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.deckRules.factions.12.city.image",
+          "usage": "image"
+        },
+        {
+          "object": "factions.khevar.cardImage",
+          "usage": "cardImage"
+        },
+        {
+          "object": "factions.khevar.commander.image",
+          "usage": "image"
+        },
+        {
+          "object": "factions.khevar.general.image",
+          "usage": "image"
+        },
+        {
+          "object": "factions.khevar.city.image",
+          "usage": "image"
+        },
+        {
+          "object": "khevar-spades-2",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-spades-3",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-spades-4",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-spades-5",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-spades-6",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-spades-7",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-spades-8",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-spades-9",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-spades-10",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-spades-jack",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-spades-queen",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-spades-king",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-spades-ace",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-hearts-2",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-hearts-3",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-hearts-4",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-hearts-5",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-hearts-6",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-hearts-7",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-hearts-8",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-hearts-9",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-hearts-10",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-hearts-jack",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-hearts-queen",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-hearts-king",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-hearts-ace",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-diamonds-2",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-diamonds-3",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-diamonds-4",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-diamonds-5",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-diamonds-6",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-diamonds-7",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-diamonds-8",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-diamonds-9",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-diamonds-10",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-diamonds-jack",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-diamonds-queen",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-diamonds-king",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-diamonds-ace",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-clubs-2",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-clubs-3",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-clubs-4",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-clubs-5",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-clubs-6",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-clubs-7",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-clubs-8",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-clubs-9",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-clubs-10",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-clubs-jack",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-clubs-queen",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-clubs-king",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "khevar-clubs-ace",
+          "usage": "card-illustration"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/53d52ee27625790c76ef281b10bddc21c9ee35f02af4fd53fb6e79ea780b4db2.svg",
+      "mediaType": "image/svg+xml",
+      "sha256": "53d52ee27625790c76ef281b10bddc21c9ee35f02af4fd53fb6e79ea780b4db2",
+      "bytes": 752
+    },
+    {
       "id": "asset:lafayette.webp",
       "source": "/assets/gauntlet/lafayette.webp",
       "associations": [
@@ -19152,6 +20050,22 @@
           "usage": "clickedSound"
         },
         {
+          "object": "content.factions.17.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "content.factions.18.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "content.factions.19.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "content.factions.20.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
           "object": "content.upcomingSets.0.factions.0.city.clickedSound",
           "usage": "clickedSound"
         },
@@ -19236,6 +20150,22 @@
           "usage": "clickedSound"
         },
         {
+          "object": "content.deckRules.factions.17.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "content.deckRules.factions.18.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "content.deckRules.factions.19.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "content.deckRules.factions.20.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
           "object": "factions.mekan.city.clickedSound",
           "usage": "clickedSound"
         },
@@ -19301,6 +20231,22 @@
         },
         {
           "object": "factions.russo.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "factions.khevar.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "factions.vardun.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "factions.qhantari.city.clickedSound",
+          "usage": "clickedSound"
+        },
+        {
+          "object": "factions.sahravi.city.clickedSound",
           "usage": "clickedSound"
         }
       ],
@@ -21220,19 +22166,19 @@
       "source": "/assets/gauntlet/morphlings-emblem.svg",
       "associations": [
         {
-          "object": "content.factions.16.cardImage",
+          "object": "content.factions.20.cardImage",
           "usage": "cardImage"
         },
         {
-          "object": "content.factions.16.commander.image",
+          "object": "content.factions.20.commander.image",
           "usage": "image"
         },
         {
-          "object": "content.factions.16.general.image",
+          "object": "content.factions.20.general.image",
           "usage": "image"
         },
         {
-          "object": "content.factions.16.city.image",
+          "object": "content.factions.20.city.image",
           "usage": "image"
         },
         {
@@ -21868,19 +22814,19 @@
           "usage": "art"
         },
         {
-          "object": "content.deckRules.factions.16.cardImage",
+          "object": "content.deckRules.factions.20.cardImage",
           "usage": "cardImage"
         },
         {
-          "object": "content.deckRules.factions.16.commander.image",
+          "object": "content.deckRules.factions.20.commander.image",
           "usage": "image"
         },
         {
-          "object": "content.deckRules.factions.16.general.image",
+          "object": "content.deckRules.factions.20.general.image",
           "usage": "image"
         },
         {
-          "object": "content.deckRules.factions.16.city.image",
+          "object": "content.deckRules.factions.20.city.image",
           "usage": "image"
         },
         {
@@ -22108,10 +23054,10 @@
           "usage": "card-illustration"
         }
       ],
-      "path": "/assets/gauntlet/releases/1692d5e4ef53a4aa206922395ea9c800dc4849de823e4f312b1f86cc645dba4c.svg",
+      "path": "/assets/gauntlet/releases/fe60129744e28dc6bfa58a79190f56667678e4e6ed81d35f70f544678d5a118b.svg",
       "mediaType": "image/svg+xml",
-      "sha256": "1692d5e4ef53a4aa206922395ea9c800dc4849de823e4f312b1f86cc645dba4c",
-      "bytes": 1343
+      "sha256": "fe60129744e28dc6bfa58a79190f56667678e4e6ed81d35f70f544678d5a118b",
+      "bytes": 1362
     },
     {
       "id": "asset:mtano-emblem.svg",
@@ -26678,6 +27624,904 @@
       "bytes": 36194
     },
     {
+      "id": "asset:qhantari-emblem.svg",
+      "source": "/assets/gauntlet/qhantari-emblem.svg",
+      "associations": [
+        {
+          "object": "content.factions.14.cardImage",
+          "usage": "cardImage"
+        },
+        {
+          "object": "content.factions.14.commander.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.factions.14.general.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.factions.14.city.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.campaigns.qhantari.coverImage",
+          "usage": "coverImage"
+        },
+        {
+          "object": "content.campaigns.qhantari.chapters.11.cinematic.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.cards.800.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.801.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.802.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.803.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.804.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.805.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.806.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.807.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.808.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.809.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.810.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.811.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.812.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.813.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.814.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.815.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.816.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.817.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.818.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.819.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.820.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.821.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.822.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.823.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.824.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.825.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.826.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.827.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.828.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.829.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.830.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.831.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.832.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.833.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.834.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.835.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.836.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.837.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.838.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.839.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.840.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.841.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.842.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.843.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.844.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.845.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.846.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.847.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.848.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.849.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.850.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.851.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1600.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1601.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1602.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1603.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1604.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1605.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1606.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1607.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1608.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1609.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1610.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1611.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1612.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1613.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1614.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1615.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1616.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1617.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1618.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1619.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1620.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1621.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1622.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1623.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1624.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1625.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1626.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1627.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1628.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1629.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1630.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1631.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1632.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1633.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1634.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1635.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1636.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1637.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1638.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1639.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1640.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1641.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1642.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1643.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1644.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1645.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1646.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1647.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1648.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1649.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1650.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1651.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1652.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1653.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1654.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1655.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1656.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1657.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1658.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1659.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1660.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1661.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1662.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1663.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1664.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1665.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1666.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1667.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1668.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1669.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1670.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1671.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1672.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1673.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1674.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1675.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1676.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1677.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1678.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1679.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1680.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1681.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1682.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1683.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1684.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1685.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1686.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1687.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1688.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1689.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1690.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1691.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1692.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1693.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1694.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1695.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1696.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1697.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1698.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1699.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1700.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1701.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1702.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1703.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.deckRules.factions.14.cardImage",
+          "usage": "cardImage"
+        },
+        {
+          "object": "content.deckRules.factions.14.commander.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.deckRules.factions.14.general.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.deckRules.factions.14.city.image",
+          "usage": "image"
+        },
+        {
+          "object": "factions.qhantari.cardImage",
+          "usage": "cardImage"
+        },
+        {
+          "object": "factions.qhantari.commander.image",
+          "usage": "image"
+        },
+        {
+          "object": "factions.qhantari.general.image",
+          "usage": "image"
+        },
+        {
+          "object": "factions.qhantari.city.image",
+          "usage": "image"
+        },
+        {
+          "object": "qhantari-spades-2",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-spades-3",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-spades-4",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-spades-5",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-spades-6",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-spades-7",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-spades-8",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-spades-9",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-spades-10",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-spades-jack",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-spades-queen",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-spades-king",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-spades-ace",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-hearts-2",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-hearts-3",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-hearts-4",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-hearts-5",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-hearts-6",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-hearts-7",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-hearts-8",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-hearts-9",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-hearts-10",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-hearts-jack",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-hearts-queen",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-hearts-king",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-hearts-ace",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-diamonds-2",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-diamonds-3",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-diamonds-4",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-diamonds-5",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-diamonds-6",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-diamonds-7",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-diamonds-8",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-diamonds-9",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-diamonds-10",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-diamonds-jack",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-diamonds-queen",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-diamonds-king",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-diamonds-ace",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-clubs-2",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-clubs-3",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-clubs-4",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-clubs-5",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-clubs-6",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-clubs-7",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-clubs-8",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-clubs-9",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-clubs-10",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-clubs-jack",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-clubs-queen",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-clubs-king",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "qhantari-clubs-ace",
+          "usage": "card-illustration"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/6ed97fec1449a1826e9bc1ea5645fde1cf611eb4b93f57c68bdebf54817d73bf.svg",
+      "mediaType": "image/svg+xml",
+      "sha256": "6ed97fec1449a1826e9bc1ea5645fde1cf611eb4b93f57c68bdebf54817d73bf",
+      "bytes": 733
+    },
+    {
       "id": "asset:ristus.webp",
       "source": "/assets/gauntlet/ristus.webp",
       "associations": [
@@ -26730,7 +28574,7 @@
           "usage": "cardImage"
         },
         {
-          "object": "content.factions.15.commander.image",
+          "object": "content.factions.19.commander.image",
           "usage": "image"
         },
         {
@@ -26738,7 +28582,7 @@
           "usage": "cardImage"
         },
         {
-          "object": "content.deckRules.factions.15.commander.image",
+          "object": "content.deckRules.factions.19.commander.image",
           "usage": "image"
         },
         {
@@ -27654,6 +29498,904 @@
       "bytes": 509
     },
     {
+      "id": "asset:sahravi-emblem.svg",
+      "source": "/assets/gauntlet/sahravi-emblem.svg",
+      "associations": [
+        {
+          "object": "content.factions.15.cardImage",
+          "usage": "cardImage"
+        },
+        {
+          "object": "content.factions.15.commander.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.factions.15.general.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.factions.15.city.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.campaigns.sahravi.coverImage",
+          "usage": "coverImage"
+        },
+        {
+          "object": "content.campaigns.sahravi.chapters.11.cinematic.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.cards.852.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.853.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.854.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.855.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.856.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.857.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.858.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.859.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.860.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.861.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.862.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.863.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.864.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.865.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.866.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.867.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.868.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.869.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.870.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.871.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.872.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.873.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.874.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.875.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.876.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.877.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.878.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.879.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.880.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.881.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.882.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.883.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.884.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.885.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.886.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.887.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.888.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.889.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.890.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.891.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.892.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.893.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.894.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.895.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.896.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.897.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.898.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.899.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.900.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.901.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.902.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.903.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1704.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1705.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1706.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1707.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1708.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1709.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1710.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1711.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1712.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1713.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1714.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1715.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1716.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1717.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1718.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1719.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1720.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1721.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1722.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1723.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1724.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1725.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1726.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1727.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1728.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1729.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1730.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1731.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1732.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1733.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1734.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1735.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1736.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1737.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1738.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1739.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1740.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1741.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1742.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1743.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1744.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1745.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1746.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1747.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1748.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1749.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1750.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1751.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1752.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1753.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1754.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1755.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1756.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1757.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1758.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1759.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1760.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1761.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1762.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1763.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1764.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1765.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1766.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1767.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1768.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1769.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1770.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1771.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1772.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1773.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1774.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1775.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1776.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1777.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1778.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1779.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1780.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1781.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1782.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1783.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1784.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1785.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1786.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1787.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1788.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1789.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1790.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1791.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1792.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1793.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1794.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1795.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1796.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1797.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1798.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1799.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1800.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1801.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1802.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1803.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1804.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1805.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1806.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1807.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.deckRules.factions.15.cardImage",
+          "usage": "cardImage"
+        },
+        {
+          "object": "content.deckRules.factions.15.commander.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.deckRules.factions.15.general.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.deckRules.factions.15.city.image",
+          "usage": "image"
+        },
+        {
+          "object": "factions.sahravi.cardImage",
+          "usage": "cardImage"
+        },
+        {
+          "object": "factions.sahravi.commander.image",
+          "usage": "image"
+        },
+        {
+          "object": "factions.sahravi.general.image",
+          "usage": "image"
+        },
+        {
+          "object": "factions.sahravi.city.image",
+          "usage": "image"
+        },
+        {
+          "object": "sahravi-spades-2",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-spades-3",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-spades-4",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-spades-5",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-spades-6",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-spades-7",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-spades-8",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-spades-9",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-spades-10",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-spades-jack",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-spades-queen",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-spades-king",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-spades-ace",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-hearts-2",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-hearts-3",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-hearts-4",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-hearts-5",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-hearts-6",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-hearts-7",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-hearts-8",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-hearts-9",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-hearts-10",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-hearts-jack",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-hearts-queen",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-hearts-king",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-hearts-ace",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-diamonds-2",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-diamonds-3",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-diamonds-4",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-diamonds-5",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-diamonds-6",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-diamonds-7",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-diamonds-8",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-diamonds-9",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-diamonds-10",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-diamonds-jack",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-diamonds-queen",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-diamonds-king",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-diamonds-ace",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-clubs-2",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-clubs-3",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-clubs-4",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-clubs-5",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-clubs-6",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-clubs-7",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-clubs-8",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-clubs-9",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-clubs-10",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-clubs-jack",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-clubs-queen",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-clubs-king",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "sahravi-clubs-ace",
+          "usage": "card-illustration"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/fd749aca2ede5d0572f817b62be62e7d86893d1f8353f78350f85153f3eb02d9.svg",
+      "mediaType": "image/svg+xml",
+      "sha256": "fd749aca2ede5d0572f817b62be62e7d86893d1f8353f78350f85153f3eb02d9",
+      "bytes": 686
+    },
+    {
       "id": "asset:sheen-card.webp",
       "source": "/assets/gauntlet/sheen-card.webp",
       "associations": [
@@ -27662,7 +30404,7 @@
           "usage": "cardImage"
         },
         {
-          "object": "content.factions.15.general.image",
+          "object": "content.factions.19.general.image",
           "usage": "image"
         },
         {
@@ -27670,7 +30412,7 @@
           "usage": "cardImage"
         },
         {
-          "object": "content.deckRules.factions.15.general.image",
+          "object": "content.deckRules.factions.19.general.image",
           "usage": "image"
         },
         {
@@ -27712,6 +30454,1240 @@
       "mediaType": "image/webp",
       "sha256": "149ee7713328f74b4a9be6cb4be403975280c41bd15201802b3e794fc66f367c",
       "bytes": 467110
+    },
+    {
+      "id": "asset:vardun-emblem.svg",
+      "source": "/assets/gauntlet/vardun-emblem.svg",
+      "associations": [
+        {
+          "object": "content.factions.13.cardImage",
+          "usage": "cardImage"
+        },
+        {
+          "object": "content.factions.13.commander.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.factions.13.general.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.factions.13.city.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.campaigns.vardun.coverImage",
+          "usage": "coverImage"
+        },
+        {
+          "object": "content.campaigns.vardun.chapters.11.cinematic.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.cards.748.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.749.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.750.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.751.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.752.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.753.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.754.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.755.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.756.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.757.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.758.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.759.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.760.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.761.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.762.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.763.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.764.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.765.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.766.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.767.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.768.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.769.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.770.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.771.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.772.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.773.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.774.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.775.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.776.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.777.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.778.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.779.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.780.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.781.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.782.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.783.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.784.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.785.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.786.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.787.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.788.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.789.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.790.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.791.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.792.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.793.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.794.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.795.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.796.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.797.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.798.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.cards.799.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1496.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1497.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1498.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1499.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1500.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1501.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1502.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1503.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1504.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1505.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1506.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1507.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1508.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1509.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1510.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1511.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1512.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1513.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1514.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1515.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1516.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1517.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1518.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1519.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1520.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1521.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1522.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1523.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1524.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1525.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1526.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1527.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1528.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1529.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1530.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1531.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1532.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1533.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1534.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1535.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1536.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1537.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1538.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1539.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1540.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1541.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1542.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1543.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1544.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1545.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1546.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1547.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1548.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1549.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1550.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1551.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1552.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1553.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1554.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1555.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1556.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1557.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1558.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1559.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1560.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1561.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1562.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1563.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1564.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1565.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1566.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1567.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1568.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1569.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1570.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1571.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1572.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1573.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1574.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1575.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1576.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1577.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1578.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1579.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1580.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1581.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1582.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1583.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1584.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1585.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1586.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1587.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1588.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1589.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1590.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1591.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1592.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1593.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1594.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1595.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1596.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1597.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1598.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.collectorVariants.1599.art",
+          "usage": "art"
+        },
+        {
+          "object": "content.deckRules.factions.13.cardImage",
+          "usage": "cardImage"
+        },
+        {
+          "object": "content.deckRules.factions.13.commander.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.deckRules.factions.13.general.image",
+          "usage": "image"
+        },
+        {
+          "object": "content.deckRules.factions.13.city.image",
+          "usage": "image"
+        },
+        {
+          "object": "factions.vardun.cardImage",
+          "usage": "cardImage"
+        },
+        {
+          "object": "factions.vardun.commander.image",
+          "usage": "image"
+        },
+        {
+          "object": "factions.vardun.general.image",
+          "usage": "image"
+        },
+        {
+          "object": "factions.vardun.city.image",
+          "usage": "image"
+        },
+        {
+          "object": "vardun-spades-2",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-spades-3",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-spades-4",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-spades-5",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-spades-6",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-spades-7",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-spades-8",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-spades-9",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-spades-10",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-spades-jack",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-spades-queen",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-spades-king",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-spades-ace",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-hearts-2",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-hearts-3",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-hearts-4",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-hearts-5",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-hearts-6",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-hearts-7",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-hearts-8",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-hearts-9",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-hearts-10",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-hearts-jack",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-hearts-queen",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-hearts-king",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-hearts-ace",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-diamonds-2",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-diamonds-3",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-diamonds-4",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-diamonds-5",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-diamonds-6",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-diamonds-7",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-diamonds-8",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-diamonds-9",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-diamonds-10",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-diamonds-jack",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-diamonds-queen",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-diamonds-king",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-diamonds-ace",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-clubs-2",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-clubs-3",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-clubs-4",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-clubs-5",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-clubs-6",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-clubs-7",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-clubs-8",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-clubs-9",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-clubs-10",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-clubs-jack",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-clubs-queen",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-clubs-king",
+          "usage": "card-illustration"
+        },
+        {
+          "object": "vardun-clubs-ace",
+          "usage": "card-illustration"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/80fac699a672a59a97c81faa1e6fd4abcf7f272819d5145aee5bbf4d34bab33d.svg",
+      "mediaType": "image/svg+xml",
+      "sha256": "80fac699a672a59a97c81faa1e6fd4abcf7f272819d5145aee5bbf4d34bab33d",
+      "bytes": 674
+    },
+    {
+      "id": "asset:voices/astral-vanguard/city-that-wasnt-there-ending.mp3",
+      "source": "/assets/gauntlet/voices/astral-vanguard/city-that-wasnt-there-ending.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.6.endDialogueTrack",
+          "usage": "endDialogueTrack"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/045387537d4b7d42b068ba50da6475a5798322fbd721f58cfe941a2e9b940f18.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "045387537d4b7d42b068ba50da6475a5798322fbd721f58cfe941a2e9b940f18",
+      "bytes": 349214
+    },
+    {
+      "id": "asset:voices/astral-vanguard/city-that-wasnt-there-opening.mp3",
+      "source": "/assets/gauntlet/voices/astral-vanguard/city-that-wasnt-there-opening.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.6.dialogueTrack",
+          "usage": "dialogueTrack"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/2791fdad6bf6f4661313a584893b20b3e6796561cee8186522da06f48826a096.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "2791fdad6bf6f4661313a584893b20b3e6796561cee8186522da06f48826a096",
+      "bytes": 351722
+    },
+    {
+      "id": "asset:voices/astral-vanguard/conduit-ending.mp3",
+      "source": "/assets/gauntlet/voices/astral-vanguard/conduit-ending.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.5.endDialogueTrack",
+          "usage": "endDialogueTrack"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/b6d0bc305922d506ff121a4ed4e97ed4ea008e4b636d5bea5c9263b1c26d4fa2.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "b6d0bc305922d506ff121a4ed4e97ed4ea008e4b636d5bea5c9263b1c26d4fa2",
+      "bytes": 329988
+    },
+    {
+      "id": "asset:voices/astral-vanguard/conduit-opening.mp3",
+      "source": "/assets/gauntlet/voices/astral-vanguard/conduit-opening.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.5.dialogueTrack",
+          "usage": "dialogueTrack"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/a4c4f6af7859fe68b377e61fb8ec728c20fada1ce1067bc014435c6616f65f20.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "a4c4f6af7859fe68b377e61fb8ec728c20fada1ce1067bc014435c6616f65f20",
+      "bytes": 400205
+    },
+    {
+      "id": "asset:voices/astral-vanguard/enemy-of-my-enemy-ending.mp3",
+      "source": "/assets/gauntlet/voices/astral-vanguard/enemy-of-my-enemy-ending.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.8.endDialogueTrack",
+          "usage": "endDialogueTrack"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/b082a86693727449e43c99d1e773e27ecaaf10e5a6c3b92e958ea0a72a147580.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "b082a86693727449e43c99d1e773e27ecaaf10e5a6c3b92e958ea0a72a147580",
+      "bytes": 335003
+    },
+    {
+      "id": "asset:voices/astral-vanguard/enemy-of-my-enemy-opening.mp3",
+      "source": "/assets/gauntlet/voices/astral-vanguard/enemy-of-my-enemy-opening.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.8.dialogueTrack",
+          "usage": "dialogueTrack"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/8b82fc94d8d826788dd8572bd33fc6e3c61e393b386c9ef0d6caadf4c96ed17c.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "8b82fc94d8d826788dd8572bd33fc6e3c61e393b386c9ef0d6caadf4c96ed17c",
+      "bytes": 343781
+    },
+    {
+      "id": "asset:voices/astral-vanguard/first-empire-ending.mp3",
+      "source": "/assets/gauntlet/voices/astral-vanguard/first-empire-ending.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.9.endDialogueTrack",
+          "usage": "endDialogueTrack"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/0dc15973b7e63ccd2b253b091c5131d16906c8521164f0fafee37f2dc6816982.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "0dc15973b7e63ccd2b253b091c5131d16906c8521164f0fafee37f2dc6816982",
+      "bytes": 385994
+    },
+    {
+      "id": "asset:voices/astral-vanguard/first-empire-opening.mp3",
+      "source": "/assets/gauntlet/voices/astral-vanguard/first-empire-opening.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.9.dialogueTrack",
+          "usage": "dialogueTrack"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/142b18428dc0c491aefed7911cfffd05f70dc15330d0857ef699d4f76bf53021.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "142b18428dc0c491aefed7911cfffd05f70dc15330d0857ef699d4f76bf53021",
+      "bytes": 360499
+    },
+    {
+      "id": "asset:voices/astral-vanguard/fracture-ending.mp3",
+      "source": "/assets/gauntlet/voices/astral-vanguard/fracture-ending.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.7.endDialogueTrack",
+          "usage": "endDialogueTrack"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/62f926b74b95267aaf4f0ee384de35f31f2a0e523d97c830765ab7ca7b34b9e5.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "62f926b74b95267aaf4f0ee384de35f31f2a0e523d97c830765ab7ca7b34b9e5",
+      "bytes": 526847
+    },
+    {
+      "id": "asset:voices/astral-vanguard/fracture-opening.mp3",
+      "source": "/assets/gauntlet/voices/astral-vanguard/fracture-opening.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.7.dialogueTrack",
+          "usage": "dialogueTrack"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/2b21e6283e0ae6db5fedf231e6e3766f7083263731926d4b1c09f29d8a525cf0.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "2b21e6283e0ae6db5fedf231e6e3766f7083263731926d4b1c09f29d8a525cf0",
+      "bytes": 485887
+    },
+    {
+      "id": "asset:voices/astral-vanguard/golden-machine-ending.mp3",
+      "source": "/assets/gauntlet/voices/astral-vanguard/golden-machine-ending.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.4.endDialogueTrack",
+          "usage": "endDialogueTrack"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/cc8ddebf6a3864e020596e3a57b0e45d78259712fe9673dc68bd6ae04a225a84.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "cc8ddebf6a3864e020596e3a57b0e45d78259712fe9673dc68bd6ae04a225a84",
+      "bytes": 363007
+    },
+    {
+      "id": "asset:voices/astral-vanguard/golden-machine-opening.mp3",
+      "source": "/assets/gauntlet/voices/astral-vanguard/golden-machine-opening.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.4.dialogueTrack",
+          "usage": "dialogueTrack"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/11c369d3647fa9d0cc79a2f20c94a3ac46d0da51a16e5c86e27fa908f4ec9f8a.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "11c369d3647fa9d0cc79a2f20c94a3ac46d0da51a16e5c86e27fa908f4ec9f8a",
+      "bytes": 361753
+    },
+    {
+      "id": "asset:voices/astral-vanguard/new-horizon-ending.mp3",
+      "source": "/assets/gauntlet/voices/astral-vanguard/new-horizon-ending.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.0.endDialogueTrack",
+          "usage": "endDialogueTrack"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/906c3d0c769388e288b954e102033adb096102ea32ea9e432759ec253d27ef0a.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "906c3d0c769388e288b954e102033adb096102ea32ea9e432759ec253d27ef0a",
+      "bytes": 335003
+    },
+    {
+      "id": "asset:voices/astral-vanguard/new-horizon-opening.mp3",
+      "source": "/assets/gauntlet/voices/astral-vanguard/new-horizon-opening.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.0.dialogueTrack",
+          "usage": "dialogueTrack"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/f489998f10bcdcda437e744b6d3678d2f659168bc34109bb22dd510e8c5a19a3.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "f489998f10bcdcda437e744b6d3678d2f659168bc34109bb22dd510e8c5a19a3",
+      "bytes": 488394
+    },
+    {
+      "id": "asset:voices/astral-vanguard/other-intelligence-ending.mp3",
+      "source": "/assets/gauntlet/voices/astral-vanguard/other-intelligence-ending.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.3.endDialogueTrack",
+          "usage": "endDialogueTrack"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/59fa82182b55c66a7ef9df170c0402b880842baf476dee01db2681cdbf57b6d6.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "59fa82182b55c66a7ef9df170c0402b880842baf476dee01db2681cdbf57b6d6",
+      "bytes": 414416
+    },
+    {
+      "id": "asset:voices/astral-vanguard/other-intelligence-opening.mp3",
+      "source": "/assets/gauntlet/voices/astral-vanguard/other-intelligence-opening.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.3.dialogueTrack",
+          "usage": "dialogueTrack"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/20fb909c99004b3377697f836b3bc04c5e30c6138b463737eda70db01d0061f2.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "20fb909c99004b3377697f836b3bc04c5e30c6138b463737eda70db01d0061f2",
+      "bytes": 414416
+    },
+    {
+      "id": "asset:voices/astral-vanguard/something-beneath-us-ending.mp3",
+      "source": "/assets/gauntlet/voices/astral-vanguard/something-beneath-us-ending.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.1.endDialogueTrack",
+          "usage": "endDialogueTrack"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/4c73c7287103946e0555a710d63a98c29952693d68ade0f4efdedc0969e8e42e.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "4c73c7287103946e0555a710d63a98c29952693d68ade0f4efdedc0969e8e42e",
+      "bytes": 335003
+    },
+    {
+      "id": "asset:voices/astral-vanguard/something-beneath-us-opening.mp3",
+      "source": "/assets/gauntlet/voices/astral-vanguard/something-beneath-us-opening.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.1.dialogueTrack",
+          "usage": "dialogueTrack"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/19928d7677f79bd3849f1178998d831b22d3dbf02fe16014fee1f33760e299b7.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "19928d7677f79bd3849f1178998d831b22d3dbf02fe16014fee1f33760e299b7",
+      "bytes": 322047
+    },
+    {
+      "id": "asset:voices/astral-vanguard/the-brood-ending.mp3",
+      "source": "/assets/gauntlet/voices/astral-vanguard/the-brood-ending.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.2.endDialogueTrack",
+          "usage": "endDialogueTrack"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/2188e21d72df263d687d0417d40418b2d6f587389115260b266f51aedf5e5b9b.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "2188e21d72df263d687d0417d40418b2d6f587389115260b266f51aedf5e5b9b",
+      "bytes": 382233
+    },
+    {
+      "id": "asset:voices/astral-vanguard/the-brood-opening.mp3",
+      "source": "/assets/gauntlet/voices/astral-vanguard/the-brood-opening.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.2.dialogueTrack",
+          "usage": "dialogueTrack"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/e7995160ed3db81e7d31323b73ab7d7ed56644840523121894129a8571009998.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "e7995160ed3db81e7d31323b73ab7d7ed56644840523121894129a8571009998",
+      "bytes": 297805
+    },
+    {
+      "id": "asset:voices/astral-vanguard/when-stars-remember-ending.mp3",
+      "source": "/assets/gauntlet/voices/astral-vanguard/when-stars-remember-ending.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.11.endDialogueTrack",
+          "usage": "endDialogueTrack"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/72b514cdaa6152705e20c6a3b2f7041810a95f24d292b81ead0c1674386cd44c.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "72b514cdaa6152705e20c6a3b2f7041810a95f24d292b81ead0c1674386cd44c",
+      "bytes": 592466
+    },
+    {
+      "id": "asset:voices/astral-vanguard/when-stars-remember-opening.mp3",
+      "source": "/assets/gauntlet/voices/astral-vanguard/when-stars-remember-opening.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.11.dialogueTrack",
+          "usage": "dialogueTrack"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/709b56532399dde059881b3fc99134444c5f7071e95ef2a9c2610a90e4081ca5.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "709b56532399dde059881b3fc99134444c5f7071e95ef2a9c2610a90e4081ca5",
+      "bytes": 560283
+    },
+    {
+      "id": "asset:voices/astral-vanguard/world-between-ending.mp3",
+      "source": "/assets/gauntlet/voices/astral-vanguard/world-between-ending.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.10.endDialogueTrack",
+          "usage": "endDialogueTrack"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/6ec37e8260013e1bbe4dfea0b1265e799bb0a4b52a45340fa8676a798f824757.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "6ec37e8260013e1bbe4dfea0b1265e799bb0a4b52a45340fa8676a798f824757",
+      "bytes": 570314
+    },
+    {
+      "id": "asset:voices/astral-vanguard/world-between-opening.mp3",
+      "source": "/assets/gauntlet/voices/astral-vanguard/world-between-opening.mp3",
+      "associations": [
+        {
+          "object": "content.campaigns.astral-vanguard.chapters.10.dialogueTrack",
+          "usage": "dialogueTrack"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/ecabb1b10a10cc7c7588bab099c35c51bafafc3b495d8341cd6aef6308889c89.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "ecabb1b10a10cc7c7588bab099c35c51bafafc3b495d8341cd6aef6308889c89",
+      "bytes": 627993
     },
     {
       "id": "asset:voices/bizi-ch01-after-01-narrator.mp3",
@@ -30084,11 +34060,11 @@
       "source": "/assets/gauntlet/voices/faction-astral-vanguard-commander-clicked.mp3",
       "associations": [
         {
-          "object": "content.factions.13.commander.announcementAudio.clicked",
+          "object": "content.factions.17.commander.announcementAudio.clicked",
           "usage": "clicked"
         },
         {
-          "object": "content.deckRules.factions.13.commander.announcementAudio.clicked",
+          "object": "content.deckRules.factions.17.commander.announcementAudio.clicked",
           "usage": "clicked"
         },
         {
@@ -30106,11 +34082,11 @@
       "source": "/assets/gauntlet/voices/faction-astral-vanguard-commander-critical.mp3",
       "associations": [
         {
-          "object": "content.factions.13.commander.announcementAudio.critical",
+          "object": "content.factions.17.commander.announcementAudio.critical",
           "usage": "critical"
         },
         {
-          "object": "content.deckRules.factions.13.commander.announcementAudio.critical",
+          "object": "content.deckRules.factions.17.commander.announcementAudio.critical",
           "usage": "critical"
         },
         {
@@ -30128,11 +34104,11 @@
       "source": "/assets/gauntlet/voices/faction-astral-vanguard-commander-denied.mp3",
       "associations": [
         {
-          "object": "content.factions.13.commander.announcementAudio.denied",
+          "object": "content.factions.17.commander.announcementAudio.denied",
           "usage": "denied"
         },
         {
-          "object": "content.deckRules.factions.13.commander.announcementAudio.denied",
+          "object": "content.deckRules.factions.17.commander.announcementAudio.denied",
           "usage": "denied"
         },
         {
@@ -30150,11 +34126,11 @@
       "source": "/assets/gauntlet/voices/faction-astral-vanguard-commander-selected.mp3",
       "associations": [
         {
-          "object": "content.factions.13.commander.announcementAudio.selected",
+          "object": "content.factions.17.commander.announcementAudio.selected",
           "usage": "selected"
         },
         {
-          "object": "content.deckRules.factions.13.commander.announcementAudio.selected",
+          "object": "content.deckRules.factions.17.commander.announcementAudio.selected",
           "usage": "selected"
         },
         {
@@ -30172,11 +34148,11 @@
       "source": "/assets/gauntlet/voices/faction-astral-vanguard-commander-wounded.mp3",
       "associations": [
         {
-          "object": "content.factions.13.commander.announcementAudio.wounded",
+          "object": "content.factions.17.commander.announcementAudio.wounded",
           "usage": "wounded"
         },
         {
-          "object": "content.deckRules.factions.13.commander.announcementAudio.wounded",
+          "object": "content.deckRules.factions.17.commander.announcementAudio.wounded",
           "usage": "wounded"
         },
         {
@@ -30194,11 +34170,11 @@
       "source": "/assets/gauntlet/voices/faction-astral-vanguard-general-clicked.mp3",
       "associations": [
         {
-          "object": "content.factions.13.general.clickedAudio",
+          "object": "content.factions.17.general.clickedAudio",
           "usage": "clickedAudio"
         },
         {
-          "object": "content.deckRules.factions.13.general.clickedAudio",
+          "object": "content.deckRules.factions.17.general.clickedAudio",
           "usage": "clickedAudio"
         },
         {
@@ -31944,11 +35920,11 @@
       "source": "/assets/gauntlet/voices/faction-voltari-commander-clicked.mp3",
       "associations": [
         {
-          "object": "content.factions.14.commander.announcementAudio.clicked",
+          "object": "content.factions.18.commander.announcementAudio.clicked",
           "usage": "clicked"
         },
         {
-          "object": "content.deckRules.factions.14.commander.announcementAudio.clicked",
+          "object": "content.deckRules.factions.18.commander.announcementAudio.clicked",
           "usage": "clicked"
         },
         {
@@ -31966,11 +35942,11 @@
       "source": "/assets/gauntlet/voices/faction-voltari-commander-critical.mp3",
       "associations": [
         {
-          "object": "content.factions.14.commander.announcementAudio.critical",
+          "object": "content.factions.18.commander.announcementAudio.critical",
           "usage": "critical"
         },
         {
-          "object": "content.deckRules.factions.14.commander.announcementAudio.critical",
+          "object": "content.deckRules.factions.18.commander.announcementAudio.critical",
           "usage": "critical"
         },
         {
@@ -31988,11 +35964,11 @@
       "source": "/assets/gauntlet/voices/faction-voltari-commander-denied.mp3",
       "associations": [
         {
-          "object": "content.factions.14.commander.announcementAudio.denied",
+          "object": "content.factions.18.commander.announcementAudio.denied",
           "usage": "denied"
         },
         {
-          "object": "content.deckRules.factions.14.commander.announcementAudio.denied",
+          "object": "content.deckRules.factions.18.commander.announcementAudio.denied",
           "usage": "denied"
         },
         {
@@ -32010,11 +35986,11 @@
       "source": "/assets/gauntlet/voices/faction-voltari-commander-selected.mp3",
       "associations": [
         {
-          "object": "content.factions.14.commander.announcementAudio.selected",
+          "object": "content.factions.18.commander.announcementAudio.selected",
           "usage": "selected"
         },
         {
-          "object": "content.deckRules.factions.14.commander.announcementAudio.selected",
+          "object": "content.deckRules.factions.18.commander.announcementAudio.selected",
           "usage": "selected"
         },
         {
@@ -32032,11 +36008,11 @@
       "source": "/assets/gauntlet/voices/faction-voltari-commander-wounded.mp3",
       "associations": [
         {
-          "object": "content.factions.14.commander.announcementAudio.wounded",
+          "object": "content.factions.18.commander.announcementAudio.wounded",
           "usage": "wounded"
         },
         {
-          "object": "content.deckRules.factions.14.commander.announcementAudio.wounded",
+          "object": "content.deckRules.factions.18.commander.announcementAudio.wounded",
           "usage": "wounded"
         },
         {
@@ -32054,11 +36030,11 @@
       "source": "/assets/gauntlet/voices/faction-voltari-general-clicked.mp3",
       "associations": [
         {
-          "object": "content.factions.14.general.clickedAudio",
+          "object": "content.factions.18.general.clickedAudio",
           "usage": "clickedAudio"
         },
         {
-          "object": "content.deckRules.factions.14.general.clickedAudio",
+          "object": "content.deckRules.factions.18.general.clickedAudio",
           "usage": "clickedAudio"
         },
         {
@@ -32076,11 +36052,11 @@
       "source": "/assets/gauntlet/voices/faction-xendra-commander-clicked.mp3",
       "associations": [
         {
-          "object": "content.factions.15.commander.announcementAudio.clicked",
+          "object": "content.factions.19.commander.announcementAudio.clicked",
           "usage": "clicked"
         },
         {
-          "object": "content.deckRules.factions.15.commander.announcementAudio.clicked",
+          "object": "content.deckRules.factions.19.commander.announcementAudio.clicked",
           "usage": "clicked"
         },
         {
@@ -32098,11 +36074,11 @@
       "source": "/assets/gauntlet/voices/faction-xendra-commander-critical.mp3",
       "associations": [
         {
-          "object": "content.factions.15.commander.announcementAudio.critical",
+          "object": "content.factions.19.commander.announcementAudio.critical",
           "usage": "critical"
         },
         {
-          "object": "content.deckRules.factions.15.commander.announcementAudio.critical",
+          "object": "content.deckRules.factions.19.commander.announcementAudio.critical",
           "usage": "critical"
         },
         {
@@ -32120,11 +36096,11 @@
       "source": "/assets/gauntlet/voices/faction-xendra-commander-denied.mp3",
       "associations": [
         {
-          "object": "content.factions.15.commander.announcementAudio.denied",
+          "object": "content.factions.19.commander.announcementAudio.denied",
           "usage": "denied"
         },
         {
-          "object": "content.deckRules.factions.15.commander.announcementAudio.denied",
+          "object": "content.deckRules.factions.19.commander.announcementAudio.denied",
           "usage": "denied"
         },
         {
@@ -32142,11 +36118,11 @@
       "source": "/assets/gauntlet/voices/faction-xendra-commander-selected.mp3",
       "associations": [
         {
-          "object": "content.factions.15.commander.announcementAudio.selected",
+          "object": "content.factions.19.commander.announcementAudio.selected",
           "usage": "selected"
         },
         {
-          "object": "content.deckRules.factions.15.commander.announcementAudio.selected",
+          "object": "content.deckRules.factions.19.commander.announcementAudio.selected",
           "usage": "selected"
         },
         {
@@ -32164,11 +36140,11 @@
       "source": "/assets/gauntlet/voices/faction-xendra-commander-wounded.mp3",
       "associations": [
         {
-          "object": "content.factions.15.commander.announcementAudio.wounded",
+          "object": "content.factions.19.commander.announcementAudio.wounded",
           "usage": "wounded"
         },
         {
-          "object": "content.deckRules.factions.15.commander.announcementAudio.wounded",
+          "object": "content.deckRules.factions.19.commander.announcementAudio.wounded",
           "usage": "wounded"
         },
         {
@@ -32186,11 +36162,11 @@
       "source": "/assets/gauntlet/voices/faction-xendra-general-clicked.mp3",
       "associations": [
         {
-          "object": "content.factions.15.general.clickedAudio",
+          "object": "content.factions.19.general.clickedAudio",
           "usage": "clickedAudio"
         },
         {
-          "object": "content.deckRules.factions.15.general.clickedAudio",
+          "object": "content.deckRules.factions.19.general.clickedAudio",
           "usage": "clickedAudio"
         },
         {
@@ -32208,11 +36184,11 @@
       "source": "/assets/gauntlet/voices/faction-zynarth-commander-clicked.mp3",
       "associations": [
         {
-          "object": "content.factions.12.commander.announcementAudio.clicked",
+          "object": "content.factions.16.commander.announcementAudio.clicked",
           "usage": "clicked"
         },
         {
-          "object": "content.deckRules.factions.12.commander.announcementAudio.clicked",
+          "object": "content.deckRules.factions.16.commander.announcementAudio.clicked",
           "usage": "clicked"
         },
         {
@@ -32230,11 +36206,11 @@
       "source": "/assets/gauntlet/voices/faction-zynarth-commander-critical.mp3",
       "associations": [
         {
-          "object": "content.factions.12.commander.announcementAudio.critical",
+          "object": "content.factions.16.commander.announcementAudio.critical",
           "usage": "critical"
         },
         {
-          "object": "content.deckRules.factions.12.commander.announcementAudio.critical",
+          "object": "content.deckRules.factions.16.commander.announcementAudio.critical",
           "usage": "critical"
         },
         {
@@ -32252,11 +36228,11 @@
       "source": "/assets/gauntlet/voices/faction-zynarth-commander-denied.mp3",
       "associations": [
         {
-          "object": "content.factions.12.commander.announcementAudio.denied",
+          "object": "content.factions.16.commander.announcementAudio.denied",
           "usage": "denied"
         },
         {
-          "object": "content.deckRules.factions.12.commander.announcementAudio.denied",
+          "object": "content.deckRules.factions.16.commander.announcementAudio.denied",
           "usage": "denied"
         },
         {
@@ -32274,11 +36250,11 @@
       "source": "/assets/gauntlet/voices/faction-zynarth-commander-selected.mp3",
       "associations": [
         {
-          "object": "content.factions.12.commander.announcementAudio.selected",
+          "object": "content.factions.16.commander.announcementAudio.selected",
           "usage": "selected"
         },
         {
-          "object": "content.deckRules.factions.12.commander.announcementAudio.selected",
+          "object": "content.deckRules.factions.16.commander.announcementAudio.selected",
           "usage": "selected"
         },
         {
@@ -32296,11 +36272,11 @@
       "source": "/assets/gauntlet/voices/faction-zynarth-commander-wounded.mp3",
       "associations": [
         {
-          "object": "content.factions.12.commander.announcementAudio.wounded",
+          "object": "content.factions.16.commander.announcementAudio.wounded",
           "usage": "wounded"
         },
         {
-          "object": "content.deckRules.factions.12.commander.announcementAudio.wounded",
+          "object": "content.deckRules.factions.16.commander.announcementAudio.wounded",
           "usage": "wounded"
         },
         {
@@ -32318,11 +36294,11 @@
       "source": "/assets/gauntlet/voices/faction-zynarth-general-clicked.mp3",
       "associations": [
         {
-          "object": "content.factions.12.general.clickedAudio",
+          "object": "content.factions.16.general.clickedAudio",
           "usage": "clickedAudio"
         },
         {
-          "object": "content.deckRules.factions.12.general.clickedAudio",
+          "object": "content.deckRules.factions.16.general.clickedAudio",
           "usage": "clickedAudio"
         },
         {
@@ -39500,7 +43476,215 @@
     "russo-clubs-jack": "/assets/gauntlet/russo-emblem.svg",
     "russo-clubs-queen": "/assets/gauntlet/russo-emblem.svg",
     "russo-clubs-king": "/assets/gauntlet/russo-emblem.svg",
-    "russo-clubs-ace": "/assets/gauntlet/russo-emblem.svg"
+    "russo-clubs-ace": "/assets/gauntlet/russo-emblem.svg",
+    "khevar-spades-2": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-spades-3": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-spades-4": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-spades-5": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-spades-6": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-spades-7": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-spades-8": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-spades-9": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-spades-10": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-spades-jack": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-spades-queen": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-spades-king": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-spades-ace": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-hearts-2": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-hearts-3": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-hearts-4": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-hearts-5": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-hearts-6": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-hearts-7": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-hearts-8": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-hearts-9": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-hearts-10": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-hearts-jack": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-hearts-queen": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-hearts-king": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-hearts-ace": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-diamonds-2": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-diamonds-3": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-diamonds-4": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-diamonds-5": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-diamonds-6": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-diamonds-7": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-diamonds-8": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-diamonds-9": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-diamonds-10": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-diamonds-jack": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-diamonds-queen": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-diamonds-king": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-diamonds-ace": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-clubs-2": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-clubs-3": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-clubs-4": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-clubs-5": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-clubs-6": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-clubs-7": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-clubs-8": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-clubs-9": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-clubs-10": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-clubs-jack": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-clubs-queen": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-clubs-king": "/assets/gauntlet/khevar-emblem.svg",
+    "khevar-clubs-ace": "/assets/gauntlet/khevar-emblem.svg",
+    "vardun-spades-2": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-spades-3": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-spades-4": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-spades-5": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-spades-6": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-spades-7": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-spades-8": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-spades-9": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-spades-10": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-spades-jack": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-spades-queen": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-spades-king": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-spades-ace": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-hearts-2": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-hearts-3": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-hearts-4": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-hearts-5": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-hearts-6": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-hearts-7": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-hearts-8": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-hearts-9": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-hearts-10": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-hearts-jack": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-hearts-queen": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-hearts-king": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-hearts-ace": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-diamonds-2": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-diamonds-3": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-diamonds-4": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-diamonds-5": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-diamonds-6": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-diamonds-7": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-diamonds-8": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-diamonds-9": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-diamonds-10": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-diamonds-jack": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-diamonds-queen": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-diamonds-king": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-diamonds-ace": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-clubs-2": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-clubs-3": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-clubs-4": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-clubs-5": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-clubs-6": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-clubs-7": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-clubs-8": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-clubs-9": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-clubs-10": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-clubs-jack": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-clubs-queen": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-clubs-king": "/assets/gauntlet/vardun-emblem.svg",
+    "vardun-clubs-ace": "/assets/gauntlet/vardun-emblem.svg",
+    "qhantari-spades-2": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-spades-3": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-spades-4": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-spades-5": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-spades-6": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-spades-7": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-spades-8": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-spades-9": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-spades-10": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-spades-jack": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-spades-queen": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-spades-king": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-spades-ace": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-hearts-2": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-hearts-3": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-hearts-4": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-hearts-5": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-hearts-6": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-hearts-7": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-hearts-8": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-hearts-9": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-hearts-10": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-hearts-jack": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-hearts-queen": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-hearts-king": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-hearts-ace": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-diamonds-2": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-diamonds-3": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-diamonds-4": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-diamonds-5": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-diamonds-6": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-diamonds-7": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-diamonds-8": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-diamonds-9": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-diamonds-10": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-diamonds-jack": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-diamonds-queen": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-diamonds-king": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-diamonds-ace": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-clubs-2": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-clubs-3": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-clubs-4": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-clubs-5": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-clubs-6": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-clubs-7": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-clubs-8": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-clubs-9": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-clubs-10": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-clubs-jack": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-clubs-queen": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-clubs-king": "/assets/gauntlet/qhantari-emblem.svg",
+    "qhantari-clubs-ace": "/assets/gauntlet/qhantari-emblem.svg",
+    "sahravi-spades-2": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-spades-3": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-spades-4": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-spades-5": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-spades-6": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-spades-7": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-spades-8": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-spades-9": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-spades-10": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-spades-jack": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-spades-queen": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-spades-king": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-spades-ace": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-hearts-2": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-hearts-3": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-hearts-4": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-hearts-5": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-hearts-6": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-hearts-7": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-hearts-8": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-hearts-9": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-hearts-10": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-hearts-jack": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-hearts-queen": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-hearts-king": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-hearts-ace": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-diamonds-2": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-diamonds-3": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-diamonds-4": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-diamonds-5": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-diamonds-6": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-diamonds-7": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-diamonds-8": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-diamonds-9": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-diamonds-10": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-diamonds-jack": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-diamonds-queen": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-diamonds-king": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-diamonds-ace": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-clubs-2": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-clubs-3": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-clubs-4": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-clubs-5": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-clubs-6": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-clubs-7": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-clubs-8": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-clubs-9": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-clubs-10": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-clubs-jack": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-clubs-queen": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-clubs-king": "/assets/gauntlet/sahravi-emblem.svg",
+    "sahravi-clubs-ace": "/assets/gauntlet/sahravi-emblem.svg"
   },
-  "version": "gauntlet-assets-b7725a00f212384f98c4fa67be86b4b5a3da458384915c9a595a0e71c2db7db2"
+  "version": "gauntlet-assets-fe6b8f1a1b701c59f93de6d5e29558c6780a978032a7c84cb0f83deb9a94365d"
 }

@@ -18,6 +18,10 @@ export const FACTION_VISUALS = {
   mercaw: { name: "Mercaw", accent: "#60a5fa", art: "/assets/gauntlet/mercaw-emblem.svg" },
   mtano: { name: "M'Tano", accent: "#9ccf9b", art: "/assets/gauntlet/mtano-emblem.svg" },
   russo: { name: "Russo", accent: "#b9d7ea", art: "/assets/gauntlet/russo-emblem.svg" },
+  khevar: { name: "Khevar", accent: "#d6ad5c", art: "/assets/gauntlet/khevar-emblem.svg" },
+  vardun: { name: "Vardun", accent: "#77b5c7", art: "/assets/gauntlet/vardun-emblem.svg" },
+  qhantari: { name: "Qhantari", accent: "#d4a15b", art: "/assets/gauntlet/qhantari-emblem.svg" },
+  sahravi: { name: "Sahravi", accent: "#e2bd63", art: "/assets/gauntlet/sahravi-emblem.svg" },
   morphlings: { name: "The Continuants", accent: "#8ee7df", art: "" },
   xendra: { name: "XenDra", accent: "#b9a6d8", art: "" },
   basic: { get name() { return brandText("Basic SuitFire", "Basic Gauntlet"); }, accent: "#d0a863", art: "" }

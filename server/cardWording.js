@@ -181,10 +181,37 @@ for (const id of [
   "neutral-freeblade-envoy", "neutral-convergence-oracle", "neutral-gauntlet-regent", "neutral-timetwister-ascendant"
 ]) CARD_WORDING[id] = "No additional ability.";
 
-for (const factionId of ["mekan", "jali", "gracus", "voltari", "xendra", "morphlings", "ingles", "mercaw", "mtano", "russo"]) {
+const CROSSROADS_WORDING = Object.freeze({
+  khevar: Object.freeze({
+    spades: "First block: +1 value.",
+    hearts: "Second+ block: +1 value.",
+    diamonds: "Same-suit attack: +1 value.",
+    clubs: "Attack after a lower value: +1 value."
+  }),
+  vardun: Object.freeze({
+    spades: "Lane attack: +1 value.",
+    hearts: "First block: +1 value.",
+    diamonds: "First attack: +1 value.",
+    clubs: "Third+ attack: +1 value."
+  }),
+  qhantari: Object.freeze({
+    spades: "Lane block: +1 value.",
+    hearts: "Second+ block: +1 value.",
+    diamonds: "Attack after a lower value: +1 value.",
+    clubs: "New-suit attack: +1 value."
+  }),
+  sahravi: Object.freeze({
+    spades: "New-suit attack: +1 value.",
+    hearts: "First block: +1 value.",
+    diamonds: "Same-suit attack: +1 value.",
+    clubs: "Attack after a lower value: +1 value."
+  })
+});
+
+for (const factionId of ["mekan", "jali", "gracus", "voltari", "xendra", "morphlings", "ingles", "mercaw", "mtano", "russo", "khevar", "vardun", "qhantari", "sahravi"]) {
   for (const suit of ["spades", "hearts", "diamonds", "clubs"]) {
     for (const rank of ["2", "3", "4", "5", "6", "7", "8", "9", "10", "jack", "queen", "king", "ace"]) {
-      CARD_WORDING[`${factionId}-${suit}-${rank}`] = "No additional ability.";
+      CARD_WORDING[`${factionId}-${suit}-${rank}`] = CROSSROADS_WORDING[factionId]?.[suit] || "No additional ability.";
     }
   }
 }

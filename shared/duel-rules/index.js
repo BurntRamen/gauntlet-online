@@ -86,7 +86,11 @@ const FACTION_PROFILES = {
   ingles: { id: "ingles", name: "Ingles", commander: "First Speaker Elian Wren", city: "Crownless Haven", general: { id: "rowan-vale", name: "Marshal Rowan Vale" } },
   mercaw: { id: "mercaw", name: "Mercaw", commander: "Convener Mara Kest", city: "Accord Spire", general: { id: "rook-talon", name: "Rook Talon" } },
   mtano: { id: "mtano", name: "M'Tano", commander: "Rainkeeper Amari", city: "Mawingu Terraces", general: { id: "kito", name: "Pathfinder Kito" } },
-  russo: { id: "russo", name: "Russo", commander: "Warden Irina Volkov", city: "Novaya Hearth", general: { id: "mikhail-saran", name: "Mikhail Saran" } }
+  russo: { id: "russo", name: "Russo", commander: "Warden Irina Volkov", city: "Novaya Hearth", general: { id: "mikhail-saran", name: "Mikhail Saran" } },
+  khevar: { id: "khevar", name: "Khevar", commander: "Commander Satek", city: "Iru-Nemeth", general: { id: "meret", name: "Archivist Meret" } },
+  vardun: { id: "vardun", name: "Vardun", commander: "Yrsa Blackwake", city: "Winter Harbor", general: { id: "torven", name: "Torven Oar-Speaker" } },
+  qhantari: { id: "qhantari", name: "Qhantari", commander: "Courier-General Amaru", city: "The High Storehouse", general: { id: "killa", name: "Killa Ropekeeper" } },
+  sahravi: { id: "sahravi", name: "Sahravi", commander: "Commander Naya", city: "Sahra Gate", general: { id: "idris", name: "Idris of the Open Ledger" } }
 };
 const FACTION_ABILITY_INTENTS = Object.freeze({
   "polea-place": "Put a card from your hand into an empty lane you control.",

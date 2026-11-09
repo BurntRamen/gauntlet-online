@@ -1,7 +1,7 @@
 "use strict";
 
 const RULES_VERSION = "gauntlet-rules-v6";
-const CONTENT_VERSION = "gauntlet-content-v28";
+const CONTENT_VERSION = "gauntlet-content-v29";
 const NEUTRAL_FACTION_ID = "neutral";
 const { getCardWording } = require("./cardWording");
 const { alienCatalogProfile, catalogIdentity } = require("../shared/duel-rules/catalogFactionIdentity");
@@ -40,6 +40,7 @@ const DRAFT_SETS = Object.freeze([
   Object.freeze({ id: "frontiers", number: 3, name: "Frontiers", factionIds: Object.freeze(["ingles", "mercaw", "mtano", "russo"]), draftAvailable: true, sealedAvailable: true }),
   Object.freeze({ id: "reath-beyond", number: 4, name: "Reath Beyond", factionIds: Object.freeze(["zynarth", "astral-vanguard"]), draftAvailable: true, sealedAvailable: true }),
   Object.freeze({ id: "convergence", number: 5, name: "Convergence", factionIds: Object.freeze(["voltari", "xendra", "morphlings"]), draftAvailable: true, sealedAvailable: true })
+  ,Object.freeze({ id: "crossroads", number: 6, name: "Crossroads", factionIds: Object.freeze(["khevar", "vardun", "qhantari", "sahravi"]), draftAvailable: true, sealedAvailable: true })
 ]);
 
 const RUMIN_COLLECTION_CARDS = [
@@ -845,6 +846,26 @@ const FULL_CATALOG_FACTIONS = Object.freeze({
     art: "/assets/gauntlet/russo-emblem.svg",
     aspects: { spades: "Winter", hearts: "Hearth", diamonds: "Iron", clubs: "Forest" },
     ranks: ["Snow Scout", "Store Keeper", "Pine Guard", "Hearth Worker", "Ice Road Warden", "Common Steward", "Foundry Captain", "Thaw Engineer", "Oath Defender", "Winter Envoy", "Hearth Matriarch", "Forest Marshal", "Long Winter Bear"]
+  },
+  khevar: {
+    art: "/assets/gauntlet/khevar-emblem.svg",
+    aspects: { spades: "Sealed", hearts: "Ancestral", diamonds: "Opened", clubs: "River" },
+    ranks: ["Jar Keeper", "Silt Reader", "Scarab Guard", "Name Witness", "Granary Warden", "Flood Advocate", "Ledger Runner", "Tomb Examiner", "Public Scribe", "Coronation Envoy", "River Matriarch", "Archive Commander", "Unforgotten Judge"]
+  },
+  vardun: {
+    art: "/assets/gauntlet/vardun-emblem.svg",
+    aspects: { spades: "Charted", hearts: "Harbor", diamonds: "Returning", clubs: "Assembly" },
+    ranks: ["Deckhand", "Oar Scout", "Tusk Guard", "Fjord Reader", "Mast Keeper", "Strait Runner", "Longship Pilot", "Winter Trader", "Wake Captain", "Hostage Envoy", "Harbor Matriarch", "Oath Speaker", "Blackwake Navigator"]
+  },
+  qhantari: {
+    art: "/assets/gauntlet/qhantari-emblem.svg",
+    aspects: { spades: "Mountain", hearts: "Linked", diamonds: "High-Road", clubs: "Courier" },
+    ranks: ["Knot Student", "Terrace Runner", "Bridge Keeper", "Storehouse Guide", "Valley Witness", "Relay Warden", "Cloud Courier", "Road Convener", "Dispatch Captain", "Consent Envoy", "Terrace Matriarch", "Rope Marshal", "Last Relay"]
+  },
+  sahravi: {
+    art: "/assets/gauntlet/sahravi-emblem.svg",
+    aspects: { spades: "Caravan", hearts: "House", diamonds: "Commissioned", clubs: "Scholarly" },
+    ranks: ["Ink Student", "Well Guide", "Salt Runner", "Claim Reader", "Caravan Guard", "Promise Keeper", "Manuscript Courier", "Route Auditor", "Ledger Captain", "Counter-Signatory", "House Matriarch", "Open-Ledger Judge", "Fourth Signature"]
   }
 });
 const CATALOG_SUITS = Object.freeze(["spades", "hearts", "diamonds", "clubs"]);
@@ -1170,6 +1191,10 @@ const COMMANDER_ANNOUNCEMENTS = Object.freeze({
   russo: { selected: "The hearth is lit. The line will hold.", clicked: "Endurance belongs to everyone beside us.", wounded: "Twenty-one life. Share the heat and close the breach.", critical: "Ten life. No one freezes alone.", denied: "The reserve cannot sustain that order." },
   xendra: { selected: "We arrive where your certainty thins.", clicked: "A shape is only the angle from which you agreed to see it.", wounded: "Twenty-one remains in the account you call life.", critical: "Ten. The smallest opening admits an infinite horizon.", denied: "That possibility is not facing you yet." },
   morphlings: { selected: "Do not look away. The person you knew is still speaking.", clicked: "No form is final, but every life remains its own.", wounded: "The wound changes us. It does not decide us.", critical: "Hold the memory-thread. We can still become tomorrow.", denied: "That shape would break our continuity." }
+  ,khevar: { selected: "Open the ledger under witness.", clicked: "A seal protects truth only until truth must speak.", wounded: "The river carries blood and testimony alike.", critical: "Read every name before the record closes.", denied: "That claim has no witness." }
+  ,vardun: { selected: "Chart the course. Let the harbor judge our return.", clicked: "The sea rewards commitment, not certainty.", wounded: "Reef the sail and keep the oath.", critical: "One last course through the black water.", denied: "No crew swore to that voyage." }
+  ,qhantari: { selected: "Every station answers. Begin the relay.", clicked: "A road lives only while people maintain it.", wounded: "Carry strength to the broken bridge.", critical: "The message reaches the last station.", denied: "That route has not consented." }
+  ,sahravi: { selected: "Open the contract. Name every beneficiary.", clicked: "Trust survives because the ledger stays open.", wounded: "The promise still binds us.", critical: "Honor the commission before the gate closes.", denied: "The cost and witness do not match." }
 });
 
 const COMMANDER_ANNOUNCEMENT_AUDIO = Object.freeze({
@@ -1229,6 +1254,10 @@ const GENERAL_CLICK_ANNOUNCEMENTS = Object.freeze({
   russo: "Keep the shared hearth alive through the longest night.",
   xendra: "You hear one voice because the others are standing behind it.",
   morphlings: "Adaptation is hope only when the changed may choose it."
+  ,khevar: "A preserved truth still needs a living witness."
+  ,vardun: "The harbor remembers who returned and who did not."
+  ,qhantari: "No station is the whole road."
+  ,sahravi: "Every promise must survive the distance between signatures."
 });
 
 const GENERAL_CLICK_AUDIO = Object.freeze({
@@ -1246,6 +1275,7 @@ const COMMANDER_VOICE_PROFILES = Object.freeze({
   voltari: [0.9, 0.92], zynarth: [0.72, 0.48], "astral-vanguard": [0.94, 0.82],
   ingles: [0.96, 0.86], mercaw: [1.04, 0.94], mtano: [0.86, 0.78], russo: [0.8, 0.68],
   xendra: [0.58, 0.32], morphlings: [0.82, 0.86]
+  ,khevar: [0.8, 0.72], vardun: [0.76, 0.68], qhantari: [0.92, 0.9], sahravi: [0.9, 0.96]
 });
 
 const COMMANDER_VOICE_HINTS = Object.freeze({
@@ -1266,6 +1296,10 @@ const COMMANDER_VOICE_HINTS = Object.freeze({
   russo: ["mark", "davis", "george", "andrew"],
   xendra: ["william", "davis", "mark", "zira"],
   morphlings: ["aria", "jenny", "william", "andrew"]
+  ,khevar: ["davis", "mark", "guy", "william"]
+  ,vardun: ["guy", "davis", "george", "mark"]
+  ,qhantari: ["aria", "samantha", "andrew", "davis"]
+  ,sahravi: ["aria", "jenny", "andrew", "christopher"]
 });
 
 // ============ FACTION DATA ============
@@ -1414,7 +1448,7 @@ for (const [factionId, announcements] of Object.entries(COMMANDER_ANNOUNCEMENTS)
 }
 
 function listFactions() {
-  return ["rumin", "sheen", "frumo", "bizi", "mekan", "jali", "gracus", "indela", "ingles", "mercaw", "mtano", "russo", "zynarth", "astral-vanguard", "voltari", "xendra", "morphlings"].map((id) => factionsData[id]);
+  return ["rumin", "sheen", "frumo", "bizi", "mekan", "jali", "gracus", "indela", "ingles", "mercaw", "mtano", "russo", "khevar", "vardun", "qhantari", "sahravi", "zynarth", "astral-vanguard", "voltari", "xendra", "morphlings"].map((id) => factionsData[id]);
 }
 
 function getFactionById(id, generalId) {
@@ -2510,7 +2544,7 @@ function validateGameContent() {
   requireText(CONTENT_VERSION, "contentVersion");
   const factionIds = Object.keys(factionsData);
   const playableFactionIds = factionIds.filter((factionId) => !factionsData[factionId].campaignOnly);
-  if (playableFactionIds.length !== 17) throw new Error("Invalid game content: expected seventeen playable factions.");
+  if (playableFactionIds.length !== 21) throw new Error("Invalid game content: expected twenty-one playable factions.");
   for (const factionId of factionIds) {
     const faction = factionsData[factionId];
     if (faction.id !== factionId) throw new Error(`Invalid game content: faction key ${factionId} does not match its ID.`);

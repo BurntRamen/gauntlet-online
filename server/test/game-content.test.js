@@ -46,8 +46,8 @@ test("validates the authoritative versioned game content registry", () => {
   assert.equal(content.schemaVersion, 2);
   assert.equal(content.contentVersion, CONTENT_VERSION);
   assert.equal(content.rulesVersion, RULES_VERSION);
-  assert.equal(content.factions.length, 17);
-  assert.equal(Object.values(content.campaigns).flatMap((campaign) => campaign.chapters).length, 200);
+  assert.equal(content.factions.length, 21);
+  assert.equal(Object.values(content.campaigns).flatMap((campaign) => campaign.chapters).length, 248);
   for (const factionId of ["mekan", "jali", "gracus", "indela", "voltari", "zynarth", "morphlings"]) {
     assert.equal(content.campaigns[factionId].chapters.length, 12, `${factionId}: campaign length`);
     assert.equal(content.campaigns[factionId].chapters.every((chapter) => chapter.dialogue.length >= 5 && chapter.endDialogue.length >= 5), true, `${factionId}: dialogue depth`);
@@ -66,7 +66,11 @@ test("validates the authoritative versioned game content registry", () => {
     ["ingles", "Albion Reach", "The Open Door"],
     ["mercaw", "Cairn", "The Many-Star Accord"],
     ["mtano", "M'Kora", "I Remember You"],
-    ["russo", "Ruskovia", "The Winter Oath"]
+    ["russo", "Ruskovia", "The Winter Oath"],
+    ["khevar", "Neshara", "The River Between Worlds"],
+    ["vardun", "Skeld", "The Harbor Between"],
+    ["qhantari", "Ayara", "The Road Beyond Mountains"],
+    ["sahravi", "Taziri", "The Fourth Signature"]
   ]) {
     const faction = content.factions.find((entry) => entry.id === factionId);
     const campaign = content.campaigns[factionId];
@@ -233,7 +237,7 @@ test("validates the authoritative versioned game content registry", () => {
     assert.equal(typeof chapter.sceneStarter?.perspective, "string", `${chapter.id}: scene perspective`);
   }
   const cinematicChapters = Object.values(content.campaigns).flatMap((campaign) => campaign.chapters).filter((chapter) => chapter.cinematic);
-  assert.equal(cinematicChapters.length, 17);
+  assert.equal(cinematicChapters.length, 21);
   for (const chapter of cinematicChapters) {
     assert.equal(typeof chapter.cinematic.title, "string", `${chapter.id}: cinematic title`);
     assert.match(chapter.cinematic.image, /^\/assets\/gauntlet\/.+\.(?:webp|png|svg)$/);
@@ -392,7 +396,7 @@ test("maps every catalog constructed card into the shared deterministic rules", 
       return !effectId || (handler !== "printed-value-only" && !sharedRulesSource.includes(`"${handler}"`));
     });
 
-  assert.equal(COLLECTION_CARDS.length, 696);
+  assert.equal(COLLECTION_CARDS.length, 904);
   assert.deepEqual(missing, []);
 });
 
@@ -458,7 +462,7 @@ test("requires card-specific constructed behavior coverage for the full catalog"
     })
     .map((card) => card.id);
 
-  assert.equal(COLLECTION_CARDS.length, 696);
+  assert.equal(COLLECTION_CARDS.length, 904);
   assert.deepEqual(missing, []);
 });
 

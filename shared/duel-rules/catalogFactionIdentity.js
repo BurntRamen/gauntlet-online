@@ -82,6 +82,30 @@ const CATALOG_FACTION_IDENTITIES = Object.freeze({
     hearts: [TRIGGERS.FIRST_BLOCK, "Hearth Guard", "When this is your first block of the turn, it gets +1 value."],
     diamonds: [TRIGGERS.LANE_ATTACK, "Iron Advance", "When this attacks from a lane, it gets +1 value."],
     clubs: [TRIGGERS.WOUNDED_ATTACK, "Forest Countermarch", "If you have taken damage this turn, this gets +1 value when it attacks."]
+  }),
+  khevar: Object.freeze({
+    spades: [TRIGGERS.FIRST_BLOCK, "Sealed Vigil", "When this is your first block of the turn, it gets +1 value."],
+    hearts: [TRIGGERS.LATE_BLOCK, "Ancestral Ledger", "When this is your second or later block of the turn, it gets +1 value."],
+    diamonds: [TRIGGERS.SAME_SUIT_ATTACK, "Opened Record", "When this attack matches the suit of your previous attack, it gets +1 value."],
+    clubs: [TRIGGERS.RISING_ATTACK, "River Reckoning", "When this attacks after a lower-value card was played, it gets +1 value."]
+  }),
+  vardun: Object.freeze({
+    spades: [TRIGGERS.LANE_ATTACK, "Charted Raid", "When this attacks from a lane, it gets +1 value."],
+    hearts: [TRIGGERS.FIRST_BLOCK, "Harbor Shield", "When this is your first block of the turn, it gets +1 value."],
+    diamonds: [TRIGGERS.FIRST_ATTACK, "Expedition's Return", "When this is your first attack of the turn, it gets +1 value."],
+    clubs: [TRIGGERS.LATE_ATTACK, "Assembly Oath", "When this is your third or later attack of the turn, it gets +1 value."]
+  }),
+  qhantari: Object.freeze({
+    spades: [TRIGGERS.LANE_BLOCK, "Mountain Relay", "When this blocks from a lane, it gets +1 value."],
+    hearts: [TRIGGERS.LATE_BLOCK, "Linked Villages", "When this is your second or later block of the turn, it gets +1 value."],
+    diamonds: [TRIGGERS.RISING_ATTACK, "High Road", "When this attacks after a lower-value card was played, it gets +1 value."],
+    clubs: [TRIGGERS.DIFFERENT_SUIT_ATTACK, "Courier Exchange", "When this attack differs in suit from your previous attack, it gets +1 value."]
+  }),
+  sahravi: Object.freeze({
+    spades: [TRIGGERS.DIFFERENT_SUIT_ATTACK, "Caravan Bargain", "When this attack differs in suit from your previous attack, it gets +1 value."],
+    hearts: [TRIGGERS.FIRST_BLOCK, "House Guarantee", "When this is your first block of the turn, it gets +1 value."],
+    diamonds: [TRIGGERS.SAME_SUIT_ATTACK, "Commission", "When this attack matches the suit of your previous attack, it gets +1 value."],
+    clubs: [TRIGGERS.RISING_ATTACK, "Scholars' Account", "When this attacks after a lower-value card was played, it gets +1 value."]
   })
 });
 
