@@ -19928,10 +19928,10 @@
           "usage": "card-illustration"
         }
       ],
-      "path": "/assets/gauntlet/releases/53d52ee27625790c76ef281b10bddc21c9ee35f02af4fd53fb6e79ea780b4db2.svg",
+      "path": "/assets/gauntlet/releases/64dc39434b49ca06a36eaddeaab54db259255cb616da5a0d70514fc2ea128413.svg",
       "mediaType": "image/svg+xml",
-      "sha256": "53d52ee27625790c76ef281b10bddc21c9ee35f02af4fd53fb6e79ea780b4db2",
-      "bytes": 752
+      "sha256": "64dc39434b49ca06a36eaddeaab54db259255cb616da5a0d70514fc2ea128413",
+      "bytes": 754
     },
     {
       "id": "asset:lafayette.webp",
@@ -31348,10 +31348,10 @@
           "usage": "card-illustration"
         }
       ],
-      "path": "/assets/gauntlet/releases/80fac699a672a59a97c81faa1e6fd4abcf7f272819d5145aee5bbf4d34bab33d.svg",
+      "path": "/assets/gauntlet/releases/b72f445fc63044449fc96dc8cac9ec80d1262e83b0f81ded1a1435b373ecae40.svg",
       "mediaType": "image/svg+xml",
-      "sha256": "80fac699a672a59a97c81faa1e6fd4abcf7f272819d5145aee5bbf4d34bab33d",
-      "bytes": 674
+      "sha256": "b72f445fc63044449fc96dc8cac9ec80d1262e83b0f81ded1a1435b373ecae40",
+      "bytes": 683
     },
     {
       "id": "asset:voices/astral-vanguard/city-that-wasnt-there-ending.mp3",
@@ -43686,5 +43686,5 @@
     "sahravi-clubs-king": "/assets/gauntlet/sahravi-emblem.svg",
     "sahravi-clubs-ace": "/assets/gauntlet/sahravi-emblem.svg"
   },
-  "version": "gauntlet-assets-fe6b8f1a1b701c59f93de6d5e29558c6780a978032a7c84cb0f83deb9a94365d"
+  "version": "gauntlet-assets-9860a944eeb020e99a1699a70abb75b44d5d1d8007b7adf46d69b597f9f57888"
 }

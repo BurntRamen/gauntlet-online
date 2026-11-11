@@ -42,26 +42,26 @@ const FACTIONS = {
     reathArrival: "Miners uncovered a Timetwister beneath Ruskovia's ice during Petrov's industrialization. Later governments turned the discovery toward exploration and rivalry before Irina Volkov led an accountable expedition to Reath."
   },
   khevar: {
-    id: "khevar", name: "Khevar", setId: "crossroads", draftRules: true,
+    id: "khevar", name: "Khejari", setId: "crossroads", draftRules: true,
     cardImage: "/assets/gauntlet/khevar-emblem.svg",
-    mechanic: { name: "Seal", summary: "Preserve one commitment now so it can return with greater purpose later.", gameplay: "Khevar suits reward patient lane attacks, exact sequences, and defensive timing—the playable expression of sealing testimony before reopening it." },
-    commander: { name: "Commander Satek", image: "/assets/gauntlet/khevar-emblem.svg", text: "Seal — Preserve a commitment before power can rewrite it; reopen it when the record matters most." },
-    general: { name: "Archivist Meret", image: "/assets/gauntlet/khevar-emblem.svg", text: "Open Ledger — Patient defense becomes evidence for a later, decisive answer." },
-    city: { name: "Iru-Nemeth", image: "/assets/gauntlet/khevar-emblem.svg", text: "River Archive — What the flood carries away survives in testimony, scarab seals, and the names spoken afterward." },
+    mechanic: { name: "Judgment", summary: "Weigh an opponent's commitment, then answer it with the correct verdict rather than raw force.", gameplay: "Khejari suits turn disciplined blocks, repeated suits, and rising attacks into judgments: Guard, Mercy, Truth, and Sentence each reward a different reading of the duel." },
+    commander: { name: "Pharaoh Atenkar", image: "/assets/gauntlet/khevar-emblem.svg", text: "Judgment — Power is legitimate only when the scale, the evidence, and the cost of the verdict remain visible." },
+    general: { name: "Archivist Meret", image: "/assets/gauntlet/khevar-emblem.svg", text: "Open Ledger — Preserve testimony that neither throne nor machine can silently revise." },
+    city: { name: "Iru-Nemeth", image: "/assets/gauntlet/khevar-emblem.svg", text: "Hall of the Living Scale — Every verdict enters the public record beside the name of the judge who gave it." },
     homeworld: "Neshara",
-    origin: "The jackal-like Khevar arose beside Neshara's great river. Their kingdoms joined flood agriculture, royal succession, scarab armor, funerary preservation, and public ledgers into a civilization built around one dangerous question: who controls what is remembered?",
-    reathArrival: "A sealed funerary gate beneath Iru-Nemeth proved to be a Timetwister receiver. Satek opened it under public witness and reached Reath carrying records rather than a claim of origin."
+    origin: "The jackal-like Khejari arose beside Neshara's great river. Their kingdoms joined flood agriculture, scarab armor, funerary memory, and courts of public judgment into a civilization forever asking whether a verdict preserves cosmic balance or merely sanctifies authority.",
+    reathArrival: "A sealed funerary gate beneath Iru-Nemeth proved to be a Timetwister receiver. Atenkar opened it before the Living Scale and reached Reath carrying witnesses rather than a claim of origin."
   },
   vardun: {
-    id: "vardun", name: "Vardun", setId: "crossroads", draftRules: true,
+    id: "vardun", name: "Varkyn", setId: "crossroads", draftRules: true,
     cardImage: "/assets/gauntlet/vardun-emblem.svg",
-    mechanic: { name: "Chart", summary: "Announce where an expedition will matter, then make that public commitment pay off.", gameplay: "Vardun cards favor first strikes, lane launches, and late attacks, turning a visible plan into pressure without revealing every detail." },
-    commander: { name: "Yrsa Blackwake", image: "/assets/gauntlet/vardun-emblem.svg", text: "Chart — Commit to a course openly, conceal the crew's final tactic, and return with an advantage earned through risk." },
-    general: { name: "Torven Oar-Speaker", image: "/assets/gauntlet/vardun-emblem.svg", text: "Assembly Oath — A captain commands a voyage; the harbor decides what its return means." },
-    city: { name: "Winter Harbor", image: "/assets/gauntlet/vardun-emblem.svg", text: "Carved Longships — Trade, rescue, and raiding share the same sea, but not the same obligation." },
-    homeworld: "Skeld",
-    origin: "The tusked, heavy-coated Vardun built carved longships across Skeld's black fjords. Rival captains became navigators, traders, raiders, and assembly speakers whose public expedition oaths made ambition answerable to the harbor it left behind.",
-    reathArrival: "A starless current carried one charted longship through a Timetwister and into Reath's inland sea. The Vardun marked Reath as a meeting harbor, never as the birthplace of their people."
+    mechanic: { name: "Oath", summary: "Declare what a battle must preserve, then gain strength by honoring that promise even when the efficient choice is to abandon it.", gameplay: "Varkyn suits embody Raid, Kin, Fate, and Saga. They reward launching from lanes, holding the first defense, striking first, and completing a late attack sequence." },
+    commander: { name: "Ulfrik Ironjaw", image: "/assets/gauntlet/vardun-emblem.svg", text: "Wolf-Oath — Unify the clans through promises they can challenge, remember, and demand that you keep." },
+    general: { name: "Veyra Fateweaver", image: "/assets/gauntlet/vardun-emblem.svg", text: "Raven-Sight — A prophecy is a warning about choices, not permission to surrender them." },
+    city: { name: "Skeldheim", image: "/assets/gauntlet/vardun-emblem.svg", text: "The Broken Fjords — Wolf clans, sacred ravens, and longships bind a young kingdom whose unity is never finished." },
+    homeworld: "Skeldheim",
+    origin: "The wolf-like Varkyn arose among Skeldheim's frozen fjords. Clan oaths, longship exploration, sacred ravens of Veyra, and fear of a final winter shaped a culture where honor is measured by what one refuses to abandon.",
+    reathArrival: "The Frozen Passage opened into a Timetwister current and carried a Varkyn expedition to Reath. They named it a meeting shore, never the birthplace of their people."
   },
   qhantari: {
     id: "qhantari", name: "Qhantari", setId: "crossroads", draftRules: true,
@@ -345,43 +345,43 @@ const ARC = {
     chapters: RUSSO_STORY
   },
   khevar: {
-    hero: "Commander Satek", ally: "Archivist Meret", world: "Neshara", city: "Iru-Nemeth",
-    perspective: "Satek learning that preservation can protect truth or imprison it",
-    conflict: "memory can remain a public trust instead of becoming royal property",
-    theme: "The River Keeps No Names",
+    hero: "Pharaoh Atenkar", ally: "Archivist Meret", world: "Neshara", city: "Iru-Nemeth",
+    perspective: "Atenkar learning that judgment without accountable evidence becomes another form of conquest",
+    conflict: "a civilization devoted to balance can judge power without making the throne the measure of truth",
+    theme: "The Living Scale",
     chapters: [
-      { title: "The Sealed Granary", foe: "The Palace Guard", when: "The third failed flood", perspective: "Satek protecting grain meant for villages", story: "A late queen's grain reserve is sealed inside her tomb while villages starve. Satek breaks the seal in public and discovers that members of his own family signed the diversion order." },
+      { title: "The Grain on the Scale", foe: "The Palace Guard", when: "The third failed flood", perspective: "Atenkar judging a royal reserve while villages starve", story: "A late queen's grain reserve is sealed inside her tomb while villages starve. Atenkar opens the case before the public and discovers that the law protects the dead more clearly than the living." },
       { title: "Scarab Witness", foe: "The Counterfeit Priests", perspective: "Meret proving ritual objects can preserve evidence" },
-      { title: "The Missing Names", foe: "The Royal Redactors", perspective: "Satek finding workers removed from the monument they built" },
-      { title: "Flood Court", foe: "The Upstream Houses", perspective: "Meret weighing testimony from communities with incompatible maps" },
-      { title: "The Queen's Original Ledger", foe: "The Coronation Council", perspective: "Satek deciding whether to read a record that may collapse the succession" },
+      { title: "The Missing Names", foe: "The Royal Redactors", perspective: "Atenkar finding workers removed from the monument they built" },
+      { title: "Judgment of the Flood", foe: "The Upstream Houses", perspective: "Meret weighing testimony from communities with incompatible maps" },
+      { title: "The Pharaoh's Measure", foe: "The Coronation Council", perspective: "Atenkar submitting his own succession to the Living Scale" },
       { title: "The Open Tomb", foe: "The Preservation Edict", perspective: "Meret asking whether honoring the dead can require contradicting them" },
-      { title: "Cargo of Names", foe: "The River Reavers", perspective: "Satek defending testimony that cannot defend itself" },
-      { title: "What the River Forgets", foe: "The Silt Archive", perspective: "Meret restoring lives without inventing certainty" },
-      { title: "The Crown Weighs Itself", foe: "The Last Seal", perspective: "Satek placing royal memory under public law" },
+      { title: "Sentence of the River", foe: "The River Reavers", perspective: "Atenkar distinguishing justice from vengeance" },
+      { title: "The Mekan Equation", foe: "The Perfect Procedure", perspective: "Atenkar debating whether optimized outcomes can substitute for moral judgment" },
+      { title: "The Crown Weighs Itself", foe: "The Last Seal", perspective: "Atenkar placing royal judgment under public law" },
       { title: "The Door Beneath Iru-Nemeth", foe: "The Funerary Warden", perspective: "Meret recognizing a receiver inside a sacred gate" },
-      { title: "Witnesses to the Crossing", foe: "The Closed Record", perspective: "Satek refusing secret passage between worlds" },
-      { title: "The River Between Worlds", foe: "The Convergence Storm", where: "Reath, beside a river that remembers impossible skies", perspective: "Satek carrying an open ledger into a world his people did not create" }
+      { title: "Witnesses to the Crossing", foe: "The Closed Record", perspective: "Atenkar refusing secret passage between worlds" },
+      { title: "The Scale Between Worlds", foe: "The Convergence Storm", where: "Reath, beside a river that remembers impossible skies", perspective: "Atenkar carrying an accountable court into a world his people did not create" }
     ]
   },
   vardun: {
-    hero: "Yrsa Blackwake", ally: "Torven Oar-Speaker", world: "Skeld", city: "Winter Harbor",
-    perspective: "Yrsa balancing a captain's initiative with the assembly's right to judge the voyage",
-    conflict: "public commitments can guide risk without turning every expedition into conquest",
-    theme: "The Winter Harbor",
+    hero: "Ulfrik Ironjaw", ally: "Veyra Fateweaver", world: "Skeldheim", city: "Skeldheim",
+    perspective: "Ulfrik turning rival wolf clans into a kingdom without making unity another word for obedience",
+    conflict: "honor can preserve kin, oath, and memory without sacrificing lives merely to prove devotion",
+    theme: "The Final Saga",
     chapters: [
-      { title: "The Hostage Current", foe: "The Strait-Keeper Fleet", when: "The winter before the harbor famine", perspective: "Yrsa returning with wealth and a hostage whose family controls the safe straits", story: "Yrsa Blackwake brings home the supplies Winter Harbor needs and a hostage whose ransom could open a safe route. The assembly divides between treaty, revenge, and questions about sailors her success left behind." },
-      { title: "Oath on the Mast", foe: "The Silent Captain", perspective: "Torven making private command answer public questions" },
-      { title: "The Exposed Route", foe: "The Whitewater Teeth", perspective: "Yrsa rescuing witnesses who may end her command" },
-      { title: "Longships at Dawn", foe: "The Harbor Raiders", perspective: "rival captains coordinating without surrendering their crews" },
-      { title: "Trade Wind, War Wind", foe: "The Amber Monopoly", perspective: "Yrsa deciding when escort becomes occupation" },
-      { title: "The Tusk Assembly", foe: "The Permanent Admiral", perspective: "Torven defending temporary authority" },
-      { title: "The Ship Without a Wake", foe: "The Drowned Map", perspective: "Yrsa confronting a vessel that returns before it departs" },
-      { title: "Harbor of Rivals", foe: "The Blood-Oath Bloc", perspective: "the assembly deciding whether hospitality can survive memory" },
-      { title: "Every Captain Returns", foe: "The Last Expedition", perspective: "Yrsa handing command back before legend makes it permanent" },
-      { title: "The Inland Sea", foe: "The Starless Current", perspective: "Torven seeing an ocean beneath an unfamiliar sky" },
-      { title: "No Shore Is Ownerless", foe: "The Annexation Fleet", perspective: "Yrsa rejecting discovery as title" },
-      { title: "The Harbor Between", foe: "The Convergence Storm", where: "Reath's inland sea", perspective: "Yrsa charting a return route instead of planting a claim" }
+      { title: "The Broken Fjord", foe: "The Rival Clans", when: "The war for the first high kingship", perspective: "Ulfrik unifying clans that remember every inherited grievance", story: "Ulfrik Ironjaw wins the field but refuses to erase the laws and names of defeated clans, beginning a kingdom held together by challengeable oaths." },
+      { title: "The Blood Price", foe: "The Rival Jarl", perspective: "Ulfrik seeking victory without spending his warriors as proof of courage" },
+      { title: "The Great Voyage", foe: "The Coastal Defenders", perspective: "Varkyn crews learning that exploration, trade, and raiding create different obligations" },
+      { title: "Honor Among Wolves", foe: "Bjorn Bloodhowl", perspective: "Ulfrik surviving an honorable rival who believes mercy weakens every oath" },
+      { title: "The Frozen Passage", foe: "The Ancient Guardians", perspective: "Veyra protecting an expedition while sacred ravens reveal a road between worlds" },
+      { title: "A Kingdom Divided", foe: "Sigvard and Eirik", perspective: "Ulfrik facing rival claimants whose visions of Skeldheim cannot coexist unchanged" },
+      { title: "The Last Winter", foe: "The Winterborn", perspective: "Veyra deciding whether prophecy describes extinction or warns against causing it" },
+      { title: "The Final Saga", foe: "The Oathbreaker Crown", perspective: "the clans deciding whether Skeldheim becomes kingdom, confederation, or endless feud" },
+      { title: "The Rumin Standard", foe: "The Efficient General", perspective: "Ulfrik confronting an enemy who sacrifices soldiers for victory while the Varkyn sacrifice victory to preserve an oath" },
+      { title: "Ravens Beyond the Storm", foe: "The Starless Current", perspective: "Veyra following sacred ravens into a Timetwister passage" },
+      { title: "No Shore Is Ownerless", foe: "The Annexation Jarls", perspective: "Ulfrik refusing to turn discovery into title" },
+      { title: "The Oath Between Worlds", foe: "The Convergence Storm", where: "Reath's inland sea", perspective: "Ulfrik naming Reath a meeting shore while Skeldheim remains the Varkyn homeworld" }
     ]
   },
   qhantari: {
@@ -545,15 +545,15 @@ const CHARACTERS = {
     mikhail: { name: "Mikhail Saran", role: "Keeper of the Shared Hearth", description: "An engineer and organizer who keeps local networks alive whenever central certainty fails and makes interworld assistance answer to the people receiving it." }
   },
   khevar: {
-    satek: { name: "Commander Satek", role: "Breaker of the Granary Seal", description: "A scarab-armored commander who exposes a royal diversion of famine grain, then discovers his own family helped authorize it." },
+    satek: { name: "Pharaoh Atenkar", role: "Bearer of the Living Scale", description: "A jackal pharaoh who submits royal power—including his own succession—to public judgment rather than treating the throne as truth's author." },
     meret: { name: "Archivist Meret", role: "Keeper of the Open Ledger", description: "A priest-archivist who treats ritual preservation as evidence held in trust for the living, not secrecy owed to power." },
     neferet: { name: "Queen Neferet", role: "Author of the Disputed Reserve", description: "A dead sovereign whose intentions survive only through conflicting ledgers, sealed jars, and the people asked to interpret them." },
     ...oppositionArchive("khevar")
   },
   vardun: {
-    yrsa: { name: "Yrsa Blackwake", role: "Captain of the Exposed Route", description: "A tusked navigator whose spectacular return saves Winter Harbor and forces her to account for every sailor her legend left behind." },
-    torven: { name: "Torven Oar-Speaker", role: "Voice of the Harbor Assembly", description: "An assembly speaker who makes captains announce their risks without pretending public oversight can remove uncertainty from the sea." },
-    asta: { name: "Asta Strait-Keeper", role: "Hostage and Negotiator", description: "The heir to a family controlling the safe straits, whose captivity becomes either ransom, treaty, or the first honest account of the voyage." },
+    yrsa: { name: "Ulfrik Ironjaw", role: "First High Jarl", description: "A wolf war leader who can win clan wars but must learn that a kingdom survives through contestable oaths rather than permanent victory." },
+    torven: { name: "Veyra Fateweaver", role: "Raven Seer", description: "Keeper of the sacred ravens who treats prophecy as a warning that protects agency, never as an order to accept extinction." },
+    asta: { name: "Bjorn Bloodhowl", role: "Honorable Rival", description: "A ferocious jarl whose courage is real and whose belief that mercy weakens honor repeatedly threatens the kingdom Ulfrik is trying to build." },
     ...oppositionArchive("vardun")
   },
   qhantari: {

@@ -82,13 +82,13 @@ const FACTION_PROFILES = {
   "astral-vanguard": { id: "astral-vanguard", name: "Astral Vanguard", commander: "High Marshal Alden", city: "Vanguard Outpost", general: { id: "myra-cross", name: "Sergeant Myra Cross" } },
   voltari: { id: "voltari", name: "Voltari", commander: "Silicon Sovereign", city: "The Golden Conduit", general: { id: "consent-keeper", name: "Consent Keeper" } },
   xendra: { id: "xendra", name: "Xen’Dra", commander: "The Deep Currents", city: "Total Eclipse", general: { id: "distant-witness", name: "Distant Witness" } },
-  morphlings: { id: "morphlings", name: "The Continuants", commander: "Captain Ilyra Vale, Keeper of the First Shape", city: "The Refuge of Returning Light", general: { id: "tessan", name: "Dr. Tessan Rook, Many-Form Guide" } },
+  morphlings: { id: "morphlings", name: "The Continuants", commander: "Captain Ilyra Vale, Keeper of the First Shape", city: "The Refuge of Returning Light", general: { id: "tessan", name: "Dr. Alden Voss, Witness of Continuity" } },
   ingles: { id: "ingles", name: "Ingles", commander: "First Speaker Elian Wren", city: "Crownless Haven", general: { id: "rowan-vale", name: "Marshal Rowan Vale" } },
   mercaw: { id: "mercaw", name: "Mercaw", commander: "Convener Mara Kest", city: "Accord Spire", general: { id: "rook-talon", name: "Rook Talon" } },
   mtano: { id: "mtano", name: "M'Tano", commander: "Rainkeeper Amari", city: "Mawingu Terraces", general: { id: "kito", name: "Pathfinder Kito" } },
   russo: { id: "russo", name: "Russo", commander: "Warden Irina Volkov", city: "Novaya Hearth", general: { id: "mikhail-saran", name: "Mikhail Saran" } },
-  khevar: { id: "khevar", name: "Khevar", commander: "Commander Satek", city: "Iru-Nemeth", general: { id: "meret", name: "Archivist Meret" } },
-  vardun: { id: "vardun", name: "Vardun", commander: "Yrsa Blackwake", city: "Winter Harbor", general: { id: "torven", name: "Torven Oar-Speaker" } },
+  khevar: { id: "khevar", name: "Khejari", commander: "Pharaoh Atenkar", city: "Iru-Nemeth", general: { id: "meret", name: "Archivist Meret" } },
+  vardun: { id: "vardun", name: "Varkyn", commander: "Ulfrik Ironjaw", city: "Skeldheim", general: { id: "veyra", name: "Veyra Fateweaver" } },
   qhantari: { id: "qhantari", name: "Qhantari", commander: "Courier-General Amaru", city: "The High Storehouse", general: { id: "killa", name: "Killa Ropekeeper" } },
   sahravi: { id: "sahravi", name: "Sahravi", commander: "Commander Naya", city: "Sahra Gate", general: { id: "idris", name: "Idris of the Open Ledger" } }
 };

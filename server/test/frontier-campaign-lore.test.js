@@ -28,8 +28,8 @@ test("Ingles campaign is a generational chronicle rather than a single invented 
 
 test("Crossroads factions have distinct origins, complete campaigns, and playable mechanics", () => {
   const expectations = {
-    khevar: ["Neshara", "Seal", /grain reserve/i],
-    vardun: ["Skeld", "Chart", /hostage/i],
+    khevar: ["Neshara", "Judgment", /grain reserve/i],
+    vardun: ["Skeldheim", "Oath", /challengeable oaths/i],
     qhantari: ["Ayara", "Relay", /landslide/i],
     sahravi: ["Taziri", "Commission", /three merchant houses/i]
   };

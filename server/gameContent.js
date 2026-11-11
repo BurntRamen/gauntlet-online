@@ -825,7 +825,7 @@ const FULL_CATALOG_FACTIONS = Object.freeze({
   morphlings: {
     art: "/assets/gauntlet/morphlings-emblem.svg",
     aspects: { spades: "Adaptive", hearts: "Sheltering", diamonds: "Remembered", clubs: "Becoming" },
-    ranks: ["First Stirring", "Soft-Shell Scout", "Shape Listener", "Refraction Guide", "Wound Keeper", "Continuity Bearer", "Tide Walker", "Refuge Warden", "Many-Form Guardian", "Luminous Witness", "Memory Matriarch", "Cohesion Keeper", "Future Unfolding"]
+    ranks: ["Test Subject", "Soft-Shell Scout", "Shape Listener", "Escape Guide", "Wound Keeper", "Continuity Bearer", "Lab-Breaker", "Refuge Warden", "Many-Form Guardian", "Living Witness", "Memory Matriarch", "Cohesion Keeper", "Future Unfolding"]
   },
   ingles: {
     art: "/assets/gauntlet/ingles-emblem.svg",
@@ -849,13 +849,13 @@ const FULL_CATALOG_FACTIONS = Object.freeze({
   },
   khevar: {
     art: "/assets/gauntlet/khevar-emblem.svg",
-    aspects: { spades: "Sealed", hearts: "Ancestral", diamonds: "Opened", clubs: "River" },
-    ranks: ["Jar Keeper", "Silt Reader", "Scarab Guard", "Name Witness", "Granary Warden", "Flood Advocate", "Ledger Runner", "Tomb Examiner", "Public Scribe", "Coronation Envoy", "River Matriarch", "Archive Commander", "Unforgotten Judge"]
+    aspects: { spades: "Guarded", hearts: "Merciful", diamonds: "Truth-Bearing", clubs: "Sentenced" },
+    ranks: ["Scale Initiate", "Reed Witness", "Scarab Guard", "Name Advocate", "Granary Assessor", "Flood Magistrate", "Ledger Runner", "Tomb Examiner", "Public Scribe", "Coronation Witness", "River Matriarch", "Scale Commander", "Atenkar's Judgment"]
   },
   vardun: {
     art: "/assets/gauntlet/vardun-emblem.svg",
-    aspects: { spades: "Charted", hearts: "Harbor", diamonds: "Returning", clubs: "Assembly" },
-    ranks: ["Deckhand", "Oar Scout", "Tusk Guard", "Fjord Reader", "Mast Keeper", "Strait Runner", "Longship Pilot", "Winter Trader", "Wake Captain", "Hostage Envoy", "Harbor Matriarch", "Oath Speaker", "Blackwake Navigator"]
+    aspects: { spades: "Raiding", hearts: "Kin-Bound", diamonds: "Fate-Seen", clubs: "Saga-Forged" },
+    ranks: ["Wolf Pup", "Raven Scout", "Shield Guard", "Fjord Reader", "Oath Keeper", "Longship Runner", "Ice Navigator", "Winter Raider", "Wolf Captain", "Clan Envoy", "Fate Matriarch", "High Jarl", "Ironjaw Legend"]
   },
   qhantari: {
     art: "/assets/gauntlet/qhantari-emblem.svg",
@@ -1191,8 +1191,8 @@ const COMMANDER_ANNOUNCEMENTS = Object.freeze({
   russo: { selected: "The hearth is lit. The line will hold.", clicked: "Endurance belongs to everyone beside us.", wounded: "Twenty-one life. Share the heat and close the breach.", critical: "Ten life. No one freezes alone.", denied: "The reserve cannot sustain that order." },
   xendra: { selected: "We arrive where your certainty thins.", clicked: "A shape is only the angle from which you agreed to see it.", wounded: "Twenty-one remains in the account you call life.", critical: "Ten. The smallest opening admits an infinite horizon.", denied: "That possibility is not facing you yet." },
   morphlings: { selected: "Do not look away. The person you knew is still speaking.", clicked: "No form is final, but every life remains its own.", wounded: "The wound changes us. It does not decide us.", critical: "Hold the memory-thread. We can still become tomorrow.", denied: "That shape would break our continuity." }
-  ,khevar: { selected: "Open the ledger under witness.", clicked: "A seal protects truth only until truth must speak.", wounded: "The river carries blood and testimony alike.", critical: "Read every name before the record closes.", denied: "That claim has no witness." }
-  ,vardun: { selected: "Chart the course. Let the harbor judge our return.", clicked: "The sea rewards commitment, not certainty.", wounded: "Reef the sail and keep the oath.", critical: "One last course through the black water.", denied: "No crew swore to that voyage." }
+  ,khevar: { selected: "Set the Living Scale. Let every witness speak.", clicked: "A verdict without evidence is only authority wearing gold.", wounded: "Record the cost beside the judgment.", critical: "Weigh the throne itself before the record closes.", denied: "That sentence has no witness." }
+  ,vardun: { selected: "Call the wolf clans. The ravens have found our road.", clicked: "An oath matters most when breaking it would be easier.", wounded: "Raise the shields and remember every name.", critical: "One last saga beneath the black winter.", denied: "No clan swore to that course." }
   ,qhantari: { selected: "Every station answers. Begin the relay.", clicked: "A road lives only while people maintain it.", wounded: "Carry strength to the broken bridge.", critical: "The message reaches the last station.", denied: "That route has not consented." }
   ,sahravi: { selected: "Open the contract. Name every beneficiary.", clicked: "Trust survives because the ledger stays open.", wounded: "The promise still binds us.", critical: "Honor the commission before the gate closes.", denied: "The cost and witness do not match." }
 });
@@ -1418,10 +1418,10 @@ const factionsData = {
     setId: "convergence",
     draftRules: true,
     cardImage: "/assets/gauntlet/morphlings-emblem.svg",
-    artDirection: { silhouette: "Grotesquely transformed former Astral Vanguard humans: asymmetrical limbs, misplaced vestigial features, fused equipment, split jaws, faceted eyes, and insectile or amphibious adaptations interrupt recognizable human posture and identity", materials: "Wet translucent tissue, scarred chitin, exposed crystal growth, stretched membranes, mismatched organs, refracted fluids, and Vanguard armor permanently grown into living bodies", motifs: "Human names surviving monstrous silhouettes, medical quarantine markings, tragic remnants, forced exile, incomplete reflections, and painful forms becoming survivable", guardrail: "Make the body horror immediate and unsettling while preserving the person's humanity through voice, posture, keepsakes, and recognizable equipment. Their hope comes from mutual care and agency, not from making their bodies beautiful or harmless." },
-    commander: { name: "Captain Ilyra Vale, Keeper of the First Shape", image: "/assets/gauntlet/morphlings-emblem.svg", text: "A grotesquely transformed former Astral Vanguard captain whose fused uniform and remembered oath make her humanity undeniable. Build Continuity by adapting to changing attacks and resilient blocks. At 6 Continuity, cohere: gain 1 life, draw 1 extra card at turn end, then return to 2." },
-    general: { id: "tessan", name: "Dr. Tessan Rook, Many-Form Guide", image: "/assets/gauntlet/morphlings-emblem.svg", text: "A former Vanguard xenobiologist now bearing unstable human, insectile, and crystalline anatomy. Spades adapt, Hearts shelter, Diamonds remember, and Clubs become together; every changed form has a role without becoming compulsory." },
-    city: { name: "The Refuge of Returning Light", image: "/assets/gauntlet/morphlings-emblem.svg", text: "Built on Pelagia after Vanguard planets refused the transformed crews entry. Continuity persists between turns, and the Refuge recognizes personhood where quarantine law saw only contamination." }
+    artDirection: { silhouette: "Grotesquely transformed former Astral Vanguard humans: asymmetrical limbs, misplaced vestigial features, fused equipment, split jaws, faceted eyes, and insectile or amphibious adaptations interrupt recognizable human posture and identity", materials: "Wet translucent tissue, scarred chitin, stretched membranes, mismatched organs, refracted fluids, laboratory restraints, and Vanguard armor permanently grown into living bodies", motifs: "Test Subject numbers crossed out by human names, medical quarantine markings, broken containment glass, tragic remnants, forced exile, and painful forms becoming survivable", guardrail: "Make the body horror immediate and unsettling while preserving the person's humanity through voice, posture, keepsakes, and recognizable equipment. Their hope comes from mutual care and agency, not from making their bodies beautiful or harmless." },
+    commander: { name: "Captain Ilyra Vale, Keeper of the First Shape", image: "/assets/gauntlet/morphlings-emblem.svg", text: "A grotesquely transformed former Astral Vanguard test subject whose fused uniform and remembered oath make her humanity undeniable. Build Continuity by adapting to changing attacks and resilient blocks. At 6 Continuity, cohere: gain 1 life, draw 1 extra card at turn end, then return to 2." },
+    general: { id: "tessan", name: "Dr. Alden Voss, Witness of Continuity", image: "/assets/gauntlet/morphlings-emblem.svg", text: "The researcher who exposed the laboratory and recognized every transformed subject as the same human person. Spades adapt, Hearts shelter, Diamonds remember, and Clubs become together; every changed form has a role without becoming compulsory." },
+    city: { name: "The Refuge of Returning Light", image: "/assets/gauntlet/morphlings-emblem.svg", text: "Built on an abandoned station after Vanguard planets refused the escaped Test Subjects entry. Continuity persists between turns, and the Refuge recognizes personhood where quarantine law saw only contamination." }
   }
 };
 

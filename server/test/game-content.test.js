@@ -56,19 +56,19 @@ test("validates the authoritative versioned game content registry", () => {
   assert.equal(zynarth.campaignPending, undefined);
   assert.equal(zynarth.campaignOnly, undefined);
   const morphlings = content.campaigns.morphlings;
-  assert.match(morphlings.origin, /Human Astral Vanguard explorers grotesquely transformed on Pelagia/);
+  assert.match(morphlings.origin, /Human Astral Vanguard test subjects were grotesquely transformed/);
   assert.match(morphlings.arrivalOnReath, /Denied entry to Astral Vanguard planets/);
   assert.match(morphlings.arrivalOnReath, /Reath is their convergence, not their birthplace/);
-  assert.match(morphlings.chapters[0].story, /Human Astral Vanguard personnel/);
-  assert.match(morphlings.chapters[1].endDialogue.join(" "), /We were Astral Vanguard.*becoming the Continuants/);
+  assert.match(morphlings.chapters[0].story, /Astral Vanguard research city/);
+  assert.match(morphlings.chapters[1].endDialogue.join(" "), /We were Astral Vanguard.*We are the Continuants/);
   assert.match(morphlings.chapters[2].story, /grotesque, unstable bodies/);
   for (const [factionId, homeworld, finalTitle] of [
     ["ingles", "Albion Reach", "The Open Door"],
     ["mercaw", "Cairn", "The Many-Star Accord"],
     ["mtano", "M'Kora", "I Remember You"],
     ["russo", "Ruskovia", "The Winter Oath"],
-    ["khevar", "Neshara", "The River Between Worlds"],
-    ["vardun", "Skeld", "The Harbor Between"],
+    ["khevar", "Neshara", "The Scale Between Worlds"],
+    ["vardun", "Skeldheim", "The Oath Between Worlds"],
     ["qhantari", "Ayara", "The Road Beyond Mountains"],
     ["sahravi", "Taziri", "The Fourth Signature"]
   ]) {
