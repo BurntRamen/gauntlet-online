@@ -40,7 +40,7 @@ const DRAFT_SETS = Object.freeze([
   Object.freeze({ id: "frontiers", number: 3, name: "Frontiers", factionIds: Object.freeze(["ingles", "mercaw", "mtano", "russo"]), draftAvailable: true, sealedAvailable: true }),
   Object.freeze({ id: "reath-beyond", number: 4, name: "Reath Beyond", factionIds: Object.freeze(["zynarth", "astral-vanguard"]), draftAvailable: true, sealedAvailable: true }),
   Object.freeze({ id: "convergence", number: 5, name: "Convergence", factionIds: Object.freeze(["voltari", "xendra", "morphlings"]), draftAvailable: true, sealedAvailable: true })
-  ,Object.freeze({ id: "crossroads", number: 6, name: "Crossroads", factionIds: Object.freeze(["khevar", "vardun", "qhantari", "sahravi"]), draftAvailable: true, sealedAvailable: true })
+  ,Object.freeze({ id: "crossroads", number: 6, name: "Crossroads", factionIds: Object.freeze(["khevar", "vardun", "qhantari", "sahravi", "intari", "thalassari"]), draftAvailable: true, sealedAvailable: true })
 ]);
 
 const RUMIN_COLLECTION_CARDS = [
@@ -866,6 +866,16 @@ const FULL_CATALOG_FACTIONS = Object.freeze({
     art: "/assets/gauntlet/sahravi-emblem.svg",
     aspects: { spades: "Caravan", hearts: "House", diamonds: "Commissioned", clubs: "Scholarly" },
     ranks: ["Ink Student", "Well Guide", "Salt Runner", "Claim Reader", "Caravan Guard", "Promise Keeper", "Manuscript Courier", "Route Auditor", "Ledger Captain", "Counter-Signatory", "House Matriarch", "Open-Ledger Judge", "Fourth Signature"]
+  },
+  intari: {
+    art: "/assets/gauntlet/intari-emblem.svg",
+    aspects: { spades: "Terraced", hearts: "Mita-Bound", diamonds: "Quipu-Kept", clubs: "Sun-Ascendant" },
+    ranks: ["Valley Tender", "Mountain Scout", "Mita Worker", "Rope-Bridge Keeper", "Terrace Cultivator", "Quipu Reader", "Road Warden", "Solar Acolyte", "Golden Sentinel", "Quarter Envoy", "Voice of the Sun", "Condor General", "Avatar of Inti"]
+  },
+  thalassari: {
+    art: "/assets/gauntlet/thalassari-emblem.svg",
+    aspects: { spades: "Harbored", hearts: "Contract-Bound", diamonds: "Purple-Route", clubs: "Consortium" },
+    ranks: ["Coastal Trader", "Dye Harvester", "Harbor Master", "Contract Broker", "Tyrian Navigator", "Merchant Fleet", "Diplomatic Envoy", "Purple Guildmaster", "Thousand-Harbor Lord", "Consortium Factor", "Merchant Prince", "Hannakor's Standard", "Leviathan of Tyrassa"]
   }
 });
 const CATALOG_SUITS = Object.freeze(["spades", "hearts", "diamonds", "clubs"]);
@@ -1195,6 +1205,8 @@ const COMMANDER_ANNOUNCEMENTS = Object.freeze({
   ,vardun: { selected: "Call the wolf clans. The ravens have found our road.", clicked: "An oath matters most when breaking it would be easier.", wounded: "Raise the shields and remember every name.", critical: "One last saga beneath the black winter.", denied: "No clan swore to that course." }
   ,qhantari: { selected: "Every station answers. Begin the relay.", clicked: "A road lives only while people maintain it.", wounded: "Carry strength to the broken bridge.", critical: "The message reaches the last station.", denied: "That route has not consented." }
   ,sahravi: { selected: "Open the contract. Name every beneficiary.", clicked: "Trust survives because the ledger stays open.", wounded: "The promise still binds us.", critical: "Honor the commission before the gate closes.", denied: "The cost and witness do not match." }
+  ,intari: { selected: "One feather cannot carry the sun. Form the Mita.", clicked: "Build together, and record who carried the stone.", wounded: "Keep the terraces linked. No valley stands alone.", critical: "Guard the flame. The sunrise belongs to no throne.", denied: "The formation has not gathered enough hands." }
+  ,thalassari: { selected: "Open the harbors. Everything between us is a road.", clicked: "A profitable route must remain a route both shores can close.", wounded: "Honor the contracts; keep the neutral ports supplied.", critical: "Purple sails to the horizon. The network still moves.", denied: "That obligation has no willing signatory." }
 });
 
 const COMMANDER_ANNOUNCEMENT_AUDIO = Object.freeze({
@@ -1258,6 +1270,8 @@ const GENERAL_CLICK_ANNOUNCEMENTS = Object.freeze({
   ,vardun: "The harbor remembers who returned and who did not."
   ,qhantari: "No station is the whole road."
   ,sahravi: "Every promise must survive the distance between signatures."
+  ,intari: "A road serves the people who may choose where it leads."
+  ,thalassari: "Empires conquer land. We conquer everything between."
 });
 
 const GENERAL_CLICK_AUDIO = Object.freeze({
@@ -1275,7 +1289,7 @@ const COMMANDER_VOICE_PROFILES = Object.freeze({
   voltari: [0.9, 0.92], zynarth: [0.72, 0.48], "astral-vanguard": [0.94, 0.82],
   ingles: [0.96, 0.86], mercaw: [1.04, 0.94], mtano: [0.86, 0.78], russo: [0.8, 0.68],
   xendra: [0.58, 0.32], morphlings: [0.82, 0.86]
-  ,khevar: [0.8, 0.72], vardun: [0.76, 0.68], qhantari: [0.92, 0.9], sahravi: [0.9, 0.96]
+  ,khevar: [0.8, 0.72], vardun: [0.76, 0.68], qhantari: [0.92, 0.9], sahravi: [0.9, 0.96], intari: [0.88, 0.92], thalassari: [0.84, 0.78]
 });
 
 const COMMANDER_VOICE_HINTS = Object.freeze({
@@ -1300,6 +1314,8 @@ const COMMANDER_VOICE_HINTS = Object.freeze({
   ,vardun: ["guy", "davis", "george", "mark"]
   ,qhantari: ["aria", "samantha", "andrew", "davis"]
   ,sahravi: ["aria", "jenny", "andrew", "christopher"]
+  ,intari: ["aria", "davis", "andrew", "samantha"]
+  ,thalassari: ["liam", "george", "aria", "davis"]
 });
 
 // ============ FACTION DATA ============
@@ -1448,7 +1464,7 @@ for (const [factionId, announcements] of Object.entries(COMMANDER_ANNOUNCEMENTS)
 }
 
 function listFactions() {
-  return ["rumin", "sheen", "frumo", "bizi", "mekan", "jali", "gracus", "indela", "ingles", "mercaw", "mtano", "russo", "khevar", "vardun", "qhantari", "sahravi", "zynarth", "astral-vanguard", "voltari", "xendra", "morphlings"].map((id) => factionsData[id]);
+  return ["rumin", "sheen", "frumo", "bizi", "mekan", "jali", "gracus", "indela", "ingles", "mercaw", "mtano", "russo", "khevar", "vardun", "qhantari", "sahravi", "intari", "thalassari", "zynarth", "astral-vanguard", "voltari", "xendra", "morphlings"].map((id) => factionsData[id]);
 }
 
 function getFactionById(id, generalId) {
@@ -2544,7 +2560,7 @@ function validateGameContent() {
   requireText(CONTENT_VERSION, "contentVersion");
   const factionIds = Object.keys(factionsData);
   const playableFactionIds = factionIds.filter((factionId) => !factionsData[factionId].campaignOnly);
-  if (playableFactionIds.length !== 21) throw new Error("Invalid game content: expected twenty-one playable factions.");
+  if (playableFactionIds.length !== 23) throw new Error("Invalid game content: expected twenty-three playable factions.");
   for (const factionId of factionIds) {
     const faction = factionsData[factionId];
     if (faction.id !== factionId) throw new Error(`Invalid game content: faction key ${factionId} does not match its ID.`);

@@ -106,6 +106,18 @@ const CATALOG_FACTION_IDENTITIES = Object.freeze({
     hearts: [TRIGGERS.FIRST_BLOCK, "House Guarantee", "When this is your first block of the turn, it gets +1 value."],
     diamonds: [TRIGGERS.SAME_SUIT_ATTACK, "Commission", "When this attack matches the suit of your previous attack, it gets +1 value."],
     clubs: [TRIGGERS.RISING_ATTACK, "Scholars' Account", "When this attacks after a lower-value card was played, it gets +1 value."]
+  }),
+  intari: Object.freeze({
+    spades: [TRIGGERS.LANE_BLOCK, "Terrace Formation", "When this blocks from a lane, it gets +1 value."],
+    hearts: [TRIGGERS.LATE_BLOCK, "Mita Rotation", "When this is your second or later block of the turn, it gets +1 value."],
+    diamonds: [TRIGGERS.SAME_SUIT_ATTACK, "Quipu Coordination", "When this attack matches the suit of your previous attack, it gets +1 value."],
+    clubs: [TRIGGERS.LATE_ATTACK, "Solar Ascendance", "When this is your third or later attack of the turn, it gets +1 value."]
+  }),
+  thalassari: Object.freeze({
+    spades: [TRIGGERS.LANE_BLOCK, "Harbor Defense", "When this blocks from a lane, it gets +1 value."],
+    hearts: [TRIGGERS.LATE_BLOCK, "Binding Contract", "When this is your second or later block of the turn, it gets +1 value."],
+    diamonds: [TRIGGERS.DIFFERENT_SUIT_ATTACK, "Trade Route", "When this attack differs in suit from your previous attack, it gets +1 value."],
+    clubs: [TRIGGERS.RISING_ATTACK, "Commercial Supremacy", "When this attacks after a lower-value card was played, it gets +1 value."]
   })
 });
 

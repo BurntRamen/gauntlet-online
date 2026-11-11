@@ -90,7 +90,9 @@ const FACTION_PROFILES = {
   khevar: { id: "khevar", name: "Khejari", commander: "Pharaoh Atenkar", city: "Iru-Nemeth", general: { id: "meret", name: "Archivist Meret" } },
   vardun: { id: "vardun", name: "Varkyn", commander: "Ulfrik Ironjaw", city: "Skeldheim", general: { id: "veyra", name: "Veyra Fateweaver" } },
   qhantari: { id: "qhantari", name: "Qhantari", commander: "Courier-General Amaru", city: "The High Storehouse", general: { id: "killa", name: "Killa Ropekeeper" } },
-  sahravi: { id: "sahravi", name: "Sahravi", commander: "Commander Naya", city: "Sahra Gate", general: { id: "idris", name: "Idris of the Open Ledger" } }
+  sahravi: { id: "sahravi", name: "Sahravi", commander: "Commander Naya", city: "Sahra Gate", general: { id: "idris", name: "Idris of the Open Ledger" } },
+  intari: { id: "intari", name: "Intari", commander: "Sapa Intar", city: "Intiray", general: { id: "amaru-kuntur", name: "Amaru Kuntur" } },
+  thalassari: { id: "thalassari", name: "Thalassari", commander: "King Hiramor", city: "Tyrassa", general: { id: "hannakor", name: "Hannakor" } }
 };
 const FACTION_ABILITY_INTENTS = Object.freeze({
   "polea-place": "Put a card from your hand into an empty lane you control.",

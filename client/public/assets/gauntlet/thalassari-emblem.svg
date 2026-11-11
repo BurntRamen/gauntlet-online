@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Thalassari emblem</title>
+  <desc id="desc">A purple-sailed merchant vessel passing between two turquoise waves beneath a bronze star.</desc>
+  <defs>
+    <linearGradient id="sea" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#65e1da"/>
+      <stop offset="1" stop-color="#176b86"/>
+    </linearGradient>
+    <linearGradient id="purple" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d6a7f0"/>
+      <stop offset=".55" stop-color="#8b4bb3"/>
+      <stop offset="1" stop-color="#4d246f"/>
+    </linearGradient>
+  </defs>
+  <circle cx="256" cy="256" r="226" fill="#071d2c" stroke="#b47a3c" stroke-width="18"/>
+  <path d="M87 333c51-48 101-48 151 0s100 48 150 0 78-44 98-21v81H52v-33c12-5 24-14 35-27Z" fill="url(#sea)" opacity=".95"/>
+  <path d="M94 388c45-34 90-34 135 0s90 34 135 0 83-35 116-3" fill="none" stroke="#b9f6ee" stroke-width="17" stroke-linecap="round"/>
+  <path d="M156 307h217l-36 58H195Z" fill="#b47a3c" stroke="#f0c47b" stroke-width="11" stroke-linejoin="round"/>
+  <path d="M254 116v194" stroke="#f0c47b" stroke-width="16" stroke-linecap="round"/>
+  <path d="M267 137c80 32 103 86 101 143H267Z" fill="url(#purple)" stroke="#ead4f7" stroke-width="10" stroke-linejoin="round"/>
+  <path d="M240 168c-55 27-81 66-83 111h83Z" fill="#2b98a5" stroke="#b9f6ee" stroke-width="10" stroke-linejoin="round"/>
+  <path d="m256 70 13 27 30 4-22 21 5 30-26-14-27 14 6-30-22-21 30-4Z" fill="#f0c47b"/>
+</svg>

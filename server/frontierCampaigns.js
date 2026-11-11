@@ -84,6 +84,28 @@ const FACTIONS = {
     homeworld: "Taziri",
     origin: "The gazelle-like Sahravi linked Taziri's savannah cities and desert universities through caravans, merchant houses, manuscript culture, and layered contracts. Their prosperity depends less on ownership than on promises surviving distance.",
     reathArrival: "A disputed caravan crossed a mirage that was actually a Timetwister aperture. Naya made the route public and refused every house's attempt to record Reath as acquired property."
+  },
+  intari: {
+    id: "intari", name: "Intari", setId: "crossroads", draftRules: true,
+    cardImage: "/assets/gauntlet/intari-emblem.svg",
+    mechanic: { name: "Mita", summary: "Build strength collectively: later commitments become stronger when earlier workers, defenders, and record keepers have established the formation.", gameplay: "Intari suits represent Terraces, Mita, Quipu, and the Sun. They reward lane defense, repeated cooperation, coordinated suits, and a late Solar Ascendance rather than one isolated champion." },
+    commander: { name: "Sapa Intar", image: "/assets/gauntlet/intari-emblem.svg", text: "Great Expansion — Build roads, terraces, and formations that let the many lift one another, then answer for anyone compelled to carry the work." },
+    general: { name: "Amaru Kuntur", image: "/assets/gauntlet/intari-emblem.svg", text: "Wings of the Empire — Military strength exists to protect civilization, not to make participation indistinguishable from obedience." },
+    city: { name: "Intiray", image: "/assets/gauntlet/intari-emblem.svg", text: "City Above the Clouds — Golden temples and terraced abundance prove what collective labor can build, while every stone remembers who was required to place it." },
+    homeworld: "Intara",
+    origin: "The condor-like Intari arose among Intara's cloud-piercing mountains. Terraced agriculture, quipu records, sacred solar rites, and rotating Mita labor joined isolated valleys into an empire that sincerely offers prosperity while struggling to recognize the right to refuse it.",
+    reathArrival: "Illari preserved a solar flame and the Intiray quipu archive when an invading army opened the city's Timetwister stones. The surviving Intari later reached Reath as a meeting place, never as the origin of their mountain civilization."
+  },
+  thalassari: {
+    id: "thalassari", name: "Thalassari", setId: "crossroads", draftRules: true,
+    cardImage: "/assets/gauntlet/thalassari-emblem.svg",
+    mechanic: { name: "Trade Routes", summary: "Link different suits into an exchange network, then turn fulfilled contracts into flexible defense and carefully timed power.", gameplay: "Thalassari suits represent Harbors, Contracts, Purple Routes, and Consortia. They reward lane defense, later blocks, changing suits between attacks, and rising value sequences—wealth that becomes strength only while the network keeps moving." },
+    commander: { name: "King Hiramor", image: "/assets/gauntlet/thalassari-emblem.svg", text: "Architect of the Seas — Make distant peoples need one another, then remain answerable for the moment interdependence becomes dependence." },
+    general: { name: "Hannakor", image: "/assets/gauntlet/thalassari-emblem.svg", text: "Gold and Iron — Convert commercial reach into decisive force without allowing every contract to become a weapon." },
+    city: { name: "Tyrassa", image: "/assets/gauntlet/thalassari-emblem.svg", text: "City of a Thousand Harbors — Purple guilds, foreign embassies, and merchant fleets make the sea between nations more powerful than any shore." },
+    homeworld: "Thalassar",
+    origin: "The amphibious Thalassari arose among the archipelagos of ocean world Thalassar. Their iridescent city-states joined Imperial Purple, navigation, diplomacy, and enforceable contracts into a civilization that offers real prosperity while making every partner ask when a useful route becomes a chain.",
+    reathArrival: "A contract written on an impossible star chart led Hiramor, Elissara, and Hannakor through a Timetwister sea to Reath. They arrived as traders and witnesses at a convergence point, never as natives or discoverers entitled to own it."
   }
 };
 
@@ -423,6 +445,46 @@ const ARC = {
       { title: "No World for Sale", foe: "The Acquisition Houses", perspective: "Naya placing Reath outside ordinary property law" },
       { title: "The Fourth Signature", foe: "The Convergence Storm", where: "Reath, at the caravan aperture", perspective: "Naya asking Reath's communities to countersign their own terms" }
     ]
+  },
+  intari: {
+    hero: "Sapa Intar", ally: "Illari", world: "Intara", city: "Intiray",
+    perspective: "Sapa Intar building genuine abundance while learning that prosperity imposed without consent remains imperial power",
+    conflict: "collective labor can sustain a civilization without turning every person and conquered community into an instrument of the state",
+    theme: "The Empire Beneath the Sun",
+    chapters: [
+      { title: "Children of the Mountain", playableName: "The Golden Siblings", ally: "The First Quipu Keeper", foe: "The Stonefeather Chieftain", when: "The legendary founding of Intiray", perspective: "two siblings carrying a golden staff through divided mountain valleys", story: "Two siblings emerge from a sacred cavern carrying a fragment of celestial fire. Where their golden staff sinks into the valley soil, scattered condor settlements build Intiray and defend the first Temple of the Sun together." },
+      { title: "The Emperor Who Reshaped the World", foe: "Warlord Chaska", perspective: "young Sapa Intar rallying farmers, laborers, and soldiers after the old court abandons the capital", story: "An invading coalition surrounds Intiray. Sapa Intar turns Mita rotations into terraces, walls, supply lines, and a citizen army, proving that coordination can defeat a stronger host." },
+      { title: "The Four Quarters", foe: "Queen Yana", perspective: "Sapa Intar connecting four regions while an independent kingdom questions the cost of joining", story: "Roads and rope bridges bind four administrative quarters. Some valleys choose the empire's security; Queen Yana refuses a prosperity whose labor obligations were written without her people." },
+      { title: "Roads Above the Clouds", foe: "The Broken Pass", perspective: "Amaru Kuntur defending workers whose road is becoming both lifeline and invasion route", story: "Mita crews raise an impossible mountain road. Amaru must protect the laborers while leaving local communities the power to close a route built across their homes." },
+      { title: "The Price of Paradise", foe: "Governor Qhapaq", perspective: "Illari uncovering diverted supplies beneath the empire's golden abundance", story: "Terraces overflow and temples shine, but provincial governors redirect food and compulsory labor from conquered settlements. Illari asks whether a civilization can call itself benevolent when refusal is treated as treason." },
+      { title: "The Emperor's Indispensable Judgment", foe: "The Imperial Council", perspective: "Sapa Intar protecting corrupt governors because he fears reform will fracture the state", story: "Amaru demands public trials while Sapa Intar prioritizes unity. The player must preserve roads and civilians without allowing the institutions that feed the empire to become shields for their administrators." },
+      { title: "Solar Ascendance", foe: "The Eclipsed Priesthood", perspective: "Illari separating devotion from the throne's claim to divine certainty", story: "An eclipse activates the oldest solar mirrors. Selected defenders ascend through accumulated Sun marks, but Illari refuses to let transformation become proof that every imperial command is sacred." },
+      { title: "The Broken Sun", playableName: "Amaru Kuntur", ally: "Illari", foe: "Prince Atar", perspective: "Amaru choosing between rival heirs after Sapa Intar's death", story: "Two heirs claim the Sun Crown: one promises tradition, the other reform through force. Roads built for unity carry civil war into every quarter while Illari declares that the Sun has turned its face from the empire." },
+      { title: "The Last Sunrise", playableName: "Amaru Kuntur", ally: "Illari", foe: "The Conqueror Beyond the Gate", perspective: "the exhausted Intari reuniting after civil war against an army seeking their Timetwister stones", story: "Outsiders arrive through the ancient gate and exploit the empire's divided roads. Intiray falls, but Illari preserves the solar flame and Amaru evacuates quipu archives, workers, and children rather than sacrificing the people to preserve a throne." },
+      { title: "The Quipu Beyond the Sky", playableName: "Illari", ally: "Amaru Kuntur", foe: "The Silent Receiver", perspective: "Illari discovering that the rescued quipu records answer a distant world", story: "Knotted records taken from Intiray begin changing beneath the preserved solar flame. Their pattern describes a paired receiver on Reath and a passage that can carry willing travelers between worlds." },
+      { title: "A Road Must Be Chosen", playableName: "Amaru Kuntur", ally: "Illari", foe: "The Restoration Bloc", perspective: "surviving Intari deciding whether a new road repeats the empire's compulsory expansion", story: "Imperial loyalists would seize the Reath passage and rebuild the Four Quarters abroad. Amaru requires every refugee community to choose whether, how, and under whose authority the crossing will open." },
+      { title: "The Sunrise Between Worlds", playableName: "Illari", ally: "Amaru Kuntur", foe: "The Convergence Storm", where: "Reath, on a mountain above the paired receiver", perspective: "Illari carrying a fragment of Intara's sacred flame into a convergence that no empire owns", story: "Illari leads a consent-bound expedition from homeworld Intara to Reath. Mita becomes voluntary mutual aid, the solar flame lights a shared refuge, and the Intari begin again without declaring the meeting world another quarter of their empire." }
+    ]
+  },
+  thalassari: {
+    hero: "King Hiramor", ally: "Queen Elissara", world: "Thalassar", city: "Tyrassa",
+    perspective: "King Hiramor building peace through exchange while learning that a route can connect equal partners or quietly make one dependent upon the other",
+    conflict: "trade can create mutual prosperity without converting need, debt, and access into instruments of domination",
+    theme: "Everything Between",
+    chapters: [
+      { title: "The Purple Shores", playableName: "Hiramor", ally: "Dyer Tiros", foe: "Admiral Zarvek", when: "Before the Thousand Harbors were united", perspective: "young Hiramor defending coastal workshops whose purple dye draws both customers and raiders", story: "Crimson Corsairs sever the routes between Thalassar's rival ports. Hiramor organizes shared convoys and dye reserves, discovering that the sea between cities can become a common institution rather than empty territory." },
+      { title: "The Broken Trade Routes", playableName: "Hiramor", ally: "Navigator Tiros", foe: "The Crimson Corsairs", perspective: "Hiramor persuading suspicious city-states to protect one another's cargo", story: "Zarvek scatters false signals across the archipelago. The player reconnects harbors with different goods and customs, earning victory only when every partner retains a route home." },
+      { title: "The Merchant King", foe: "Lord Varekos", perspective: "Hiramor turning commercial influence into a crown while his oldest rival asks who consented to be organized", story: "Tyrassa becomes the City of a Thousand Harbors. Varekos accepts the prosperity but rejects contracts that let Hiramor's guilds determine which ports may flourish." },
+      { title: "The Price of Unity", foe: "The Closed Harbor League", perspective: "Hiramor confronting a legal network that rewards Tyrassa by starving dissenting ports", story: "A treaty written to stop piracy has become a monopoly. Hiramor must reopen the sea and submit his own crown contracts to foreign review." },
+      { title: "Across the Endless Sea", playableName: "Queen Elissara", ally: "Hannakor", foe: "The Storm Without Stars", perspective: "Elissara leading exiles beyond the known routes rather than accepting a ceremonial place in Hiramor's court", story: "Elissara crosses an uncharted ocean with merchants, refugees, and artisans. The fleet survives because each vessel carries a different necessity and no captain can command the whole expedition alone." },
+      { title: "Shores of Opportunity", playableName: "Queen Elissara", ally: "Hannakor", foe: "Governor Maltheron", perspective: "Elissara deciding whether a promising colony may grow without repeating Tyrassa's dependencies", story: "Maltheron offers protection in exchange for permanent control of the new harbor. Elissara refuses, founding Kartheia through contracts that expire unless every district renews them." },
+      { title: "The Exiled Queen", playableName: "Queen Elissara", ally: "Dyer Tiros", foe: "Admiral Kharos", perspective: "Elissara defending Kartheia from a commander who calls conquest the price of independence", story: "Kharos tries to turn the exile fleet into a colonial navy. Elissara must preserve the settlement while proving that a new city is not free if its prosperity depends upon taking another shore." },
+      { title: "The Founding of Kartheia", playableName: "Queen Elissara", ally: "King Hiramor", foe: "The Tribute Compact", perspective: "Elissara and Hiramor recognizing one civilization can contain two politically distinct maritime traditions", story: "Tyrassa and Kartheia negotiate alliance without reunification. Their mechanical faction remains shared, but their governments, obligations, and histories stay separate." },
+      { title: "Gold and Iron", playableName: "Hannakor", ally: "Queen Elissara", foe: "General Marcellion", perspective: "Hannakor converting wealth into military power against a Rumin army that calls territorial unity the only durable peace", story: "Marcellion's legions occupy the inland ends of every trade route. Hannakor fields contract fleets and hired specialists, then confronts how easily commercial coordination becomes an army answerable only to payment." },
+      { title: "The War of Roads and Standards", playableName: "Hannakor", ally: "King Hiramor", foe: "General Marcellion", perspective: "Hannakor testing interdependence against the Rumin promise of peace through unified authority", story: "Neither side is a simple villain: Rumin roads provide security, and Thalassari routes preserve plurality. The player wins by keeping neutral ports supplied rather than merely destroying the legions." },
+      { title: "The Contract Beyond the Tide", playableName: "King Hiramor", ally: "Queen Elissara", foe: "The Impossible Signatory", perspective: "Hiramor reading a star chart whose route terminates on a world no Thalassari vessel has visited", story: "A sealed contract begins adding clauses in an unknown hand. Its coordinates describe Reath and a Timetwister passage that transfers people like a promise reconstructed at its destination." },
+      { title: "Everything Between Worlds", playableName: "Queen Elissara", ally: "Hannakor", foe: "The Convergence Blockade", where: "Reath, at a harbor formed around a Timetwister sea", perspective: "Elissara negotiating a route that belongs neither to Tyrassa nor Kartheia", story: "A joint expedition from homeworld Thalassar reaches Reath. Hiramor opens the route, Hannakor defends it, and Elissara gives Reath's communities the right to close it—proving the Thalassari can connect worlds without claiming the water between them." }
+    ]
   }
 };
 
@@ -567,6 +629,20 @@ const CHARACTERS = {
     idris: { name: "Idris of the Open Ledger", role: "Scholar of Counter-Signatures", description: "A young scholar who proves that trust is strongest when every promise preserves its cost, beneficiary, and witness." },
     houses: { name: "The Three Merchant Houses", role: "Rivals Bound by One Cargo", description: "Competing institutions forced to honor one another's promises before the desert route can function again." },
     ...oppositionArchive("sahravi")
+  },
+  intari: {
+    sapa: { name: "Sapa Intar", role: "The Sun-Crowned Emperor", description: "A brilliant, disciplined, and paternalistic architect of Intari abundance who cannot initially understand why anyone would reject the prosperity his empire offers." },
+    illari: { name: "Illari", role: "Voice of the Sun", description: "The high priestess who reads eclipses as warnings rather than commands. She protects the weakest members of Intari society and preserves the solar flame after Intiray falls." },
+    amaru: { name: "Amaru Kuntur", role: "The Condor General", description: "A mountain commander loyal to the Intari people before any throne. He believes military strength should protect civilization rather than impose it." },
+    yana: { name: "Queen Yana", role: "Sovereign of the Unjoined Valley", description: "A neighboring ruler who forces Sapa Intar to confront the difference between offering infrastructure and denying another people the right to refuse it." },
+    ...oppositionArchive("intari")
+  },
+  thalassari: {
+    hiramor: { name: "King Hiramor", role: "Architect of the Seas", description: "A merchant king who believes peace can be engineered through interdependence. His routes create genuine abundance, but his confidence makes it difficult to recognize when partners can no longer afford to refuse him." },
+    elissara: { name: "Queen Elissara", role: "Founder of Kartheia", description: "An exiled queen who crosses the Endless Sea and founds the New Harbor. She insists that the Kartheian and Tyrian traditions can share a civilization without sharing a government." },
+    hannakor: { name: "Hannakor", role: "General of Gold and Iron", description: "A military innovator who converts commercial networks into fleets, intelligence, and supply. He protects Thalassari autonomy while embodying the danger that every exchange may become leverage." },
+    tiros: { name: "Tiros of the Purple Guild", role: "Navigator and Dyer", description: "A guild artisan who remembers that Imperial Purple begins as difficult labor and living ecology, not merely prestige in a royal ledger." },
+    ...oppositionArchive("thalassari")
   }
 };
 

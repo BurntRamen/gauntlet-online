@@ -31,7 +31,9 @@ test("Crossroads factions have distinct origins, complete campaigns, and playabl
     khevar: ["Neshara", "Judgment", /grain reserve/i],
     vardun: ["Skeldheim", "Oath", /challengeable oaths/i],
     qhantari: ["Ayara", "Relay", /landslide/i],
-    sahravi: ["Taziri", "Commission", /three merchant houses/i]
+    sahravi: ["Taziri", "Commission", /three merchant houses/i],
+    intari: ["Intara", "Mita", /golden staff/i],
+    thalassari: ["Thalassar", "Trade Routes", /Crimson Corsairs/i]
   };
   for (const [factionId, [homeworld, mechanic, openingStory]] of Object.entries(expectations)) {
     const faction = FRONTIER_FACTIONS[factionId];

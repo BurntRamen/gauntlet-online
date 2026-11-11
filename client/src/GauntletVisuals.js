@@ -22,6 +22,8 @@ export const FACTION_VISUALS = {
   vardun: { name: "Varkyn", accent: "#77b5c7", art: "/assets/gauntlet/vardun-emblem.svg" },
   qhantari: { name: "Qhantari", accent: "#d4a15b", art: "/assets/gauntlet/qhantari-emblem.svg" },
   sahravi: { name: "Sahravi", accent: "#e2bd63", art: "/assets/gauntlet/sahravi-emblem.svg" },
+  intari: { name: "Intari", accent: "#f4c84a", art: "/assets/gauntlet/intari-emblem.svg" },
+  thalassari: { name: "Thalassari", accent: "#a978d1", art: "/assets/gauntlet/thalassari-emblem.svg" },
   morphlings: { name: "The Continuants", accent: "#8ee7df", art: "" },
   xendra: { name: "XenDra", accent: "#b9a6d8", art: "" },
   basic: { get name() { return brandText("Basic SuitFire", "Basic Gauntlet"); }, accent: "#d0a863", art: "" }
