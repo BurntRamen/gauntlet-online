@@ -17,7 +17,8 @@ const budgets = Object.freeze({
   // Paid support authority, projection, adapters and ordered playback add <5 KiB.
   // Perspective-setting campaign copy adds less than 1 KiB to the compiled player payload.
   // Four playable Crossroads factions add 0.4 KiB of lore and visual identifiers.
-  totalJavaScriptGzip: 760 * KIB
+  // Retain one additional bounded KiB for their complete compiled catalog.
+  totalJavaScriptGzip: 761 * KIB
 });
 const adminName = name => /^gauntlet-admin(?:-[a-z0-9-]+)?\./i.test(name);
 const adminSource = source => /(?:^|\/)(?:src\/)?(?:admin\/|(?:GauntletAdmin|GauntletAuthoring|GauntletPlaytest|GauntletContractFields|GauntletParaLeague|GauntletEconomy|GauntletCompetition|EncounterWorkshop)\.js(?:$|\?))/.test(source.replace(/\\/g, "/"));
