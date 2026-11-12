@@ -1,7 +1,7 @@
 "use strict";
 
 const RULES_VERSION = "gauntlet-rules-v6";
-const CONTENT_VERSION = "gauntlet-content-v28";
+const CONTENT_VERSION = "gauntlet-content-v29";
 const NEUTRAL_FACTION_ID = "neutral";
 const { getCardWording } = require("./cardWording");
 const { alienCatalogProfile, catalogIdentity } = require("../shared/duel-rules/catalogFactionIdentity");
@@ -40,6 +40,7 @@ const DRAFT_SETS = Object.freeze([
   Object.freeze({ id: "frontiers", number: 3, name: "Frontiers", factionIds: Object.freeze(["ingles", "mercaw", "mtano", "russo"]), draftAvailable: true, sealedAvailable: true }),
   Object.freeze({ id: "reath-beyond", number: 4, name: "Reath Beyond", factionIds: Object.freeze(["zynarth", "astral-vanguard"]), draftAvailable: true, sealedAvailable: true }),
   Object.freeze({ id: "convergence", number: 5, name: "Convergence", factionIds: Object.freeze(["voltari", "xendra", "morphlings"]), draftAvailable: true, sealedAvailable: true })
+  ,Object.freeze({ id: "crossroads", number: 6, name: "Crossroads", factionIds: Object.freeze(["khevar", "vardun", "qhantari", "sahravi", "intari", "thalassari"]), draftAvailable: true, sealedAvailable: true })
 ]);
 
 const RUMIN_COLLECTION_CARDS = [
@@ -824,7 +825,7 @@ const FULL_CATALOG_FACTIONS = Object.freeze({
   morphlings: {
     art: "/assets/gauntlet/morphlings-emblem.svg",
     aspects: { spades: "Adaptive", hearts: "Sheltering", diamonds: "Remembered", clubs: "Becoming" },
-    ranks: ["First Stirring", "Soft-Shell Scout", "Shape Listener", "Refraction Guide", "Wound Keeper", "Continuity Bearer", "Tide Walker", "Refuge Warden", "Many-Form Guardian", "Luminous Witness", "Memory Matriarch", "Cohesion Keeper", "Future Unfolding"]
+    ranks: ["Test Subject", "Soft-Shell Scout", "Shape Listener", "Escape Guide", "Wound Keeper", "Continuity Bearer", "Lab-Breaker", "Refuge Warden", "Many-Form Guardian", "Living Witness", "Memory Matriarch", "Cohesion Keeper", "Future Unfolding"]
   },
   ingles: {
     art: "/assets/gauntlet/ingles-emblem.svg",
@@ -845,6 +846,36 @@ const FULL_CATALOG_FACTIONS = Object.freeze({
     art: "/assets/gauntlet/russo-emblem.svg",
     aspects: { spades: "Winter", hearts: "Hearth", diamonds: "Iron", clubs: "Forest" },
     ranks: ["Snow Scout", "Store Keeper", "Pine Guard", "Hearth Worker", "Ice Road Warden", "Common Steward", "Foundry Captain", "Thaw Engineer", "Oath Defender", "Winter Envoy", "Hearth Matriarch", "Forest Marshal", "Long Winter Bear"]
+  },
+  khevar: {
+    art: "/assets/gauntlet/khevar-emblem.svg",
+    aspects: { spades: "Guarded", hearts: "Merciful", diamonds: "Truth-Bearing", clubs: "Sentenced" },
+    ranks: ["Scale Initiate", "Reed Witness", "Scarab Guard", "Name Advocate", "Granary Assessor", "Flood Magistrate", "Ledger Runner", "Tomb Examiner", "Public Scribe", "Coronation Witness", "River Matriarch", "Scale Commander", "Atenkar's Judgment"]
+  },
+  vardun: {
+    art: "/assets/gauntlet/vardun-emblem.svg",
+    aspects: { spades: "Raiding", hearts: "Kin-Bound", diamonds: "Fate-Seen", clubs: "Saga-Forged" },
+    ranks: ["Wolf Pup", "Raven Scout", "Shield Guard", "Fjord Reader", "Oath Keeper", "Longship Runner", "Ice Navigator", "Winter Raider", "Wolf Captain", "Clan Envoy", "Fate Matriarch", "High Jarl", "Ironjaw Legend"]
+  },
+  qhantari: {
+    art: "/assets/gauntlet/qhantari-emblem.svg",
+    aspects: { spades: "Mountain", hearts: "Linked", diamonds: "High-Road", clubs: "Courier" },
+    ranks: ["Knot Student", "Terrace Runner", "Bridge Keeper", "Storehouse Guide", "Valley Witness", "Relay Warden", "Cloud Courier", "Road Convener", "Dispatch Captain", "Consent Envoy", "Terrace Matriarch", "Rope Marshal", "Last Relay"]
+  },
+  sahravi: {
+    art: "/assets/gauntlet/sahravi-emblem.svg",
+    aspects: { spades: "Caravan", hearts: "House", diamonds: "Commissioned", clubs: "Scholarly" },
+    ranks: ["Ink Student", "Well Guide", "Salt Runner", "Claim Reader", "Caravan Guard", "Promise Keeper", "Manuscript Courier", "Route Auditor", "Ledger Captain", "Counter-Signatory", "House Matriarch", "Open-Ledger Judge", "Fourth Signature"]
+  },
+  intari: {
+    art: "/assets/gauntlet/intari-emblem.svg",
+    aspects: { spades: "Terraced", hearts: "Mita-Bound", diamonds: "Quipu-Kept", clubs: "Sun-Ascendant" },
+    ranks: ["Valley Tender", "Mountain Scout", "Mita Worker", "Rope-Bridge Keeper", "Terrace Cultivator", "Quipu Reader", "Road Warden", "Solar Acolyte", "Golden Sentinel", "Quarter Envoy", "Voice of the Sun", "Condor General", "Avatar of Inti"]
+  },
+  thalassari: {
+    art: "/assets/gauntlet/thalassari-emblem.svg",
+    aspects: { spades: "Harbored", hearts: "Contract-Bound", diamonds: "Purple-Route", clubs: "Consortium" },
+    ranks: ["Coastal Trader", "Dye Harvester", "Harbor Master", "Contract Broker", "Tyrian Navigator", "Merchant Fleet", "Diplomatic Envoy", "Purple Guildmaster", "Thousand-Harbor Lord", "Consortium Factor", "Merchant Prince", "Hannakor's Standard", "Leviathan of Tyrassa"]
   }
 });
 const CATALOG_SUITS = Object.freeze(["spades", "hearts", "diamonds", "clubs"]);
@@ -1170,6 +1201,12 @@ const COMMANDER_ANNOUNCEMENTS = Object.freeze({
   russo: { selected: "The hearth is lit. The line will hold.", clicked: "Endurance belongs to everyone beside us.", wounded: "Twenty-one life. Share the heat and close the breach.", critical: "Ten life. No one freezes alone.", denied: "The reserve cannot sustain that order." },
   xendra: { selected: "We arrive where your certainty thins.", clicked: "A shape is only the angle from which you agreed to see it.", wounded: "Twenty-one remains in the account you call life.", critical: "Ten. The smallest opening admits an infinite horizon.", denied: "That possibility is not facing you yet." },
   morphlings: { selected: "Do not look away. The person you knew is still speaking.", clicked: "No form is final, but every life remains its own.", wounded: "The wound changes us. It does not decide us.", critical: "Hold the memory-thread. We can still become tomorrow.", denied: "That shape would break our continuity." }
+  ,khevar: { selected: "Set the Living Scale. Let every witness speak.", clicked: "A verdict without evidence is only authority wearing gold.", wounded: "Record the cost beside the judgment.", critical: "Weigh the throne itself before the record closes.", denied: "That sentence has no witness." }
+  ,vardun: { selected: "Call the wolf clans. The ravens have found our road.", clicked: "An oath matters most when breaking it would be easier.", wounded: "Raise the shields and remember every name.", critical: "One last saga beneath the black winter.", denied: "No clan swore to that course." }
+  ,qhantari: { selected: "Every station answers. Begin the relay.", clicked: "A road lives only while people maintain it.", wounded: "Carry strength to the broken bridge.", critical: "The message reaches the last station.", denied: "That route has not consented." }
+  ,sahravi: { selected: "Open the contract. Name every beneficiary.", clicked: "Trust survives because the ledger stays open.", wounded: "The promise still binds us.", critical: "Honor the commission before the gate closes.", denied: "The cost and witness do not match." }
+  ,intari: { selected: "One feather cannot carry the sun. Form the Mita.", clicked: "Build together, and record who carried the stone.", wounded: "Keep the terraces linked. No valley stands alone.", critical: "Guard the flame. The sunrise belongs to no throne.", denied: "The formation has not gathered enough hands." }
+  ,thalassari: { selected: "Open the harbors. Everything between us is a road.", clicked: "A profitable route must remain a route both shores can close.", wounded: "Honor the contracts; keep the neutral ports supplied.", critical: "Purple sails to the horizon. The network still moves.", denied: "That obligation has no willing signatory." }
 });
 
 const COMMANDER_ANNOUNCEMENT_AUDIO = Object.freeze({
@@ -1229,6 +1266,12 @@ const GENERAL_CLICK_ANNOUNCEMENTS = Object.freeze({
   russo: "Keep the shared hearth alive through the longest night.",
   xendra: "You hear one voice because the others are standing behind it.",
   morphlings: "Adaptation is hope only when the changed may choose it."
+  ,khevar: "A preserved truth still needs a living witness."
+  ,vardun: "The harbor remembers who returned and who did not."
+  ,qhantari: "No station is the whole road."
+  ,sahravi: "Every promise must survive the distance between signatures."
+  ,intari: "A road serves the people who may choose where it leads."
+  ,thalassari: "Empires conquer land. We conquer everything between."
 });
 
 const GENERAL_CLICK_AUDIO = Object.freeze({
@@ -1246,6 +1289,7 @@ const COMMANDER_VOICE_PROFILES = Object.freeze({
   voltari: [0.9, 0.92], zynarth: [0.72, 0.48], "astral-vanguard": [0.94, 0.82],
   ingles: [0.96, 0.86], mercaw: [1.04, 0.94], mtano: [0.86, 0.78], russo: [0.8, 0.68],
   xendra: [0.58, 0.32], morphlings: [0.82, 0.86]
+  ,khevar: [0.8, 0.72], vardun: [0.76, 0.68], qhantari: [0.92, 0.9], sahravi: [0.9, 0.96], intari: [0.88, 0.92], thalassari: [0.84, 0.78]
 });
 
 const COMMANDER_VOICE_HINTS = Object.freeze({
@@ -1266,6 +1310,12 @@ const COMMANDER_VOICE_HINTS = Object.freeze({
   russo: ["mark", "davis", "george", "andrew"],
   xendra: ["william", "davis", "mark", "zira"],
   morphlings: ["aria", "jenny", "william", "andrew"]
+  ,khevar: ["davis", "mark", "guy", "william"]
+  ,vardun: ["guy", "davis", "george", "mark"]
+  ,qhantari: ["aria", "samantha", "andrew", "davis"]
+  ,sahravi: ["aria", "jenny", "andrew", "christopher"]
+  ,intari: ["aria", "davis", "andrew", "samantha"]
+  ,thalassari: ["liam", "george", "aria", "davis"]
 });
 
 // ============ FACTION DATA ============
@@ -1384,10 +1434,10 @@ const factionsData = {
     setId: "convergence",
     draftRules: true,
     cardImage: "/assets/gauntlet/morphlings-emblem.svg",
-    artDirection: { silhouette: "Grotesquely transformed former Astral Vanguard humans: asymmetrical limbs, misplaced vestigial features, fused equipment, split jaws, faceted eyes, and insectile or amphibious adaptations interrupt recognizable human posture and identity", materials: "Wet translucent tissue, scarred chitin, exposed crystal growth, stretched membranes, mismatched organs, refracted fluids, and Vanguard armor permanently grown into living bodies", motifs: "Human names surviving monstrous silhouettes, medical quarantine markings, tragic remnants, forced exile, incomplete reflections, and painful forms becoming survivable", guardrail: "Make the body horror immediate and unsettling while preserving the person's humanity through voice, posture, keepsakes, and recognizable equipment. Their hope comes from mutual care and agency, not from making their bodies beautiful or harmless." },
-    commander: { name: "Captain Ilyra Vale, Keeper of the First Shape", image: "/assets/gauntlet/morphlings-emblem.svg", text: "A grotesquely transformed former Astral Vanguard captain whose fused uniform and remembered oath make her humanity undeniable. Build Continuity by adapting to changing attacks and resilient blocks. At 6 Continuity, cohere: gain 1 life, draw 1 extra card at turn end, then return to 2." },
-    general: { id: "tessan", name: "Dr. Tessan Rook, Many-Form Guide", image: "/assets/gauntlet/morphlings-emblem.svg", text: "A former Vanguard xenobiologist now bearing unstable human, insectile, and crystalline anatomy. Spades adapt, Hearts shelter, Diamonds remember, and Clubs become together; every changed form has a role without becoming compulsory." },
-    city: { name: "The Refuge of Returning Light", image: "/assets/gauntlet/morphlings-emblem.svg", text: "Built on Pelagia after Vanguard planets refused the transformed crews entry. Continuity persists between turns, and the Refuge recognizes personhood where quarantine law saw only contamination." }
+    artDirection: { silhouette: "Grotesquely transformed former Astral Vanguard humans: asymmetrical limbs, misplaced vestigial features, fused equipment, split jaws, faceted eyes, and insectile or amphibious adaptations interrupt recognizable human posture and identity", materials: "Wet translucent tissue, scarred chitin, stretched membranes, mismatched organs, refracted fluids, laboratory restraints, and Vanguard armor permanently grown into living bodies", motifs: "Test Subject numbers crossed out by human names, medical quarantine markings, broken containment glass, tragic remnants, forced exile, and painful forms becoming survivable", guardrail: "Make the body horror immediate and unsettling while preserving the person's humanity through voice, posture, keepsakes, and recognizable equipment. Their hope comes from mutual care and agency, not from making their bodies beautiful or harmless." },
+    commander: { name: "Captain Ilyra Vale, Keeper of the First Shape", image: "/assets/gauntlet/morphlings-emblem.svg", text: "A grotesquely transformed former Astral Vanguard test subject whose fused uniform and remembered oath make her humanity undeniable. Build Continuity by adapting to changing attacks and resilient blocks. At 6 Continuity, cohere: gain 1 life, draw 1 extra card at turn end, then return to 2." },
+    general: { id: "tessan", name: "Dr. Alden Voss, Witness of Continuity", image: "/assets/gauntlet/morphlings-emblem.svg", text: "The researcher who exposed the laboratory and recognized every transformed subject as the same human person. Spades adapt, Hearts shelter, Diamonds remember, and Clubs become together; every changed form has a role without becoming compulsory." },
+    city: { name: "The Refuge of Returning Light", image: "/assets/gauntlet/morphlings-emblem.svg", text: "Built on an abandoned station after Vanguard planets refused the escaped Test Subjects entry. Continuity persists between turns, and the Refuge recognizes personhood where quarantine law saw only contamination." }
   }
 };
 
@@ -1414,7 +1464,7 @@ for (const [factionId, announcements] of Object.entries(COMMANDER_ANNOUNCEMENTS)
 }
 
 function listFactions() {
-  return ["rumin", "sheen", "frumo", "bizi", "mekan", "jali", "gracus", "indela", "ingles", "mercaw", "mtano", "russo", "zynarth", "astral-vanguard", "voltari", "xendra", "morphlings"].map((id) => factionsData[id]);
+  return ["rumin", "sheen", "frumo", "bizi", "mekan", "jali", "gracus", "indela", "ingles", "mercaw", "mtano", "russo", "khevar", "vardun", "qhantari", "sahravi", "intari", "thalassari", "zynarth", "astral-vanguard", "voltari", "xendra", "morphlings"].map((id) => factionsData[id]);
 }
 
 function getFactionById(id, generalId) {
@@ -2510,7 +2560,7 @@ function validateGameContent() {
   requireText(CONTENT_VERSION, "contentVersion");
   const factionIds = Object.keys(factionsData);
   const playableFactionIds = factionIds.filter((factionId) => !factionsData[factionId].campaignOnly);
-  if (playableFactionIds.length !== 17) throw new Error("Invalid game content: expected seventeen playable factions.");
+  if (playableFactionIds.length !== 23) throw new Error("Invalid game content: expected twenty-three playable factions.");
   for (const factionId of factionIds) {
     const faction = factionsData[factionId];
     if (faction.id !== factionId) throw new Error(`Invalid game content: faction key ${factionId} does not match its ID.`);

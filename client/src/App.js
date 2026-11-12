@@ -229,6 +229,8 @@ const FACTION_COLORS = {
   mercaw: { primary: "#2563eb", light: "#e8f0ff", border: "#1e3a8a" },
   mtano: { primary: "#2f855a", light: "#e6f6ec", border: "#173f35" },
   russo: { primary: "#486581", light: "#edf6fb", border: "#202b3c" },
+  intari: { primary: "#b7791f", light: "#fff8d8", border: "#744210" },
+  thalassari: { primary: "#7e4aa8", light: "#f4e8ff", border: "#3f245a" },
   xendra: { primary: "#a855f7", light: "#f5e8ff", border: "#6b21a8" },
   default: { primary: "#374151", light: "#f3f4f6", border: "#1f2937" }
 };
@@ -1455,7 +1457,13 @@ const PACK_THEMES = {
   russo: { name: "Russo", subtitle: "The Long Winter Oath", accent: "#b9d7ea", glow: "#b9d7ea52", background: "linear-gradient(145deg,#202b3c,#7c2d12)" },
   voltari: { name: "Voltari", subtitle: "The Golden Conduit", accent: "#f8d477", glow: "rgba(248,212,119,.34)", background: "linear-gradient(145deg,#17130b,#8a621c 46%,#082d54 100%)", art: "repeating-linear-gradient(90deg, rgba(255,239,177,.18) 0 3px, transparent 3px 26px), linear-gradient(20deg, transparent 0 42%, rgba(38,153,255,.45) 43% 46%, transparent 47%), radial-gradient(circle at 68% 28%, rgba(56,189,248,.58), transparent 22%)" },
   xendra: { name: "XenDra", subtitle: "Aspect Without Form", accent: "#b9a6d8", glow: "#b9a6d84d", background: "linear-gradient(145deg,#020204,#111018 48%,#242033)", art: "radial-gradient(circle at 54% 28%,#050507 0 12%,#e2dcea52 13% 15%,transparent 16%)" },
-  morphlings: { name: "The Continuants", subtitle: "Exiled Becoming", accent: "#8ee7df", glow: "#8ee7df47", background: "linear-gradient(145deg,#10151b,#18383b 35%,#4d323f 69%,#281622)", art: "radial-gradient(ellipse at 28% 30%,#9bead06b,transparent 13%)" }
+  morphlings: { name: "The Continuants", subtitle: "Exiled Becoming", accent: "#8ee7df", glow: "#8ee7df47", background: "linear-gradient(145deg,#10151b,#18383b 35%,#4d323f 69%,#281622)", art: "radial-gradient(ellipse at 28% 30%,#9bead06b,transparent 13%)" },
+  khevar: { name: "Khejari", subtitle: "The Living Scale", accent: "#d6ad5c", glow: "#d6ad5c52", background: "linear-gradient(145deg,#16110b,#6b421a 48%,#372012)" },
+  vardun: { name: "Varkyn", subtitle: "The Final Saga", accent: "#77b5c7", glow: "#77b5c752", background: "linear-gradient(145deg,#071923,#123849 52%,#4b2d24)" },
+  qhantari: { name: "Qhantari", subtitle: "The Last Relay", accent: "#d4a15b", glow: "#d4a15b52", background: "linear-gradient(145deg,#302016,#76522d 48%,#344f46)" },
+  sahravi: { name: "Sahravi", subtitle: "The Fourth Signature", accent: "#e2bd63", glow: "#e2bd6352", background: "linear-gradient(145deg,#2b1a0b,#81541e 46%,#173c45)" },
+  intari: { name: "Intari", subtitle: "The Empire Beneath the Sun", accent: "#f4c84a", glow: "#f4c84a5c", background: "linear-gradient(145deg,#173a5e,#813c2f 48%,#d38a28)", art: "radial-gradient(circle at 50% 20%,rgba(255,232,128,.72),transparent 22%),repeating-linear-gradient(0deg,transparent 0 34px,rgba(255,210,88,.18) 35px 39px)" },
+  thalassari: { name: "Thalassari", subtitle: "Everything Between", accent: "#b88ae0", glow: "#b88ae052", background: "linear-gradient(145deg,#071d2c,#154f66 44%,#6f338f 72%,#a56a32)", art: "radial-gradient(ellipse at 60% 24%,rgba(197,146,235,.54),transparent 18%),repeating-linear-gradient(165deg,transparent 0 28px,rgba(96,220,218,.16) 29px 33px)" }
 };
 
 const factionName = (id) => id === "neutral" ? "Reath" : PACK_THEMES[id]?.name || id;

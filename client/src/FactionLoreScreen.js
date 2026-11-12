@@ -10,7 +10,8 @@ const SET_NAMES = {
   legacies: "Legacies",
   frontiers: "Frontiers",
   "reath-beyond": "Reath Beyond",
-  convergence: "Convergence"
+  convergence: "Convergence",
+  crossroads: "Crossroads"
 };
 
 function chapterText(chapter) {
@@ -75,7 +76,7 @@ export default function FactionLoreScreen({ manifest, onBack, onOpenCampaign, em
       const campaign = campaigns[faction.id] || {};
       const characterText = leaderEntries(faction, campaign).map((character) => `${character.name} ${character.role} ${character.description}`).join(" ");
       const chapterTextValue = (campaign.chapters || []).map((chapter) => `${chapter.title} ${chapter.story}`).join(" ");
-      return [faction.name, campaign.homeworld, campaign.origin, campaign.pitch, campaign.arrivalOnReath, characterText, chapterTextValue]
+      return [faction.name, faction.mechanic?.name, faction.mechanic?.summary, campaign.homeworld, campaign.origin, campaign.pitch, campaign.arrivalOnReath, characterText, chapterTextValue]
         .some((value) => String(value || "").toLowerCase().includes(needle));
     });
   }, [campaigns, factions, query]);
@@ -160,6 +161,7 @@ export default function FactionLoreScreen({ manifest, onBack, onOpenCampaign, em
               <div><span>Doctrine</span><SectionHeading id={`${headingId}-doctrine`}>How they shape the world</SectionHeading></div>
               <blockquote>{faction.commander?.text || faction.city?.text}</blockquote>
               {faction.city && <p><strong>{faction.city.name}:</strong> {faction.city.text}</p>}
+              {faction.mechanic && <p><strong>{faction.mechanic.name}:</strong> {faction.mechanic.summary} {faction.mechanic.gameplay}</p>}
             </section>
 
             {artDirection && <section className="faction-lore-visual-identity" aria-labelledby={`${headingId}-visual-identity`}>
