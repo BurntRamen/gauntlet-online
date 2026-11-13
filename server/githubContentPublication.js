@@ -119,7 +119,10 @@ function createGitHubContentPublication({ baseline, draftStore = null, mediaStor
     // record still names the old one. Preserve every historical byte and only
     // advance this pointer when there is no operator work or packaged release.
     // Reads stay read-only; the next revision-checked save records the evidence.
-    if (!packaged && !state.draft && !state.pending && previous?.createdBy === null
+    // JSON-backed private stores may omit a null property while retaining the
+    // same machine-created release. Treat missing and explicit-null creators
+    // identically; a real operator identity must still block reconciliation.
+    if (!packaged && !state.draft && !state.pending && previous?.createdBy == null
       && /^Deployed source baseline(?:$| — recorded after release )/.test(previous.label)
       && state.activeReleaseId !== deployed.id) {
       const from = state.activeReleaseId;

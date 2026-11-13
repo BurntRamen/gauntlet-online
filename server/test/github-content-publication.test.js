@@ -213,6 +213,9 @@ test("source deployment reconciles an unused authoring baseline without writes o
 test("private authoring baseline reconciliation persists only through its atomic private save", async () => {
   const repo = await staleSourceRepository();
   let state = (await repo.client.readFile(DRAFT_BRANCH, DRAFT_PATH)).value, version = 1;
+  // Supabase JSON records may omit null-valued fields. The absence still
+  // identifies this as a machine-created source baseline, not operator work.
+  delete state.releases[state.activeReleaseId].createdBy;
   const original = clone(state), writes = repo.client.writes.length;
   const draftStore = { load: async () => ({ state: clone(state), version }), save: async (expected, next) => {
     assert.equal(expected, version); state = clone(next); version += 1;
