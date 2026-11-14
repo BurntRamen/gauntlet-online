@@ -133,7 +133,28 @@ function createGitHubContentPublication({ baseline, draftStore = null, mediaStor
         sourceCommit: deployedCommit, reason: "Align unused authoring metadata with the deployed source baseline; no draft or pending publication existed." });
       state.revision += 1;
     }
-    core(state); // Validate release hashes, compatibility and the active pointer.
+    try {
+      core(state); // Validate release hashes, compatibility and the active pointer.
+    } catch (error) {
+      if (error?.message === "Active content is incompatible with this engine deployment.") {
+        // Keep startup diagnostics useful without printing private notes,
+        // authored snapshots, account identifiers, or any storage credential.
+        const active = state.releases?.[state.activeReleaseId];
+        const metadata = {
+          packaged: !!packaged,
+          draft: !!state.draft,
+          pending: !!state.pending,
+          activeMatchesDeployment: state.activeReleaseId === deployed.id,
+          activeReleasePresent: !!active,
+          creator: !active || !("createdBy" in active) ? "missing" : active.createdBy == null ? "nullish" : typeof active.createdBy,
+          machineBaselineLabel: typeof active?.label === "string" && /^Deployed source baseline(?:$| — recorded after release )/.test(active.label),
+          revisionValid: Number.isSafeInteger(state.revision) && state.revision >= 0,
+          activationsValid: Array.isArray(state.activations)
+        };
+        throw Object.assign(new Error(`${error.message} Safe startup metadata: ${JSON.stringify(metadata)}`), { status: error.status });
+      }
+      throw error;
+    }
     await activateCaptured(state);
     if (!dataOnly && state.pending?.releaseId === deployed.id) delete state.pending;
     if (!state.pending && state.activeReleaseId !== deployed.id) fail(409, "The saved draft belongs to another deployed release. Wait for deployment or reconcile its GitHub history.");

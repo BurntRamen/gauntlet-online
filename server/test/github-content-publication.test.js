@@ -236,7 +236,12 @@ test("source reconciliation never replaces saved drafts, pending publication or 
     if (kind === "operator") state.releases[state.activeReleaseId].createdBy = "approved-account";
     else state[kind] = { preserved: true };
     const before = clone(state), writes = repo.client.writes.length;
-    await assert.rejects(repo.store().status(), { status: 503 });
+    await assert.rejects(repo.store().status(), error => {
+      assert.equal(error.status, 503);
+      assert.match(error.message, /Safe startup metadata:/);
+      assert.doesNotMatch(error.message, /approved-account/);
+      return true;
+    });
     assert.deepEqual(state, before); assert.equal(repo.client.writes.length, writes);
   }
 });

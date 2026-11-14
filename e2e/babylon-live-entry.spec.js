@@ -1036,7 +1036,10 @@ test("normal campaign entry presents the campaign boss through the shared Babylo
   for (const { width, height } of [{ width: 1366, height: 768 }, { width: 768, height: 768 }, { width: 1024, height: 600 }]) {
     await page.setViewportSize({ width, height });
     await page.locator(".production-turn-marker").evaluate(async (element) => {
-      await Promise.all(element.getAnimations().map((animation) => animation.finished));
+      // Resizing can legitimately cancel the retained entrance animation.
+      // Wait for every animation to settle without turning that cancellation
+      // into a test failure.
+      await Promise.allSettled(element.getAnimations().map((animation) => animation.finished));
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     });
     const dialogueBox = await encounter.boundingBox();
@@ -1050,7 +1053,7 @@ test("normal campaign entry presents the campaign boss through the shared Babylo
     // The entrance lasts 280ms; wait for painted geometry instead of a timer
     // that can sample different animation frames on CI's software renderer.
     await preview.evaluate(async (element) => {
-      await Promise.all(element.getAnimations().map((animation) => animation.finished));
+      await Promise.allSettled(element.getAnimations().map((animation) => animation.finished));
     });
     const previewBox = await preview.boundingBox();
     const artBox = await preview.locator(".production-card-preview-art").boundingBox();
@@ -1104,7 +1107,7 @@ test("normal campaign entry presents the campaign boss through the shared Babylo
     // Include the retained entrance animation, which previously shifted the
     // desktop banner halfway over the opponent even after its CSS transform reset.
     await banner.evaluate(async (element) => {
-      await Promise.all(element.getAnimations().map((animation) => animation.finished));
+      await Promise.allSettled(element.getAnimations().map((animation) => animation.finished));
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     });
     const opponentBox = await page.locator(".production-player-plate-top").boundingBox();
