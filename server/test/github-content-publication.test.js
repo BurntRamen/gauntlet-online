@@ -229,8 +229,8 @@ test("private authoring baseline reconciliation persists only through its atomic
   assert.equal(repo.client.writes.length, writes);
 });
 
-test("source reconciliation never replaces saved drafts, pending publication or operator releases", async () => {
-  for (const kind of ["draft", "pending", "operator"]) {
+test("source reconciliation never replaces pending publication or operator releases", async () => {
+  for (const kind of ["pending", "operator"]) {
     const repo = await staleSourceRepository();
     const state = repo.trees.get(repo.refs.get(DRAFT_BRANCH)).get(DRAFT_PATH).value;
     if (kind === "operator") state.releases[state.activeReleaseId].createdBy = "approved-account";
@@ -244,6 +244,39 @@ test("source reconciliation never replaces saved drafts, pending publication or 
     });
     assert.deepEqual(state, before); assert.equal(repo.client.writes.length, writes);
   }
+});
+
+test("source reconciliation strictly rebases a private draft and preserves source changes", async () => {
+  const repo = await staleSourceRepository();
+  const oldStore = repo.store({ baseline: { ...clone(baseline), engine: { ...clone(baseline.engine), compatibilityHash: "previous-source-contract" } } });
+  let state = await oldStore.status();
+  state = await oldStore.patch({ expectedRevision: state.revision, domain: "game", id: "practice", field: "name", value: "Private operator title" }, "approved-account");
+  const saved = (await repo.client.readFile(DRAFT_BRANCH, DRAFT_PATH)).value;
+  const writes = repo.client.writes.length;
+  const next = clone(baseline);
+  next.domains.characters[0].name = "Source-only character";
+  const store = repo.store({ baseline: next }), status = await store.status();
+  assert.equal(status.activeReleaseId, store.active().releaseId);
+  assert.equal(status.draft.baseReleaseId, store.active().releaseId);
+  assert.equal(status.draft.snapshot.engine.compatibilityHash, next.engine.compatibilityHash);
+  assert.equal(status.draft.snapshot.domains.game.find(row => row.id === "practice").name, "Private operator title");
+  assert.equal(status.draft.snapshot.domains.characters[0].name, "Source-only character");
+  assert.equal(status.draft.previewedHash, null);
+  assert.equal(status.revision, saved.revision + 1);
+  assert.equal(status.activations.at(-1).action, "rebase-draft-deployment");
+  assert.equal(repo.client.writes.length, writes, "Startup rebasing remains read-only until the next revision-checked save");
+});
+
+test("source reconciliation rejects overlapping source and private draft edits", async () => {
+  const repo = await staleSourceRepository();
+  const previous = clone(baseline);
+  previous.engine.compatibilityHash = "previous-source-contract";
+  const oldStore = repo.store({ baseline: previous });
+  let state = await oldStore.status();
+  state = await oldStore.patch({ expectedRevision: state.revision, domain: "game", id: "practice", field: "name", value: "Private operator title" }, "approved-account");
+  const next = clone(baseline);
+  next.domains.game.find(row => row.id === "practice").name = "New source title";
+  await assert.rejects(repo.store({ baseline: next }).status(), error => error.status === 503 && /conflicts with the deployed source baseline/.test(error.message));
 });
 
 test("baseline reconciliation still rejects corrupt history and invalid revisions", async () => {

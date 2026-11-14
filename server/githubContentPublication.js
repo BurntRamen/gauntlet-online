@@ -3,6 +3,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const crypto = require("node:crypto");
+const { isDeepStrictEqual } = require("node:util");
 const { createContentPublication } = require("./contentPublication");
 const { clone, hash, validateAuthoredContent, resolveEngineContent } = require("./authoredContent");
 const imageAssets = require("./authoredAssets");
@@ -18,6 +19,57 @@ function fail(status, message) { throw Object.assign(new Error(message), { statu
 const encode = (value) => encodeURIComponent(value);
 const bytes = (value) => Buffer.from(JSON.stringify(value, null, 2) + "\n");
 const blobSha = (body) => crypto.createHash("sha1").update(`blob ${body.length}\0`).update(body).digest("hex");
+const MISSING = Symbol("missing");
+
+function keyedArray(rows) {
+  if (!rows.length || !rows.every(row => row && typeof row === "object" && !Array.isArray(row))) return null;
+  for (const key of ["id", "variantId"]) {
+    if (rows.every(row => typeof row[key] === "string") && new Set(rows.map(row => row[key])).size === rows.length) return key;
+  }
+  return null;
+}
+
+// Preserve a private operator draft while a source deployment advances the
+// machine-created baseline. This is deliberately a strict three-way merge:
+// source-only and draft-only edits combine, identical edits coalesce, and any
+// overlapping disagreement blocks startup without exposing private content.
+function rebaseDraftValue(base, source, draft) {
+  if (isDeepStrictEqual(draft, base)) return source === MISSING ? MISSING : clone(source);
+  if (isDeepStrictEqual(source, base)) return draft === MISSING ? MISSING : clone(draft);
+  if (isDeepStrictEqual(source, draft)) return source === MISSING ? MISSING : clone(source);
+
+  const values = [base, source, draft].filter(value => value !== MISSING);
+  if (values.every(value => value && typeof value === "object" && !Array.isArray(value))) {
+    const result = {};
+    const keys = new Set(values.flatMap(value => Object.keys(value)));
+    for (const key of keys) {
+      const next = rebaseDraftValue(
+        base !== MISSING && Object.hasOwn(base, key) ? base[key] : MISSING,
+        source !== MISSING && Object.hasOwn(source, key) ? source[key] : MISSING,
+        draft !== MISSING && Object.hasOwn(draft, key) ? draft[key] : MISSING
+      );
+      if (next !== MISSING) result[key] = next;
+    }
+    return result;
+  }
+
+  if (values.every(Array.isArray)) {
+    const key = keyedArray(values.flat());
+    if (key) {
+      const rows = [base, source, draft].map(value => value === MISSING ? [] : value);
+      const maps = rows.map(entries => new Map(entries.map(row => [row[key], row])));
+      const order = [...rows[1].map(row => row[key]), ...rows[2].map(row => row[key]).filter(id => !maps[1].has(id))];
+      const result = [];
+      for (const id of order) {
+        const next = rebaseDraftValue(maps[0].get(id) ?? MISSING, maps[1].get(id) ?? MISSING, maps[2].get(id) ?? MISSING);
+        if (next !== MISSING) result.push(next);
+      }
+      return result;
+    }
+  }
+
+  fail(503, "The saved private draft conflicts with the deployed source baseline. Resolve or discard it from the previous compatible deployment before retrying.");
+}
 
 function createGitHubClient({ token, fetchImpl = fetch }) {
   async function request(route, { method = "GET", body, raw = false, missing = false } = {}) {
@@ -122,15 +174,23 @@ function createGitHubContentPublication({ baseline, draftStore = null, mediaStor
     // JSON-backed private stores may omit a null property while retaining the
     // same machine-created release. Treat missing and explicit-null creators
     // identically; a real operator identity must still block reconciliation.
-    if (!packaged && !state.draft && !state.pending && previous?.createdBy == null
+    if (!packaged && !state.pending && previous?.createdBy == null
       && /^Deployed source baseline(?:$| — recorded after release )/.test(previous.label)
       && state.activeReleaseId !== deployed.id) {
       const from = state.activeReleaseId;
       state.releases[deployed.id] ||= clone(deployed);
+      if (state.draft) {
+        if (state.draft.baseReleaseId !== from) fail(503, "The saved private draft does not identify the active source baseline.");
+        const snapshot = rebaseDraftValue(previous.snapshot, deployed.snapshot, state.draft.snapshot);
+        if (!validateAuthoredContent(snapshot, baseline).valid) fail(503, "The saved private draft cannot be safely rebased onto this engine deployment.");
+        state.draft = { ...state.draft, baseReleaseId: deployed.id, snapshot, previewedHash: null, previewedRevision: null, playtestedHash: null };
+      }
       state.activeReleaseId = deployed.id;
       if (!Array.isArray(state.activations) || !Number.isSafeInteger(state.revision) || state.revision < 0) fail(503, "Unsupported content store.");
-      state.activations.push({ action: "reconcile-deployment", from, to: deployed.id, at: deployed.createdAt, by: null,
-        sourceCommit: deployedCommit, reason: "Align unused authoring metadata with the deployed source baseline; no draft or pending publication existed." });
+      state.activations.push({ action: state.draft ? "rebase-draft-deployment" : "reconcile-deployment", from, to: deployed.id, at: deployed.createdAt, by: null,
+        sourceCommit: deployedCommit, reason: state.draft
+          ? "Rebase non-conflicting private draft edits onto the deployed source baseline; preserve both histories and require a new preview."
+          : "Align unused authoring metadata with the deployed source baseline; no draft or pending publication existed." });
       state.revision += 1;
     }
     try {
