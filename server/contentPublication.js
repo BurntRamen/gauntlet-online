@@ -159,6 +159,12 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
       publication: { provider, supported: provider === "local", github: "unavailable", activeReleaseId: live.id, deployment: provider === "local" ? "active-on-this-server" : "unsupported-provider", message: "Local publication activates this server immediately." },
       live: clone(live.snapshot), draft: state.draft ? { ...clone(state.draft), hash: contentHash } : null, changes: changes(state), validation };
     if (summary) return overview;
+    const cardEffectOptions = Object.fromEntries(require("../shared/duel-rules/effectRegistry").cardEffectDefinitions().reduce((groups, option) => {
+      const key = `${option.factionId}:${option.cardType}`;
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(option);
+      return groups;
+    }, new Map()));
     return { ...overview,
       guide: require("./adminAuthoringGuide"),
       encounterSummaries: require("./encounterAuthoring").summaries(state.draft?.snapshot || live.snapshot),
@@ -172,10 +178,15 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
       factionFamilies: require("./adminFactions").FAMILIES.map(id => ({ id, name: require("./gameContent").factionsData[id].name })),
       deckFactions: Object.values(require("./adminFactions").resolve(state.draft?.snapshot || live.snapshot)).map(({ id, name, origin, campaignOnly, general, generals, commander, city }) => ({ id, name, origin, campaignOnly, general, generals, commander, city })),
       printingEditions: require("./adminPrintings").editions(state.draft?.snapshot || live.snapshot),
+      cardEffectOptions,
       fields: Object.fromEntries(Object.entries((state.draft?.snapshot || live.snapshot).domains).map(([domain, rows]) => [domain, Object.fromEntries(rows.map((row) => [row.id, Object.fromEntries(Object.entries(fieldsFor(domain, row, state.draft?.snapshot || live.snapshot)).map(([key, spec]) => {
-        // Match the card editor's compatible choices without repeating the entire
-        // deployed effect registry for every card in the authoring response.
-        if (domain === "cards" && key === "effect") return [key, { ...spec, options: spec.options.filter(option => option.factionId === row.factionId && option.cardType === row.type) }];
+        // Card rows reference one shared faction/type option group. Repeating the
+        // same compatible definitions on every card makes complete catalogs grow
+        // quadratically and can exceed the Admin response budget.
+        if (domain === "cards" && key === "effect") {
+          const { options: _options, ...definition } = spec;
+          return [key, { ...definition, optionGroup: `${row.factionId}:${row.type}` }];
+        }
         return [key, spec.type === "catalog-flags" ? { ...spec, labels: require("./catalogFlagLabels.json") } : spec];
       }))]))])),
       releases: Object.values(state.releases).map(({ snapshot, assetPackage, ...release }) => ({ ...release, compatible: compatible({ snapshot }), rollbackBlocked: catalog.rollbackProblem(live.snapshot, snapshot) })),

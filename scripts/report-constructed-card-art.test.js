@@ -6,7 +6,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const crypto = require("node:crypto");
 const sharp = require("sharp");
-const { COLLECTION_CARDS, COLLECTOR_VARIANTS, FULL_FACTION_COLLECTIONS } = require("../server/gameContent");
+const { COLLECTION_CARDS, COLLECTOR_VARIANTS, COMPOSED_CATALOG_CARD_IDS, FULL_FACTION_COLLECTIONS } = require("../server/gameContent");
 const { buildConstructedCardArtInventory } = require("./report-constructed-card-art");
 
 test("constructed-card art inventory follows the collector variant contract", () => {
@@ -23,7 +23,7 @@ test("constructed-card art inventory follows the collector variant contract", ()
   }
 
   const biziCards = inventory.cards.filter((card) => card.faction === "bizi");
-  assert.equal(biziCards.length, 22);
+  assert.equal(biziCards.length, 52);
   assert.equal(biziCards.every((card) => (
     card.currentArt.standard?.startsWith("/assets/gauntlet/constructed/bizi/")
     && card.currentArt.standard === card.currentArt.collector
@@ -33,7 +33,10 @@ test("constructed-card art inventory follows the collector variant contract", ()
 test("established cards retain unique baked art while complete catalogs use valid composed faces", async () => {
   const hashes = new Set();
   const faceHashes = new Set();
-  const composedIds = new Set(Object.values(FULL_FACTION_COLLECTIONS).flat().map((card) => card.id));
+  const composedIds = new Set([
+    ...Object.values(FULL_FACTION_COLLECTIONS).flat().map((card) => card.id),
+    ...COMPOSED_CATALOG_CARD_IDS
+  ]);
   const publicRoot = path.resolve(__dirname, "../client/public");
   for (const card of COLLECTION_CARDS) {
     const variant = COLLECTOR_VARIANTS.find((entry) => entry.gameplayCardId === card.id && !entry.paid);

@@ -23,6 +23,30 @@ const TRIGGERS = Object.freeze({
 });
 
 const CATALOG_FACTION_IDENTITIES = Object.freeze({
+  rumin: Object.freeze({
+    spades: [TRIGGERS.LATE_ATTACK, "Imperial Tempo", "When this is your third or later attack of the turn, it gets +1 value."],
+    hearts: [TRIGGERS.LATE_BLOCK, "Civic Reserve", "When this is your second or later block of the turn, it gets +1 value."],
+    diamonds: [TRIGGERS.SAME_SUIT_ATTACK, "Gilded Standard", "When this attack matches the suit of your previous attack, it gets +1 value."],
+    clubs: [TRIGGERS.RISING_ATTACK, "Road of Conquest", "When this attacks after a lower-value card was played, it gets +1 value."]
+  }),
+  sheen: Object.freeze({
+    spades: [TRIGGERS.LANE_BLOCK, "Thorned Canopy", "When this blocks from a lane, it gets +1 value."],
+    hearts: [TRIGGERS.LATE_BLOCK, "Living Chorus", "When this is your second or later block of the turn, it gets +1 value."],
+    diamonds: [TRIGGERS.BLOCK_HIGHER_ATTACKER, "Patient Growth", "When this blocks a higher-value attacker, it gets +1 value."],
+    clubs: [TRIGGERS.WOUNDED_ATTACK, "Renewal Surge", "If you have taken damage this turn, this gets +1 value when it attacks."]
+  }),
+  frumo: Object.freeze({
+    spades: [TRIGGERS.DIFFERENT_SUIT_ATTACK, "Changing Current", "When this attack differs in suit from your previous attack, it gets +1 value."],
+    hearts: [TRIGGERS.FIRST_BLOCK, "Crew's Compact", "When this is your first block of the turn, it gets +1 value."],
+    diamonds: [TRIGGERS.HAND_ATTACK, "Hidden Cargo", "When this attacks from your hand, it gets +1 value."],
+    clubs: [TRIGGERS.LANE_ATTACK, "Blackwake Ambush", "When this attacks from a lane, it gets +1 value."]
+  }),
+  bizi: Object.freeze({
+    spades: [TRIGGERS.DIFFERENT_SUIT_ATTACK, "Adaptive Circuit", "When this attack differs in suit from your previous attack, it gets +1 value."],
+    hearts: [TRIGGERS.RISING_ATTACK, "Iterative Design", "When this attacks after a lower-value card was played, it gets +1 value."],
+    diamonds: [TRIGGERS.LANE_BLOCK, "Load-Bearing Frame", "When this blocks from a lane, it gets +1 value."],
+    clubs: [TRIGGERS.LATE_ATTACK, "Accelerated Assembly", "When this is your third or later attack of the turn, it gets +1 value."]
+  }),
   mekan: Object.freeze({
     spades: [TRIGGERS.LANE_ATTACK, "Procession", "When this attacks from a lane, it gets +1 value."],
     hearts: [TRIGGERS.LATE_BLOCK, "Festival Chorus", "When this is your second or later block of the turn, it gets +1 value."],
@@ -40,6 +64,12 @@ const CATALOG_FACTION_IDENTITIES = Object.freeze({
     hearts: [TRIGGERS.BLOCK_HIGHER_ATTACKER, "Civic Defiance", "When this blocks a higher-value attacker, it gets +1 value."],
     diamonds: [TRIGGERS.FIRST_ATTACK, "Sunstone Initiative", "When this is your first attack of the turn, it gets +1 value."],
     clubs: [TRIGGERS.LANE_BLOCK, "Arena Wall", "When this blocks from a lane, it gets +1 value."]
+  }),
+  indela: Object.freeze({
+    spades: [TRIGGERS.FIRST_BLOCK, "Frost Omen", "When this is your first block of the turn, it gets +1 value."],
+    hearts: [TRIGGERS.FIRST_ATTACK, "Ember Omen", "When this is your first attack of the turn, it gets +1 value."],
+    diamonds: [TRIGGERS.SAME_SUIT_ATTACK, "Celestial Equation", "When this attack matches the suit of your previous attack, it gets +1 value."],
+    clubs: [TRIGGERS.BLOCK_HIGHER_ATTACKER, "Archive's Answer", "When this blocks a higher-value attacker, it gets +1 value."]
   }),
   voltari: Object.freeze({
     spades: [TRIGGERS.DIFFERENT_SUIT_ATTACK, "Null Revision", "When this attack differs in suit from your previous attack, it gets +1 value."],
@@ -82,6 +112,18 @@ const CATALOG_FACTION_IDENTITIES = Object.freeze({
     hearts: [TRIGGERS.FIRST_BLOCK, "Hearth Guard", "When this is your first block of the turn, it gets +1 value."],
     diamonds: [TRIGGERS.LANE_ATTACK, "Iron Advance", "When this attacks from a lane, it gets +1 value."],
     clubs: [TRIGGERS.WOUNDED_ATTACK, "Forest Countermarch", "If you have taken damage this turn, this gets +1 value when it attacks."]
+  }),
+  zynarth: Object.freeze({
+    spades: [TRIGGERS.HAND_ATTACK, "Hunting Adaptation", "When this attacks from your hand, it gets +1 value."],
+    hearts: [TRIGGERS.LATE_BLOCK, "Brood Shelter", "When this is your second or later block of the turn, it gets +1 value."],
+    diamonds: [TRIGGERS.RISING_ATTACK, "Evolving Carapace", "When this attacks after a lower-value card was played, it gets +1 value."],
+    clubs: [TRIGGERS.WOUNDED_ATTACK, "Returned Biomass", "If you have taken damage this turn, this gets +1 value when it attacks."]
+  }),
+  "astral-vanguard": Object.freeze({
+    spades: [TRIGGERS.LANE_ATTACK, "Breach Doctrine", "When this attacks from a lane, it gets +1 value."],
+    hearts: [TRIGGERS.FIRST_BLOCK, "Rescue Formation", "When this is your first block of the turn, it gets +1 value."],
+    diamonds: [TRIGGERS.FIRST_ATTACK, "Orbital Initiative", "When this is your first attack of the turn, it gets +1 value."],
+    clubs: [TRIGGERS.DIFFERENT_SUIT_ATTACK, "Hybrid Tactics", "When this attack differs in suit from your previous attack, it gets +1 value."]
   }),
   khevar: Object.freeze({
     spades: [TRIGGERS.FIRST_BLOCK, "Guard the Scale", "When this is your first block of the turn, it gets +1 value."],
@@ -235,4 +277,27 @@ function catalogIdentity(factionId, suit) {
   return rule ? { trigger: rule[0], name: rule[1], text: rule[2] } : null;
 }
 
-module.exports = { TRIGGERS, CATALOG_FACTION_IDENTITIES, ALIEN_RESOURCE_CAPS, alienCatalogProfile, catalogIdentity };
+const CATALOG_TRIGGER_WORDING = Object.freeze({
+  [TRIGGERS.FIRST_ATTACK]: "First attack: +1 value.",
+  [TRIGGERS.LANE_ATTACK]: "Lane attack: +1 value.",
+  [TRIGGERS.HAND_ATTACK]: "Hand attack: +1 value.",
+  [TRIGGERS.DIFFERENT_SUIT_ATTACK]: "New-suit attack: +1 value.",
+  [TRIGGERS.SAME_SUIT_ATTACK]: "Same-suit attack: +1 value.",
+  [TRIGGERS.RISING_ATTACK]: "Attack after a lower value: +1 value.",
+  [TRIGGERS.LATE_ATTACK]: "Third+ attack: +1 value.",
+  [TRIGGERS.WOUNDED_ATTACK]: "After taking damage this turn: attack +1 value.",
+  [TRIGGERS.FIRST_BLOCK]: "First block: +1 value.",
+  [TRIGGERS.LANE_BLOCK]: "Lane block: +1 value.",
+  [TRIGGERS.BLOCK_HAND_ATTACK]: "Block a hand attack: +1 value.",
+  [TRIGGERS.LATE_BLOCK]: "Second+ block: +1 value.",
+  [TRIGGERS.BLOCK_HIGHER_ATTACKER]: "Block a higher-value attacker: +1 value.",
+  [TRIGGERS.MATCHING_SUIT_BLOCK]: "Same-suit block: +1 value.",
+  [TRIGGERS.DIFFERENT_SUIT_BLOCK]: "New-suit block: +1 value."
+});
+
+function catalogDisplayText(factionId, suit) {
+  const identity = catalogIdentity(factionId, suit);
+  return identity ? CATALOG_TRIGGER_WORDING[identity.trigger] : "No additional ability.";
+}
+
+module.exports = { TRIGGERS, CATALOG_FACTION_IDENTITIES, CATALOG_TRIGGER_WORDING, ALIEN_RESOURCE_CAPS, alienCatalogProfile, catalogIdentity, catalogDisplayText };

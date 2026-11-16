@@ -12,7 +12,7 @@ function behavior(value) {
   return Object.fromEntries(Object.entries(value).filter(([key]) => !NEW_METADATA.has(key)).map(([key, child]) => [key, behavior(child)]));
 }
 function fingerprint(value) { return crypto.createHash("sha256").update(canonicalJson(JSON.parse(JSON.stringify(behavior(value))))).digest("hex"); }
-function scenarios(engine) {
+function scenarios(engine, definitionIds = null) {
   const results = {};
   // These hashes certify the historical v11 rules, not the newest ruleset.
   const base = (faction) => ({ ...engine.createMatch({ seed: "v2-equivalence", matchId: "equivalence", gameMode: "factions", startingPriority: 1, factions: { 1: engine.FACTION_PROFILES[faction], 2: engine.FACTION_PROFILES.sheen } }).state, rulesVersion: "gauntlet-duel-v11" });
@@ -21,7 +21,9 @@ function scenarios(engine) {
   // This fixture captures the 126-card production catalog that existed before
   // neutral Reath cards were introduced. Neutral cards have their own contract
   // tests and must not rewrite the historical equivalence baseline.
-  const legacyDefinitions = COLLECTION_CARDS.filter((definition) => definition.factionId !== "neutral");
+  const legacyDefinitions = COLLECTION_CARDS.filter((definition) => (
+    definition.factionId !== "neutral" && (!definitionIds || definitionIds.has(definition.id))
+  ));
   for (const definition of legacyDefinitions) for (let turnIndex = 0; turnIndex < 4; turnIndex++) {
     const key = `${definition.id}:${turnIndex}`;
     const game = base(definition.factionId), subject = card(definition, "subject");

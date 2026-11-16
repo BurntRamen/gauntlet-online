@@ -24,7 +24,9 @@ test("authoring projection retains every compatible card effect without repeatin
   const store = createContentPublication({ baseline, memory: true });
   const state = store.status();
   for (const row of state.live.domains.cards) {
-    assert.deepEqual(state.fields.cards[row.id].effect.options, effects.filter(option => option.factionId === row.factionId && option.cardType === row.type), row.id);
+    const field = state.fields.cards[row.id].effect;
+    assert.equal(field.options, undefined, `${row.id} must not repeat its option group`);
+    assert.deepEqual(state.cardEffectOptions[field.optionGroup], effects.filter(option => option.factionId === row.factionId && option.cardType === row.type), row.id);
   }
   assert.ok(Buffer.byteLength(JSON.stringify(state)) < 18 * 1024 * 1024, "The baseline authoring response must fit within 18 MiB instead of repeating the full effect registry for every card.");
   assert.ok(Buffer.byteLength(JSON.stringify(state.fields)) < 14 * 1024 * 1024, "Per-row editor metadata must stay within 14 MiB after the complete Crossroads catalog is included.");
@@ -51,8 +53,10 @@ test("saving an unpublished card's faction and type refreshes its compatible eff
     const saved = state.draft.snapshot.domains.cards.find(row => row.id === card.id);
     const compatible = effects.filter(option => option.factionId === saved.factionId && option.cardType === saved.type);
     assert.ok(compatible.length > 0);
-    assert.deepEqual(state.fields.cards[card.id].effect.options, compatible, `The ${field} save response must include the new choices.`);
-    assert.deepEqual(store.status().fields.cards[card.id].effect.options, compatible, "Reloading must retain those choices.");
+    const definition = state.fields.cards[card.id].effect;
+    assert.deepEqual(state.cardEffectOptions[definition.optionGroup], compatible, `The ${field} save response must include the new choices.`);
+    const reloaded = store.status();
+    assert.deepEqual(reloaded.cardEffectOptions[reloaded.fields.cards[card.id].effect.optionGroup], compatible, "Reloading must retain those choices.");
     assert.equal(state.validation.source, "draft");
     assert.equal(state.validation.hash, state.draft.hash);
     assert.equal(state.validation.revision, state.revision);

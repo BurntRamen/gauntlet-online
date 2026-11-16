@@ -398,11 +398,11 @@ test("maps every catalog constructed card into the shared deterministic rules", 
       return !effectId || (handler !== "printed-value-only" && !sharedRulesSource.includes(`"${handler}"`));
     });
 
-  assert.equal(COLLECTION_CARDS.length, 1008);
+  assert.equal(COLLECTION_CARDS.length, 1218);
   assert.deepEqual(missing, []);
 });
 
-test("extends every Initiative faction's original eighteen cards with a four-card face ladder", () => {
+test("completes every early faction catalog while retaining its authored signature cards", () => {
   for (const [cards, expectedType] of [
     [RUMIN_COLLECTION_CARDS, "armament"],
     [SHEEN_COLLECTION_CARDS, "shelter"],
@@ -412,11 +412,22 @@ test("extends every Initiative faction's original eighteen cards with a four-car
     [ASTRAL_VANGUARD_COLLECTION_CARDS, "operation"],
     [INDELA_COLLECTION_CARDS, "arcana"]
   ]) {
-    assert.equal(cards.length, 22);
-    assert.ok(cards.filter((card) => card.type === "servitor").length >= 13);
+    assert.equal(cards.length, 52);
+    assert.ok(cards.filter((card) => card.type === "servitor").length >= 43);
     assert.ok(cards.filter((card) => card.type === expectedType).length >= 8);
     assert.deepEqual([...new Set(cards.map((card) => card.type))].sort(), [expectedType, "servitor"].sort());
-    assert.deepEqual(cards.filter((card) => card.value >= 11).map((card) => card.value), [11, 12, 13, 14]);
+    for (const suit of ["spades", "hearts", "diamonds", "clubs"]) {
+      assert.deepEqual(cards.filter((card) => card.suit === suit && card.value >= 11).map((card) => card.value).sort((a, b) => a - b), [11, 12, 13, 14]);
+    }
+  }
+});
+
+test("gives every playable faction one card for every rank-and-suit slot", () => {
+  const content = getPublicGameContent();
+  for (const faction of content.factions) {
+    const cards = content.cards.filter((card) => card.factionId === faction.id);
+    assert.equal(cards.length, 52, `${faction.id}: catalog size`);
+    assert.equal(new Set(cards.map((card) => `${card.suit}:${card.value}`)).size, 52, `${faction.id}: unique slots`);
   }
 });
 
@@ -464,7 +475,7 @@ test("requires card-specific constructed behavior coverage for the full catalog"
     })
     .map((card) => card.id);
 
-  assert.equal(COLLECTION_CARDS.length, 1008);
+  assert.equal(COLLECTION_CARDS.length, 1218);
   assert.deepEqual(missing, []);
 });
 

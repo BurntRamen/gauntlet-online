@@ -1,10 +1,10 @@
 "use strict";
 
 const RULES_VERSION = "gauntlet-rules-v6";
-const CONTENT_VERSION = "gauntlet-content-v29";
+const CONTENT_VERSION = "gauntlet-content-v30";
 const NEUTRAL_FACTION_ID = "neutral";
-const { getCardWording } = require("./cardWording");
-const { alienCatalogProfile, catalogIdentity } = require("../shared/duel-rules/catalogFactionIdentity");
+const { CARD_WORDING, getCardWording } = require("./cardWording");
+const { alienCatalogProfile, catalogIdentity, catalogDisplayText } = require("../shared/duel-rules/catalogFactionIdentity");
 const { LEGACIES } = require("./legaciesContent");
 const {
   ADDITIONAL_CAMPAIGNS,
@@ -976,7 +976,6 @@ ASTRAL_VANGUARD_COLLECTION_CARDS.push(...FACE_CARD_COLLECTIONS["astral-vanguard"
 INDELA_COLLECTION_CARDS.push(...FACE_CARD_COLLECTIONS.indela);
 NEUTRAL_COLLECTION_CARDS.push(...FACE_CARD_COLLECTIONS.neutral);
 
-const COLLECTION_CARDS = [...RUMIN_COLLECTION_CARDS, ...SHEEN_COLLECTION_CARDS, ...FRUMO_COLLECTION_CARDS, ...BIZI_COLLECTION_CARDS, ...ZYNARTH_COLLECTION_CARDS, ...ASTRAL_VANGUARD_COLLECTION_CARDS, ...INDELA_COLLECTION_CARDS, ...NEUTRAL_COLLECTION_CARDS, ...Object.values(FULL_FACTION_COLLECTIONS).flat()];
 const FIXED_CARD_SUITS = Object.freeze({
   "rumin-gilded-scale-legionary": "spades",
   "rumin-forum-ledger-runner": "hearts",
@@ -1079,6 +1078,87 @@ const FIXED_CARD_SUITS = Object.freeze({
   "indela-dualflame-adept": "diamonds", "indela-mistress-of-embers": "hearts", "indela-glacier-archon": "clubs", "indela-avatar-of-equilibrium": "spades",
   "neutral-freeblade-envoy": "clubs", "neutral-convergence-oracle": "diamonds", "neutral-gauntlet-regent": "hearts", "neutral-timetwister-ascendant": "spades"
 });
+// The first constructed releases predate the 52-slot catalog generator. Keep
+// their authored signature cards, then fill only the unoccupied rank-and-suit
+// slots so every playable faction can build a complete themed deck.
+const CATALOG_COMPLETION_PROFILES = Object.freeze({
+  rumin: {
+    art: "/assets/gauntlet/constructed/rumin/rumin-aurelian-clawblade.webp",
+    aspects: { spades: "Imperial", hearts: "Civic", diamonds: "Gilded", clubs: "Road-Bound" },
+    ranks: ["Cadet", "Ledger Runner", "Shield Bearer", "Road Scout", "Tribune", "Vault Guard", "Standard Keeper", "Phalanx Captain", "Bank Prefect", "Forum Envoy", "Senate Matriarch", "Legion Kaiser", "Eternal Imperator"]
+  },
+  sheen: {
+    art: "/assets/gauntlet/constructed/sheen/sheen-beli-awakened.webp",
+    aspects: { spades: "Thorned", hearts: "Living", diamonds: "Patient", clubs: "Renewing" },
+    ranks: ["Seedling", "Root Listener", "Moss Guard", "Rain Mender", "Vine Keeper", "Canopy Scout", "Grove Warden", "Bark Sentinel", "Harmony Speaker", "Bloom Herald", "Rootsong Matriarch", "First-Grove Elder", "Heartwood Avatar"]
+  },
+  frumo: {
+    art: "/assets/gauntlet/constructed/frumo/frumo-abyssal-switchboard.webp",
+    aspects: { spades: "Riptide", hearts: "Republic", diamonds: "Tideglass", clubs: "Blackwake" },
+    ranks: ["Deckhand", "Reef Scout", "Kelp Diver", "Pearl Runner", "Chart Keeper", "Hull Guard", "Current Reader", "Shoal Captain", "Council Corsair", "Fleet Envoy", "Pearl Admiral", "Storm Navigator", "Leviathan's Chosen"]
+  },
+  bizi: {
+    art: "/assets/gauntlet/constructed/bizi/bizi-brass-spark.webp",
+    aspects: { spades: "Adaptive", hearts: "Iterative", diamonds: "Load-Bearing", clubs: "Accelerated" },
+    ranks: ["Spark Tender", "Circuit Runner", "Copper Technician", "Gearwright", "Calibration Adept", "Array Keeper", "Logic Engineer", "Foundry Warden", "Conduit Marshal", "Titan Envoy", "Foundry Savant", "Prime Artificer", "Living Engine"]
+  },
+  indela: {
+    art: "/assets/gauntlet/constructed/indela/indela-arcane-amplification.webp",
+    aspects: { spades: "Frost", hearts: "Ember", diamonds: "Celestial", clubs: "Archived" },
+    ranks: ["Student", "Apprentice", "Initiate", "Equation Reader", "Omen Keeper", "Elementalist", "Mandala Scribe", "Kashi Warden", "Concord Master", "Archive Envoy", "Dualflame Adept", "Glacier Archon", "Avatar of Equilibrium"]
+  },
+  zynarth: {
+    art: "/assets/gauntlet/constructed/zynarth/zynarth-adaptive-carapace.webp",
+    aspects: { spades: "Hunting", hearts: "Brood", diamonds: "Evolving", clubs: "Reclaimed" },
+    ranks: ["Sporeling", "Nutrient Tender", "Carapace Scout", "Egg Keeper", "Hive Runner", "Brood Shepherd", "Adaptive Stalker", "Biomass Warden", "Synapse Herald", "Worldseed Envoy", "Gene-Mother", "Apex Reclaimer", "Worldseed Queen"]
+  },
+  "astral-vanguard": {
+    art: "/assets/gauntlet/constructed/astral-vanguard/astral-vanguard-aegis-shock-company.webp",
+    aspects: { spades: "Breach", hearts: "Rescue", diamonds: "Orbital", clubs: "Hybrid" },
+    ranks: ["Pathfinder", "Surveyor", "Trooper", "Field Medic", "Signal Keeper", "Jump Specialist", "Aegis Warden", "Relay Engineer", "Outpost Captain", "Convergence Envoy", "Fleet Strategist", "Vanguard Marshal", "Convergence Admiral"]
+  }
+});
+
+const catalogCompletionCardIds = [];
+
+function completeFactionCollection(factionId, cards, profile) {
+  const occupied = new Set(cards.map((card) => (FIXED_CARD_SUITS[card.id] || card.suit) + ":" + card.value));
+  for (const suit of CATALOG_SUITS) {
+    for (let index = 0; index < CATALOG_VALUES.length; index += 1) {
+      const value = CATALOG_VALUES[index];
+      if (occupied.has(suit + ":" + value)) continue;
+      const rank = CATALOG_RANK_SLUG[value] || String(value);
+      const identity = catalogIdentity(factionId, suit);
+      const name = profile.aspects[suit] + " " + profile.ranks[index];
+      const id = factionId + "-" + suit + "-" + rank;
+      CARD_WORDING[id] = catalogDisplayText(factionId, suit);
+      catalogCompletionCardIds.push(id);
+      cards.push({
+        id,
+        factionId,
+        name,
+        type: "servitor",
+        rarity: CATALOG_RARITY[value],
+        value,
+        suit,
+        art: profile.art,
+        text: identity.name + " — " + identity.text + " " + name + " expresses the " + profile.aspects[suit].toLowerCase() + " doctrine of its faction."
+      });
+    }
+  }
+}
+
+completeFactionCollection("rumin", RUMIN_COLLECTION_CARDS, CATALOG_COMPLETION_PROFILES.rumin);
+completeFactionCollection("sheen", SHEEN_COLLECTION_CARDS, CATALOG_COMPLETION_PROFILES.sheen);
+completeFactionCollection("frumo", FRUMO_COLLECTION_CARDS, CATALOG_COMPLETION_PROFILES.frumo);
+completeFactionCollection("bizi", BIZI_COLLECTION_CARDS, CATALOG_COMPLETION_PROFILES.bizi);
+completeFactionCollection("indela", INDELA_COLLECTION_CARDS, CATALOG_COMPLETION_PROFILES.indela);
+completeFactionCollection("zynarth", ZYNARTH_COLLECTION_CARDS, CATALOG_COMPLETION_PROFILES.zynarth);
+completeFactionCollection("astral-vanguard", ASTRAL_VANGUARD_COLLECTION_CARDS, CATALOG_COMPLETION_PROFILES["astral-vanguard"]);
+
+const COMPOSED_CATALOG_CARD_IDS = Object.freeze([...catalogCompletionCardIds]);
+const COLLECTION_CARDS = [...RUMIN_COLLECTION_CARDS, ...SHEEN_COLLECTION_CARDS, ...FRUMO_COLLECTION_CARDS, ...BIZI_COLLECTION_CARDS, ...ZYNARTH_COLLECTION_CARDS, ...ASTRAL_VANGUARD_COLLECTION_CARDS, ...INDELA_COLLECTION_CARDS, ...NEUTRAL_COLLECTION_CARDS, ...Object.values(FULL_FACTION_COLLECTIONS).flat()];
+
 const SUPPORT_RULES_TEXT = {
   "rumin-marble-market-tribune": "While Corporate Banner occupies a support slot, after one of your Servitors attacks, the next Rumin Armament you arm this turn gives that attacker +1 additional value.",
   "sheen-beli-vinebinder": "While Entwined Thicket occupies a support slot, after your second block each turn, your next attack that turn gets +1 value.",
@@ -2717,6 +2797,7 @@ module.exports = {
   COLLECTOR_VARIANT_MECHANICAL_FIELDS,
   COLLECTOR_VARIANT_SCHEMA_VERSION,
   COLLECTOR_VARIANTS,
+  COMPOSED_CATALOG_CARD_IDS,
   COLLECTION_CARDS,
   CONTENT_VERSION,
   DECK_RULES,

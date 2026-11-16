@@ -22,10 +22,10 @@ function indelaMatch() {
 }
 
 test("Indela has a complete fixed-slot Gauntlet catalog", () => {
-  assert.equal(INDELA_COLLECTION_CARDS.length, 22);
-  assert.equal(INDELA_COLLECTION_CARDS.filter((card) => card.type === "servitor").length, 13);
+  assert.equal(INDELA_COLLECTION_CARDS.length, 52);
+  assert.equal(INDELA_COLLECTION_CARDS.filter((card) => card.type === "servitor").length, 43);
   assert.equal(INDELA_COLLECTION_CARDS.filter((card) => card.type === "arcana").length, 9);
-  assert.equal(new Set(INDELA_COLLECTION_CARDS.map((card) => `${card.value}:${card.suit}`)).size, 22);
+  assert.equal(new Set(INDELA_COLLECTION_CARDS.map((card) => `${card.value}:${card.suit}`)).size, 52);
 });
 
 test("odd omens empower fire Servitors and Arcane Amplification strengthens Kashi", () => {

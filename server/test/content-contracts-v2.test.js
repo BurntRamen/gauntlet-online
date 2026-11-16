@@ -29,8 +29,9 @@ test("the published faction chooser preserves the source registry's presentation
 test("all 2,800 current-production pre-conversion engine outcomes remain equivalent with explicit card and faction effects", () => {
   const expected = require("./fixtures/content-v2/engine-behavior-production.json");
   assert.equal(Object.keys(expected).length, 2800);
+  const legacyCardIds = new Set(Object.keys(expected).map((key) => key.split(":")[0]));
   const legacyOutcomes = (actual) => Object.fromEntries(Object.keys(expected).map((key) => [key, actual[key]]));
-  assert.deepEqual(legacyOutcomes(scenarios(engine)), expected);
+  assert.deepEqual(legacyOutcomes(scenarios(engine, legacyCardIds)), expected);
   function bind(game) {
     const state = authored.clone(game);
     function visit(value) {
@@ -42,7 +43,7 @@ test("all 2,800 current-production pre-conversion engine outcomes remain equival
     visit(state); return state;
   }
   const explicit = { ...engine, applyCommand: (game, command) => engine.applyCommand(bind(game), command), getActionAvailability: (game, player) => engine.getActionAvailability(bind(game), player) };
-  assert.deepEqual(legacyOutcomes(scenarios(explicit)), expected);
+  assert.deepEqual(legacyOutcomes(scenarios(explicit, legacyCardIds)), expected);
 });
 
 test("all captured encounter setups remain stable while new campaigns add validated encounters", () => {
@@ -198,5 +199,5 @@ test("v1 migration retains authored edits and newer production defaults simultan
   const migrated = require("../contentMigration").migrateV1(legacy, baseline);
   assert.equal(migrated.domains.campaigns[0].pitch, legacy.domains.campaigns[0].pitch);
   assert.deepEqual(migrated.domains.cards, baseline.domains.cards);
-  assert.equal(migrated.domains.cards.length, 1008);
+  assert.equal(migrated.domains.cards.length, 1218);
 });
