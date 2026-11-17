@@ -42110,7 +42110,23 @@
       "source": "/assets/gauntlet/voices/faction-mekan-general-clicked.mp3",
       "associations": [
         {
+          "object": "content.factions.4.generals.0.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "content.factions.4.generals.1.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
           "object": "content.factions.4.generals.2.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "content.factions.4.generals.3.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "content.factions.4.generals.4.clickedAudio",
           "usage": "clickedAudio"
         },
         {
@@ -42118,7 +42134,31 @@
           "usage": "clickedAudio"
         },
         {
+          "object": "content.upcomingSets.0.factions.0.generals.0.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "content.upcomingSets.0.factions.0.generals.1.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
           "object": "content.upcomingSets.0.factions.0.generals.2.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "content.upcomingSets.0.factions.0.generals.3.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "content.upcomingSets.0.factions.0.generals.4.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "content.deckRules.factions.4.generals.0.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "content.deckRules.factions.4.generals.1.clickedAudio",
           "usage": "clickedAudio"
         },
         {
@@ -42126,11 +42166,35 @@
           "usage": "clickedAudio"
         },
         {
+          "object": "content.deckRules.factions.4.generals.3.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "content.deckRules.factions.4.generals.4.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
           "object": "content.deckRules.factions.4.general.clickedAudio",
           "usage": "clickedAudio"
         },
         {
+          "object": "factions.mekan.generals.0.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "factions.mekan.generals.1.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
           "object": "factions.mekan.generals.2.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "factions.mekan.generals.3.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "factions.mekan.generals.4.clickedAudio",
           "usage": "clickedAudio"
         },
         {
@@ -60968,5 +61032,5 @@
     "thalassari-clubs-king": "/assets/gauntlet/thalassari-emblem.svg",
     "thalassari-clubs-ace": "/assets/gauntlet/thalassari-emblem.svg"
   },
-  "version": "gauntlet-assets-24410f281ffc4babb8c0794ddf54ca549f9fad87630343c1b391a5bc8c2c10cb"
+  "version": "gauntlet-assets-67299bf8820cef66bddab0d24d8e6c0aa2a0599032b7890394c253e8263cdc28"
 }

@@ -26,7 +26,7 @@ import PackOpening, { PackPacingPicker, readPackPacing } from "./PackOpening";
 import "./CollectionWorkshop.css";
 import SpecialCardFace, { getCardIllustration } from "./SpecialCardFace";
 import CollectorCardPresentation from "./CollectorCardPresentation";
-import { playFactionVoice } from "./factionVoicePlayback";
+import { nextFactionQuote, playFactionVoice } from "./factionVoicePlayback";
 import CampaignChapterBriefing from "./CampaignChapterBriefing";
 import { DeckVisual, FactionArtwork, FACTION_VISUALS, getFactionArtwork, getFactionCover, getFactionAsset, resolveVisualAsset } from "./GauntletVisuals";
 import FactionLoadoutPicker from "./FactionLoadoutPicker";
@@ -3796,7 +3796,7 @@ export default function App() {
     setActionLog((prev) => (prev[0]?.text === game.message ? prev : [{ text: game.message, turn: game.turn || 1, phase: game.phase || "game" }, ...prev].slice(0, 50)));
   }, [game?.eventLog, game?.message, game?.phase, game?.turn]);
 
-  const speakFactionQuote = useCallback((voiceClip) => {
+  const speakFactionQuote = useCallback((voiceClip, voiceStyle) => {
     if (voiceAudioRef.current) {
       voiceAudioRef.current.pause();
       voiceAudioRef.current = null;
@@ -3805,7 +3805,8 @@ export default function App() {
     if (accountSoundMuted) return;
     voiceAudioRef.current = playFactionVoice({
       AudioCtor: window.Audio,
-      source: voiceClip ? resolveAssetPath(voiceClip) : ""
+      source: voiceClip ? resolveAssetPath(voiceClip) : "",
+      voiceStyle
     });
   }, [accountSoundMuted]);
 
@@ -3815,9 +3816,15 @@ export default function App() {
     const faction = typeof factionInput === "object"
       ? factionInput
       : gameContent?.factions?.find((entry) => entry.id === factionId);
-    const quote = faction?.commander?.announcements?.[event] || "Stand ready.";
+    const commander = faction?.commander;
+    const baseQuote = commander?.announcements?.[event] || "Stand ready.";
+    const [quote, quoteIndex] = event === "clicked"
+      ? nextFactionQuote(`${factionId}:commander:${commanderName}`, commander?.interactionQuotes, baseQuote)
+      : [baseQuote, 0];
     setFactionVoice({ quote, detail, speaker: commanderName, kind: event });
-    speakFactionQuote(faction?.commander?.announcementAudio?.[event], quote, factionId, commanderName, faction?.commander?.voiceProfile, faction?.commander?.voiceHints);
+    const audioPool = commander?.announcementAudio?.[event];
+    const audio = Array.isArray(audioPool) ? audioPool[quoteIndex % audioPool.length] : audioPool;
+    speakFactionQuote(audio, commander?.voiceStyle);
   }, [gameContent?.factions, speakFactionQuote]);
 
   const announceFactionFeatureClick = useCallback((featureRole) => {
@@ -3834,12 +3841,17 @@ export default function App() {
     const feature = currentPlayer.faction[featureRole];
     if (!feature) return;
     if (featureRole === "general") {
-      const quote = feature.clickedAnnouncement || "The general is ready.";
-      setFactionVoice({ quote, detail: "General selected", speaker: feature.name || "General", kind: "clicked" });
-      speakFactionQuote(feature.clickedAudio, feature.clickedAnnouncement, currentPlayer.faction.id, feature.name || "General", currentPlayer.faction.commander?.voiceProfile, currentPlayer.faction.commander?.voiceHints);
+      const [quote, quoteIndex] = nextFactionQuote(`${currentPlayer.faction.id}:general:${feature.id || feature.name}`, feature.interactionQuotes, feature.clickedAnnouncement || "The general is ready.");
+      setFactionVoice({ quote, speaker: feature.name || "General", kind: "clicked" });
+      const audio = Array.isArray(feature.clickedAudio) ? feature.clickedAudio[quoteIndex % feature.clickedAudio.length] : feature.clickedAudio;
+      speakFactionQuote(audio, feature.voiceStyle);
       return;
     }
-    if (featureRole === "city" && feature.clickedSound) speakFactionQuote(feature.clickedSound, "", currentPlayer.faction.id, feature.name || "City");
+    if (featureRole === "city") {
+      const [quote] = nextFactionQuote(`${currentPlayer.faction.id}:city:${feature.name}`, feature.interactionQuotes, feature.clickedAnnouncement || `${feature.name || "The city"} stands ready.`);
+      setFactionVoice({ quote, speaker: feature.name || "City", kind: "clicked" });
+      speakFactionQuote(feature.clickedSound, feature.voiceStyle);
+    }
   }, [announceCommander, game, player, role, speakFactionQuote]);
 
   useEffect(() => {

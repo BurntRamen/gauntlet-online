@@ -4,7 +4,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const RULES_VERSION = "gauntlet-rules-v6";
-const CONTENT_VERSION = "gauntlet-content-v31";
+const CONTENT_VERSION = "gauntlet-content-v32";
 const NEUTRAL_FACTION_ID = "neutral";
 const { CARD_WORDING, getCardWording } = require("./cardWording");
 const { alienCatalogProfile, catalogIdentity, catalogDisplayText } = require("../shared/duel-rules/catalogFactionIdentity");
@@ -1265,6 +1265,7 @@ const MAX_REPLACEMENTS_PER_VALUE = DRAFT_CARD_SUITS.length;
 const MAX_CONSTRUCTED_DECK_SIZE = BASE_PLAYING_DECK_SIZE;
 const MAX_CONSTRUCTED_REPLACEMENTS = BASE_PLAYING_DECK_SIZE;
 const MAX_CONSTRUCTED_ADDITIONS = MAX_CONSTRUCTED_REPLACEMENTS;
+const { FACTION_INTERACTION_QUOTES } = require("./factionInteractionQuotes");
 
 const COMMANDER_ANNOUNCEMENTS = Object.freeze({
   rumin: { selected: "Roads do not end. They arrive.", clicked: "Discipline first. Then conquest.", wounded: "Order has a cost.", critical: "If I surrender, Rumie returns to corruption.", denied: "The treasury will not underwrite this assault." },
@@ -1531,19 +1532,56 @@ factionsData.jali.general = factionsData.jali.generals[0];
 factionsData.gracus.general = factionsData.gracus.generals[0];
 factionsData.indela.general = factionsData.indela.generals[0];
 const factionInteractionVoiceAssets = require("./factionInteractionVoiceAssets.json");
+function entityVoiceStyle(factionId, role, entityName) {
+  const seed = `${factionId}:${role}:${entityName || role}`;
+  let hash = 2166136261;
+  for (const character of seed) {
+    hash ^= character.charCodeAt(0);
+    hash = Math.imul(hash, 16777619);
+  }
+  const normalized = (hash >>> 0) / 0xffffffff;
+  const roleOffset = role === "city" ? -0.05 : role === "general" ? 0.04 : 0;
+  return Object.freeze({
+    id: seed.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""),
+    playbackRate: Number(Math.max(0.84, Math.min(1.16, 0.94 + normalized * 0.12 + roleOffset)).toFixed(3)),
+    volume: Number((role === "city" ? 0.74 : 0.92).toFixed(2))
+  });
+}
+
+function decorateGeneral(factionId, general, quoteSet, audio) {
+  if (!general) return;
+  const generalKey = general.id || "default";
+  general.interactionQuotes = quoteSet?.generals?.[generalKey] || quoteSet?.general || [GENERAL_CLICK_ANNOUNCEMENTS[factionId] || "The general is ready."];
+  general.clickedAnnouncement = general.interactionQuotes[0];
+  general.voiceStyle = entityVoiceStyle(factionId, "general", general.name);
+  general.voiceIdentity = `${general.name} · ${factionId} general`;
+  if (audio) general.clickedAudio = audio;
+}
+
 for (const [factionId, announcements] of Object.entries(COMMANDER_ANNOUNCEMENTS)) {
+  const quoteSet = FACTION_INTERACTION_QUOTES[factionId] || {};
   factionsData[factionId].commander.announcements = announcements;
+  factionsData[factionId].commander.interactionQuotes = quoteSet.commander || [announcements.clicked];
   factionsData[factionId].commander.voiceProfile = COMMANDER_VOICE_PROFILES[factionId];
   factionsData[factionId].commander.voiceHints = COMMANDER_VOICE_HINTS[factionId];
+  factionsData[factionId].commander.voiceStyle = entityVoiceStyle(factionId, "commander", factionsData[factionId].commander.name);
+  factionsData[factionId].commander.voiceIdentity = `${factionsData[factionId].commander.name} · ${factionId} commander`;
   const generatedAudio = factionInteractionVoiceAssets.factions?.[factionId];
   const announcementAudio = generatedAudio?.commander || COMMANDER_ANNOUNCEMENT_AUDIO[factionId];
   if (announcementAudio) factionsData[factionId].commander.announcementAudio = announcementAudio;
-  if (factionsData[factionId].general) {
-    factionsData[factionId].general.clickedAnnouncement = GENERAL_CLICK_ANNOUNCEMENTS[factionId];
-    const generalAudio = generatedAudio?.general?.clicked || GENERAL_CLICK_AUDIO[factionId];
-    if (generalAudio) factionsData[factionId].general.clickedAudio = generalAudio;
+  const generalAudio = generatedAudio?.general?.clicked || GENERAL_CLICK_AUDIO[factionId];
+  if (factionsData[factionId].generals?.length) {
+    for (const general of factionsData[factionId].generals) decorateGeneral(factionId, general, quoteSet, generalAudio);
+  } else {
+    decorateGeneral(factionId, factionsData[factionId].general, quoteSet, generalAudio);
   }
-  if (factionsData[factionId].city) factionsData[factionId].city.clickedSound = CITY_CLICK_SOUND;
+  if (factionsData[factionId].city) {
+    factionsData[factionId].city.interactionQuotes = quoteSet.city || [`${factionsData[factionId].city.name} stands ready.`];
+    factionsData[factionId].city.clickedAnnouncement = factionsData[factionId].city.interactionQuotes[0];
+    factionsData[factionId].city.clickedSound = CITY_CLICK_SOUND;
+    factionsData[factionId].city.voiceStyle = entityVoiceStyle(factionId, "city", factionsData[factionId].city.name);
+    factionsData[factionId].city.voiceIdentity = `${factionsData[factionId].city.name} · ${factionId} city`;
+  }
 }
 
 function listFactions() {
