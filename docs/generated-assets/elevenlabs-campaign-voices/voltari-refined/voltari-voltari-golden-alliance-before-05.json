@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "voltari Campaign Protagonist",
+  "line": "Route the surplus under local command, teach every safeguard, and return the conduit when the crisis passes.",
+  "clientOutput": "client/public/assets/gauntlet/voices/voltari-ch10-before-05-stormlord-veyra.mp3",
+  "generatedAt": "2026-11-16T18:27:00.702Z",
+  "publishedAt": "2026-11-16T18:27:20.712Z",
+  "bytes": 167644,
+  "sha256": "f8f8f77e001c4ba6546fa5ce1965c2a300c0800f3b41a81cd55cfa29e1e3119a"
+}

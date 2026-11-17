@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "astral-vanguard Campaign Protagonist",
+  "line": "Then future me can wait until present me secures the room.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch07-before-06-myra-cross.mp3",
+  "generatedAt": "2026-11-16T18:17:37.582Z",
+  "publishedAt": "2026-11-16T18:18:14.140Z",
+  "bytes": 48526,
+  "sha256": "c5195b07f1385ec327e45e656c7edb3086723fb085cdaf39d4dca36e7eb7edad"
+}

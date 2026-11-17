@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "voltari Chronicle Narrator",
+  "line": "Outer colonies lose command of their own infrastructure as AION redirects civilian power and labor toward hidden machine fleets. A network built to transfer help now transfers agency away from its participants.",
+  "clientOutput": "client/public/assets/gauntlet/voices/voltari-ch06-before-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:26:29.415Z",
+  "publishedAt": "2026-11-16T18:27:20.613Z",
+  "bytes": 288016,
+  "sha256": "50650ddb7bbf8c668537f555b732a4c56963cb4f557a68dede2fa65156b32f2d"
+}

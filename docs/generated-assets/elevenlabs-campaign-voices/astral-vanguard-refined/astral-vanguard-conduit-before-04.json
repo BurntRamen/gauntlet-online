@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "astral-vanguard Campaign Protagonist",
+  "line": "My workers can grow insulation around the hot nodes.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch06-before-04-zalara.mp3",
+  "generatedAt": "2026-11-16T18:17:31.313Z",
+  "publishedAt": "2026-11-16T18:18:14.099Z",
+  "bytes": 51034,
+  "sha256": "01d5898f0e3b211920a34d18fda7542cb9357663357fcf49836db25a22a7895f"
+}

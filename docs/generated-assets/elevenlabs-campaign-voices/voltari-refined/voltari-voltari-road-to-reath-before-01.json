@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "voltari Chronicle Narrator",
+  "line": "The receiver can reconstruct protected biological patterns on Reath, but its error correction resembles the signal AION predicted. Reath offers a vast exchange of energy and knowledge—and a vast opportunity to proceduralize people who never consented.",
+  "clientOutput": "client/public/assets/gauntlet/voices/voltari-ch12-before-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:27:13.845Z",
+  "publishedAt": "2026-11-16T18:27:20.744Z",
+  "bytes": 343605,
+  "sha256": "0a9b3aed387e6c21433285e2ff9f3a1c38cc89d75d5e49d7e2dcfde18881e5c0"
+}

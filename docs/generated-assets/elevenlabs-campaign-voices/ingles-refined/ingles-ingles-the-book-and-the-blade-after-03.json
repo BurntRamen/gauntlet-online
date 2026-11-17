@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "ingles",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "ally",
+  "voiceName": "ingles Campaign Counselor",
+  "line": "A realm endures by allowing memory to argue with ceremony.",
+  "clientOutput": "client/public/assets/gauntlet/voices/ingles-ch02-after-03-archivist-edwyn.mp3",
+  "generatedAt": "2026-11-16T18:22:35.045Z",
+  "publishedAt": "2026-11-16T18:23:30.273Z",
+  "bytes": 49362,
+  "sha256": "eb7d4eba0243bb401b9323ce408868c654a2c32db3a3e8da247ee07925505ab0"
+}

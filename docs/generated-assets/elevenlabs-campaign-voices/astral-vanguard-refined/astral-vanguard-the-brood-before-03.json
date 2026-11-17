@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "astral-vanguard Campaign Protagonist",
+  "line": "Burn the reclamation lanes, not the nurseries.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch03-before-03-alden.mp3",
+  "generatedAt": "2026-11-16T18:17:13.395Z",
+  "publishedAt": "2026-11-16T18:18:13.979Z",
+  "bytes": 48526,
+  "sha256": "c19bb4edd8a55d502000fad8826cbe381d9d9e03217de79478b4c1ff6ca695ca"
+}

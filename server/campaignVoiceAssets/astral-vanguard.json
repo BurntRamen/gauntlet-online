@@ -1,0 +1,224 @@
+{
+  "schemaVersion": 1,
+  "factionId": "astral-vanguard",
+  "chapters": {
+    "new-horizon": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/astral-vanguard-ch01-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch01-before-02-myra-cross.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch01-before-03-alden.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch01-before-04-dr-sera-venn.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch01-before-05-glasswind-alpha.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch01-before-06-myra-cross.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/astral-vanguard-ch01-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch01-after-02-dr-sera-venn.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch01-after-03-myra-cross.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch01-after-04-alden.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch01-after-05-unknown-voice.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch01-after-06-narrator.mp3"
+      ]
+    },
+    "something-beneath-us": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/astral-vanguard-ch02-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch02-before-02-myra-cross.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch02-before-03-dr-sera-venn.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch02-before-04-klar.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch02-before-05-alden.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch02-before-06-myra-cross.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/astral-vanguard-ch02-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch02-after-02-myra-cross.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch02-after-03-dr-sera-venn.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch02-after-04-alden.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch02-after-05-klar.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch02-after-06-narrator.mp3"
+      ]
+    },
+    "the-brood": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/astral-vanguard-ch03-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch03-before-02-myra-cross.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch03-before-03-alden.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch03-before-04-zalara.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch03-before-05-myra-cross.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch03-before-06-zalara.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/astral-vanguard-ch03-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch03-after-02-alden.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch03-after-03-zalara.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch03-after-04-dr-sera-venn.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch03-after-05-myra-cross.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch03-after-06-zalara.mp3"
+      ]
+    },
+    "other-intelligence": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/astral-vanguard-ch04-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch04-before-02-zalara.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch04-before-03-alden.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch04-before-04-klar.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch04-before-05-myra-cross.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch04-before-06-zalara.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/astral-vanguard-ch04-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch04-after-02-zalara.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch04-after-03-dr-sera-venn.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch04-after-04-klar.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch04-after-05-alden.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch04-after-06-zalara.mp3"
+      ]
+    },
+    "golden-machine": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/astral-vanguard-ch05-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch05-before-02-oru.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch05-before-03-myra-cross.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch05-before-04-oru.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch05-before-05-zalara.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch05-before-06-alden.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/astral-vanguard-ch05-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch05-after-02-dr-sera-venn.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch05-after-03-oru.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch05-after-04-myra-cross.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch05-after-05-oru.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch05-after-06-oru.mp3"
+      ]
+    },
+    "conduit": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/astral-vanguard-ch06-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch06-before-02-oru.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch06-before-03-alden.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch06-before-04-zalara.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch06-before-05-myra-cross.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch06-before-06-unknown-voice.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/astral-vanguard-ch06-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch06-after-02-oru.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch06-after-03-dr-sera-venn.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch06-after-04-oru.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch06-after-05-alden.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch06-after-06-oru.mp3"
+      ]
+    },
+    "city-that-wasnt-there": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/astral-vanguard-ch07-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch07-before-02-myra-cross.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch07-before-03-dr-sera-venn.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch07-before-04-future-myra.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch07-before-05-alden.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch07-before-06-myra-cross.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/astral-vanguard-ch07-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch07-after-02-dr-sera-venn.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch07-after-03-myra-cross.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch07-after-04-oru.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch07-after-05-unknown-voice.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch07-after-06-alden.mp3"
+      ]
+    },
+    "fracture": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/astral-vanguard-ch08-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch08-before-02-jonah-hale.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch08-before-03-soren-ilias.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch08-before-04-elara-venn.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch08-before-05-tamsin-rook.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch08-before-06-xendra.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/astral-vanguard-ch08-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch08-after-02-tamsin-rook.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch08-after-03-soren-ilias.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch08-after-04-elara-venn.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch08-after-05-jonah-hale.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch08-after-06-xendra.mp3"
+      ]
+    },
+    "enemy-of-my-enemy": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/astral-vanguard-ch09-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch09-before-02-alden.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch09-before-03-oru.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch09-before-04-zalara.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch09-before-05-myra-cross.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch09-before-06-unknown-voice.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/astral-vanguard-ch09-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch09-after-02-zalara.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch09-after-03-oru.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch09-after-04-myra-cross.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch09-after-05-unknown-voice.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch09-after-06-alden.mp3"
+      ]
+    },
+    "first-empire": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/astral-vanguard-ch10-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch10-before-02-rumin-officer.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch10-before-03-myra-cross.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch10-before-04-rumin-officer.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch10-before-05-alden.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch10-before-06-envoy-of-kaisar.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/astral-vanguard-ch10-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch10-after-02-myra-cross.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch10-after-03-alden.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch10-after-04-envoy-of-kaisar.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch10-after-05-dr-sera-venn.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch10-after-06-envoy-of-kaisar.mp3"
+      ]
+    },
+    "world-between": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/astral-vanguard-ch11-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch11-before-02-dr-sera-venn.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch11-before-03-marek-solis.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch11-before-04-jonah-hale.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch11-before-05-elara-venn.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch11-before-06-alden.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/astral-vanguard-ch11-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch11-after-02-dr-sera-venn.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch11-after-03-adrian-kade.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch11-after-04-marek-solis.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch11-after-05-jonah-hale.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch11-after-06-alden.mp3"
+      ]
+    },
+    "when-stars-remember": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/astral-vanguard-ch12-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch12-before-02-marek-solis.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch12-before-03-jonah-hale.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch12-before-04-marek-solis.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch12-before-05-jonah-hale.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch12-before-06-alden.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/astral-vanguard-ch12-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch12-after-02-xendra.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch12-after-03-elara-venn.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch12-after-04-marek-solis.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch12-after-05-jonah-hale.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch12-after-06-alden.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch12-after-07-xendra.mp3",
+        "/assets/gauntlet/voices/astral-vanguard-ch12-after-08-narrator.mp3"
+      ]
+    }
+  }
+}

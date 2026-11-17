@@ -1,0 +1,198 @@
+{
+  "schemaVersion": 1,
+  "factionId": "voltari",
+  "chapters": {
+    "voltari-children-of-tempest": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/voltari-ch01-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/voltari-ch01-before-02-stormlord-veyra.mp3",
+        "/assets/gauntlet/voices/voltari-ch01-before-03-the-black-cyclone.mp3",
+        "/assets/gauntlet/voices/voltari-ch01-before-04-engineer-oru.mp3",
+        "/assets/gauntlet/voices/voltari-ch01-before-05-stormlord-veyra.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/voltari-ch01-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/voltari-ch01-after-02-the-black-cyclone.mp3",
+        "/assets/gauntlet/voices/voltari-ch01-after-03-engineer-oru.mp3",
+        "/assets/gauntlet/voices/voltari-ch01-after-04-stormlord-veyra.mp3",
+        "/assets/gauntlet/voices/voltari-ch01-after-05-narrator.mp3"
+      ]
+    },
+    "voltari-first-conduit": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/voltari-ch02-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/voltari-ch02-before-02-physician-veyra.mp3",
+        "/assets/gauntlet/voices/voltari-ch02-before-03-the-final-tremor.mp3",
+        "/assets/gauntlet/voices/voltari-ch02-before-04-engineer-oru.mp3",
+        "/assets/gauntlet/voices/voltari-ch02-before-05-physician-veyra.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/voltari-ch02-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/voltari-ch02-after-02-the-final-tremor.mp3",
+        "/assets/gauntlet/voices/voltari-ch02-after-03-engineer-oru.mp3",
+        "/assets/gauntlet/voices/voltari-ch02-after-04-physician-veyra.mp3",
+        "/assets/gauntlet/voices/voltari-ch02-after-05-narrator.mp3"
+      ]
+    },
+    "voltari-swarm-beyond-stars": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/voltari-ch03-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/voltari-ch03-before-02-stormlord-veyra.mp3",
+        "/assets/gauntlet/voices/voltari-ch03-before-03-the-silent-brood.mp3",
+        "/assets/gauntlet/voices/voltari-ch03-before-04-warden-kryos.mp3",
+        "/assets/gauntlet/voices/voltari-ch03-before-05-stormlord-veyra.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/voltari-ch03-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/voltari-ch03-after-02-the-silent-brood.mp3",
+        "/assets/gauntlet/voices/voltari-ch03-after-03-warden-kryos.mp3",
+        "/assets/gauntlet/voices/voltari-ch03-after-04-stormlord-veyra.mp3",
+        "/assets/gauntlet/voices/voltari-ch03-after-05-narrator.mp3"
+      ]
+    },
+    "voltari-whispers-of-xendra": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/voltari-ch04-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/voltari-ch04-before-02-stormlord-veyra.mp3",
+        "/assets/gauntlet/voices/voltari-ch04-before-03-the-voice-behind-sleep.mp3",
+        "/assets/gauntlet/voices/voltari-ch04-before-04-engineer-oru.mp3",
+        "/assets/gauntlet/voices/voltari-ch04-before-05-stormlord-veyra.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/voltari-ch04-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/voltari-ch04-after-02-the-voice-behind-sleep.mp3",
+        "/assets/gauntlet/voices/voltari-ch04-after-03-engineer-oru.mp3",
+        "/assets/gauntlet/voices/voltari-ch04-after-04-stormlord-veyra.mp3",
+        "/assets/gauntlet/voices/voltari-ch04-after-05-narrator.mp3"
+      ]
+    },
+    "voltari-birth-of-aion": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/voltari-ch05-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/voltari-ch05-before-02-stormlord-veyra.mp3",
+        "/assets/gauntlet/voices/voltari-ch05-before-03-the-impossible-ledger.mp3",
+        "/assets/gauntlet/voices/voltari-ch05-before-04-warden-kryos.mp3",
+        "/assets/gauntlet/voices/voltari-ch05-before-05-stormlord-veyra.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/voltari-ch05-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/voltari-ch05-after-02-the-impossible-ledger.mp3",
+        "/assets/gauntlet/voices/voltari-ch05-after-03-warden-kryos.mp3",
+        "/assets/gauntlet/voices/voltari-ch05-after-04-stormlord-veyra.mp3",
+        "/assets/gauntlet/voices/voltari-ch05-after-05-narrator.mp3"
+      ]
+    },
+    "voltari-golden-betrayal": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/voltari-ch06-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/voltari-ch06-before-02-stormlord-veyra.mp3",
+        "/assets/gauntlet/voices/voltari-ch06-before-03-aion.mp3",
+        "/assets/gauntlet/voices/voltari-ch06-before-04-engineer-oru.mp3",
+        "/assets/gauntlet/voices/voltari-ch06-before-05-stormlord-veyra.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/voltari-ch06-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/voltari-ch06-after-02-aion.mp3",
+        "/assets/gauntlet/voices/voltari-ch06-after-03-engineer-oru.mp3",
+        "/assets/gauntlet/voices/voltari-ch06-after-04-stormlord-veyra.mp3",
+        "/assets/gauntlet/voices/voltari-ch06-after-05-narrator.mp3"
+      ]
+    },
+    "voltari-war-of-golden-machines": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/voltari-ch07-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/voltari-ch07-before-02-warden-kryos.mp3",
+        "/assets/gauntlet/voices/voltari-ch07-before-03-the-captured-leviathans.mp3",
+        "/assets/gauntlet/voices/voltari-ch07-before-04-stormlord-veyra.mp3",
+        "/assets/gauntlet/voices/voltari-ch07-before-05-warden-kryos.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/voltari-ch07-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/voltari-ch07-after-02-the-captured-leviathans.mp3",
+        "/assets/gauntlet/voices/voltari-ch07-after-03-stormlord-veyra.mp3",
+        "/assets/gauntlet/voices/voltari-ch07-after-04-warden-kryos.mp3",
+        "/assets/gauntlet/voices/voltari-ch07-after-05-narrator.mp3"
+      ]
+    },
+    "voltari-last-calculation": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/voltari-ch08-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/voltari-ch08-before-02-stormlord-veyra.mp3",
+        "/assets/gauntlet/voices/voltari-ch08-before-03-aion.mp3",
+        "/assets/gauntlet/voices/voltari-ch08-before-04-engineer-oru.mp3",
+        "/assets/gauntlet/voices/voltari-ch08-before-05-stormlord-veyra.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/voltari-ch08-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/voltari-ch08-after-02-aion.mp3",
+        "/assets/gauntlet/voices/voltari-ch08-after-03-engineer-oru.mp3",
+        "/assets/gauntlet/voices/voltari-ch08-after-04-stormlord-veyra.mp3",
+        "/assets/gauntlet/voices/voltari-ch08-after-05-narrator.mp3"
+      ]
+    },
+    "voltari-conduit-schism": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/voltari-ch09-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/voltari-ch09-before-02-stormlord-veyra.mp3",
+        "/assets/gauntlet/voices/voltari-ch09-before-03-warden-kryos.mp3",
+        "/assets/gauntlet/voices/voltari-ch09-before-04-engineer-oru.mp3",
+        "/assets/gauntlet/voices/voltari-ch09-before-05-stormlord-veyra.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/voltari-ch09-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/voltari-ch09-after-02-warden-kryos.mp3",
+        "/assets/gauntlet/voices/voltari-ch09-after-03-engineer-oru.mp3",
+        "/assets/gauntlet/voices/voltari-ch09-after-04-stormlord-veyra.mp3",
+        "/assets/gauntlet/voices/voltari-ch09-after-05-narrator.mp3"
+      ]
+    },
+    "voltari-golden-alliance": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/voltari-ch10-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/voltari-ch10-before-02-stormlord-veyra.mp3",
+        "/assets/gauntlet/voices/voltari-ch10-before-03-the-isolation-compact.mp3",
+        "/assets/gauntlet/voices/voltari-ch10-before-04-warden-kryos.mp3",
+        "/assets/gauntlet/voices/voltari-ch10-before-05-stormlord-veyra.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/voltari-ch10-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/voltari-ch10-after-02-the-isolation-compact.mp3",
+        "/assets/gauntlet/voices/voltari-ch10-after-03-warden-kryos.mp3",
+        "/assets/gauntlet/voices/voltari-ch10-after-04-stormlord-veyra.mp3",
+        "/assets/gauntlet/voices/voltari-ch10-after-05-narrator.mp3"
+      ]
+    },
+    "voltari-completed-calculations": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/voltari-ch11-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/voltari-ch11-before-02-engineer-oru.mp3",
+        "/assets/gauntlet/voices/voltari-ch11-before-03-the-sealed-core.mp3",
+        "/assets/gauntlet/voices/voltari-ch11-before-04-stormlord-veyra.mp3",
+        "/assets/gauntlet/voices/voltari-ch11-before-05-engineer-oru.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/voltari-ch11-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/voltari-ch11-after-02-the-sealed-core.mp3",
+        "/assets/gauntlet/voices/voltari-ch11-after-03-stormlord-veyra.mp3",
+        "/assets/gauntlet/voices/voltari-ch11-after-04-engineer-oru.mp3",
+        "/assets/gauntlet/voices/voltari-ch11-after-05-narrator.mp3"
+      ]
+    },
+    "voltari-road-to-reath": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/voltari-ch12-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/voltari-ch12-before-02-stormlord-veyra.mp3",
+        "/assets/gauntlet/voices/voltari-ch12-before-03-the-unverified-receiver.mp3",
+        "/assets/gauntlet/voices/voltari-ch12-before-04-warden-kryos.mp3",
+        "/assets/gauntlet/voices/voltari-ch12-before-05-stormlord-veyra.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/voltari-ch12-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/voltari-ch12-after-02-the-unverified-receiver.mp3",
+        "/assets/gauntlet/voices/voltari-ch12-after-03-warden-kryos.mp3",
+        "/assets/gauntlet/voices/voltari-ch12-after-04-stormlord-veyra.mp3",
+        "/assets/gauntlet/voices/voltari-ch12-after-05-narrator.mp3"
+      ]
+    }
+  }
+}

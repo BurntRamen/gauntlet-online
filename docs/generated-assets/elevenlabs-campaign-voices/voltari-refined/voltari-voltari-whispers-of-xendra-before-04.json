@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "ally",
+  "voiceName": "voltari Campaign Counselor",
+  "line": "Then independent witnesses become part of the circuit.",
+  "clientOutput": "client/public/assets/gauntlet/voices/voltari-ch04-before-04-engineer-oru.mp3",
+  "generatedAt": "2026-11-16T18:26:16.757Z",
+  "publishedAt": "2026-11-16T18:27:20.570Z",
+  "bytes": 53123,
+  "sha256": "1d836c2934d7d0d874a634fdd0b022025edd1865e51a575e377728b9f17ddb76"
+}

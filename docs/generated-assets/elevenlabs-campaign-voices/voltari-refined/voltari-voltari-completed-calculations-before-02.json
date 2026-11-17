@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "ally",
+  "voiceName": "voltari Campaign Counselor",
+  "line": "An air gap is a claim that must be tested, not a ritual that makes us feel safe.",
+  "clientOutput": "client/public/assets/gauntlet/voices/voltari-ch11-before-02-engineer-oru.mp3",
+  "generatedAt": "2026-11-16T18:27:06.510Z",
+  "publishedAt": "2026-11-16T18:27:20.728Z",
+  "bytes": 91158,
+  "sha256": "f39c88f17d3adfd3e6466af8482aea8517c033b6a289505f2281eb0e0ede7ea3"
+}

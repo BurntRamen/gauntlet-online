@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "jali Campaign Protagonist",
+  "line": "A Reflection need not be real for its shattering to change the battle.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch03-before-02-watane.mp3",
+  "generatedAt": "2026-11-16T18:26:07.316Z",
+  "publishedAt": "2026-11-16T18:27:29.095Z",
+  "bytes": 93247,
+  "sha256": "29b1e469583486c73fe6224fdb008bbd91be1e4a7734682f5954246970124bc7"
+}

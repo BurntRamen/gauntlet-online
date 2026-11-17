@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "gracus",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "gracus Campaign Protagonist",
+  "line": "Then the choice belongs to those who understand its cost.",
+  "clientOutput": "client/public/assets/gauntlet/voices/gracus-ch11-before-04-alexiti.mp3",
+  "generatedAt": "2026-11-16T18:19:55.131Z",
+  "publishedAt": "2026-11-16T18:20:06.549Z",
+  "bytes": 97009,
+  "sha256": "a232fa6d4d21c6c1dbae7031dbabe76a7d2e75d68419f0b8486ea72e61c90101"
+}

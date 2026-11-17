@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "intari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "intari Campaign Protagonist",
+  "line": "The Sun sees the terrace and every hand that raised it.",
+  "clientOutput": "client/public/assets/gauntlet/voices/intari-ch01-before-02-the-golden-siblings.mp3",
+  "generatedAt": "2026-11-16T18:24:01.217Z",
+  "publishedAt": "2026-11-16T18:25:18.988Z",
+  "bytes": 57721,
+  "sha256": "9740ba9e4d8a46e1429a47fcf1de74a37ed15706c640806e77138dbf728bc852"
+}

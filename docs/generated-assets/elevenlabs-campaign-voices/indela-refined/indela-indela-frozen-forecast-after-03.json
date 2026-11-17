@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "indela Campaign Protagonist",
+  "line": "And still changed what it can afford to become.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch08-after-03-katel.mp3",
+  "generatedAt": "2026-11-16T18:21:26.084Z",
+  "publishedAt": "2026-11-16T18:21:53.868Z",
+  "bytes": 61901,
+  "sha256": "bb78e516680f00ace3796caaf8d126f1ad847f36ada7dff3d8d0cdcf1515ae9e"
+}

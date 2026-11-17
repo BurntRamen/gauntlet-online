@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "ally",
+  "voiceName": "voltari Campaign Counselor",
+  "line": "We brought people who survived one perfect system and learned to question the next.",
+  "clientOutput": "client/public/assets/gauntlet/voices/voltari-ch12-after-03-warden-kryos.mp3",
+  "generatedAt": "2026-11-16T18:27:19.014Z",
+  "publishedAt": "2026-11-16T18:27:20.756Z",
+  "bytes": 81963,
+  "sha256": "ea7ea05c751baa6c71e02d8ef05a8246db924e992b6dc245276d9a19083d5404"
+}

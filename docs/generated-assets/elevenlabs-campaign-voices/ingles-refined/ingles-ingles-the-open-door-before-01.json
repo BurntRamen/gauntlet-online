@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "ingles",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "ingles Chronicle Narrator",
+  "line": "Albion Reach's travelers emerge on Reath as histories from unrelated worlds overlap around the same unstable receiver.",
+  "clientOutput": "client/public/assets/gauntlet/voices/ingles-ch12-before-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:23:25.442Z",
+  "publishedAt": "2026-11-16T18:23:30.561Z",
+  "bytes": 120833,
+  "sha256": "08ab3da1ef9f019bfaa00fb146615cc44aa10f892c6e546926da38a8c76e2ce6"
+}

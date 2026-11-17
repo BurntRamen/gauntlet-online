@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "ingles",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "ingles Campaign Protagonist",
+  "line": "Open the record, protect the dissenters, and let victory survive public scrutiny.",
+  "clientOutput": "client/public/assets/gauntlet/voices/ingles-ch08-before-05-queen-victoria-ashbourne.mp3",
+  "generatedAt": "2026-11-16T18:23:05.646Z",
+  "publishedAt": "2026-11-16T18:23:30.453Z",
+  "bytes": 71514,
+  "sha256": "956f4ace8f1fa117f699cff6765e4788f93576f6d4dcf5b0cc43ade56bea81e4"
+}

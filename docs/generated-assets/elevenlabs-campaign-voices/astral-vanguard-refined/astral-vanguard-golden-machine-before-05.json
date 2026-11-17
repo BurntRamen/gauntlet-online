@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "astral-vanguard Campaign Protagonist",
+  "line": "It smells like a weapon.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch05-before-05-zalara.mp3",
+  "generatedAt": "2026-11-16T18:17:25.404Z",
+  "publishedAt": "2026-11-16T18:18:14.068Z",
+  "bytes": 20941,
+  "sha256": "9339ee879fff6ecebac57c0030750e61d08cb52d3c6f48b74aa5c3d3c3367f54"
+}

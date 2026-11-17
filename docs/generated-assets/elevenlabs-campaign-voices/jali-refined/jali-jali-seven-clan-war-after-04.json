@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "jali Campaign Protagonist",
+  "line": "The Jali prepare to fight an enemy strengthened by every memory they summon.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch10-after-04-basho.mp3",
+  "generatedAt": "2026-11-16T18:27:09.117Z",
+  "publishedAt": "2026-11-16T18:27:29.246Z",
+  "bytes": 117907,
+  "sha256": "a7772e3fe1403693bf0b3364383cb666159c52e37623bc8a4c0a277de2351ce2"
+}

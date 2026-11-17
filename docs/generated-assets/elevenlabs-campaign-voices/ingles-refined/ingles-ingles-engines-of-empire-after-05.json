@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "ingles",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "ingles Chronicle Narrator",
+  "line": "The consequences of Engines of Empire travel with the Ingles beyond this battlefield.",
+  "clientOutput": "client/public/assets/gauntlet/voices/ingles-ch06-after-05-narrator.mp3",
+  "generatedAt": "2026-11-16T18:22:57.354Z",
+  "publishedAt": "2026-11-16T18:23:30.405Z",
+  "bytes": 76111,
+  "sha256": "a144b3538df622bb1ccc15136b7a0d8c3a682994d932289350cc7059b9e2e15d"
+}

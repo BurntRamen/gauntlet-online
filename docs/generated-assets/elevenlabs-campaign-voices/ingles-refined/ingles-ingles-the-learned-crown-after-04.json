@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "ingles",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "ingles Campaign Protagonist",
+  "line": "Let the next reign inherit our questions, not only our monuments.",
+  "clientOutput": "client/public/assets/gauntlet/voices/ingles-ch01-after-04-king-alfric-the-learned.mp3",
+  "generatedAt": "2026-11-16T18:22:30.179Z",
+  "publishedAt": "2026-11-16T18:23:30.250Z",
+  "bytes": 74021,
+  "sha256": "d2f0cc1ffb2140cfdefd602114cedb51100d3facaa4decc1f37248543f7fe72c"
+}

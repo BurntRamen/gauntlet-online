@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "indela Campaign Protagonist",
+  "line": "Fire without wisdom consumes; ice without change preserves only what already exists.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch07-before-02-katel.mp3",
+  "generatedAt": "2026-11-16T18:21:15.668Z",
+  "publishedAt": "2026-11-16T18:21:53.828Z",
+  "bytes": 119997,
+  "sha256": "72df0b9f0e890df3d88934954d67664c95ab3f357b794d913025ae772c4d8540"
+}

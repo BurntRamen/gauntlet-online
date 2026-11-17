@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "indela Campaign Protagonist",
+  "line": "Varuna is our world. Reath is a question for the age that follows.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch12-after-04-a-young-archivist.mp3",
+  "generatedAt": "2026-11-16T18:21:52.901Z",
+  "publishedAt": "2026-11-16T18:21:53.998Z",
+  "bytes": 87396,
+  "sha256": "548e6b0ee6af42e84cbd92d6555a229220b04264de04676c0d3943c8a10292c2"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "jali Chronicle Narrator",
+  "line": "Amakumo burns beneath three hidden banners while every clan claims that its ancestral memory names the lawful successor.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch02-before-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:25:59.350Z",
+  "publishedAt": "2026-11-16T18:27:29.074Z",
+  "bytes": 186034,
+  "sha256": "0e5f012b8a92b00c9062ff7e55e08281af30def3d78741e93dd090d36df08969"
+}

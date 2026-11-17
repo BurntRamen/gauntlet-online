@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "intari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "intari Campaign Opposition",
+  "line": "Without one sacred center, the quarters will fracture.",
+  "clientOutput": "client/public/assets/gauntlet/voices/intari-ch09-after-02-the-conqueror-beyond-the-gate.mp3",
+  "generatedAt": "2026-11-16T18:24:56.861Z",
+  "publishedAt": "2026-11-16T18:25:19.185Z",
+  "bytes": 76947,
+  "sha256": "4f5867824f6340be672c3f3088d2ae401cc3ce32748a1cd937e152c9c8c4d011"
+}

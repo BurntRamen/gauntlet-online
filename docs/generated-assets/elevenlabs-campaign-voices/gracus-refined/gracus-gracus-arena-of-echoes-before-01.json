@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "gracus",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "gracus Chronicle Narrator",
+  "line": "Military governors replace the Senate, roads reopen, and Athun becomes calm enough to make coercion look like rescue.",
+  "clientOutput": "client/public/assets/gauntlet/voices/gracus-ch05-before-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:19:12.355Z",
+  "publishedAt": "2026-11-16T18:20:06.401Z",
+  "bytes": 171406,
+  "sha256": "fbabd28f5423cd7c1ab1c149e8a9e5659e314db438c830c3b808a26fa3223945"
+}

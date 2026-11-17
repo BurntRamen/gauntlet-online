@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "gracus",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "gracus Campaign Protagonist",
+  "line": "Alexiti holds the palace while Epicura restores independent command to every district.",
+  "clientOutput": "client/public/assets/gauntlet/voices/gracus-ch08-before-05-alexiti.mp3",
+  "generatedAt": "2026-11-16T18:19:35.465Z",
+  "publishedAt": "2026-11-16T18:20:06.486Z",
+  "bytes": 122923,
+  "sha256": "5523d0089e02af7d15f49f63750f5ee9ee0159d07368b37baa42ae1be9fc0db9"
+}

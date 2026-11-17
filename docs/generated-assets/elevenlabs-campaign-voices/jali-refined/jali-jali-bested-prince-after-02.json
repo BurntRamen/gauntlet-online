@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "jali Campaign Opposition",
+  "line": "The conqueror is finally bested.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch04-after-02-prince-daigo.mp3",
+  "generatedAt": "2026-11-16T18:26:18.167Z",
+  "publishedAt": "2026-11-16T18:27:29.124Z",
+  "bytes": 50198,
+  "sha256": "3ca10bc0ea3205cf03e9786a2a39d0a875e65885b67e38a2806266c7b10a0cde"
+}

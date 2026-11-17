@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "voltari Campaign Opposition",
+  "line": "UNKNOWN SIGNAL: CONVERGENCE REQUIRES CONNECTION.",
+  "clientOutput": "client/public/assets/gauntlet/voices/voltari-ch12-before-03-the-unverified-receiver.mp3",
+  "generatedAt": "2026-11-16T18:27:15.048Z",
+  "publishedAt": "2026-11-16T18:27:20.747Z",
+  "bytes": 93247,
+  "sha256": "5bcfe095c1d72f861dd5a29bfff87ddb66848723dbacc0771002e17c31b6d78e"
+}

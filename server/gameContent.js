@@ -1,7 +1,10 @@
 "use strict";
 
+const fs = require("node:fs");
+const path = require("node:path");
+
 const RULES_VERSION = "gauntlet-rules-v6";
-const CONTENT_VERSION = "gauntlet-content-v30";
+const CONTENT_VERSION = "gauntlet-content-v31";
 const NEUTRAL_FACTION_ID = "neutral";
 const { CARD_WORDING, getCardWording } = require("./cardWording");
 const { alienCatalogProfile, catalogIdentity, catalogDisplayText } = require("../shared/duel-rules/catalogFactionIdentity");
@@ -1921,6 +1924,22 @@ for (const chapter of campaignChapters.zynarth || []) {
   if (!audio) continue;
   chapter.dialogueAudio = [...audio.dialogueAudio];
   chapter.endDialogueAudio = [...audio.endDialogueAudio];
+}
+
+const generatedCampaignVoiceDirectory = path.join(__dirname, "campaignVoiceAssets");
+if (fs.existsSync(generatedCampaignVoiceDirectory)) {
+  for (const fileName of fs.readdirSync(generatedCampaignVoiceDirectory).filter((name) => name.endsWith(".json"))) {
+    const registry = require(path.join(generatedCampaignVoiceDirectory, fileName));
+    const chapters = campaignChapters[registry.factionId] || [];
+    for (const chapter of chapters) {
+      const audio = registry.chapters?.[chapter.id];
+      if (!audio) continue;
+      chapter.dialogueAudio = [...audio.dialogueAudio];
+      chapter.endDialogueAudio = [...audio.endDialogueAudio];
+      chapter.dialogueTrack = null;
+      chapter.endDialogueTrack = null;
+    }
+  }
 }
 
 

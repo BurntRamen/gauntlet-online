@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "voltari Chronicle Narrator",
+  "line": "What was chosen in The First Conduit becomes part of the faction's next argument, not a lesson history has finished teaching.",
+  "clientOutput": "client/public/assets/gauntlet/voices/voltari-ch02-after-05-narrator.mp3",
+  "generatedAt": "2026-11-16T18:26:08.270Z",
+  "publishedAt": "2026-11-16T18:27:20.536Z",
+  "bytes": 180183,
+  "sha256": "efaed132da027604839023e163b16ec2200b38e6df79e7f44b8866f11809d3d0"
+}

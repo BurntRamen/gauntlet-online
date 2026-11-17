@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "gracus",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "gracus Campaign Protagonist",
+  "line": "Thalassa made us Gracus. Reath will test what we become among others.",
+  "clientOutput": "client/public/assets/gauntlet/voices/gracus-ch12-after-04-epicura.mp3",
+  "generatedAt": "2026-11-16T18:20:05.265Z",
+  "publishedAt": "2026-11-16T18:20:06.580Z",
+  "bytes": 118325,
+  "sha256": "6520da5e184ea78c1a116e4aca0393a4b5c850cccef37b7ab0193fe0efecceb0"
+}

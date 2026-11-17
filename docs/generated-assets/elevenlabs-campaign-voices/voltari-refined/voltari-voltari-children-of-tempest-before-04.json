@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "ally",
+  "voiceName": "voltari Campaign Counselor",
+  "line": "Then we give its energy a path—and every city a way to refuse the load.",
+  "clientOutput": "client/public/assets/gauntlet/voices/voltari-ch01-before-04-engineer-oru.mp3",
+  "generatedAt": "2026-11-16T18:25:56.850Z",
+  "publishedAt": "2026-11-16T18:27:20.504Z",
+  "bytes": 94083,
+  "sha256": "8ac81ab174452b4a374225d1454d1d181c68e5ea296c251dcfe2ee4afaf638af"
+}

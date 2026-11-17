@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "indela Campaign Opposition",
+  "line": "Restraint has become fear wearing ceremonial robes.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch07-before-03-kumaras-ascendant-circle.mp3",
+  "generatedAt": "2026-11-16T18:21:16.257Z",
+  "publishedAt": "2026-11-16T18:21:53.831Z",
+  "bytes": 83634,
+  "sha256": "79674f96860433fde20a0c26fdba95b94ef2adb17e569f88c392c3143a87721c"
+}

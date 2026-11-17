@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "jali Campaign Protagonist",
+  "line": "Open the rite to each spirit alone. No clan, ruler, or descendant may answer in their place.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch11-before-05-watane.mp3",
+  "generatedAt": "2026-11-16T18:27:14.852Z",
+  "publishedAt": "2026-11-16T18:27:29.256Z",
+  "bytes": 155523,
+  "sha256": "272d49be23d6ba7c2ddc7c3b1ad29df7a4f78628d4e31e9e06a661abd7968da6"
+}

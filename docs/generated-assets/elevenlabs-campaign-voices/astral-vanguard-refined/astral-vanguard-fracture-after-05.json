@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "astral-vanguard Campaign Protagonist",
+  "line": "Archive every contradiction. None of us gets to decide alone which memory is real.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch08-after-05-jonah-hale.mp3",
+  "generatedAt": "2026-11-16T18:17:46.540Z",
+  "publishedAt": "2026-11-16T18:18:14.197Z",
+  "bytes": 76111,
+  "sha256": "37c6ca2076c496181050b2f6c8d4cdac64171efdb8606ab176a56a6a409d93b0"
+}

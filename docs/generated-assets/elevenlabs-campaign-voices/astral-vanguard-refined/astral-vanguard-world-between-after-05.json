@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "astral-vanguard Campaign Protagonist",
+  "line": "A civilization cannot survive if nobody remains responsible for obeying them.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch11-after-05-jonah-hale.mp3",
+  "generatedAt": "2026-11-16T18:18:06.178Z",
+  "publishedAt": "2026-11-16T18:18:14.317Z",
+  "bytes": 71514,
+  "sha256": "294a0c9ae021bd46ff67328c82198efdc143f9f3343694ad08829b09905fadc9"
+}

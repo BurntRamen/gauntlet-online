@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "jali Campaign Protagonist",
+  "line": "Close the retrieval chambers. Hinata must hear the contradictions before grief chooses among them.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch06-before-05-watane.mp3",
+  "generatedAt": "2026-11-16T18:26:33.908Z",
+  "publishedAt": "2026-11-16T18:27:29.160Z",
+  "bytes": 135461,
+  "sha256": "1875f5cbc4efc2eeac1636d85344c3898b330a85f4a38b457f3a08dd1c48829b"
+}

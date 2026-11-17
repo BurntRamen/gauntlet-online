@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "intari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "ally",
+  "voiceName": "intari Campaign Counselor",
+  "line": "A shorter road freely maintained outlives an avenue built by fear.",
+  "clientOutput": "client/public/assets/gauntlet/voices/intari-ch05-after-03-illari.mp3",
+  "generatedAt": "2026-11-16T18:24:31.233Z",
+  "publishedAt": "2026-11-16T18:25:19.100Z",
+  "bytes": 81127,
+  "sha256": "4b2ed966afd89a09a9d543251fb2413d38a5084c5c7736fbb67f34d9589e71f6"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "indela Chronicle Narrator",
+  "line": "Three regional lords reject Chandragupta's concord and prepare to burn every academy that accepts it.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch02-before-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:20:43.134Z",
+  "publishedAt": "2026-11-16T18:21:53.701Z",
+  "bytes": 150508,
+  "sha256": "5609484f7f2e63f0392aebfb07d4bf769be673855d6c473b4498c5bb4fc9972d"
+}

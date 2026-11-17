@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "indela Campaign Protagonist",
+  "line": "We chose what could outlive it.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch09-after-03-vishnugupta.mp3",
+  "generatedAt": "2026-11-16T18:21:32.754Z",
+  "publishedAt": "2026-11-16T18:21:53.896Z",
+  "bytes": 38077,
+  "sha256": "5ca877e8fb1cb424991760c005936f1b74c796b123e80effe9911e9de1d13c8a"
+}

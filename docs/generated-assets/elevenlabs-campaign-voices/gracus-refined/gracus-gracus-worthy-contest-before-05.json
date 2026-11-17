@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "gracus",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "gracus Campaign Protagonist",
+  "line": "Hold formation, exchange homeworld records, and let the Timetwister prove each arrival path.",
+  "clientOutput": "client/public/assets/gauntlet/voices/gracus-ch12-before-05-epicura.mp3",
+  "generatedAt": "2026-11-16T18:20:02.442Z",
+  "publishedAt": "2026-11-16T18:20:06.572Z",
+  "bytes": 163047,
+  "sha256": "de50972cf8a1fefbc0cbd49ef7e65c567aa304af9ebde560e137acb4f06b6d53"
+}

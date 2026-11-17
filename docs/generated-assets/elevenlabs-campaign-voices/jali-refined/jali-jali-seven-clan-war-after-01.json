@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "jali Chronicle Narrator",
+  "line": "The contradictions expose a single hunger beneath its promises: the void needs the living to remember it into permanence.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch10-after-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:27:06.946Z",
+  "publishedAt": "2026-11-16T18:27:29.241Z",
+  "bytes": 232846,
+  "sha256": "9da84f2ebabd0901711b6f60baddc8218b38befa1a68dbe3cbb767410cbbf079"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "jali Campaign Protagonist",
+  "line": "Aozora remains our home. Reath is the convergence point, and the Jali cross as witnesses rather than ghosts.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch12-after-04-watane.mp3",
+  "generatedAt": "2026-11-16T18:27:27.839Z",
+  "publishedAt": "2026-11-16T18:27:29.281Z",
+  "bytes": 183945,
+  "sha256": "870d20c6cea6a6a1a8493e6017369c325d4337a05818c787f68293c5eef04588"
+}

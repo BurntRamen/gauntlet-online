@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "ingles",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "ingles Campaign Protagonist",
+  "line": "Let the next reign inherit our questions, not only our monuments.",
+  "clientOutput": "client/public/assets/gauntlet/voices/ingles-ch03-after-04-queen-elizara.mp3",
+  "generatedAt": "2026-11-16T18:22:40.754Z",
+  "publishedAt": "2026-11-16T18:23:30.305Z",
+  "bytes": 55213,
+  "sha256": "7286ea5b73dd3c8128ddacd80a25094ea23278e1ed7ba96ab2d5bd3c26df086b"
+}

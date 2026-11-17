@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "jali Chronicle Narrator",
+  "line": "What was chosen in The Golden Heavens becomes part of the faction's next argument, not a lesson history has finished teaching.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch05-after-05-narrator.mp3",
+  "generatedAt": "2026-11-16T18:26:29.415Z",
+  "publishedAt": "2026-11-16T18:27:29.149Z",
+  "bytes": 238697,
+  "sha256": "c1e6e91bf51f5cac5dbe20e36a96befb82be74ba95b8c496053ecd0160a4c256"
+}

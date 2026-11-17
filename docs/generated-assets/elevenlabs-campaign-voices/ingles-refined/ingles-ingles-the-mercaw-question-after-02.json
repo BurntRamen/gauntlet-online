@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "ingles",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "ingles Campaign Opposition",
+  "line": "You preserved the institution and postponed the reckoning.",
+  "clientOutput": "client/public/assets/gauntlet/voices/ingles-ch07-after-02-gerrick-warclaws-continental-line.mp3",
+  "generatedAt": "2026-11-16T18:23:01.261Z",
+  "publishedAt": "2026-11-16T18:23:30.429Z",
+  "bytes": 74021,
+  "sha256": "62b78348f8fd95559cbd3f53676009efa5352b92697010fe330e5939f2f5a565"
+}

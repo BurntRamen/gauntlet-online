@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "gracus",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "ally",
+  "voiceName": "gracus Campaign Counselor",
+  "line": "Neither do we. We trust what survives examination.",
+  "clientOutput": "client/public/assets/gauntlet/voices/gracus-ch03-after-03-themin.mp3",
+  "generatedAt": "2026-11-16T18:19:02.196Z",
+  "publishedAt": "2026-11-16T18:20:06.371Z",
+  "bytes": 69424,
+  "sha256": "32468ded5da60955576c25658191375f4d1369e0ec06332cc8a72470b7fed267"
+}

@@ -5,10 +5,12 @@ const path = require("node:path");
 const test = require("node:test");
 
 const { buildLinePlan, designVoices, generateLines, parseDialogueLine, publishLines } = require("./elevenlabs-campaign-voices");
+const { campaignChapters } = require("../server/gameContent");
 const manifest = require("./elevenlabs-frumo-campaign.json");
 const biziManifest = require("./elevenlabs-bizi-campaign.json");
 const xendraManifest = require("./elevenlabs-xendra-campaign.json");
 const zynarthManifest = require("./elevenlabs-zynarth-campaign.json");
+const { TARGETS: refinedTargets } = require("./build-campaign-voice-manifests");
 
 test("Frumo manifest covers every scripted campaign speaker and line", () => {
   const plan = buildLinePlan(manifest);
@@ -47,6 +49,48 @@ test("Zynarth manifest covers every campaign line with insectoid-specific roles"
   assert.equal(plan.at(-1).fileName, "zynarth-ch12-after-05-narrator.mp3");
   assert.match(zynarthManifest.voices.broodmother.description, /mandible|stridulation/i);
   assert.match(zynarthManifest.voices.broodmother.description, /never shrill.*never.*human/i);
+});
+
+test("refined manifests cover every speaker in each campaign without browser-voice fallbacks", () => {
+  for (const factionId of refinedTargets) {
+    const refined = require(`./elevenlabs-${factionId}-campaign-refined.json`);
+    const plan = buildLinePlan(refined);
+    assert.ok(plan.length >= 120, `${factionId} should map its complete campaign`);
+    assert.ok(new Set(plan.map((line) => line.voiceKey)).size >= 3, `${factionId} should not collapse to one generic voice`);
+    assert.match(refined.voices.protagonist.description, /never an imitation of a real performer/i);
+  }
+  assert.match(require("./elevenlabs-voltari-campaign-refined.json").voices.protagonist.description, /not robotic/i);
+  assert.match(require("./elevenlabs-morphlings-campaign-refined.json").voices.protagonist.description, /recognizable personality/i);
+});
+
+test("Frontier and Crossroads campaigns speak in faction-specific language", () => {
+  const factions = ["ingles", "mercaw", "mtano", "russo", "khevar", "vardun", "qhantari", "sahravi", "intari", "thalassari"];
+  const combined = Object.fromEntries(factions.map((factionId) => [
+    factionId,
+    campaignChapters[factionId].flatMap((chapter) => [...chapter.dialogue, ...chapter.endDialogue]).join(" ")
+  ]));
+  for (const dialogue of Object.values(combined)) {
+    assert.doesNotMatch(dialogue, /Your principles are delays dressed as courage|A fast answer can still leave the wrong people carrying its cost/);
+  }
+  assert.match(combined.ingles, /crown|chronicle|Parliament/i);
+  assert.match(combined.mercaw, /aerie|federation|signal/i);
+  assert.match(combined.mtano, /ancestor|memory|Veil/i);
+  assert.match(combined.russo, /winter|hearth|reserve/i);
+  assert.match(combined.khevar, /verdict|scale|witness/i);
+  assert.match(combined.vardun, /oath|saga|clan/i);
+  assert.match(combined.qhantari, /relay|station|road/i);
+  assert.match(combined.sahravi, /contract|ledger|promise/i);
+  assert.match(combined.intari, /Mita|quipu|terrace/i);
+  assert.match(combined.thalassari, /harbor|route|convoy/i);
+});
+
+test("refined Astral Vanguard lines override the legacy combined track", () => {
+  for (const chapter of campaignChapters["astral-vanguard"]) {
+    assert.equal(chapter.dialogueTrack, null);
+    assert.equal(chapter.endDialogueTrack, null);
+    assert.equal(chapter.dialogueAudio.length, chapter.dialogue.length);
+    assert.equal(chapter.endDialogueAudio.length, chapter.endDialogue.length);
+  }
 });
 
 test("dialogue parsing preserves colons inside spoken text", () => {

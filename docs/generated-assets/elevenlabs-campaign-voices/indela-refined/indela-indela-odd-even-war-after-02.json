@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "indela Campaign Opposition",
+  "line": "You have unsettled every academy.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch04-after-02-the-fixed-sphere-orthodoxy.mp3",
+  "generatedAt": "2026-11-16T18:20:59.672Z",
+  "publishedAt": "2026-11-16T18:21:53.762Z",
+  "bytes": 60647,
+  "sha256": "d714ed4b6faf6e72bfe2b5fb8036f251201a6f6f0a429dab18a195b72ebf525e"
+}

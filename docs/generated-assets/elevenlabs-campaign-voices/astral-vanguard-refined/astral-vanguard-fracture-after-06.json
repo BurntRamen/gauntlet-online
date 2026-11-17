@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "astral-vanguard Campaign Protagonist",
+  "line": "You are consistent. That is why you fail.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch08-after-06-xendra.mp3",
+  "generatedAt": "2026-11-16T18:17:46.931Z",
+  "publishedAt": "2026-11-16T18:18:14.200Z",
+  "bytes": 46436,
+  "sha256": "83338700894a434b19b99e0110ec363c3bd69463e3e9eb39e062ea08ad810494"
+}

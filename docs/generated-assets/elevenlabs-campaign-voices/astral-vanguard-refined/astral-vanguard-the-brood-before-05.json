@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "astral-vanguard Campaign Protagonist",
+  "line": "You can speak?",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch03-before-05-myra-cross.mp3",
+  "generatedAt": "2026-11-16T18:17:14.004Z",
+  "publishedAt": "2026-11-16T18:18:13.987Z",
+  "bytes": 15089,
+  "sha256": "ecfd3197e4bd29646ee72a5da1aa06fcba40b81b3c909db122cf2400675c5c38"
+}

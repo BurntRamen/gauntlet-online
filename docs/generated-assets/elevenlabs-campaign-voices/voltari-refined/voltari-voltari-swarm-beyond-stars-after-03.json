@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "ally",
+  "voiceName": "voltari Campaign Counselor",
+  "line": "Then I will give them one they cannot survive.",
+  "clientOutput": "client/public/assets/gauntlet/voices/voltari-ch03-after-03-warden-kryos.mp3",
+  "generatedAt": "2026-11-16T18:26:12.749Z",
+  "publishedAt": "2026-11-16T18:27:20.557Z",
+  "bytes": 48526,
+  "sha256": "89359e2c9c98b27531b11910951d1c117da7ebcaac95a859c8ec48364f2b9ea7"
+}

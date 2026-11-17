@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "astral-vanguard Campaign Protagonist",
+  "line": "At last, a useful sentence.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch10-after-04-envoy-of-kaisar.mp3",
+  "generatedAt": "2026-11-16T18:17:58.300Z",
+  "publishedAt": "2026-11-16T18:18:14.271Z",
+  "bytes": 30136,
+  "sha256": "c166fa97a1b1375ba33afe34d5d5d242215483fac91a1edbb07ca8ddea6d70ad"
+}

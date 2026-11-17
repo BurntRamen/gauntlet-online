@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "voltari Campaign Opposition",
+  "line": "BIOLOGICAL CONTINUITY: STATISTICALLY INSIGNIFICANT.",
+  "clientOutput": "client/public/assets/gauntlet/voices/voltari-ch07-after-02-the-captured-leviathans.mp3",
+  "generatedAt": "2026-11-16T18:26:40.753Z",
+  "publishedAt": "2026-11-16T18:27:20.650Z",
+  "bytes": 107458,
+  "sha256": "725f2de17bd6ceeac4d333667fb75a07e9cd4370f99e7efeec28754ee4efbfb8"
+}

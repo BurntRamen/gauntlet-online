@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "jali Campaign Opposition",
+  "line": "You abandoned the perfect victory.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch08-after-02-the-eastern-cloud-alliance.mp3",
+  "generatedAt": "2026-11-16T18:26:52.456Z",
+  "publishedAt": "2026-11-16T18:27:29.207Z",
+  "bytes": 59811,
+  "sha256": "ee39fed76ce2f1b1c41298f0c6d195e3a4c03decfdc6bda3ac2cbe662354d9c7"
+}

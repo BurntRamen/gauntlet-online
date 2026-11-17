@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "astral-vanguard Chronicle Narrator",
+  "line": "Months later, the Resolute turns toward another unknown signal. The crew begins by arguing what to do.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch12-after-08-narrator.mp3",
+  "generatedAt": "2026-11-16T18:18:13.860Z",
+  "publishedAt": "2026-11-16T18:18:14.361Z",
+  "bytes": 107458,
+  "sha256": "e2501d59b4d36eefec7d5ea1053b65dc83883083bd91efeec21aa86c9c88466d"
+}

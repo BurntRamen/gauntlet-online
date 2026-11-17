@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "ingles",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "ingles Campaign Protagonist",
+  "line": "Defend the realm without making emergency command its permanent constitution.",
+  "clientOutput": "client/public/assets/gauntlet/voices/ingles-ch03-before-05-queen-elizara.mp3",
+  "generatedAt": "2026-11-16T18:22:38.568Z",
+  "publishedAt": "2026-11-16T18:23:30.293Z",
+  "bytes": 63572,
+  "sha256": "8fa7df9fbb5400ef80e2ab5063978a2a2336bcdc1e7933b0024ddce41d1ef10a"
+}

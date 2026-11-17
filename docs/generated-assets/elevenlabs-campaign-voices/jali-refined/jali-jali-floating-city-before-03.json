@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "jali Campaign Opposition",
+  "line": "Your borrowed clans will abandon one another when the illusion breaks.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch03-before-03-the-coalition-of-seven-peaks.mp3",
+  "generatedAt": "2026-11-16T18:26:08.114Z",
+  "publishedAt": "2026-11-16T18:27:29.097Z",
+  "bytes": 144656,
+  "sha256": "abcbe8379ef69dcffd24f0b7b33bd635adc0e2f1bef42f68c32da92cac6b40a4"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "intari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "intari Campaign Opposition",
+  "line": "You slowed the empire to preserve a handful of objections.",
+  "clientOutput": "client/public/assets/gauntlet/voices/intari-ch01-after-02-the-stonefeather-chieftain.mp3",
+  "generatedAt": "2026-11-16T18:24:04.494Z",
+  "publishedAt": "2026-11-16T18:25:19.002Z",
+  "bytes": 71514,
+  "sha256": "cb747202414e1c6254acb9534dee831804d3b54f3ddb40b567012ddd022febb8"
+}

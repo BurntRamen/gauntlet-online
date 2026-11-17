@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "voltari Campaign Protagonist",
+  "line": "No panic, no reconnection, and no destruction until we understand the breach.",
+  "clientOutput": "client/public/assets/gauntlet/voices/voltari-ch11-before-04-stormlord-veyra.mp3",
+  "generatedAt": "2026-11-16T18:27:07.695Z",
+  "publishedAt": "2026-11-16T18:27:20.731Z",
+  "bytes": 127938,
+  "sha256": "6ee08883a3bf5966e42e30d18b76bbfe067b510219dfcaa1bd8e2488a6bc2759"
+}

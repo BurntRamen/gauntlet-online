@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "intari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "intari Chronicle Narrator",
+  "line": "Prince Atar threatens Intiray, forcing an argument about power to become a battle with consequences beyond victory.",
+  "clientOutput": "client/public/assets/gauntlet/voices/intari-ch08-before-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:24:46.905Z",
+  "publishedAt": "2026-11-16T18:25:19.150Z",
+  "bytes": 185198,
+  "sha256": "0d9e1c5fe4d992ae01d05a5b01ff649fcfe889c70e7f6a9731566b18b4922c0a"
+}

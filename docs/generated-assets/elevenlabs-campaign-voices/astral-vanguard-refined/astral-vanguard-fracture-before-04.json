@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "astral-vanguard Campaign Protagonist",
+  "line": "They are not shifting. We are.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch08-before-04-elara-venn.mp3",
+  "generatedAt": "2026-11-16T18:17:42.856Z",
+  "publishedAt": "2026-11-16T18:18:14.174Z",
+  "bytes": 39749,
+  "sha256": "eac73ae55de0d93518bc200a2c5ba809858455ab89dce490d5eb8907921b0923"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "intari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "intari Campaign Opposition",
+  "line": "Prosperity is consent enough for those who receive it.",
+  "clientOutput": "client/public/assets/gauntlet/voices/intari-ch10-before-03-the-silent-receiver.mp3",
+  "generatedAt": "2026-11-16T18:25:00.428Z",
+  "publishedAt": "2026-11-16T18:25:19.198Z",
+  "bytes": 57721,
+  "sha256": "294c53a8d042dafd647143a98e2f9217fc102bca5d3e61f9cc7d88a7484dc027"
+}

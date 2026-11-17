@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "gracus",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "gracus Campaign Opposition",
+  "line": "You made one government. We need capture only one throne.",
+  "clientOutput": "client/public/assets/gauntlet/voices/gracus-ch08-before-03-keeper-theros.mp3",
+  "generatedAt": "2026-11-16T18:19:34.163Z",
+  "publishedAt": "2026-11-16T18:20:06.482Z",
+  "bytes": 88650,
+  "sha256": "54c94974b5fa78012459d6abde445d26c2d03179b8d0d15bfbdf4d522dfd48e7"
+}

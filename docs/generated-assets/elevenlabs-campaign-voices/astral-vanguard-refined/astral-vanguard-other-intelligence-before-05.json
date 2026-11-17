@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "astral-vanguard Campaign Protagonist",
+  "line": "Feral signatures incoming from three tunnels.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch04-before-05-myra-cross.mp3",
+  "generatedAt": "2026-11-16T18:17:19.654Z",
+  "publishedAt": "2026-11-16T18:18:14.030Z",
+  "bytes": 38077,
+  "sha256": "fe9b0a4d4522b5c53c72403979641d3afc16f3c65f2c21b4949cf8b3ad14baf5"
+}

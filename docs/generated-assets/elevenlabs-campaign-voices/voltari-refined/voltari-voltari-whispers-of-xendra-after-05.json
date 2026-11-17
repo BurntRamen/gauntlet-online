@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "voltari Chronicle Narrator",
+  "line": "What was chosen in The Whispers of XenDra becomes part of the faction's next argument, not a lesson history has finished teaching.",
+  "clientOutput": "client/public/assets/gauntlet/voices/voltari-ch04-after-05-narrator.mp3",
+  "generatedAt": "2026-11-16T18:26:20.651Z",
+  "publishedAt": "2026-11-16T18:27:20.583Z",
+  "bytes": 172660,
+  "sha256": "9ab4c5216267a1d03d3c82a4f0fc5280377a7c91897d65fc8d632793b2b5fbe7"
+}

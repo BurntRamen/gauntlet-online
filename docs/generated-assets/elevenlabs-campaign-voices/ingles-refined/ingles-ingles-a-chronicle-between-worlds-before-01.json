@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "ingles",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "ingles Chronicle Narrator",
+  "line": "The stone beneath Ashbourne answers a sky that does not belong to Albion Reach, and every measurement describes the distant world Reath.",
+  "clientOutput": "client/public/assets/gauntlet/voices/ingles-ch11-before-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:23:19.847Z",
+  "publishedAt": "2026-11-16T18:23:30.529Z",
+  "bytes": 135461,
+  "sha256": "b6e2fa279d8ae867c10f5679429c7e902f9b73bf473539ff3dc0453a33e63658"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "astral-vanguard Campaign Protagonist",
+  "line": "Sergeant, that voice is yours.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch07-before-05-alden.mp3",
+  "generatedAt": "2026-11-16T18:17:37.105Z",
+  "publishedAt": "2026-11-16T18:18:14.137Z",
+  "bytes": 30136,
+  "sha256": "977e54e34cc6fea416870537d72434b381c17ea5f53f86ab969ec87405837ca9"
+}

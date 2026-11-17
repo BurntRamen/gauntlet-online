@@ -19,7 +19,7 @@ function chapter(factionId, number, spec, climax = false) {
       `${spec.foe}: ${spec.foeAfter}`,
       `${spec.ally}: ${spec.allyAfter}`,
       `${spec.hero}: ${spec.finalLine}`,
-      `Narrator: Chapter ${number} closes, but its choice changes every battle that follows.`
+      `Narrator: What was chosen in ${spec.title} becomes part of the faction's next argument, not a lesson history has finished teaching.`
     ]
   };
   if (spec.sceneStarter) entry.sceneStarter = { ...spec.sceneStarter };

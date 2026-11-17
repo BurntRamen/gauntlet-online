@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "ally",
+  "voiceName": "indela Campaign Counselor",
+  "line": "Then every academy has something real to study.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch04-after-03-vara.mp3",
+  "generatedAt": "2026-11-16T18:21:00.019Z",
+  "publishedAt": "2026-11-16T18:21:53.764Z",
+  "bytes": 50198,
+  "sha256": "9e8ee3484e645176945fa7b2f7c4384b34f0c53b71eae3c094911bb937bff36e"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "voltari Campaign Protagonist",
+  "line": "Humanity is not a shape preserved from change. It is the choice to protect one another through it.",
+  "clientOutput": "client/public/assets/gauntlet/voices/voltari-ch01-after-04-stormlord-veyra.mp3",
+  "generatedAt": "2026-11-16T18:26:00.573Z",
+  "publishedAt": "2026-11-16T18:27:20.515Z",
+  "bytes": 138387,
+  "sha256": "821625aa9a5883bc94171d8fe266e44142f378a5ab62d161178c32b1a2c7b257"
+}

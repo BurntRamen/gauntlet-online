@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "indela Campaign Protagonist",
+  "line": "A road carries more power in a lesson than in a marching column.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch03-before-02-vishnugupta.mp3",
+  "generatedAt": "2026-11-16T18:20:50.211Z",
+  "publishedAt": "2026-11-16T18:21:53.727Z",
+  "bytes": 83634,
+  "sha256": "cdd2f65ca1dc8c33a89751be214180246fbd0d4e7d045d66894489e06d2bdfa1"
+}

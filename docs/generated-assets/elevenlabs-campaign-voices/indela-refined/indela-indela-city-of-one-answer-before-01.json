@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "indela Chronicle Narrator",
+  "line": "Fire storms and frozen fractures climb Kashi's towers while an entity of uncontrolled elemental energy awakens below the academy.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch11-before-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:21:41.045Z",
+  "publishedAt": "2026-11-16T18:21:53.936Z",
+  "bytes": 166808,
+  "sha256": "d381e7eef14c7ecf5433469edd3efd778d686ea919fb2c85ccc061ec38f8af7e"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "astral-vanguard Chronicle Narrator",
+  "line": "Touching the stone produces glimpses of Orthea, Gao, Pelagos, Volaris, K'lar, and civilizations the Vanguard has never met.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch07-after-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:17:38.315Z",
+  "publishedAt": "2026-11-16T18:18:14.145Z",
+  "bytes": 158031,
+  "sha256": "5c0f923b0cdf5b3f66aa9baceea05ac5965d6edf6b52a9993aa55afe21200d6d"
+}

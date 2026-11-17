@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "astral-vanguard Campaign Protagonist",
+  "line": "We arrived beneath no colony. Your Horizon appeared above our future.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch03-after-03-zalara.mp3",
+  "generatedAt": "2026-11-16T18:17:15.792Z",
+  "publishedAt": "2026-11-16T18:18:14.000Z",
+  "bytes": 79037,
+  "sha256": "2437fbbf72da779fd82c543389a5d9b4d687702adc282a2f160c262e6cecd2ea"
+}

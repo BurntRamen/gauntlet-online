@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "voltari Campaign Opposition",
+  "line": "THE STORM DOES NOT DISTINGUISH PEOPLE FROM METAL.",
+  "clientOutput": "client/public/assets/gauntlet/voices/voltari-ch01-before-03-the-black-cyclone.mp3",
+  "generatedAt": "2026-11-16T18:25:56.058Z",
+  "publishedAt": "2026-11-16T18:27:20.502Z",
+  "bytes": 83634,
+  "sha256": "493574d0b147293bbdaba9839d6a06a1f3c0545c2a5eee39a7b6c46afa15b501"
+}

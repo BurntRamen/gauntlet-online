@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "jali Campaign Opposition",
+  "line": "You turned loss into strength.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch01-after-02-lord-haruto.mp3",
+  "generatedAt": "2026-11-16T18:25:55.670Z",
+  "publishedAt": "2026-11-16T18:27:29.066Z",
+  "bytes": 51452,
+  "sha256": "f49108acfbf24365b4e82653418013207557640174ca5f7d980db0fd5a66efe8"
+}

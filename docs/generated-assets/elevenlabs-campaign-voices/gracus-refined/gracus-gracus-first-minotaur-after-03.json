@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "gracus",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "ally",
+  "voiceName": "gracus Campaign Counselor",
+  "line": "Now help us find the author.",
+  "clientOutput": "client/public/assets/gauntlet/voices/gracus-ch02-after-03-themin.mp3",
+  "generatedAt": "2026-11-16T18:18:55.429Z",
+  "publishedAt": "2026-11-16T18:20:06.347Z",
+  "bytes": 24702,
+  "sha256": "a512e07d82116636183c5187fff6baf59f8b203707cbc5dc384faba7f2c5fc6f"
+}

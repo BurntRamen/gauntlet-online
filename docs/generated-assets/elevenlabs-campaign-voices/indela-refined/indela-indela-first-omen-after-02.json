@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "indela Campaign Opposition",
+  "line": "You traded independence for an empire.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch01-after-02-dean-var.mp3",
+  "generatedAt": "2026-11-16T18:20:40.478Z",
+  "publishedAt": "2026-11-16T18:21:53.690Z",
+  "bytes": 78201,
+  "sha256": "e99dedef5a2e11a8f4e157b90fa6b6f6bd2cb3f0d5bbce0b4f2f8325c45ef48a"
+}

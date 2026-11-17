@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "indela Chronicle Narrator",
+  "line": "Figures from a living manuscript walk into the Festival of Enlightenment, each insisting its vision is Varuna's certain future.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch06-before-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:21:08.744Z",
+  "publishedAt": "2026-11-16T18:21:53.802Z",
+  "bytes": 169734,
+  "sha256": "5a336a67382db0def9a37ac66530b58b72272f52b2726a2867bc0fbf5a80a5c0"
+}

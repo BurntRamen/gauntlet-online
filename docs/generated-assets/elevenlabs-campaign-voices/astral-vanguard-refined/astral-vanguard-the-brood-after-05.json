@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "astral-vanguard Campaign Protagonist",
+  "line": "Can we keep them from becoming one grave?",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch03-after-05-myra-cross.mp3",
+  "generatedAt": "2026-11-16T18:17:16.658Z",
+  "publishedAt": "2026-11-16T18:18:14.008Z",
+  "bytes": 36823,
+  "sha256": "db832f4f1637c7d9e06a19d8854a8498245b82606f666e8ad97afcc53208dde4"
+}

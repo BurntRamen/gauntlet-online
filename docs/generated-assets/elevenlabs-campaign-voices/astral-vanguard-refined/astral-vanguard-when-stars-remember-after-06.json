@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "astral-vanguard Campaign Protagonist",
+  "line": "Anchors synchronized. Close the final path.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch12-after-06-alden.mp3",
+  "generatedAt": "2026-11-16T18:18:12.866Z",
+  "publishedAt": "2026-11-16T18:18:14.355Z",
+  "bytes": 47272,
+  "sha256": "4c7283524ca41551f591c8e835f2d40782233b52f04e6a62462269838ea56a14"
+}

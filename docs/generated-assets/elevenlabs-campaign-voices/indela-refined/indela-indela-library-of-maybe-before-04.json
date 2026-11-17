@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "indela Campaign Protagonist",
+  "line": "Then imagination must answer to the people who live with its effects.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch06-before-04-katel.mp3",
+  "generatedAt": "2026-11-16T18:21:10.419Z",
+  "publishedAt": "2026-11-16T18:21:53.809Z",
+  "bytes": 66498,
+  "sha256": "80e528752d49abbf2ca9e2a81c21a5f9489218094abed0fbdae811fadbfec1a0"
+}

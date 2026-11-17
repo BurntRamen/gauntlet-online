@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "jali Campaign Protagonist",
+  "line": "Contradiction is not prophecy. Let the next choice belong to people you cannot reduce to possibilities.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch12-before-04-basho.mp3",
+  "generatedAt": "2026-11-16T18:27:23.797Z",
+  "publishedAt": "2026-11-16T18:27:29.273Z",
+  "bytes": 152598,
+  "sha256": "50c20200214b995644fff593d57161709516df6ff625d2bf6accb9a551d58bbc"
+}

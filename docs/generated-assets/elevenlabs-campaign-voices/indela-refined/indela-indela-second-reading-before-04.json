@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "indela Campaign Protagonist",
+  "line": "Teachers can, when every lesson includes preparation.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch03-before-04-vatsyayana.mp3",
+  "generatedAt": "2026-11-16T18:20:51.203Z",
+  "publishedAt": "2026-11-16T18:21:53.731Z",
+  "bytes": 58975,
+  "sha256": "5d2e4b15291df1b52e7522a7165e324c0317e994eb3e4ad1a9f4dbd9f16ed550"
+}

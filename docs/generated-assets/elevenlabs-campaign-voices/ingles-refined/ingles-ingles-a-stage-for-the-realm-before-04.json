@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "ingles",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "ingles Campaign Protagonist",
+  "line": "Then enter the burden beside the achievement in the same public chronicle.",
+  "clientOutput": "client/public/assets/gauntlet/voices/ingles-ch05-before-04-elian-wren.mp3",
+  "generatedAt": "2026-11-16T18:22:48.379Z",
+  "publishedAt": "2026-11-16T18:23:30.351Z",
+  "bytes": 54377,
+  "sha256": "058ed2efe16354d1e41a69d1b5a16dd304566c40fb91e7b64c9c00da85055f6e"
+}

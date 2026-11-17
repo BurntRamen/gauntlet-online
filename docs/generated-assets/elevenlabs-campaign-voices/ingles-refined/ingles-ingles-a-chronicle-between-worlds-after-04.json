@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "ingles",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "ingles Campaign Protagonist",
+  "line": "Let the next reign inherit our questions, not only our monuments.",
+  "clientOutput": "client/public/assets/gauntlet/voices/ingles-ch11-after-04-elian-wren.mp3",
+  "generatedAt": "2026-11-16T18:23:24.283Z",
+  "publishedAt": "2026-11-16T18:23:30.555Z",
+  "bytes": 74021,
+  "sha256": "023b8f5e6e7e62e4619ac8a417b9cdc3cdbacf8a8ba6fe6cbcd3f462cf8e55dc"
+}

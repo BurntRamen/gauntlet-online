@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "ingles",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "ingles Chronicle Narrator",
+  "line": "The consequences of The Divided Faith travel with the Ingles beyond this battlefield.",
+  "clientOutput": "client/public/assets/gauntlet/voices/ingles-ch03-after-05-narrator.mp3",
+  "generatedAt": "2026-11-16T18:22:41.175Z",
+  "publishedAt": "2026-11-16T18:23:30.308Z",
+  "bytes": 74439,
+  "sha256": "59fb7cbc4194e8f83c410cf348c367d873512edec60cd800517b5560467776b9"
+}

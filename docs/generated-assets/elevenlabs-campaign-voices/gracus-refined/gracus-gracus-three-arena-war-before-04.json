@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "gracus",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "gracus Campaign Protagonist",
+  "line": "Then perhaps today we can disagree about tomorrow.",
+  "clientOutput": "client/public/assets/gauntlet/voices/gracus-ch08-before-04-epicura.mp3",
+  "generatedAt": "2026-11-16T18:19:34.753Z",
+  "publishedAt": "2026-11-16T18:20:06.485Z",
+  "bytes": 99099,
+  "sha256": "b10c4d140d0e9a41e96adea14b4a29d8d7192874ec802c83f7d85cf98ccf4168"
+}

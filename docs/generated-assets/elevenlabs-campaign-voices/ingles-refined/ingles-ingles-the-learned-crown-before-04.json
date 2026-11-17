@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "ingles",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "ally",
+  "voiceName": "ingles Campaign Counselor",
+  "line": "Then enter the burden beside the achievement in the same public chronicle.",
+  "clientOutput": "client/public/assets/gauntlet/voices/ingles-ch01-before-04-archivist-edwyn.mp3",
+  "generatedAt": "2026-11-16T18:22:27.128Z",
+  "publishedAt": "2026-11-16T18:23:30.234Z",
+  "bytes": 60647,
+  "sha256": "0c56395936a35fe64c6e1ef7710ecfbe0004e585f392fd461ef635f82b38f3bb"
+}

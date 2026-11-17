@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "jali Campaign Protagonist",
+  "line": "We asked the bested to guide us so often that we stopped asking whether they wished to rest.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch11-before-02-watane.mp3",
+  "generatedAt": "2026-11-16T18:27:12.061Z",
+  "publishedAt": "2026-11-16T18:27:29.251Z",
+  "bytes": 102025,
+  "sha256": "8374a62c2bdfc27da87079df1e56cba89296ede33065ffabdf08c60c5ab26e82"
+}

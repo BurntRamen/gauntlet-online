@@ -109,6 +109,104 @@ const FACTIONS = {
   }
 };
 
+const FACTION_DIALOGUE = Object.freeze({
+  ingles: {
+    hero: ["Institutions prove their worth when even the crown must answer to them.", "Hold the line, but leave Parliament enough room to question why it was drawn."],
+    foe: ["Your law is empire wearing a clerk's clean gloves.", "A crown that asks permission has already admitted it cannot rule."],
+    ally: ["Then enter the burden beside the achievement in the same public chronicle.", "Continuity matters only if the next generation may revise what it inherits."],
+    answer: ["Defend the realm without making emergency command its permanent constitution.", "Open the record, protect the dissenters, and let victory survive public scrutiny."],
+    foeAfter: ["You preserved the institution and postponed the reckoning.", "History will praise the crown and forget who paid for its reach."],
+    allyAfter: ["Then the chronicle must preserve the debt as carefully as the triumph.", "A realm endures by allowing memory to argue with ceremony."],
+    final: ["Let the next reign inherit our questions, not only our monuments.", "No victory excuses us from counting the people who carried it."]
+  },
+  mercaw: {
+    hero: ["No single aerie owns this revolution; signal every wing before we turn.", "Independence means little if the federation repeats the command it escaped."],
+    foe: ["Your coalition will scatter the moment every wing chooses for itself.", "Freedom is a fine banner for leaders who still expect others to follow."],
+    ally: ["Then coordinate the answer without pretending coordination grants ownership.", "Record the promise now, before victory teaches us to forget it."],
+    answer: ["Pass the signal aerie to aerie; each may refuse, and each will know the cost.", "Improvise the formation, protect the local choice, and meet again at the common horizon."],
+    foeAfter: ["You won because crisis briefly made your factions agree.", "The frontier will turn your local freedoms against one another."],
+    allyAfter: ["Agreement need not be permanent to be real.", "A federation is the work of reconnecting after every honest disagreement."],
+    final: ["Many wings chose this course; none surrendered the right to choose the next.", "We leave the signal open in both directions."]
+  },
+  mtano: {
+    hero: ["Memory may stand beside us, but it may never stand in place of our choice.", "Name the ancestor, name the living bearer, and ask both before strength is shared."],
+    foe: ["The dead have already paid; use what remains of them.", "A kingdom that remembers everyone will be too burdened to move."],
+    ally: ["A sacrifice demanded by authority is not an honor. It is extraction.", "Begin with the uncounted; famous names already know how to find the archive."],
+    answer: ["Carry the Veil as testimony, never as an arsenal.", "Speak every recovered name and let each memory choose whether to join us."],
+    foeAfter: ["Consent made your strength arrive too late.", "You preserved names and endangered the kingdom they once served."],
+    allyAfter: ["Strength taken without consent would have endangered who we are.", "A kingdom unable to remember ordinary lives has preserved only its rulers."],
+    final: ["We inherit responsibility, not ownership of the dead.", "Let remembrance remain a relationship each generation must renew."]
+  },
+  russo: {
+    hero: ["Hold enough in reserve that no village survives by spending another.", "Winter teaches endurance, not obedience; keep the hearths connected."],
+    foe: ["When survival is at stake, central command is the only honest freedom.", "Shared stores belong to whoever has the will to distribute them."],
+    ally: ["Then publish the ration and the authority behind it before the cold hides both.", "A line holds longer when every settlement knows it has not been abandoned."],
+    answer: ["Yield the empty ground, preserve the people, and let winter exhaust the invader.", "Open the reserve, decentralize the records, and keep every hearth able to answer back."],
+    foeAfter: ["You survived by retreating and call the loss a strategy.", "Your local councils will freeze while they debate the obvious."],
+    allyAfter: ["Territory can be recovered. The people we preserved cannot be replaced.", "The obvious answer still needs someone accountable for its cost."],
+    final: ["Count survival by names kept warm, not borders left unbroken.", "Emergency authority ends when the emergency does."]
+  },
+  khevar: {
+    hero: ["A verdict begins with evidence, not certainty.", "Keep the scale visible. Power must show what it is weighing.", "We judge this act without pretending one judgment can own the future."],
+    foe: ["Your open court is theater for people too weak to command.", "Mercy is hesitation wearing ceremonial gold.", "The scale belongs to whoever has the strength to hold it."],
+    ally: ["Then name the evidence, the witness, and who will carry the sentence.", "A hidden cost does not become balanced because a throne approves it.", "Truth survives judgment only when the judged may answer."],
+    answer: ["Record every claim. We move when the record can survive us.", "Guard the witnesses first; the sentence means nothing if fear writes it.", "Choose the narrow verdict that ends this danger without becoming a permanent chain."],
+    foeAfter: ["You delayed the inevitable and called it justice.", "Your record will not stop the next ruler from rewriting it.", "You spared dissent and invited another crisis."],
+    allyAfter: ["No verdict is eternal; that is why testimony must remain.", "The scale held because everyone could see the hands upon it.", "Mercy did not erase consequence. It kept consequence answerable."],
+    final: ["Let the judgment stand beside its cost.", "We preserve the witness, even when the witness condemns us.", "Balance is work, not a throne we occupy."]
+  },
+  vardun: {
+    hero: ["I gave my word before the storm. The storm does not release me from it.", "Hold the kin-line. A victory bought by abandonment is another defeat.", "Fate may name the field; it does not choose our conduct upon it."],
+    foe: ["An oath is only a chain you fasten around yourself.", "The wise abandon promises before promises drown them.", "Your saga will end where practical people learned to retreat."],
+    ally: ["Then let every shield remember whom the oath was meant to protect.", "A promise kept without witnesses becomes pride; call the clans to answer.", "The ravens show an ending, not the road we must take to reach it."],
+    answer: ["Launch the longships, but leave a path home for every clan.", "First shield holds. No warrior earns glory by spending another's oath.", "We strike together and return together, or the song names this failure honestly."],
+    foeAfter: ["You kept your promise and lost what efficiency would have saved.", "Songs cannot feed the wounded.", "Another winter will make liars of you."],
+    allyAfter: ["The wounded know exactly which promise brought us back for them.", "A saga is useful when it remembers the cost as clearly as the triumph.", "Winter tests an oath; it does not define one."],
+    final: ["Carve no victory that omits the names we carried home.", "The oath remains alive because the clans may still challenge it.", "Let the next verse begin with what we refused to abandon."]
+  },
+  qhantari: {
+    hero: ["No station survives alone. Pass the warning before you pass the weapon.", "A road is a promise that the next valley will not be left unheard.", "Move the reserve where the message says the need is, not where glory waits."],
+    foe: ["Break one bridge and your whole civilization becomes isolated villages.", "Your couriers carry orders for a capital that cannot see this mountain.", "A network only multiplies the mistakes sent through it."],
+    ally: ["Then every station must be able to question the message it relays.", "The road belongs to the hands that repair it and the feet that depend on it.", "A false command dies when two valleys compare their records."],
+    answer: ["Relay the signal in both directions. No order travels without a reply.", "Open the high storehouse and let the road carry need before tribute.", "Rebuild the bridge as a meeting place, not a leash from the capital."],
+    foeAfter: ["Your chain held today. I only need one silent station.", "You spent abundance on valleys that cannot repay you.", "The road will make every local quarrel your problem."],
+    allyAfter: ["A station is strongest when silence is visible to the rest.", "The reserve existed for need; repayment begins by keeping people alive.", "Connection shares problems, but it also shares answers."],
+    final: ["Send the result back through every station, including our mistakes.", "The road continues because each valley may still close its own gate.", "We arrive together only when every relay can answer in its own voice."]
+  },
+  sahravi: {
+    hero: ["Read the beneficiary, the burden, and the witness before you praise the contract.", "A promise that survives distance must remain legible at both ends.", "Gold can move the caravan; only trust can bring it home."],
+    foe: ["A signature makes the cost lawful, and lawful costs need no apology.", "Trust is merely debt with better manners.", "Whoever controls the well writes the honest price of water."],
+    ally: ["A lawful theft remains theft when the thirsty cannot refuse it.", "Then countersign in public, where the road can remember every condition.", "The caravan workers are parties to this promise, not cargo beneath it."],
+    answer: ["Open the ledger and suspend every clause whose cost was hidden.", "Match each resource to the promise it was gathered to fulfill.", "No house closes this route until the communities along it countersign."],
+    foeAfter: ["You weakened commerce by letting need renegotiate the price.", "Your public ledger has made every house vulnerable.", "The next caravan will choose a simpler road and a harsher master."],
+    allyAfter: ["Need was always negotiating; power merely refused to hear it.", "Accountability is the vulnerability that makes trust possible.", "Then we make the honest road worth choosing."],
+    final: ["A promise becomes ours only while every signer may still speak.", "Record who paid, who benefited, and who was never invited to sign.", "The road stays open because no single house owns its meaning."]
+  },
+  intari: {
+    hero: ["The Sun sees the terrace and every hand that raised it.", "Collective labor is sacred only while the worker remains more than the work.", "Build the road, but leave each valley the power to choose where it leads."],
+    foe: ["Prosperity is consent enough for those who receive it.", "One command can coordinate what a thousand choices would delay.", "The empire feeds them; the empire may therefore spend them."],
+    ally: ["A full storehouse cannot answer for a voice the state refused to hear.", "Quipu records count labor. Let them also record refusal.", "The Sun gives light without appointing one valley to own the dawn."],
+    answer: ["Rotate the Mita by consent and place the governors under the same ledger.", "Defend the workers first; monuments can wait for another season.", "Link the four quarters without turning difference into disobedience."],
+    foeAfter: ["You slowed the empire to preserve a handful of objections.", "Your voluntary road will never reach as far as conquest.", "Without one sacred center, the quarters will fracture."],
+    allyAfter: ["Those objections were people carrying the empire on their backs.", "A shorter road freely maintained outlives an avenue built by fear.", "The center survives by serving the quarters, not consuming them."],
+    final: ["Count the harvest beside the freedom that produced it.", "Let the quipu remember who said no and remained one of us.", "We carry the flame; we do not claim every shore it illuminates."]
+  },
+  thalassari: {
+    hero: ["A route connects two shores only while both may close their harbor.", "Trade is strongest when neither partner becomes the other's captive necessity.", "Keep the convoy moving, but do not confuse access with ownership."],
+    foe: ["Dependence is simply a contract whose strongest party stopped pretending.", "Every harbor has a price; I am only honest enough to collect it.", "Your network will choose a master the first time one route becomes indispensable."],
+    ally: ["Then build another route and publish who controls the first.", "A contract that cannot expire is a conquest written in smaller letters.", "Cargo crosses the sea; sovereignty does not travel in its hold."],
+    answer: ["Supply the neutral ports before either fleet can purchase their hunger.", "Reopen the route under terms every harbor may review and renew.", "Separate the convoy from the crown and let the partners name their own obligations."],
+    foeAfter: ["You preserved their independence and lost your leverage.", "Another merchant will offer them easier terms and take the harbor anyway.", "The sea rewards whoever arrives with iron behind the invoice."],
+    allyAfter: ["Leverage was the danger we came to remove.", "Then our answer is a better network, not a permanent lock.", "Iron may guard a route; it may not become the reason the route exists."],
+    final: ["Let every harbor keep a key to the route between us.", "Prosperity is mutual only while departure remains possible.", "The water between worlds belongs to everyone who must cross it."]
+  }
+});
+
+function factionDialogueLine(factionId, kind, index, fallback) {
+  const options = FACTION_DIALOGUE[factionId]?.[kind];
+  return options?.[index % options.length] || fallback;
+}
+
 const MTANO_STORY = [
   {
     title: "The First Fire", playableName: "M'Tari", ally: "Obasi", foe: "The River Raiders",
@@ -514,32 +612,39 @@ function makeChapter(factionId, arc, index) {
       ? `The first stable passage proves the Timetwister transmits an error-corrected pattern of a willing traveler and reconstructs that pattern from matter at the paired receiver.`
       : `${arc.city} survives, but the victory changes who may speak, decide, and carry the faction's values into the next crisis.`);
   const id = `${factionId}-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`;
+  const heroLine = factionDialogueLine(factionId, "hero", index, "We will decide what survives this crisis by how we survive it.");
+  const foeLine = factionDialogueLine(factionId, "foe", index, "Your principles are delays dressed as courage.");
+  const allyLine = factionDialogueLine(factionId, "ally", index, "A fast answer can still leave the wrong people carrying its cost.");
+  const answerLine = factionDialogueLine(factionId, "answer", index, "Then we act together, record the cost, and leave the next choice open.");
+  const foeAfter = factionDialogueLine(factionId, "foeAfter", index, "You won this field. You did not settle the argument.");
+  const allyAfter = factionDialogueLine(factionId, "allyAfter", index, "Good. A people that stops arguing has usually stopped choosing.");
+  const finalLine = factionDialogueLine(factionId, "final", index, "We carry the lesson forward without pretending it is the only lesson.");
   const chapter = {
     id, playableName, opponentName: foe, title, story,
     sceneStarter: { where: setting, when: plan.when || (number === 1 ? `The founding crisis on ${arc.world}` : number < 10 ? `Generation ${number} of the ${arc.theme} chronicle` : "The first verified Timetwister contact with Reath"), perspective: plan.perspective || arc.perspective },
     dialogue: plan.dialogue ? [
       `Narrator: ${before}`,
       ...plan.dialogue,
-      `${ally}: A fast answer can still leave the wrong people carrying its cost.`,
-      `${playableName}: Then we act together, record the cost, and leave the next choice open.`
+      `${ally}: ${allyLine}`,
+      `${playableName}: ${answerLine}`
     ] : [
       `Narrator: ${before}`,
-      `${playableName}: We will decide what survives this crisis by how we survive it.`,
-      `${foe}: Your principles are delays dressed as courage.`,
-      `${ally}: A fast answer can still leave the wrong people carrying its cost.`,
-      `${playableName}: Then we act together, record the cost, and leave the next choice open.`
+      `${playableName}: ${heroLine}`,
+      `${foe}: ${foeLine}`,
+      `${ally}: ${allyLine}`,
+      `${playableName}: ${answerLine}`
     ],
     endDialogue: plan.endDialogue ? [
       `Narrator: ${after}`,
       ...plan.endDialogue,
-      `${ally}: A people that stops arguing has usually stopped choosing.`,
-      `${playableName}: We carry the lesson forward without pretending it is the only lesson.`
+      `${ally}: ${allyAfter}`,
+      `${playableName}: ${finalLine}`
     ] : [
       `Narrator: ${after}`,
-      `${foe}: You won this field. You did not settle the argument.`,
-      `${ally}: Good. A people that stops arguing has usually stopped choosing.`,
-      `${playableName}: We carry the lesson forward without pretending it is the only lesson.`,
-      `Narrator: Chapter ${number} closes, and ${arc.theme} gains another meaning.`
+      `${foe}: ${foeAfter}`,
+      `${ally}: ${allyAfter}`,
+      `${playableName}: ${finalLine}`,
+      `Narrator: The consequences of ${title} travel with the ${FACTIONS[factionId].name} beyond this battlefield.`
     ],
     setup: {
       version: 1, bossLife: Math.min(50, 18 + index * 3), attacksPerTurn: number < 5 ? 2 : number < 9 ? 3 : 4,

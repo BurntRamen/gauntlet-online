@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "astral-vanguard Campaign Protagonist",
+  "line": "A brood is a conversation written in bodies.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch04-before-02-zalara.mp3",
+  "generatedAt": "2026-11-16T18:17:18.295Z",
+  "publishedAt": "2026-11-16T18:18:14.019Z",
+  "bytes": 45600,
+  "sha256": "83675d703ab5d6ae4af89c727093a238067c87174b957f089958b25f3dfa89bb"
+}

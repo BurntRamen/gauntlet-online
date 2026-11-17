@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "ingles",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "ingles Campaign Protagonist",
+  "line": "Defend the realm without making emergency command its permanent constitution.",
+  "clientOutput": "client/public/assets/gauntlet/voices/ingles-ch01-before-05-king-alfric-the-learned.mp3",
+  "generatedAt": "2026-11-16T18:22:27.734Z",
+  "publishedAt": "2026-11-16T18:23:30.236Z",
+  "bytes": 62736,
+  "sha256": "7735c395ea001f08c244146a49c13519fb2e0cf8a82233321c85e3f215fd4528"
+}

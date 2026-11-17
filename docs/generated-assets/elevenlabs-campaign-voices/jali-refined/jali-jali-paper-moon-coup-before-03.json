@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "jali Campaign Opposition",
+  "line": "Truth is the memory powerful enough to hold the room.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch07-before-03-minister-kuro.mp3",
+  "generatedAt": "2026-11-16T18:26:41.298Z",
+  "publishedAt": "2026-11-16T18:27:29.174Z",
+  "bytes": 78201,
+  "sha256": "3f9aee4eeb8fbf696776d959277f3cc258ebb842ba2c6fa5542019a1cb984b5c"
+}

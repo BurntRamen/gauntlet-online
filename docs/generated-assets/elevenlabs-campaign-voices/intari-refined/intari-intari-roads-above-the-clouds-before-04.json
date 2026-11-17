@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "intari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "ally",
+  "voiceName": "intari Campaign Counselor",
+  "line": "A full storehouse cannot answer for a voice the state refused to hear.",
+  "clientOutput": "client/public/assets/gauntlet/voices/intari-ch04-before-04-illari.mp3",
+  "generatedAt": "2026-11-16T18:24:22.657Z",
+  "publishedAt": "2026-11-16T18:25:19.068Z",
+  "bytes": 87814,
+  "sha256": "f5707d76f2282719c021fd8c3fc3d857c2c7d8077c771c646ad93ed13136171f"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "intari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "intari Campaign Protagonist",
+  "line": "Rotate the Mita by consent and place the governors under the same ledger.",
+  "clientOutput": "client/public/assets/gauntlet/voices/intari-ch07-before-05-sapa-intar.mp3",
+  "generatedAt": "2026-11-16T18:24:42.680Z",
+  "publishedAt": "2026-11-16T18:25:19.137Z",
+  "bytes": 107458,
+  "sha256": "1d071959640f9362f9b5b449b45f255fff697ea6045ab4746f5fa7c787e5f143"
+}

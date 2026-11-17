@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "ally",
+  "voiceName": "voltari Campaign Counselor",
+  "line": "We investigate without giving the prisoner a road into another world.",
+  "clientOutput": "client/public/assets/gauntlet/voices/voltari-ch11-after-04-engineer-oru.mp3",
+  "generatedAt": "2026-11-16T18:27:11.278Z",
+  "publishedAt": "2026-11-16T18:27:20.740Z",
+  "bytes": 87814,
+  "sha256": "38eebb6bcfa90743a5614189e2f59c37c62c8a8cc47bf467b8287c539fe64112"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "astral-vanguard Campaign Protagonist",
+  "line": "We came to learn whether Reath can sustain a colony. Treat every ruin as someone else's history.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch01-before-03-alden.mp3",
+  "generatedAt": "2026-11-16T18:17:02.030Z",
+  "publishedAt": "2026-11-16T18:18:13.905Z",
+  "bytes": 97009,
+  "sha256": "5fa8231ea5bd1cff26b6ccbb6e208f992be8660a83da3a8671a3578f2a302eb9"
+}

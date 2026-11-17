@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "indela Campaign Protagonist",
+  "line": "Let every vision finish, compare their differences, and bind none as prophecy.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch06-before-05-kalidasa.mp3",
+  "generatedAt": "2026-11-16T18:21:11.053Z",
+  "publishedAt": "2026-11-16T18:21:53.812Z",
+  "bytes": 71096,
+  "sha256": "ba2c8527a19a7093bb3e96483799ad6966cd1f4aefd1ad223fcc790a76213fb4"
+}

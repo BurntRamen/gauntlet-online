@@ -1,0 +1,198 @@
+{
+  "schemaVersion": 1,
+  "factionId": "intari",
+  "chapters": {
+    "intari-children-of-the-mountain": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/intari-ch01-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/intari-ch01-before-02-the-golden-siblings.mp3",
+        "/assets/gauntlet/voices/intari-ch01-before-03-the-stonefeather-chieftain.mp3",
+        "/assets/gauntlet/voices/intari-ch01-before-04-the-first-quipu-keeper.mp3",
+        "/assets/gauntlet/voices/intari-ch01-before-05-the-golden-siblings.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/intari-ch01-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/intari-ch01-after-02-the-stonefeather-chieftain.mp3",
+        "/assets/gauntlet/voices/intari-ch01-after-03-the-first-quipu-keeper.mp3",
+        "/assets/gauntlet/voices/intari-ch01-after-04-the-golden-siblings.mp3",
+        "/assets/gauntlet/voices/intari-ch01-after-05-narrator.mp3"
+      ]
+    },
+    "intari-the-emperor-who-reshaped-the-world": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/intari-ch02-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/intari-ch02-before-02-sapa-intar.mp3",
+        "/assets/gauntlet/voices/intari-ch02-before-03-warlord-chaska.mp3",
+        "/assets/gauntlet/voices/intari-ch02-before-04-illari.mp3",
+        "/assets/gauntlet/voices/intari-ch02-before-05-sapa-intar.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/intari-ch02-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/intari-ch02-after-02-warlord-chaska.mp3",
+        "/assets/gauntlet/voices/intari-ch02-after-03-illari.mp3",
+        "/assets/gauntlet/voices/intari-ch02-after-04-sapa-intar.mp3",
+        "/assets/gauntlet/voices/intari-ch02-after-05-narrator.mp3"
+      ]
+    },
+    "intari-the-four-quarters": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/intari-ch03-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/intari-ch03-before-02-sapa-intar.mp3",
+        "/assets/gauntlet/voices/intari-ch03-before-03-queen-yana.mp3",
+        "/assets/gauntlet/voices/intari-ch03-before-04-illari.mp3",
+        "/assets/gauntlet/voices/intari-ch03-before-05-sapa-intar.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/intari-ch03-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/intari-ch03-after-02-queen-yana.mp3",
+        "/assets/gauntlet/voices/intari-ch03-after-03-illari.mp3",
+        "/assets/gauntlet/voices/intari-ch03-after-04-sapa-intar.mp3",
+        "/assets/gauntlet/voices/intari-ch03-after-05-narrator.mp3"
+      ]
+    },
+    "intari-roads-above-the-clouds": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/intari-ch04-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/intari-ch04-before-02-sapa-intar.mp3",
+        "/assets/gauntlet/voices/intari-ch04-before-03-the-broken-pass.mp3",
+        "/assets/gauntlet/voices/intari-ch04-before-04-illari.mp3",
+        "/assets/gauntlet/voices/intari-ch04-before-05-sapa-intar.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/intari-ch04-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/intari-ch04-after-02-the-broken-pass.mp3",
+        "/assets/gauntlet/voices/intari-ch04-after-03-illari.mp3",
+        "/assets/gauntlet/voices/intari-ch04-after-04-sapa-intar.mp3",
+        "/assets/gauntlet/voices/intari-ch04-after-05-narrator.mp3"
+      ]
+    },
+    "intari-the-price-of-paradise": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/intari-ch05-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/intari-ch05-before-02-sapa-intar.mp3",
+        "/assets/gauntlet/voices/intari-ch05-before-03-governor-qhapaq.mp3",
+        "/assets/gauntlet/voices/intari-ch05-before-04-illari.mp3",
+        "/assets/gauntlet/voices/intari-ch05-before-05-sapa-intar.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/intari-ch05-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/intari-ch05-after-02-governor-qhapaq.mp3",
+        "/assets/gauntlet/voices/intari-ch05-after-03-illari.mp3",
+        "/assets/gauntlet/voices/intari-ch05-after-04-sapa-intar.mp3",
+        "/assets/gauntlet/voices/intari-ch05-after-05-narrator.mp3"
+      ]
+    },
+    "intari-the-emperor-s-indispensable-judgment": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/intari-ch06-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/intari-ch06-before-02-sapa-intar.mp3",
+        "/assets/gauntlet/voices/intari-ch06-before-03-the-imperial-council.mp3",
+        "/assets/gauntlet/voices/intari-ch06-before-04-illari.mp3",
+        "/assets/gauntlet/voices/intari-ch06-before-05-sapa-intar.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/intari-ch06-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/intari-ch06-after-02-the-imperial-council.mp3",
+        "/assets/gauntlet/voices/intari-ch06-after-03-illari.mp3",
+        "/assets/gauntlet/voices/intari-ch06-after-04-sapa-intar.mp3",
+        "/assets/gauntlet/voices/intari-ch06-after-05-narrator.mp3"
+      ]
+    },
+    "intari-solar-ascendance": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/intari-ch07-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/intari-ch07-before-02-sapa-intar.mp3",
+        "/assets/gauntlet/voices/intari-ch07-before-03-the-eclipsed-priesthood.mp3",
+        "/assets/gauntlet/voices/intari-ch07-before-04-illari.mp3",
+        "/assets/gauntlet/voices/intari-ch07-before-05-sapa-intar.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/intari-ch07-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/intari-ch07-after-02-the-eclipsed-priesthood.mp3",
+        "/assets/gauntlet/voices/intari-ch07-after-03-illari.mp3",
+        "/assets/gauntlet/voices/intari-ch07-after-04-sapa-intar.mp3",
+        "/assets/gauntlet/voices/intari-ch07-after-05-narrator.mp3"
+      ]
+    },
+    "intari-the-broken-sun": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/intari-ch08-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/intari-ch08-before-02-amaru-kuntur.mp3",
+        "/assets/gauntlet/voices/intari-ch08-before-03-prince-atar.mp3",
+        "/assets/gauntlet/voices/intari-ch08-before-04-illari.mp3",
+        "/assets/gauntlet/voices/intari-ch08-before-05-amaru-kuntur.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/intari-ch08-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/intari-ch08-after-02-prince-atar.mp3",
+        "/assets/gauntlet/voices/intari-ch08-after-03-illari.mp3",
+        "/assets/gauntlet/voices/intari-ch08-after-04-amaru-kuntur.mp3",
+        "/assets/gauntlet/voices/intari-ch08-after-05-narrator.mp3"
+      ]
+    },
+    "intari-the-last-sunrise": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/intari-ch09-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/intari-ch09-before-02-amaru-kuntur.mp3",
+        "/assets/gauntlet/voices/intari-ch09-before-03-the-conqueror-beyond-the-gate.mp3",
+        "/assets/gauntlet/voices/intari-ch09-before-04-illari.mp3",
+        "/assets/gauntlet/voices/intari-ch09-before-05-amaru-kuntur.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/intari-ch09-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/intari-ch09-after-02-the-conqueror-beyond-the-gate.mp3",
+        "/assets/gauntlet/voices/intari-ch09-after-03-illari.mp3",
+        "/assets/gauntlet/voices/intari-ch09-after-04-amaru-kuntur.mp3",
+        "/assets/gauntlet/voices/intari-ch09-after-05-narrator.mp3"
+      ]
+    },
+    "intari-the-quipu-beyond-the-sky": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/intari-ch10-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/intari-ch10-before-02-illari.mp3",
+        "/assets/gauntlet/voices/intari-ch10-before-03-the-silent-receiver.mp3",
+        "/assets/gauntlet/voices/intari-ch10-before-04-amaru-kuntur.mp3",
+        "/assets/gauntlet/voices/intari-ch10-before-05-illari.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/intari-ch10-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/intari-ch10-after-02-the-silent-receiver.mp3",
+        "/assets/gauntlet/voices/intari-ch10-after-03-amaru-kuntur.mp3",
+        "/assets/gauntlet/voices/intari-ch10-after-04-illari.mp3",
+        "/assets/gauntlet/voices/intari-ch10-after-05-narrator.mp3"
+      ]
+    },
+    "intari-a-road-must-be-chosen": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/intari-ch11-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/intari-ch11-before-02-amaru-kuntur.mp3",
+        "/assets/gauntlet/voices/intari-ch11-before-03-the-restoration-bloc.mp3",
+        "/assets/gauntlet/voices/intari-ch11-before-04-illari.mp3",
+        "/assets/gauntlet/voices/intari-ch11-before-05-amaru-kuntur.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/intari-ch11-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/intari-ch11-after-02-the-restoration-bloc.mp3",
+        "/assets/gauntlet/voices/intari-ch11-after-03-illari.mp3",
+        "/assets/gauntlet/voices/intari-ch11-after-04-amaru-kuntur.mp3",
+        "/assets/gauntlet/voices/intari-ch11-after-05-narrator.mp3"
+      ]
+    },
+    "intari-the-sunrise-between-worlds": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/intari-ch12-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/intari-ch12-before-02-illari.mp3",
+        "/assets/gauntlet/voices/intari-ch12-before-03-the-convergence-storm.mp3",
+        "/assets/gauntlet/voices/intari-ch12-before-04-amaru-kuntur.mp3",
+        "/assets/gauntlet/voices/intari-ch12-before-05-illari.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/intari-ch12-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/intari-ch12-after-02-the-convergence-storm.mp3",
+        "/assets/gauntlet/voices/intari-ch12-after-03-amaru-kuntur.mp3",
+        "/assets/gauntlet/voices/intari-ch12-after-04-illari.mp3",
+        "/assets/gauntlet/voices/intari-ch12-after-05-narrator.mp3"
+      ]
+    }
+  }
+}

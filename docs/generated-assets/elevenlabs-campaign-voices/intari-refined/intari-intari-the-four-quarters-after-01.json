@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "intari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "intari Chronicle Narrator",
+  "line": "Intiray survives, but the victory changes who may speak, decide, and carry the faction's values into the next crisis.",
+  "clientOutput": "client/public/assets/gauntlet/voices/intari-ch03-after-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:24:17.276Z",
+  "publishedAt": "2026-11-16T18:25:19.050Z",
+  "bytes": 168062,
+  "sha256": "117df68072e3e6ddebc5eee7cb2398190a882af2c2888b8ed0778952c86929fe"
+}

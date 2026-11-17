@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "jali Campaign Protagonist",
+  "line": "It is not speaking with many voices. It is forcing contradictions to pretend they are agreement.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch10-before-04-watane.mp3",
+  "generatedAt": "2026-11-16T18:27:05.137Z",
+  "publishedAt": "2026-11-16T18:27:29.235Z",
+  "bytes": 134625,
+  "sha256": "b20cc00ec26e2d4b9cbaf2eb66a38e6fbb3dbd596314ee0e6805a301b692eadc"
+}

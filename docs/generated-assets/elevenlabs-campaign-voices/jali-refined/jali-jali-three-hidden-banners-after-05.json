@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "jali Chronicle Narrator",
+  "line": "What was chosen in The War of the Fractured Sky becomes part of the faction's next argument, not a lesson history has finished teaching.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch02-after-05-narrator.mp3",
+  "generatedAt": "2026-11-16T18:26:05.625Z",
+  "publishedAt": "2026-11-16T18:27:29.092Z",
+  "bytes": 222397,
+  "sha256": "726bd18a29ec374fdbe5c6f18c6f42341540d628d5ad02886381bb3545f7e29d"
+}

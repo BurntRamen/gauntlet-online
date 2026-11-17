@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "astral-vanguard Campaign Protagonist",
+  "line": "Cease engagement. Your sensory systems are compromised.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch05-before-02-oru.mp3",
+  "generatedAt": "2026-11-16T18:17:24.314Z",
+  "publishedAt": "2026-11-16T18:18:14.060Z",
+  "bytes": 64826,
+  "sha256": "b5af5b6ec707a27d2e6683a9ebf79bf327ecb579ea473c3a9c6c53d8cf449a11"
+}

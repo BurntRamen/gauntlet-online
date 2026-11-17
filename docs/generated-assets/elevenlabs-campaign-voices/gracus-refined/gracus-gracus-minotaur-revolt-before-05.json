@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "gracus",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "gracus Campaign Protagonist",
+  "line": "Leo holds the routes, Themin moves the line, Hera reads the changes, and Chilis strikes after the city is clear.",
+  "clientOutput": "client/public/assets/gauntlet/voices/gracus-ch09-before-05-chilis.mp3",
+  "generatedAt": "2026-11-16T18:19:42.210Z",
+  "publishedAt": "2026-11-16T18:20:06.507Z",
+  "bytes": 163883,
+  "sha256": "2334e8fc5af2e4cefe1684f2208739097533f5ed600fff131267ab7e1dd686c1"
+}

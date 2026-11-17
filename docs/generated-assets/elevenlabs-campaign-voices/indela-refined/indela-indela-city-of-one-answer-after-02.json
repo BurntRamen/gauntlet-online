@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "indela Campaign Opposition",
+  "line": "ANCHOR UNRESOLVED.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch11-after-02-the-unbound-convergence.mp3",
+  "generatedAt": "2026-11-16T18:21:44.909Z",
+  "publishedAt": "2026-11-16T18:21:53.957Z",
+  "bytes": 48526,
+  "sha256": "e1418fe55c72194e553bb662092cffe664aeb90e2e063ef9f3ba0e74fc2b677b"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "intari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "intari Chronicle Narrator",
+  "line": "The consequences of The Last Sunrise travel with the Intari beyond this battlefield.",
+  "clientOutput": "client/public/assets/gauntlet/voices/intari-ch09-after-05-narrator.mp3",
+  "generatedAt": "2026-11-16T18:24:58.556Z",
+  "publishedAt": "2026-11-16T18:25:19.191Z",
+  "bytes": 151344,
+  "sha256": "8a7f3afc7e0f9dc7ca43e6b4d887560119e1867495d2cd1b3060fd6c678564e8"
+}

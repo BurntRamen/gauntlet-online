@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "astral-vanguard Campaign Protagonist",
+  "line": "Your weapon kills from farther away.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch10-before-02-rumin-officer.mp3",
+  "generatedAt": "2026-11-16T18:17:54.008Z",
+  "publishedAt": "2026-11-16T18:18:14.246Z",
+  "bytes": 30972,
+  "sha256": "b810bc05de4bfe3752a34389963fca39438b43b94fc35a236d6c88fc86fc46b5"
+}

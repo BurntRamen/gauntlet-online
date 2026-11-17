@@ -1,0 +1,198 @@
+{
+  "schemaVersion": 1,
+  "factionId": "indela",
+  "chapters": {
+    "indela-first-omen": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/indela-ch01-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/indela-ch01-before-02-katel.mp3",
+        "/assets/gauntlet/voices/indela-ch01-before-03-dean-var.mp3",
+        "/assets/gauntlet/voices/indela-ch01-before-04-chandragupta.mp3",
+        "/assets/gauntlet/voices/indela-ch01-before-05-katel.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/indela-ch01-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/indela-ch01-after-02-dean-var.mp3",
+        "/assets/gauntlet/voices/indela-ch01-after-03-chandragupta.mp3",
+        "/assets/gauntlet/voices/indela-ch01-after-04-katel.mp3",
+        "/assets/gauntlet/voices/indela-ch01-after-05-narrator.mp3"
+      ]
+    },
+    "indela-academy-of-omens": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/indela-ch02-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/indela-ch02-before-02-katel.mp3",
+        "/assets/gauntlet/voices/indela-ch02-before-03-the-three-regional-lords.mp3",
+        "/assets/gauntlet/voices/indela-ch02-before-04-chandragupta.mp3",
+        "/assets/gauntlet/voices/indela-ch02-before-05-katel.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/indela-ch02-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/indela-ch02-after-02-the-three-regional-lords.mp3",
+        "/assets/gauntlet/voices/indela-ch02-after-03-chandragupta.mp3",
+        "/assets/gauntlet/voices/indela-ch02-after-04-katel.mp3",
+        "/assets/gauntlet/voices/indela-ch02-after-05-narrator.mp3"
+      ]
+    },
+    "indela-second-reading": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/indela-ch03-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/indela-ch03-before-02-vishnugupta.mp3",
+        "/assets/gauntlet/voices/indela-ch03-before-03-the-road-reavers.mp3",
+        "/assets/gauntlet/voices/indela-ch03-before-04-vatsyayana.mp3",
+        "/assets/gauntlet/voices/indela-ch03-before-05-vishnugupta.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/indela-ch03-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/indela-ch03-after-02-the-road-reavers.mp3",
+        "/assets/gauntlet/voices/indela-ch03-after-03-vatsyayana.mp3",
+        "/assets/gauntlet/voices/indela-ch03-after-04-vishnugupta.mp3",
+        "/assets/gauntlet/voices/indela-ch03-after-05-narrator.mp3"
+      ]
+    },
+    "indela-odd-even-war": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/indela-ch04-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/indela-ch04-before-02-aryabhata.mp3",
+        "/assets/gauntlet/voices/indela-ch04-before-03-the-fixed-sphere-orthodoxy.mp3",
+        "/assets/gauntlet/voices/indela-ch04-before-04-vara.mp3",
+        "/assets/gauntlet/voices/indela-ch04-before-05-aryabhata.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/indela-ch04-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/indela-ch04-after-02-the-fixed-sphere-orthodoxy.mp3",
+        "/assets/gauntlet/voices/indela-ch04-after-03-vara.mp3",
+        "/assets/gauntlet/voices/indela-ch04-after-04-aryabhata.mp3",
+        "/assets/gauntlet/voices/indela-ch04-after-05-narrator.mp3"
+      ]
+    },
+    "indela-cost-of-prophecy": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/indela-ch05-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/indela-ch05-before-02-katel.mp3",
+        "/assets/gauntlet/voices/indela-ch05-before-03-the-unbound-experiment.mp3",
+        "/assets/gauntlet/voices/indela-ch05-before-04-aryabhata.mp3",
+        "/assets/gauntlet/voices/indela-ch05-before-05-katel.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/indela-ch05-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/indela-ch05-after-02-the-unbound-experiment.mp3",
+        "/assets/gauntlet/voices/indela-ch05-after-03-aryabhata.mp3",
+        "/assets/gauntlet/voices/indela-ch05-after-04-katel.mp3",
+        "/assets/gauntlet/voices/indela-ch05-after-05-narrator.mp3"
+      ]
+    },
+    "indela-library-of-maybe": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/indela-ch06-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/indela-ch06-before-02-kalidasa.mp3",
+        "/assets/gauntlet/voices/indela-ch06-before-03-the-escaped-manuscript.mp3",
+        "/assets/gauntlet/voices/indela-ch06-before-04-katel.mp3",
+        "/assets/gauntlet/voices/indela-ch06-before-05-kalidasa.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/indela-ch06-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/indela-ch06-after-02-the-escaped-manuscript.mp3",
+        "/assets/gauntlet/voices/indela-ch06-after-03-katel.mp3",
+        "/assets/gauntlet/voices/indela-ch06-after-04-kalidasa.mp3",
+        "/assets/gauntlet/voices/indela-ch06-after-05-narrator.mp3"
+      ]
+    },
+    "indela-the-null-card": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/indela-ch07-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/indela-ch07-before-02-katel.mp3",
+        "/assets/gauntlet/voices/indela-ch07-before-03-kumaras-ascendant-circle.mp3",
+        "/assets/gauntlet/voices/indela-ch07-before-04-vara.mp3",
+        "/assets/gauntlet/voices/indela-ch07-before-05-katel.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/indela-ch07-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/indela-ch07-after-02-kumaras-ascendant-circle.mp3",
+        "/assets/gauntlet/voices/indela-ch07-after-03-vara.mp3",
+        "/assets/gauntlet/voices/indela-ch07-after-04-katel.mp3",
+        "/assets/gauntlet/voices/indela-ch07-after-05-narrator.mp3"
+      ]
+    },
+    "indela-frozen-forecast": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/indela-ch08-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/indela-ch08-before-02-skandagupta.mp3",
+        "/assets/gauntlet/voices/indela-ch08-before-03-the-antlered-confederation.mp3",
+        "/assets/gauntlet/voices/indela-ch08-before-04-katel.mp3",
+        "/assets/gauntlet/voices/indela-ch08-before-05-skandagupta.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/indela-ch08-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/indela-ch08-after-02-the-antlered-confederation.mp3",
+        "/assets/gauntlet/voices/indela-ch08-after-03-katel.mp3",
+        "/assets/gauntlet/voices/indela-ch08-after-04-skandagupta.mp3",
+        "/assets/gauntlet/voices/indela-ch08-after-05-narrator.mp3"
+      ]
+    },
+    "indela-burning-proof": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/indela-ch09-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/indela-ch09-before-02-katel.mp3",
+        "/assets/gauntlet/voices/indela-ch09-before-03-the-provincial-compact.mp3",
+        "/assets/gauntlet/voices/indela-ch09-before-04-vishnugupta.mp3",
+        "/assets/gauntlet/voices/indela-ch09-before-05-katel.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/indela-ch09-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/indela-ch09-after-02-the-provincial-compact.mp3",
+        "/assets/gauntlet/voices/indela-ch09-after-03-vishnugupta.mp3",
+        "/assets/gauntlet/voices/indela-ch09-after-04-katel.mp3",
+        "/assets/gauntlet/voices/indela-ch09-after-05-narrator.mp3"
+      ]
+    },
+    "indela-omen-market": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/indela-ch10-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/indela-ch10-before-02-vatsyayana.mp3",
+        "/assets/gauntlet/voices/indela-ch10-before-03-the-ash-broker.mp3",
+        "/assets/gauntlet/voices/indela-ch10-before-04-kalidasa.mp3",
+        "/assets/gauntlet/voices/indela-ch10-before-05-vatsyayana.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/indela-ch10-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/indela-ch10-after-02-the-ash-broker.mp3",
+        "/assets/gauntlet/voices/indela-ch10-after-03-kalidasa.mp3",
+        "/assets/gauntlet/voices/indela-ch10-after-04-vatsyayana.mp3",
+        "/assets/gauntlet/voices/indela-ch10-after-05-narrator.mp3"
+      ]
+    },
+    "indela-city-of-one-answer": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/indela-ch11-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/indela-ch11-before-02-katel.mp3",
+        "/assets/gauntlet/voices/indela-ch11-before-03-the-unbound-convergence.mp3",
+        "/assets/gauntlet/voices/indela-ch11-before-04-aryabhata.mp3",
+        "/assets/gauntlet/voices/indela-ch11-before-05-katel.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/indela-ch11-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/indela-ch11-after-02-the-unbound-convergence.mp3",
+        "/assets/gauntlet/voices/indela-ch11-after-03-aryabhata.mp3",
+        "/assets/gauntlet/voices/indela-ch11-after-04-katel.mp3",
+        "/assets/gauntlet/voices/indela-ch11-after-05-narrator.mp3"
+      ]
+    },
+    "indela-open-future": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/indela-ch12-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/indela-ch12-before-02-a-young-archivist.mp3",
+        "/assets/gauntlet/voices/indela-ch12-before-03-the-final-omen.mp3",
+        "/assets/gauntlet/voices/indela-ch12-before-04-vara.mp3",
+        "/assets/gauntlet/voices/indela-ch12-before-05-a-young-archivist.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/indela-ch12-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/indela-ch12-after-02-the-final-omen.mp3",
+        "/assets/gauntlet/voices/indela-ch12-after-03-vara.mp3",
+        "/assets/gauntlet/voices/indela-ch12-after-04-a-young-archivist.mp3",
+        "/assets/gauntlet/voices/indela-ch12-after-05-narrator.mp3"
+      ]
+    }
+  }
+}

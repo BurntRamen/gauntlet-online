@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "intari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "intari Chronicle Narrator",
+  "line": "The consequences of Children of the Mountain travel with the Intari beyond this battlefield.",
+  "clientOutput": "client/public/assets/gauntlet/voices/intari-ch01-after-05-narrator.mp3",
+  "generatedAt": "2026-11-16T18:24:06.609Z",
+  "publishedAt": "2026-11-16T18:25:19.009Z",
+  "bytes": 151762,
+  "sha256": "f270cd12977cd37a744b3d8950f145b25c87493134e0178ec0449be688afdfa5"
+}

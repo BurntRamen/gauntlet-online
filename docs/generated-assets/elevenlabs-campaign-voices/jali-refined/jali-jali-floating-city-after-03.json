@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "ally",
+  "voiceName": "jali Campaign Counselor",
+  "line": "No. The lie revealed where certainty made you blind.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch03-after-03-yamabuki-no-kami.mp3",
+  "generatedAt": "2026-11-16T18:26:11.438Z",
+  "publishedAt": "2026-11-16T18:27:29.107Z",
+  "bytes": 76111,
+  "sha256": "2a1e04052d5d095efdc568508e62005b75ac3d129e9f4afdc0cfa1ea4acc23ec"
+}

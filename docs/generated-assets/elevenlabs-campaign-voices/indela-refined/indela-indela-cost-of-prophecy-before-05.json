@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "indela Campaign Protagonist",
+  "line": "Freeze the outer ring, vent the heat, and reveal the sequence one step at a time.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch05-before-05-katel.mp3",
+  "generatedAt": "2026-11-16T18:21:04.568Z",
+  "publishedAt": "2026-11-16T18:21:53.784Z",
+  "bytes": 118325,
+  "sha256": "4cf1da91d3d7590f0c7f74749d3c50b44a31ccb4b67db5ef7776f494990a94b3"
+}

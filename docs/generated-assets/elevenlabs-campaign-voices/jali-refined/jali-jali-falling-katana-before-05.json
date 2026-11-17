@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "jali Campaign Protagonist",
+  "line": "Break the spiritual conduits and turn Katana's fall into a controlled descent.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch08-before-05-watane.mp3",
+  "generatedAt": "2026-11-16T18:26:50.794Z",
+  "publishedAt": "2026-11-16T18:27:29.203Z",
+  "bytes": 106622,
+  "sha256": "dcef4eb7d34d5d65b0537769fdbc25a01a925ff8fb553d629030ac976b4d8eed"
+}

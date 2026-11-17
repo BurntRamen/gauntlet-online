@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "intari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "ally",
+  "voiceName": "intari Campaign Counselor",
+  "line": "Those objections were people carrying the empire on their backs.",
+  "clientOutput": "client/public/assets/gauntlet/voices/intari-ch01-after-03-the-first-quipu-keeper.mp3",
+  "generatedAt": "2026-11-16T18:24:05.085Z",
+  "publishedAt": "2026-11-16T18:25:19.004Z",
+  "bytes": 77783,
+  "sha256": "b885f17c610f24a399b67fee1892f5407c7e105791ffd426f68a9cd83d48ec73"
+}

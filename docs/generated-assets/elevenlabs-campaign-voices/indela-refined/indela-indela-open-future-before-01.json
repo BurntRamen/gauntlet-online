@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "indela Chronicle Narrator",
+  "line": "The Final Omen claims Kashi must seal itself forever, just as Katel's suspended staff responds to a sequence arriving from beyond Varuna's sky.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch12-before-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:21:48.020Z",
+  "publishedAt": "2026-11-16T18:21:53.975Z",
+  "bytes": 198155,
+  "sha256": "94e13facf01972c1d20aba1b8b7cea1d1bb00257079226e976b367a4347cef2d"
+}

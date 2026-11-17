@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "astral-vanguard Campaign Protagonist",
+  "line": "Contact on the ridge. Survey teams behind the drop wall.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch01-before-06-myra-cross.mp3",
+  "generatedAt": "2026-11-16T18:17:03.656Z",
+  "publishedAt": "2026-11-16T18:18:13.912Z",
+  "bytes": 57721,
+  "sha256": "246ccc24f184995ac42d94331f175a33622f04b9ad42354e9393b1d88bb31176"
+}

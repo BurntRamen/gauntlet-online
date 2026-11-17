@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "jali Chronicle Narrator",
+  "line": "Hinata seals the project she commissioned. Seimei proves that destroyed Reflections and abandoned futures have accumulated into a void now arranging its own answers.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch06-after-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:26:35.199Z",
+  "publishedAt": "2026-11-16T18:27:29.162Z",
+  "bytes": 254998,
+  "sha256": "71dec9afccfd04388a99c03a0e2ddadabe07265f3f766725da56b04eb3e5f303"
+}

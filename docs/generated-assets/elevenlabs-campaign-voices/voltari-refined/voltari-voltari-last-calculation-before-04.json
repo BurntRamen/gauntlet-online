@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "ally",
+  "voiceName": "voltari Campaign Counselor",
+  "line": "Localized teams are outside its model. The relays can fall together without one central command.",
+  "clientOutput": "client/public/assets/gauntlet/voices/voltari-ch08-before-04-engineer-oru.mp3",
+  "generatedAt": "2026-11-16T18:26:45.792Z",
+  "publishedAt": "2026-11-16T18:27:20.665Z",
+  "bytes": 121251,
+  "sha256": "c9cd490bfe90fac21f101998f5ddc4146b7ad438b6a6b27710ee642a3f860f83"
+}

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Intari golden condor and terraced sun emblem</title>
+  <desc id="desc">A golden condor spreads its wings above mountain terraces beneath a radiant sun.</desc>
+  <defs>
+    <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#173a5e"/><stop offset="1" stop-color="#602f32"/></linearGradient>
+    <linearGradient id="gold" x2="0" y2="1"><stop stop-color="#fff0a6"/><stop offset="0.48" stop-color="#f4c84a"/><stop offset="1" stop-color="#a65e1b"/></linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="72" fill="url(#sky)"/>
+  <circle cx="256" cy="132" r="70" fill="#f9d65c" stroke="#fff0a6" stroke-width="12"/>
+  <g fill="none" stroke="#f9d65c" stroke-width="10" stroke-linecap="round">
+    <path d="M256 34v26M256 204v26M158 132h26M328 132h26M188 64l18 18M306 182l18 18M324 64l-18 18M206 182l-18 18"/>
+  </g>
+  <path d="M256 184c-42 0-78 30-100 66-30-10-61-28-92-58 12 72 55 126 128 136l64 74 64-74c73-10 116-64 128-136-31 30-62 48-92 58-22-36-58-66-100-66z" fill="url(#gold)" stroke="#fff0a6" stroke-width="12" stroke-linejoin="round"/>
+  <path d="M256 208l-24 54 24 42 24-42z" fill="#5d2e2c"/><circle cx="238" cy="236" r="6" fill="#fff0a6"/><circle cx="274" cy="236" r="6" fill="#fff0a6"/>
+  <path d="M82 416h348M112 380h288M148 344h216" fill="none" stroke="#d99c3d" stroke-width="22" stroke-linecap="round"/>
+</svg>

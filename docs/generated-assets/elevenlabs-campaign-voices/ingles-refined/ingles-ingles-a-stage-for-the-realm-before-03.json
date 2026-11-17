@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "ingles",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "ingles Campaign Opposition",
+  "line": "Your law is empire wearing a clerk's clean gloves.",
+  "clientOutput": "client/public/assets/gauntlet/voices/ingles-ch05-before-03-the-censors-office.mp3",
+  "generatedAt": "2026-11-16T18:22:47.905Z",
+  "publishedAt": "2026-11-16T18:23:30.348Z",
+  "bytes": 58975,
+  "sha256": "81bf82d140c12b74e5a283745a9246730f2c19582633d83a7e55d17da57d05e0"
+}

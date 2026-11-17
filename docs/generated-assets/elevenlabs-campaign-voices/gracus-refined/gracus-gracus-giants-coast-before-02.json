@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "gracus",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "gracus Campaign Protagonist",
+  "line": "We built a civilization from stone and mistook endurance for permanence.",
+  "clientOutput": "client/public/assets/gauntlet/voices/gracus-ch06-before-02-hera.mp3",
+  "generatedAt": "2026-11-16T18:19:20.141Z",
+  "publishedAt": "2026-11-16T18:20:06.439Z",
+  "bytes": 121251,
+  "sha256": "f697b596d002ef752b0bcb1d6c2f7ee8e32f3dd4432c63f72b1bc529d51ea472"
+}

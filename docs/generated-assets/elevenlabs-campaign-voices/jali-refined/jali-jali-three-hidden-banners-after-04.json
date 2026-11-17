@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "jali Campaign Protagonist",
+  "line": "The sky fractures, and the Jali enter an age of Cloud Daimyo.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch02-after-04-basho.mp3",
+  "generatedAt": "2026-11-16T18:26:04.508Z",
+  "publishedAt": "2026-11-16T18:27:29.089Z",
+  "bytes": 102861,
+  "sha256": "96790aa75e2d8fa700f48012b31e3a22c2d5e985e8722920a2f0ac115d4c3dc3"
+}

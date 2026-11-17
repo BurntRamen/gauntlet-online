@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "astral-vanguard Campaign Protagonist",
+  "line": "Defend the meeting, and I will teach you what followed us.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch04-before-06-zalara.mp3",
+  "generatedAt": "2026-11-16T18:17:20.157Z",
+  "publishedAt": "2026-11-16T18:18:14.034Z",
+  "bytes": 47690,
+  "sha256": "70008f899833603911dafb22b363e53fd79b509c7a368074c3f3fe550deed48d"
+}

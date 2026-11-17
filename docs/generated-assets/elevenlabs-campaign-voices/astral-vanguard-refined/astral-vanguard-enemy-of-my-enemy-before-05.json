@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "astral-vanguard Campaign Protagonist",
+  "line": "It is ugly, improvised, and synchronized.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch09-before-05-myra-cross.mp3",
+  "generatedAt": "2026-11-16T18:17:49.250Z",
+  "publishedAt": "2026-11-16T18:18:14.216Z",
+  "bytes": 49362,
+  "sha256": "be42546aba8db55cf8dff4fd60abd8e62b2396b05f9489f8e2dc826adc2eb66f"
+}

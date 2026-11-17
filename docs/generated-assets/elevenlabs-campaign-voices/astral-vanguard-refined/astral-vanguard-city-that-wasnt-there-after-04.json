@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "astral-vanguard Campaign Protagonist",
+  "line": "For compatible histories.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch07-after-04-oru.mp3",
+  "generatedAt": "2026-11-16T18:17:39.507Z",
+  "publishedAt": "2026-11-16T18:18:14.156Z",
+  "bytes": 27210,
+  "sha256": "8929350b4a57458e605ee334ceec233648f0e98dcf1b9d5db4bdf6a652b5849c"
+}

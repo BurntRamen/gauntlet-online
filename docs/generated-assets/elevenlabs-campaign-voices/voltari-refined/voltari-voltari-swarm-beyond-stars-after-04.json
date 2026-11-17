@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "voltari Campaign Protagonist",
+  "line": "We prepare strength without mistaking extermination for understanding.",
+  "clientOutput": "client/public/assets/gauntlet/voices/voltari-ch03-after-04-stormlord-veyra.mp3",
+  "generatedAt": "2026-11-16T18:26:13.293Z",
+  "publishedAt": "2026-11-16T18:27:20.560Z",
+  "bytes": 81127,
+  "sha256": "c0896a409a4e673ccb7072031ece02cd2f1dd9ee1db0a201805302cf574ac508"
+}

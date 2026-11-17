@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "intari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "intari Campaign Opposition",
+  "line": "One command can coordinate what a thousand choices would delay.",
+  "clientOutput": "client/public/assets/gauntlet/voices/intari-ch08-before-03-prince-atar.mp3",
+  "generatedAt": "2026-11-16T18:24:47.997Z",
+  "publishedAt": "2026-11-16T18:25:19.154Z",
+  "bytes": 87814,
+  "sha256": "a2617b4709dd204193a805f1bf10091018d8d39d4eb00f34c3ec7e63974f07d6"
+}

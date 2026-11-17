@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "intari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "intari Campaign Protagonist",
+  "line": "Count the harvest beside the freedom that produced it.",
+  "clientOutput": "client/public/assets/gauntlet/voices/intari-ch04-after-04-sapa-intar.mp3",
+  "generatedAt": "2026-11-16T18:24:25.689Z",
+  "publishedAt": "2026-11-16T18:25:19.080Z",
+  "bytes": 46436,
+  "sha256": "215161fd875bca2eca02a51e20b04b006c5f29c3c2a21f961e92d917429780f9"
+}

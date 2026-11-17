@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "ingles",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "ingles Campaign Opposition",
+  "line": "You preserved the institution and postponed the reckoning.",
+  "clientOutput": "client/public/assets/gauntlet/voices/ingles-ch03-after-02-the-ashen-synod.mp3",
+  "generatedAt": "2026-11-16T18:22:39.847Z",
+  "publishedAt": "2026-11-16T18:23:30.300Z",
+  "bytes": 61901,
+  "sha256": "eb843c2c2f0074600602a07c9fd3b24f515271f08a195e600a9d5eba5508df7b"
+}

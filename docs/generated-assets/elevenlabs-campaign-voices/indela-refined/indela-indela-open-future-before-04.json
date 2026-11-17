@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "ally",
+  "voiceName": "indela Campaign Counselor",
+  "line": "Katel saved knowledge for students who would change it, not merely repeat it.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch12-before-04-vara.mp3",
+  "generatedAt": "2026-11-16T18:21:49.858Z",
+  "publishedAt": "2026-11-16T18:21:53.985Z",
+  "bytes": 84888,
+  "sha256": "38458f1f7f69b74cc6595fd23857f3b7511f0b42cc11d26c1c9f3945b62ae20e"
+}

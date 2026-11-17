@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "voltari Chronicle Narrator",
+  "line": "An expedition finds cities buried beneath living structures and receives no answer before the first swarm attacks.",
+  "clientOutput": "client/public/assets/gauntlet/voices/voltari-ch03-before-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:26:08.980Z",
+  "publishedAt": "2026-11-16T18:27:20.538Z",
+  "bytes": 147582,
+  "sha256": "f1eb8b8a534a4b037f05b76be07e74c91a9cd5804f2b0978e4d6e3fcb35c9ac3"
+}

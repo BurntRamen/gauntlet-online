@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "factionId": "mekan",
+  "voiceDesignModelId": "eleven_multilingual_ttv_v2",
+  "speechModelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "stagingDirectory": "artifacts/elevenlabs-campaign-voices/mekan-refined",
+  "publicDirectory": "client/public/assets/gauntlet/voices",
+  "provenanceDirectory": "docs/generated-assets/elevenlabs-campaign-voices/mekan-refined",
+  "contentRegistry": "server/campaignVoiceAssets/mekan.json",
+  "voices": {
+    "narrator": {
+      "name": "mekan Chronicle Narrator",
+      "description": "An original fictional narrator for a campaign about warm ceremonial voices shaped by brass, breath, drums, laughter, and grief; festive without caricature and solemn without losing color. Grounded low-mid register, vivid but restrained storytelling, excellent clarity, and no imitation of a real performer.",
+      "previewText": "History does not enter a battlefield alone. It arrives through the people who remember what every victory cost, what every silence concealed, and what the survivors still refuse to surrender."
+    },
+    "protagonist": {
+      "name": "mekan Campaign Protagonist",
+      "description": "An original lead character voice from a people described as warm ceremonial voices shaped by brass, breath, drums, laughter, and grief; festive without caricature and solemn without losing color. Decisive, emotionally specific, naturally paced, never a stock hero, and never an imitation of a real performer.",
+      "previewText": "We are not here to repeat the answer we inherited. We are here to discover what it asks of us now, and to leave the people beside us enough freedom to answer differently tomorrow."
+    },
+    "ally": {
+      "name": "mekan Campaign Counselor",
+      "description": "An original ally and counselor voice from a people described as warm ceremonial voices shaped by brass, breath, drums, laughter, and grief; festive without caricature and solemn without losing color. Observant, humane, distinct from the protagonist, capable of disagreement without losing warmth, and never an imitation of a real performer.",
+      "previewText": "The fastest answer can still leave the wrong person carrying its weight. Listen once more before we move, because the voice at the edge of the council may be the one that survives our decision."
+    },
+    "antagonist": {
+      "name": "mekan Campaign Opposition",
+      "description": "An original opposing voice suited to a campaign about warm ceremonial voices shaped by brass, breath, drums, laughter, and grief; festive without caricature and solemn without losing color. Intelligible, persuasive, unsettling through conviction rather than shouting, distinct from the other roles, and never an imitation of a real performer.",
+      "previewText": "You call your hesitation wisdom because you have not yet paid the price of waiting. When the hour closes around you, conviction will be the only mercy your frightened people understand."
+    }
+  },
+  "speakerVoices": {
+    "Narrator": "narrator",
+    "Acama": "protagonist",
+    "The Bone Road Marauders": "antagonist",
+    "Hui": "protagonist",
+    "The Silent Ferryman": "antagonist",
+    "Temo": "protagonist",
+    "The Ash-Mask Gang": "antagonist",
+    "Ahu": "protagonist",
+    "Maestro Veyra": "antagonist",
+    "Allegro": "protagonist",
+    "Champion Xoco": "antagonist",
+    "Monti": "protagonist",
+    "The Grief Eater": "antagonist",
+    "General Calavera": "antagonist",
+    "The Gilded Host": "antagonist",
+    "Archivist Silex": "antagonist",
+    "The Pale Conquistador": "antagonist",
+    "The Quiet Plague": "antagonist",
+    "The Keeper Beyond": "antagonist"
+  }
+}

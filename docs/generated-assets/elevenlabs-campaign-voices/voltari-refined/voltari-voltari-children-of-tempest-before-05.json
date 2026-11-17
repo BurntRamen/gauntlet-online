@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "voltari Campaign Protagonist",
+  "line": "Ground the city through the conductive ridge, publish the routing procedure, and reopen the shelters one district at a time.",
+  "clientOutput": "client/public/assets/gauntlet/voices/voltari-ch01-before-05-stormlord-veyra.mp3",
+  "generatedAt": "2026-11-16T18:25:57.498Z",
+  "publishedAt": "2026-11-16T18:27:20.507Z",
+  "bytes": 120833,
+  "sha256": "89e839d94f4cdf1cbb44c05807589a3a0b8a2ae4e4a521d527153b5767a8cc17"
+}

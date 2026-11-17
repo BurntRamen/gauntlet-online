@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "astral-vanguard Campaign Opposition",
+  "line": "You transmitted minds inside the eggs.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch04-after-03-dr-sera-venn.mp3",
+  "generatedAt": "2026-11-16T18:17:21.703Z",
+  "publishedAt": "2026-11-16T18:18:14.043Z",
+  "bytes": 35151,
+  "sha256": "deef8e0b7032881e508696652057da0c7f01b9dcefa257d5ec12d3b76cee1ef3"
+}

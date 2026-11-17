@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "astral-vanguard Campaign Protagonist",
+  "line": "You call that an advantage?",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch12-before-04-marek-solis.mp3",
+  "generatedAt": "2026-11-16T18:18:08.862Z",
+  "publishedAt": "2026-11-16T18:18:14.331Z",
+  "bytes": 30972,
+  "sha256": "b456774cdddeb5ee612763c991115e25cb4561051bf943ed6df976b0d8df960e"
+}

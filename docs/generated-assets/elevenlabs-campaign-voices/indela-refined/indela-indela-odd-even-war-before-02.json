@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "indela Campaign Protagonist",
+  "line": "The sky does not become heresy because our table was too small.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch04-before-02-aryabhata.mp3",
+  "generatedAt": "2026-11-16T18:20:56.458Z",
+  "publishedAt": "2026-11-16T18:21:53.750Z",
+  "bytes": 72350,
+  "sha256": "0637ee37ebf1a612313ce36bddb3129a5ca8048532e786c27f6375c22b413e1d"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "astral-vanguard Campaign Protagonist",
+  "line": "An army cannot survive if every soldier decides which orders are real.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch11-after-04-marek-solis.mp3",
+  "generatedAt": "2026-11-16T18:18:05.733Z",
+  "publishedAt": "2026-11-16T18:18:14.314Z",
+  "bytes": 64408,
+  "sha256": "2c83ee64780b3cf1bbf314147d25b367710c010ab53bf4c77c40875a260dbaff"
+}

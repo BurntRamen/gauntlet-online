@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "gracus",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "gracus Chronicle Narrator",
+  "line": "Epicura outmaneuvers Leo without breaching the civilian refuge, and the defender joins the investigation.",
+  "clientOutput": "client/public/assets/gauntlet/voices/gracus-ch03-after-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:19:01.218Z",
+  "publishedAt": "2026-11-16T18:20:06.367Z",
+  "bytes": 171406,
+  "sha256": "4a95c92b50adc22c7d659673e5a496657d8830cd9b7e3fb415436ef780ad87cb"
+}

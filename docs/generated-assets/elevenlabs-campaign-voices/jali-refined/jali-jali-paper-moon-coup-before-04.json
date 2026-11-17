@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "ally",
+  "voiceName": "jali Campaign Counselor",
+  "line": "If my coalition survives only by hiding its bargains, it deserves to break in daylight.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch07-before-04-amateru-no-kami.mp3",
+  "generatedAt": "2026-11-16T18:26:41.825Z",
+  "publishedAt": "2026-11-16T18:27:29.176Z",
+  "bytes": 57721,
+  "sha256": "62bf272c202e687dc0afbf23ad055492bc9281c47fb560aee7ae8d61466470f6"
+}

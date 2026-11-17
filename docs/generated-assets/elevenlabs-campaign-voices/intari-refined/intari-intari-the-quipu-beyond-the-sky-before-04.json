@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "intari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "intari Campaign Protagonist",
+  "line": "A full storehouse cannot answer for a voice the state refused to hear.",
+  "clientOutput": "client/public/assets/gauntlet/voices/intari-ch10-before-04-amaru-kuntur.mp3",
+  "generatedAt": "2026-11-16T18:25:00.980Z",
+  "publishedAt": "2026-11-16T18:25:19.200Z",
+  "bytes": 97009,
+  "sha256": "8d22df7e49cda00c09370ccaafc6c0c99061ba8e1e32bb62f14efd86f5e9380d"
+}

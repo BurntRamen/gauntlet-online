@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "ingles",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "ally",
+  "voiceName": "ingles Campaign Counselor",
+  "line": "Then the chronicle must preserve the debt as carefully as the triumph.",
+  "clientOutput": "client/public/assets/gauntlet/voices/ingles-ch01-after-03-archivist-edwyn.mp3",
+  "generatedAt": "2026-11-16T18:22:29.705Z",
+  "publishedAt": "2026-11-16T18:23:30.246Z",
+  "bytes": 53959,
+  "sha256": "198903639ba38cf1165e0c5e76ca907ac03b2ad88b61ad8b3bc2aea8693f7b91"
+}

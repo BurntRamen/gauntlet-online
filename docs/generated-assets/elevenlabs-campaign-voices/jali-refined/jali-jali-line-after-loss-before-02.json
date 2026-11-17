@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "jali Campaign Protagonist",
+  "line": "Defeat opened a place. Memory may hold it, but it may not own the dead.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch01-before-02-watane.mp3",
+  "generatedAt": "2026-11-16T18:25:52.868Z",
+  "publishedAt": "2026-11-16T18:27:29.053Z",
+  "bytes": 111638,
+  "sha256": "b6b034432c27d974d8880361e8606e0f3d3aaab24e678cc94323ed08d23bc129"
+}

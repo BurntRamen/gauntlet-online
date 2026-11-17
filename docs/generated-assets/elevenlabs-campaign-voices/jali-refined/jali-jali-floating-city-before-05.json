@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "jali Campaign Protagonist",
+  "line": "Hold all three lanes until the phantom fleet draws their eyes.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch03-before-05-watane.mp3",
+  "generatedAt": "2026-11-16T18:26:09.543Z",
+  "publishedAt": "2026-11-16T18:27:29.100Z",
+  "bytes": 76947,
+  "sha256": "b2a7b57fb6b622061e7c8964d40b965de3463721663786b292648e7ed3ad075e"
+}

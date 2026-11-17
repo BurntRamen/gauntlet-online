@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "intari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "intari Chronicle Narrator",
+  "line": "The stone beneath Intiray answers a sky that does not belong to Intara, and every measurement describes the distant world Reath.",
+  "clientOutput": "client/public/assets/gauntlet/voices/intari-ch11-before-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:25:06.132Z",
+  "publishedAt": "2026-11-16T18:25:19.215Z",
+  "bytes": 232846,
+  "sha256": "f83728b1b9968ccf4a9c4759e14ba2d3383382f2f24202638a0c8842ac7d6a56"
+}

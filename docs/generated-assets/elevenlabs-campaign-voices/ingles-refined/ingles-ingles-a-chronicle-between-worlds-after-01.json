@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "ingles",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "ingles Chronicle Narrator",
+  "line": "The first stable passage proves the Timetwister transmits an error-corrected pattern of a willing traveler and reconstructs that pattern from matter at the paired receiver.",
+  "clientOutput": "client/public/assets/gauntlet/voices/ingles-ch11-after-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:23:22.736Z",
+  "publishedAt": "2026-11-16T18:23:30.545Z",
+  "bytes": 172660,
+  "sha256": "517cb2eac8a7b5a09786e26c89a770ae4e70b967833c0bb39a2380229e390e48"
+}

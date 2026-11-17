@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "factionId": "qhantari",
+  "voiceDesignModelId": "eleven_multilingual_ttv_v2",
+  "speechModelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "stagingDirectory": "artifacts/elevenlabs-campaign-voices/qhantari-refined",
+  "publicDirectory": "client/public/assets/gauntlet/voices",
+  "provenanceDirectory": "docs/generated-assets/elevenlabs-campaign-voices/qhantari-refined",
+  "contentRegistry": "server/campaignVoiceAssets/qhantari.json",
+  "voices": {
+    "narrator": {
+      "name": "qhantari Chronicle Narrator",
+      "description": "An original fictional narrator for a campaign about high-mountain relay keepers with bright carrying tone, efficient breath, careful listening, and the cadence of messages checked at every station. Grounded low-mid register, vivid but restrained storytelling, excellent clarity, and no imitation of a real performer.",
+      "previewText": "History does not enter a battlefield alone. It arrives through the people who remember what every victory cost, what every silence concealed, and what the survivors still refuse to surrender."
+    },
+    "protagonist": {
+      "name": "qhantari Campaign Protagonist",
+      "description": "An original lead character voice from a people described as high-mountain relay keepers with bright carrying tone, efficient breath, careful listening, and the cadence of messages checked at every station. Decisive, emotionally specific, naturally paced, never a stock hero, and never an imitation of a real performer.",
+      "previewText": "We are not here to repeat the answer we inherited. We are here to discover what it asks of us now, and to leave the people beside us enough freedom to answer differently tomorrow."
+    },
+    "ally": {
+      "name": "qhantari Campaign Counselor",
+      "description": "An original ally and counselor voice from a people described as high-mountain relay keepers with bright carrying tone, efficient breath, careful listening, and the cadence of messages checked at every station. Observant, humane, distinct from the protagonist, capable of disagreement without losing warmth, and never an imitation of a real performer.",
+      "previewText": "The fastest answer can still leave the wrong person carrying its weight. Listen once more before we move, because the voice at the edge of the council may be the one that survives our decision."
+    },
+    "antagonist": {
+      "name": "qhantari Campaign Opposition",
+      "description": "An original opposing voice suited to a campaign about high-mountain relay keepers with bright carrying tone, efficient breath, careful listening, and the cadence of messages checked at every station. Intelligible, persuasive, unsettling through conviction rather than shouting, distinct from the other roles, and never an imitation of a real performer.",
+      "previewText": "You call your hesitation wisdom because you have not yet paid the price of waiting. When the hour closes around you, conviction will be the only mercy your frightened people understand."
+    }
+  },
+  "speakerVoices": {
+    "Narrator": "narrator",
+    "Courier-General Amaru": "protagonist",
+    "The Capital Seal": "antagonist",
+    "Killa Ropekeeper": "ally",
+    "The Ravine Wind": "antagonist",
+    "The Seal Hunters": "antagonist",
+    "The Hoarding Governor": "antagonist",
+    "The Official Count": "antagonist",
+    "The Imperial Inspector": "antagonist",
+    "The Silent Relay": "antagonist",
+    "The Erasure Order": "antagonist",
+    "The Central Claimant": "antagonist",
+    "The Receiver Warden": "antagonist",
+    "The Forced March": "antagonist",
+    "The Convergence Storm": "antagonist"
+  }
+}

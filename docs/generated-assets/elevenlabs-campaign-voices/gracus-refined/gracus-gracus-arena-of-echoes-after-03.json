@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "gracus",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "ally",
+  "voiceName": "gracus Campaign Counselor",
+  "line": "If no one may disagree with Athun, only the buildings remain.",
+  "clientOutput": "client/public/assets/gauntlet/voices/gracus-ch05-after-03-leo.mp3",
+  "generatedAt": "2026-11-16T18:19:16.837Z",
+  "publishedAt": "2026-11-16T18:20:06.430Z",
+  "bytes": 90322,
+  "sha256": "62db3f101a98a96099bc692609328492886d4e60b667fd6bc7eeb5a6b5ace184"
+}

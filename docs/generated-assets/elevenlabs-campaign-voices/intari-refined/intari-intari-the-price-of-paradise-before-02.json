@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "intari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "intari Campaign Protagonist",
+  "line": "Collective labor is sacred only while the worker remains more than the work.",
+  "clientOutput": "client/public/assets/gauntlet/voices/intari-ch05-before-02-sapa-intar.mp3",
+  "generatedAt": "2026-11-16T18:24:27.976Z",
+  "publishedAt": "2026-11-16T18:25:19.087Z",
+  "bytes": 96173,
+  "sha256": "a9b1d5cb3876ed96588280de9529c58258a7647cc0cb084a0f2687ad1cbf8249"
+}

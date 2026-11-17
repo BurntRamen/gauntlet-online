@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "jali Chronicle Narrator",
+  "line": "Ancient armies fill the sky. Yamabuki returns at their head and realizes that staying would let him finish unification in one possible Aozora while condemning every living descendant to the Sovereign.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch11-before-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:27:11.437Z",
+  "publishedAt": "2026-11-16T18:27:29.249Z",
+  "bytes": 264193,
+  "sha256": "1c93443149387ce0127115a6566e938888a838a5242bbf033a8388d88f0928c6"
+}

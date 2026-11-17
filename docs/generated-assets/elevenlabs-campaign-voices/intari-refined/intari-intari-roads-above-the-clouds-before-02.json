@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "intari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "intari Campaign Protagonist",
+  "line": "The Sun sees the terrace and every hand that raised it.",
+  "clientOutput": "client/public/assets/gauntlet/voices/intari-ch04-before-02-sapa-intar.mp3",
+  "generatedAt": "2026-11-16T18:24:21.385Z",
+  "publishedAt": "2026-11-16T18:25:19.064Z",
+  "bytes": 56885,
+  "sha256": "b2777a3dd3c44fad4fce565898ffaa7a7fc81edee1a0180538aeee57d1492171"
+}

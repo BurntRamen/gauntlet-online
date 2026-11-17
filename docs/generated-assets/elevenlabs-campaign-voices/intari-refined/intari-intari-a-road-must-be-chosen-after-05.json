@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "intari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "intari Chronicle Narrator",
+  "line": "The consequences of A Road Must Be Chosen travel with the Intari beyond this battlefield.",
+  "clientOutput": "client/public/assets/gauntlet/voices/intari-ch11-after-05-narrator.mp3",
+  "generatedAt": "2026-11-16T18:25:12.525Z",
+  "publishedAt": "2026-11-16T18:25:19.236Z",
+  "bytes": 144656,
+  "sha256": "ef059d30f91eeadb4319786ae2dd7f5ed2b11eb772ece8a489d63a9bf867614a"
+}

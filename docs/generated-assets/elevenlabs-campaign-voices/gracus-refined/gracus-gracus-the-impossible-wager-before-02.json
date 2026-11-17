@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "gracus",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "gracus Campaign Protagonist",
+  "line": "We do not abandon Thalassa. We carry its question to another world.",
+  "clientOutput": "client/public/assets/gauntlet/voices/gracus-ch11-before-02-epicura.mp3",
+  "generatedAt": "2026-11-16T18:19:53.755Z",
+  "publishedAt": "2026-11-16T18:20:06.544Z",
+  "bytes": 116235,
+  "sha256": "0a0ea78ca55319efb52d4db941e142cf3d0ac8581289e8fe11821dad27de5481"
+}

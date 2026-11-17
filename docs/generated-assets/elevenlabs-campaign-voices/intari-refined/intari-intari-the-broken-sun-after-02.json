@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "intari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "intari Campaign Opposition",
+  "line": "Your voluntary road will never reach as far as conquest.",
+  "clientOutput": "client/public/assets/gauntlet/voices/intari-ch08-after-02-prince-atar.mp3",
+  "generatedAt": "2026-11-16T18:24:50.335Z",
+  "publishedAt": "2026-11-16T18:25:19.162Z",
+  "bytes": 79873,
+  "sha256": "2086c032741a1f19018d12bd485510955c28f0ba261d27c8d9dfb2b6706c722a"
+}

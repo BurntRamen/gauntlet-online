@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "astral-vanguard Campaign Protagonist",
+  "line": "Correct. Our success was permitted.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch09-after-03-oru.mp3",
+  "generatedAt": "2026-11-16T18:17:51.232Z",
+  "publishedAt": "2026-11-16T18:18:14.230Z",
+  "bytes": 42674,
+  "sha256": "88db1d3b382f0fdba2ddcad762327de573b1d5e9c62022381e665e415d28aa1a"
+}

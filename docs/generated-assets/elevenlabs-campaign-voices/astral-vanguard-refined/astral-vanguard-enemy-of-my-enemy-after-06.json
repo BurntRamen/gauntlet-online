@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "astral-vanguard Campaign Protagonist",
+  "line": "Then let it learn that ours can change without breaking.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch09-after-06-alden.mp3",
+  "generatedAt": "2026-11-16T18:17:52.673Z",
+  "publishedAt": "2026-11-16T18:18:14.240Z",
+  "bytes": 44346,
+  "sha256": "0e6a0d067aa07855051c8740c8e35a578c61ac4c6d18b805f88678300f7aad4b"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "gracus",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "gracus Campaign Protagonist",
+  "line": "A beginning is evidence, not ownership.",
+  "clientOutput": "client/public/assets/gauntlet/voices/gracus-ch06-before-04-epicura.mp3",
+  "generatedAt": "2026-11-16T18:19:20.944Z",
+  "publishedAt": "2026-11-16T18:20:06.443Z",
+  "bytes": 47690,
+  "sha256": "62b926fc90614e44e28cb46cbf7734983f37b64dc5d2209e96aa1387520ccaa3"
+}

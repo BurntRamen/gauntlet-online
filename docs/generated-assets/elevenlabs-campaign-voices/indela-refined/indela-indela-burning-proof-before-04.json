@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "indela Campaign Protagonist",
+  "line": "Then distribute copies faster than any conqueror can gather them.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch09-before-04-vishnugupta.mp3",
+  "generatedAt": "2026-11-16T18:21:30.804Z",
+  "publishedAt": "2026-11-16T18:21:53.885Z",
+  "bytes": 70260,
+  "sha256": "eaac96c88e4c29b0697f12051374066bffc04b8b64ee4e83e93ada3304103f41"
+}

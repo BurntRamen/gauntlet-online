@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "gracus",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "ally",
+  "voiceName": "gracus Campaign Counselor",
+  "line": "That sounds less like a threat than a destination.",
+  "clientOutput": "client/public/assets/gauntlet/voices/gracus-ch10-after-03-socratus.mp3",
+  "generatedAt": "2026-11-16T18:19:50.688Z",
+  "publishedAt": "2026-11-16T18:20:06.535Z",
+  "bytes": 58139,
+  "sha256": "1737358e0718bfbd157917e9c851887a077072bbf46ae076dc7c262fb0a4b7c1"
+}

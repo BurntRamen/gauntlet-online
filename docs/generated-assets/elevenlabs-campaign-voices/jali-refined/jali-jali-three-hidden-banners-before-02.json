@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "jali Campaign Protagonist",
+  "line": "A memory can testify. It cannot crown the speaker who summoned it.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch02-before-02-basho.mp3",
+  "generatedAt": "2026-11-16T18:26:00.095Z",
+  "publishedAt": "2026-11-16T18:27:29.076Z",
+  "bytes": 102861,
+  "sha256": "c38971507783e68abeb4bacf5a9f768997f8dfe23dfa0b6ed270408f2f2733a5"
+}

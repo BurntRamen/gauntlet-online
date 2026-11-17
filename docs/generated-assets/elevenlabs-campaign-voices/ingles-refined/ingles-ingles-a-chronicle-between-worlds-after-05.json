@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "ingles",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "ingles Chronicle Narrator",
+  "line": "The consequences of A Chronicle Between Worlds travel with the Ingles beyond this battlefield.",
+  "clientOutput": "client/public/assets/gauntlet/voices/ingles-ch11-after-05-narrator.mp3",
+  "generatedAt": "2026-11-16T18:23:24.888Z",
+  "publishedAt": "2026-11-16T18:23:30.557Z",
+  "bytes": 99935,
+  "sha256": "704eec38d681ea9fd0b06e031bd347cf0d3cb3b4f61613f77ff17a5f93157667"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "ingles",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "ingles Chronicle Narrator",
+  "line": "The consequences of The Book and the Blade travel with the Ingles beyond this battlefield.",
+  "clientOutput": "client/public/assets/gauntlet/voices/ingles-ch02-after-05-narrator.mp3",
+  "generatedAt": "2026-11-16T18:22:35.998Z",
+  "publishedAt": "2026-11-16T18:23:30.278Z",
+  "bytes": 75275,
+  "sha256": "090a2a58e05e01957f1c9b2d88d1b4949a8e9f11511652aa2d249fb715881d05"
+}

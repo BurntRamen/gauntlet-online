@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "indela Chronicle Narrator",
+  "line": "What was chosen in The Stars Above Kashi becomes part of the faction's next argument, not a lesson history has finished teaching.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch04-after-05-narrator.mp3",
+  "generatedAt": "2026-11-16T18:21:01.652Z",
+  "publishedAt": "2026-11-16T18:21:53.770Z",
+  "bytes": 181019,
+  "sha256": "23b1540b3340603cddbef841b26175d1d42ed9227ada9ed8da9de43e99ea041e"
+}

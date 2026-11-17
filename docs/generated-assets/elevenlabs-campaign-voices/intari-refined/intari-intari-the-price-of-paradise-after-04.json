@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "intari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "intari Campaign Protagonist",
+  "line": "Let the quipu remember who said no and remained one of us.",
+  "clientOutput": "client/public/assets/gauntlet/voices/intari-ch05-after-04-sapa-intar.mp3",
+  "generatedAt": "2026-11-16T18:24:31.901Z",
+  "publishedAt": "2026-11-16T18:25:19.102Z",
+  "bytes": 84888,
+  "sha256": "30a84a0da0b436395957b52ca6c0d51176ed79d41a106451654220414a7756a1"
+}

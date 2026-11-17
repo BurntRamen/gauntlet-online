@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "astral-vanguard Campaign Protagonist",
+  "line": "Protocol Nine places every unit on one verified command layer.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch11-before-03-marek-solis.mp3",
+  "generatedAt": "2026-11-16T18:18:01.576Z",
+  "publishedAt": "2026-11-16T18:18:14.290Z",
+  "bytes": 58139,
+  "sha256": "2581d7893567141a316453324212e4bdce3cf7ed60bf810b2b6c3127cca20057"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "ingles",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "ingles Campaign Opposition",
+  "line": "A crown that asks permission has already admitted it cannot rule.",
+  "clientOutput": "client/public/assets/gauntlet/voices/ingles-ch12-before-03-the-convergence-storm.mp3",
+  "generatedAt": "2026-11-16T18:23:26.434Z",
+  "publishedAt": "2026-11-16T18:23:30.568Z",
+  "bytes": 97009,
+  "sha256": "023d66b69b193da3a643b42ce36c74d1af0e86af52c4787d6da63e1fabbdd2f0"
+}

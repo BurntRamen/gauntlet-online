@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "ingles",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "ingles Campaign Protagonist",
+  "line": "Let the next reign inherit our questions, not only our monuments.",
+  "clientOutput": "client/public/assets/gauntlet/voices/ingles-ch09-after-04-lord-arthur-wellington.mp3",
+  "generatedAt": "2026-11-16T18:23:13.078Z",
+  "publishedAt": "2026-11-16T18:23:30.493Z",
+  "bytes": 69424,
+  "sha256": "4b6084f905ccf37d2f480a562b4f7801d8c194461e5f1dd9c1033c6fcd46f044"
+}

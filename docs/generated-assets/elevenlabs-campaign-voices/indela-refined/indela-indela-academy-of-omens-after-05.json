@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "indela Chronicle Narrator",
+  "line": "What was chosen in The First Concord becomes part of the faction's next argument, not a lesson history has finished teaching.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch02-after-05-narrator.mp3",
+  "generatedAt": "2026-11-16T18:20:48.753Z",
+  "publishedAt": "2026-11-16T18:21:53.722Z",
+  "bytes": 127938,
+  "sha256": "5bcea67cd23fc1fcf1031ae8f9ba89c2dcb92ae080a209b06c61b2a92b6d69a2"
+}

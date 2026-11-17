@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "ally",
+  "voiceName": "jali Campaign Counselor",
+  "line": "Or the first evidence that the Mirror reaches farther than our dead.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch09-before-04-seimei-no-mikoto.mp3",
+  "generatedAt": "2026-11-16T18:26:57.346Z",
+  "publishedAt": "2026-11-16T18:27:29.218Z",
+  "bytes": 98263,
+  "sha256": "e67e156279a15ec0497fa30e1b108621ecb1242203f999006fd997ccf360030a"
+}

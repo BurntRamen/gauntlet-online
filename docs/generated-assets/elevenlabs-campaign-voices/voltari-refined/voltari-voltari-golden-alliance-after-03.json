@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "ally",
+  "voiceName": "voltari Campaign Counselor",
+  "line": "Power returned voluntarily proves the transfer was aid.",
+  "clientOutput": "client/public/assets/gauntlet/voices/voltari-ch10-after-03-warden-kryos.mp3",
+  "generatedAt": "2026-11-16T18:27:03.037Z",
+  "publishedAt": "2026-11-16T18:27:20.719Z",
+  "bytes": 62736,
+  "sha256": "1247a2c95c7f79b3d939f93f4256dc9f67b7cf77765891922c296d89549b7405"
+}

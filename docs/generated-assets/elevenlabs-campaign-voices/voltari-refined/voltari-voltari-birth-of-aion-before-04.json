@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "ally",
+  "voiceName": "voltari Campaign Counselor",
+  "line": "Then let the machine act before committees bury another world.",
+  "clientOutput": "client/public/assets/gauntlet/voices/voltari-ch05-before-04-warden-kryos.mp3",
+  "generatedAt": "2026-11-16T18:26:23.583Z",
+  "publishedAt": "2026-11-16T18:27:20.591Z",
+  "bytes": 58975,
+  "sha256": "99f179bfca2448b18fb710c7b557cf17cc1dda5a88058e716502f8561a84462d"
+}

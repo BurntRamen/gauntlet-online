@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "indela Campaign Protagonist",
+  "line": "Defend the libraries. Harm no student who lays down a spell.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch01-before-05-katel.mp3",
+  "generatedAt": "2026-11-16T18:20:38.639Z",
+  "publishedAt": "2026-11-16T18:21:53.682Z",
+  "bytes": 79037,
+  "sha256": "2d2c0ff90411869b76127f969f6438136654684423cf03048ce4a9c1a6e37f92"
+}

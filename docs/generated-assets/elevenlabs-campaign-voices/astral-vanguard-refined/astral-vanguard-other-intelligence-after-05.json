@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "astral-vanguard Campaign Protagonist",
+  "line": "The stones rebuilt you here.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch04-after-05-alden.mp3",
+  "generatedAt": "2026-11-16T18:17:22.568Z",
+  "publishedAt": "2026-11-16T18:18:14.050Z",
+  "bytes": 27210,
+  "sha256": "e21e34947effa2e40c6235e09f46b572629db04335c609f101198bc22ee7ce24"
+}

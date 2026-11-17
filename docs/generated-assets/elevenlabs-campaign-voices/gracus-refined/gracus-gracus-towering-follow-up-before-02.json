@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "gracus",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "gracus Campaign Protagonist",
+  "line": "Your wall preserved lives. It is now preserving the lie that isolated you.",
+  "clientOutput": "client/public/assets/gauntlet/voices/gracus-ch03-before-02-epicura.mp3",
+  "generatedAt": "2026-11-16T18:18:58.551Z",
+  "publishedAt": "2026-11-16T18:20:06.357Z",
+  "bytes": 144656,
+  "sha256": "1bad28faf3e458c5f6d71801ca949fa7f1974a4f97ef9e7e2d32a4e4e8e6f68a"
+}

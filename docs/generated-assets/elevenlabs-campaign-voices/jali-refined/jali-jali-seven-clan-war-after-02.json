@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "jali Campaign Opposition",
+  "line": "Without every past, you are whole. Without one past, we are nothing. Choose all of me.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch10-after-02-the-forgotten-sovereign.mp3",
+  "generatedAt": "2026-11-16T18:27:08.002Z",
+  "publishedAt": "2026-11-16T18:27:29.243Z",
+  "bytes": 187706,
+  "sha256": "24290cc3dd91417751901438281da26e2ae76b86fec490c5a4df28161be0b117"
+}

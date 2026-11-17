@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "intari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "intari Chronicle Narrator",
+  "line": "Intara remains the faction's home and origin. The expedition establishes a bounded presence on Reath, the shared convergence point.",
+  "clientOutput": "client/public/assets/gauntlet/voices/intari-ch12-after-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:25:16.791Z",
+  "publishedAt": "2026-11-16T18:25:19.250Z",
+  "bytes": 191886,
+  "sha256": "5807d58f2630f2c87e0a2363a0148fe26c862c291380f2a913ad7bd2d3ae628b"
+}

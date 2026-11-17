@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "indela Chronicle Narrator",
+  "line": "The Convergence collapses, the archive survives, and Katel disappears inside a sphere where fire and ice become white light.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch11-after-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:21:44.389Z",
+  "publishedAt": "2026-11-16T18:21:53.953Z",
+  "bytes": 175585,
+  "sha256": "070ff95439580c228ca1a716c27b254474bfcb6cfc4bcd538f29ae2b93fb6474"
+}

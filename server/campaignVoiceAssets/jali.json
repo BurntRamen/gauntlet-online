@@ -1,0 +1,198 @@
+{
+  "schemaVersion": 1,
+  "factionId": "jali",
+  "chapters": {
+    "jali-line-after-loss": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/jali-ch01-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/jali-ch01-before-02-watane.mp3",
+        "/assets/gauntlet/voices/jali-ch01-before-03-lord-haruto.mp3",
+        "/assets/gauntlet/voices/jali-ch01-before-04-basho.mp3",
+        "/assets/gauntlet/voices/jali-ch01-before-05-watane.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/jali-ch01-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/jali-ch01-after-02-lord-haruto.mp3",
+        "/assets/gauntlet/voices/jali-ch01-after-03-basho.mp3",
+        "/assets/gauntlet/voices/jali-ch01-after-04-watane.mp3",
+        "/assets/gauntlet/voices/jali-ch01-after-05-narrator.mp3"
+      ]
+    },
+    "jali-three-hidden-banners": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/jali-ch02-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/jali-ch02-before-02-basho.mp3",
+        "/assets/gauntlet/voices/jali-ch02-before-03-the-mirror-clan.mp3",
+        "/assets/gauntlet/voices/jali-ch02-before-04-watane.mp3",
+        "/assets/gauntlet/voices/jali-ch02-before-05-basho.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/jali-ch02-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/jali-ch02-after-02-the-mirror-clan.mp3",
+        "/assets/gauntlet/voices/jali-ch02-after-03-watane.mp3",
+        "/assets/gauntlet/voices/jali-ch02-after-04-basho.mp3",
+        "/assets/gauntlet/voices/jali-ch02-after-05-narrator.mp3"
+      ]
+    },
+    "jali-floating-city": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/jali-ch03-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/jali-ch03-before-02-watane.mp3",
+        "/assets/gauntlet/voices/jali-ch03-before-03-the-coalition-of-seven-peaks.mp3",
+        "/assets/gauntlet/voices/jali-ch03-before-04-yamabuki-no-kami.mp3",
+        "/assets/gauntlet/voices/jali-ch03-before-05-watane.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/jali-ch03-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/jali-ch03-after-02-the-coalition-of-seven-peaks.mp3",
+        "/assets/gauntlet/voices/jali-ch03-after-03-yamabuki-no-kami.mp3",
+        "/assets/gauntlet/voices/jali-ch03-after-04-watane.mp3",
+        "/assets/gauntlet/voices/jali-ch03-after-05-narrator.mp3"
+      ]
+    },
+    "jali-bested-prince": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/jali-ch04-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/jali-ch04-before-02-watane.mp3",
+        "/assets/gauntlet/voices/jali-ch04-before-03-prince-daigo.mp3",
+        "/assets/gauntlet/voices/jali-ch04-before-04-yamabuki-no-kami.mp3",
+        "/assets/gauntlet/voices/jali-ch04-before-05-watane.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/jali-ch04-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/jali-ch04-after-02-prince-daigo.mp3",
+        "/assets/gauntlet/voices/jali-ch04-after-03-yamabuki-no-kami.mp3",
+        "/assets/gauntlet/voices/jali-ch04-after-04-watane.mp3",
+        "/assets/gauntlet/voices/jali-ch04-after-05-narrator.mp3"
+      ]
+    },
+    "jali-storm-formation": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/jali-ch05-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/jali-ch05-before-02-watane.mp3",
+        "/assets/gauntlet/voices/jali-ch05-before-03-the-thunder-ronin.mp3",
+        "/assets/gauntlet/voices/jali-ch05-before-04-hinata-no-mikoto.mp3",
+        "/assets/gauntlet/voices/jali-ch05-before-05-watane.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/jali-ch05-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/jali-ch05-after-02-the-thunder-ronin.mp3",
+        "/assets/gauntlet/voices/jali-ch05-after-03-hinata-no-mikoto.mp3",
+        "/assets/gauntlet/voices/jali-ch05-after-04-watane.mp3",
+        "/assets/gauntlet/voices/jali-ch05-after-05-narrator.mp3"
+      ]
+    },
+    "jali-revenant-famine": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/jali-ch06-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/jali-ch06-before-02-watane.mp3",
+        "/assets/gauntlet/voices/jali-ch06-before-03-the-white-abbot.mp3",
+        "/assets/gauntlet/voices/jali-ch06-before-04-seimei-no-mikoto.mp3",
+        "/assets/gauntlet/voices/jali-ch06-before-05-watane.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/jali-ch06-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/jali-ch06-after-02-the-white-abbot.mp3",
+        "/assets/gauntlet/voices/jali-ch06-after-03-seimei-no-mikoto.mp3",
+        "/assets/gauntlet/voices/jali-ch06-after-04-watane.mp3",
+        "/assets/gauntlet/voices/jali-ch06-after-05-narrator.mp3"
+      ]
+    },
+    "jali-paper-moon-coup": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/jali-ch07-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/jali-ch07-before-02-basho.mp3",
+        "/assets/gauntlet/voices/jali-ch07-before-03-minister-kuro.mp3",
+        "/assets/gauntlet/voices/jali-ch07-before-04-amateru-no-kami.mp3",
+        "/assets/gauntlet/voices/jali-ch07-before-05-basho.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/jali-ch07-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/jali-ch07-after-02-minister-kuro.mp3",
+        "/assets/gauntlet/voices/jali-ch07-after-03-amateru-no-kami.mp3",
+        "/assets/gauntlet/voices/jali-ch07-after-04-basho.mp3",
+        "/assets/gauntlet/voices/jali-ch07-after-05-narrator.mp3"
+      ]
+    },
+    "jali-falling-katana": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/jali-ch08-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/jali-ch08-before-02-watane.mp3",
+        "/assets/gauntlet/voices/jali-ch08-before-03-the-eastern-cloud-alliance.mp3",
+        "/assets/gauntlet/voices/jali-ch08-before-04-amateru-no-kami.mp3",
+        "/assets/gauntlet/voices/jali-ch08-before-05-watane.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/jali-ch08-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/jali-ch08-after-02-the-eastern-cloud-alliance.mp3",
+        "/assets/gauntlet/voices/jali-ch08-after-03-amateru-no-kami.mp3",
+        "/assets/gauntlet/voices/jali-ch08-after-04-watane.mp3",
+        "/assets/gauntlet/voices/jali-ch08-after-05-narrator.mp3"
+      ]
+    },
+    "jali-warrior-without-memory": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/jali-ch09-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/jali-ch09-before-02-watane.mp3",
+        "/assets/gauntlet/voices/jali-ch09-before-03-nameless-revenant.mp3",
+        "/assets/gauntlet/voices/jali-ch09-before-04-seimei-no-mikoto.mp3",
+        "/assets/gauntlet/voices/jali-ch09-before-05-watane.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/jali-ch09-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/jali-ch09-after-02-nameless-revenant.mp3",
+        "/assets/gauntlet/voices/jali-ch09-after-03-seimei-no-mikoto.mp3",
+        "/assets/gauntlet/voices/jali-ch09-after-04-watane.mp3",
+        "/assets/gauntlet/voices/jali-ch09-after-05-narrator.mp3"
+      ]
+    },
+    "jali-seven-clan-war": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/jali-ch10-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/jali-ch10-before-02-basho.mp3",
+        "/assets/gauntlet/voices/jali-ch10-before-03-the-forgotten-sovereign.mp3",
+        "/assets/gauntlet/voices/jali-ch10-before-04-watane.mp3",
+        "/assets/gauntlet/voices/jali-ch10-before-05-basho.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/jali-ch10-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/jali-ch10-after-02-the-forgotten-sovereign.mp3",
+        "/assets/gauntlet/voices/jali-ch10-after-03-watane.mp3",
+        "/assets/gauntlet/voices/jali-ch10-after-04-basho.mp3",
+        "/assets/gauntlet/voices/jali-ch10-after-05-narrator.mp3"
+      ]
+    },
+    "jali-last-revenant": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/jali-ch11-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/jali-ch11-before-02-watane.mp3",
+        "/assets/gauntlet/voices/jali-ch11-before-03-the-forgotten-sovereign.mp3",
+        "/assets/gauntlet/voices/jali-ch11-before-04-seimei-no-mikoto.mp3",
+        "/assets/gauntlet/voices/jali-ch11-before-05-watane.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/jali-ch11-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/jali-ch11-after-02-the-forgotten-sovereign.mp3",
+        "/assets/gauntlet/voices/jali-ch11-after-03-seimei-no-mikoto.mp3",
+        "/assets/gauntlet/voices/jali-ch11-after-04-watane.mp3",
+        "/assets/gauntlet/voices/jali-ch11-after-05-narrator.mp3"
+      ]
+    },
+    "jali-formation-eternal": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/jali-ch12-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/jali-ch12-before-02-watane.mp3",
+        "/assets/gauntlet/voices/jali-ch12-before-03-the-forgotten-sovereign.mp3",
+        "/assets/gauntlet/voices/jali-ch12-before-04-basho.mp3",
+        "/assets/gauntlet/voices/jali-ch12-before-05-watane.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/jali-ch12-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/jali-ch12-after-02-the-forgotten-sovereign.mp3",
+        "/assets/gauntlet/voices/jali-ch12-after-03-basho.mp3",
+        "/assets/gauntlet/voices/jali-ch12-after-04-watane.mp3",
+        "/assets/gauntlet/voices/jali-ch12-after-05-narrator.mp3"
+      ]
+    }
+  }
+}

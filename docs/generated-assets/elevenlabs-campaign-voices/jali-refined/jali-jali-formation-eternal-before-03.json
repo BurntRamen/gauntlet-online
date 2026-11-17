@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "jali Campaign Opposition",
+  "line": "You win. We have already returned. I never existed. Reath remembers me before you arrive.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch12-before-03-the-forgotten-sovereign.mp3",
+  "generatedAt": "2026-11-16T18:27:23.151Z",
+  "publishedAt": "2026-11-16T18:27:29.271Z",
+  "bytes": 194812,
+  "sha256": "6818aa5cb906d3eb15de70dd84c5a4617ee302c64ce8fd3f3bc998e45e1816d3"
+}

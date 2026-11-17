@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "gracus",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "gracus Chronicle Narrator",
+  "line": "Sunlight crosses Athun's marble harbors as Alexiti returns to the Hall of Voices with attacked trade routes, missing soldiers, and a demand to march.",
+  "clientOutput": "client/public/assets/gauntlet/voices/gracus-ch01-before-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:18:44.762Z",
+  "publishedAt": "2026-11-16T18:20:06.298Z",
+  "bytes": 221143,
+  "sha256": "c7a7b31f3bb43e81c83f612ba705fd3d301842726a119c88f99f362e8f8457c5"
+}

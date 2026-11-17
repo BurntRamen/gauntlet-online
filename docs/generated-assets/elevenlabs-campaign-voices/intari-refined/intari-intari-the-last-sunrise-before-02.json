@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "intari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "intari Campaign Protagonist",
+  "line": "Build the road, but leave each valley the power to choose where it leads.",
+  "clientOutput": "client/public/assets/gauntlet/voices/intari-ch09-before-02-amaru-kuntur.mp3",
+  "generatedAt": "2026-11-16T18:24:53.713Z",
+  "publishedAt": "2026-11-16T18:25:19.173Z",
+  "bytes": 104950,
+  "sha256": "d87018dd043176a756f6a4e2d8034afbaf9fba6bfcd393858c8b68ac6c248e85"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "gracus",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "ally",
+  "voiceName": "gracus Campaign Counselor",
+  "line": "Can it learn, if it can never discover that it is wrong?",
+  "clientOutput": "client/public/assets/gauntlet/voices/gracus-ch10-before-04-socratus.mp3",
+  "generatedAt": "2026-11-16T18:19:48.185Z",
+  "publishedAt": "2026-11-16T18:20:06.526Z",
+  "bytes": 71096,
+  "sha256": "6abc40fb4ee07559445807bd319aeb2a78b5d0db31056bef95bd713a07e241ed"
+}

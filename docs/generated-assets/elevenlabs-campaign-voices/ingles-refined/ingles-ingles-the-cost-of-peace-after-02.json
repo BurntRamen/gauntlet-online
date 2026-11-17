@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "ingles",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "ingles Campaign Opposition",
+  "line": "You preserved the institution and postponed the reckoning.",
+  "clientOutput": "client/public/assets/gauntlet/voices/ingles-ch09-after-02-the-unfinished-treaty.mp3",
+  "generatedAt": "2026-11-16T18:23:12.121Z",
+  "publishedAt": "2026-11-16T18:23:30.487Z",
+  "bytes": 61901,
+  "sha256": "77ea7ffb50d670d507ae0e39cc63e44d00e5ea7b06cfbfdeb78e0ab82a176f84"
+}

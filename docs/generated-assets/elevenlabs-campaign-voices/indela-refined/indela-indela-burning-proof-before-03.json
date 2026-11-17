@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "indela Campaign Opposition",
+  "line": "Without authority your archive will become plunder.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch09-before-03-the-provincial-compact.mp3",
+  "generatedAt": "2026-11-16T18:21:30.243Z",
+  "publishedAt": "2026-11-16T18:21:53.883Z",
+  "bytes": 96173,
+  "sha256": "2784aac1dff7758f637b8ee031acc885a92ee09027ed008bcb4871942fc0e998"
+}

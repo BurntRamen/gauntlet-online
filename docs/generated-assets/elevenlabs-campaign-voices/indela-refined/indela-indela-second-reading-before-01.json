@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "indela Chronicle Narrator",
+  "line": "Raiders sever the Scholar's Road while thousands of students and copied manuscripts are still crossing Varuna toward Kashi.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch03-before-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:20:49.551Z",
+  "publishedAt": "2026-11-16T18:21:53.725Z",
+  "bytes": 151344,
+  "sha256": "d27731ab0a1fb5a2184880cab2776e39d9cd304406a35b79a049d661731a8501"
+}

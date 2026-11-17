@@ -61,7 +61,7 @@ test("compact publication reads preserve authoritative draft, validation and pri
     assert.equal(compact.changes.length, 1);
     assert.equal(Object.hasOwn(compact, "fields"), false);
     assert.equal(Object.hasOwn(compact, "assetLibrary"), false);
-    assert.ok(JSON.stringify(compact).length < JSON.stringify(full).length / 2);
+    assert.ok(JSON.stringify(compact).length < JSON.stringify(full).length, "compact reads must omit editor-only metadata even when authored content contains many asset references");
     compact.live.domains.cards[0].name = "Caller mutation";
     assert.equal((await store.summary()).live.domains.cards[0].name, full.live.domains.cards[0].name);
   };

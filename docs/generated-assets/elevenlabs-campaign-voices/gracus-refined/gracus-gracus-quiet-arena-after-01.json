@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "gracus",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "gracus Chronicle Narrator",
+  "line": "The lattice collapses. The First Stone wakes long enough to unfold into a Timetwister aperture aimed beyond Thalassa.",
+  "clientOutput": "client/public/assets/gauntlet/voices/gracus-ch10-after-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:19:49.869Z",
+  "publishedAt": "2026-11-16T18:20:06.531Z",
+  "bytes": 191886,
+  "sha256": "18808101e8a892d41cfdcfb5fbb11c44c12c51b688d0b74b5831059b97995b0a"
+}

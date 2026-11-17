@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "intari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "intari Campaign Protagonist",
+  "line": "Count the harvest beside the freedom that produced it.",
+  "clientOutput": "client/public/assets/gauntlet/voices/intari-ch01-after-04-the-golden-siblings.mp3",
+  "generatedAt": "2026-11-16T18:24:05.746Z",
+  "publishedAt": "2026-11-16T18:25:19.007Z",
+  "bytes": 58975,
+  "sha256": "c493107f49db4e977b8063e28451bd25dd3ed138748a443b72fa6561b1b9461f"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "indela Campaign Opposition",
+  "line": "COMBINATION REQUIRES NO CONSENT.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch05-before-03-the-unbound-experiment.mp3",
+  "generatedAt": "2026-11-16T18:21:03.328Z",
+  "publishedAt": "2026-11-16T18:21:53.778Z",
+  "bytes": 58975,
+  "sha256": "05b6a72a1b54d0ce4e3805ccf059bf97820141aede9ae4db9c1e0dd18f3bd38b"
+}

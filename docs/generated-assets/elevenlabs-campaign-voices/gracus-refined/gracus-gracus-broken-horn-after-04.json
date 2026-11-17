@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "gracus",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "gracus Campaign Protagonist",
+  "line": "We return before the Keepers close that hand.",
+  "clientOutput": "client/public/assets/gauntlet/voices/gracus-ch07-after-04-epicura.mp3",
+  "generatedAt": "2026-11-16T18:19:31.187Z",
+  "publishedAt": "2026-11-16T18:20:06.474Z",
+  "bytes": 58975,
+  "sha256": "dc1aa64126d3e86b71e57b261d6c232a1613aac1bb59e1919c7f5a0e8c80889e"
+}

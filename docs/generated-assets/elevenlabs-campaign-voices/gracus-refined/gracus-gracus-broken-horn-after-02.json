@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "gracus",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "gracus Campaign Opposition",
+  "line": "The conqueror gathered every institution into one hand for us.",
+  "clientOutput": "client/public/assets/gauntlet/voices/gracus-ch07-after-02-keeper-theros.mp3",
+  "generatedAt": "2026-11-16T18:19:30.331Z",
+  "publishedAt": "2026-11-16T18:20:06.470Z",
+  "bytes": 131282,
+  "sha256": "005e24c66516b34a760eaecb3accfffae72f465baa572d85f5a828845dff524c"
+}

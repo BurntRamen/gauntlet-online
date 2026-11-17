@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "gracus",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "gracus Campaign Protagonist",
+  "line": "You created the fear, then offered submission as its cure.",
+  "clientOutput": "client/public/assets/gauntlet/voices/gracus-ch07-before-02-epicura.mp3",
+  "generatedAt": "2026-11-16T18:19:26.491Z",
+  "publishedAt": "2026-11-16T18:20:06.460Z",
+  "bytes": 86560,
+  "sha256": "6e087616d89f61131583135fb6119977b7ea3769c960ed08fc9abb9178a0e607"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "indela Campaign Protagonist",
+  "line": "A warning can guide us without ruling us.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch06-after-03-katel.mp3",
+  "generatedAt": "2026-11-16T18:21:12.766Z",
+  "publishedAt": "2026-11-16T18:21:53.819Z",
+  "bytes": 43510,
+  "sha256": "b3a3bc559dc62a1a3b1c8766b650f290875f433f80fe4c15d2dbc1c61c3d118a"
+}

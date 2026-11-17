@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "gracus",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "gracus Chronicle Narrator",
+  "line": "What was chosen in The Wall of Leo becomes part of the faction's next argument, not a lesson history has finished teaching.",
+  "clientOutput": "client/public/assets/gauntlet/voices/gracus-ch03-after-05-narrator.mp3",
+  "generatedAt": "2026-11-16T18:19:03.727Z",
+  "publishedAt": "2026-11-16T18:20:06.376Z",
+  "bytes": 198573,
+  "sha256": "ff336ce175339a85e165e3db6ab122d0ba94e4e2a8f858f36ecdc488775c210e"
+}

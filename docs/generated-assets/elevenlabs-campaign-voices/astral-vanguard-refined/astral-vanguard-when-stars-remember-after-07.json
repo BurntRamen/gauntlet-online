@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "astral-vanguard Campaign Protagonist",
+  "line": "You have mistaken postponement for victory.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch12-after-07-xendra.mp3",
+  "generatedAt": "2026-11-16T18:18:13.265Z",
+  "publishedAt": "2026-11-16T18:18:14.358Z",
+  "bytes": 33897,
+  "sha256": "b47386bc83253660869a238d08a761af291d4f1807f0127e4ece130102b43f23"
+}

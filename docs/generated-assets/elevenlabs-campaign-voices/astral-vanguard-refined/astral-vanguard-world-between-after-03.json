@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "ally",
+  "voiceName": "astral-vanguard Campaign Counselor",
+  "line": "Protocol Nine marked those civilians as an acceptable loss.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch11-after-03-adrian-kade.mp3",
+  "generatedAt": "2026-11-16T18:18:05.336Z",
+  "publishedAt": "2026-11-16T18:18:14.311Z",
+  "bytes": 58139,
+  "sha256": "31f527bfd6044e27174e72a23c05b936de37e501adfe5bb84e19eb3be90be870"
+}

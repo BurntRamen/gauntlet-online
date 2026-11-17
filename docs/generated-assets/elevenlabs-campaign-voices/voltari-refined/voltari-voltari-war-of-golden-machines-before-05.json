@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "ally",
+  "voiceName": "voltari Campaign Counselor",
+  "line": "Ground two machines with a citywide pulse. Kryos boards the third while shelters retain power.",
+  "clientOutput": "client/public/assets/gauntlet/voices/voltari-ch07-before-05-warden-kryos.mp3",
+  "generatedAt": "2026-11-16T18:26:39.076Z",
+  "publishedAt": "2026-11-16T18:27:20.647Z",
+  "bytes": 120833,
+  "sha256": "70880af3794878762436fa201021e57efa58aaf12199903aa5aa9cd0c6706195"
+}

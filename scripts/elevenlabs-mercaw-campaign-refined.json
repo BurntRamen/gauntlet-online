@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "factionId": "mercaw",
+  "voiceDesignModelId": "eleven_multilingual_ttv_v2",
+  "speechModelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "stagingDirectory": "artifacts/elevenlabs-campaign-voices/mercaw-refined",
+  "publicDirectory": "client/public/assets/gauntlet/voices",
+  "provenanceDirectory": "docs/generated-assets/elevenlabs-campaign-voices/mercaw-refined",
+  "contentRegistry": "server/campaignVoiceAssets/mercaw.json",
+  "voices": {
+    "narrator": {
+      "name": "mercaw Chronicle Narrator",
+      "description": "An original fictional narrator for a campaign about independent avian frontier voices with quick alert cadence, open air in the tone, practical humor, and coalition energy rather than a bird squawk. Grounded low-mid register, vivid but restrained storytelling, excellent clarity, and no imitation of a real performer.",
+      "previewText": "History does not enter a battlefield alone. It arrives through the people who remember what every victory cost, what every silence concealed, and what the survivors still refuse to surrender."
+    },
+    "protagonist": {
+      "name": "mercaw Campaign Protagonist",
+      "description": "An original lead character voice from a people described as independent avian frontier voices with quick alert cadence, open air in the tone, practical humor, and coalition energy rather than a bird squawk. Decisive, emotionally specific, naturally paced, never a stock hero, and never an imitation of a real performer.",
+      "previewText": "We are not here to repeat the answer we inherited. We are here to discover what it asks of us now, and to leave the people beside us enough freedom to answer differently tomorrow."
+    },
+    "ally": {
+      "name": "mercaw Campaign Counselor",
+      "description": "An original ally and counselor voice from a people described as independent avian frontier voices with quick alert cadence, open air in the tone, practical humor, and coalition energy rather than a bird squawk. Observant, humane, distinct from the protagonist, capable of disagreement without losing warmth, and never an imitation of a real performer.",
+      "previewText": "The fastest answer can still leave the wrong person carrying its weight. Listen once more before we move, because the voice at the edge of the council may be the one that survives our decision."
+    },
+    "antagonist": {
+      "name": "mercaw Campaign Opposition",
+      "description": "An original opposing voice suited to a campaign about independent avian frontier voices with quick alert cadence, open air in the tone, practical humor, and coalition energy rather than a bird squawk. Intelligible, persuasive, unsettling through conviction rather than shouting, distinct from the other roles, and never an imitation of a real performer.",
+      "previewText": "You call your hesitation wisdom because you have not yet paid the price of waiting. When the hour closes around you, conviction will be the only mercy your frightened people understand."
+    }
+  },
+  "speakerVoices": {
+    "Narrator": "narrator",
+    "Gerrick Warclaw": "protagonist",
+    "The Ingles Customs Office": "antagonist",
+    "Mara Kest": "protagonist",
+    "The Redcoat Aeries": "antagonist",
+    "Rook Talon": "ally",
+    "The Cairn Loyalist Council": "antagonist",
+    "The Deferred Freedom Bloc": "antagonist",
+    "General Wellington's Encirclement": "antagonist",
+    "The Revolutionary Directorate": "antagonist",
+    "The Ingles Expeditionary Line": "antagonist",
+    "The Unpaid Army": "antagonist",
+    "The Counterfeit Convener": "antagonist",
+    "The Beacon Warden": "antagonist",
+    "The Annexation Bloc": "antagonist",
+    "The Convergence Storm": "antagonist"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "jali Campaign Protagonist",
+  "line": "Remembrance without limits turns a person into raw material.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch06-before-02-watane.mp3",
+  "generatedAt": "2026-11-16T18:26:31.328Z",
+  "publishedAt": "2026-11-16T18:27:29.153Z",
+  "bytes": 77783,
+  "sha256": "f3863cdf61cec456f121afe48bc8a7bb208d9be89b5462c7ed8a1823ddae27d3"
+}

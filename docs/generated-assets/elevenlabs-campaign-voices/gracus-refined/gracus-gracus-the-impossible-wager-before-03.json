@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "gracus",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "gracus Campaign Opposition",
+  "line": "The crossing will copy you and leave the original to die.",
+  "clientOutput": "client/public/assets/gauntlet/voices/gracus-ch11-before-03-the-keeper-remnant.mp3",
+  "generatedAt": "2026-11-16T18:19:54.516Z",
+  "publishedAt": "2026-11-16T18:20:06.547Z",
+  "bytes": 111220,
+  "sha256": "251299c03299970efa7847dd8446337f1579af99bb55e62f4f83897f0b1a1e35"
+}

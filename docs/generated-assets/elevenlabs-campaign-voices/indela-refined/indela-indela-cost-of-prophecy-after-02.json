@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "indela Campaign Opposition",
+  "line": "POTENTIAL REDUCED.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch05-after-02-the-unbound-experiment.mp3",
+  "generatedAt": "2026-11-16T18:21:05.619Z",
+  "publishedAt": "2026-11-16T18:21:53.789Z",
+  "bytes": 44764,
+  "sha256": "b93320d5519eefbc157404a5ef1634111e637d821a47ccb3f7fa91d66794a827"
+}

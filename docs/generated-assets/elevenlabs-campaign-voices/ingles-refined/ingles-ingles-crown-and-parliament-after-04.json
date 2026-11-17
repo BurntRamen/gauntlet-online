@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "ingles",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "ingles Campaign Protagonist",
+  "line": "No victory excuses us from counting the people who carried it.",
+  "clientOutput": "client/public/assets/gauntlet/voices/ingles-ch08-after-04-queen-victoria-ashbourne.mp3",
+  "generatedAt": "2026-11-16T18:23:07.718Z",
+  "publishedAt": "2026-11-16T18:23:30.463Z",
+  "bytes": 53959,
+  "sha256": "8cf3243f16852b916c72657c4f3daaabb2a526e3c28a25412ea764624b5fe3ae"
+}

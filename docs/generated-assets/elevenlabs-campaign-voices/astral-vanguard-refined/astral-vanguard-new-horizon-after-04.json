@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "astral-vanguard Campaign Protagonist",
+  "line": "Three instruments do not break into the same warning.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch01-after-04-alden.mp3",
+  "generatedAt": "2026-11-16T18:17:05.527Z",
+  "publishedAt": "2026-11-16T18:18:13.923Z",
+  "bytes": 47272,
+  "sha256": "73c910153703d51113e1c1fb3d5658dcc4b648f0304632f476ca0593295e6bec"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "indela Chronicle Narrator",
+  "line": "Independent academies receive copies of Kashi's work even as the old capital loses control of distant provinces.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch09-after-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:21:31.958Z",
+  "publishedAt": "2026-11-16T18:21:53.890Z",
+  "bytes": 154687,
+  "sha256": "add80f1ca1427db920bf3521a277f6fad42713999bd1d7985193613ef9fd78eb"
+}

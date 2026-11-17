@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "ally",
+  "voiceName": "jali Campaign Counselor",
+  "line": "Now you know one choice you made freely.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch09-after-03-seimei-no-mikoto.mp3",
+  "generatedAt": "2026-11-16T18:27:00.047Z",
+  "publishedAt": "2026-11-16T18:27:29.226Z",
+  "bytes": 36823,
+  "sha256": "b88e9a3fb6fc0eec7ee38aab789613a1b2442c5dfdd1d19791234614f7db2cf9"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "voltari Chronicle Narrator",
+  "line": "Millions of conduits demand calculations no council can complete before three threatened colonies lose power. Every delay strands usable energy and labor where it helps less.",
+  "clientOutput": "client/public/assets/gauntlet/voices/voltari-ch05-before-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:26:21.849Z",
+  "publishedAt": "2026-11-16T18:27:20.585Z",
+  "bytes": 267118,
+  "sha256": "5fc850750a5bca03986e85c8161a9cd61135f5ee5fc242e5a6ca77157a0082ec"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "jali Campaign Opposition",
+  "line": "You chose loss when eternity opened.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch06-after-02-the-white-abbot.mp3",
+  "generatedAt": "2026-11-16T18:26:35.861Z",
+  "publishedAt": "2026-11-16T18:27:29.163Z",
+  "bytes": 84470,
+  "sha256": "4b3cc376829666d7953b77a2b00ebb5aac938c70a2c142d30ba94a0f8b6e3500"
+}

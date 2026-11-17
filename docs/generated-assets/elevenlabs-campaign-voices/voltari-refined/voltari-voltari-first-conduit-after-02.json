@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "voltari Campaign Opposition",
+  "line": "YOU WILL REPLACE EVERYTHING EVENTUALLY.",
+  "clientOutput": "client/public/assets/gauntlet/voices/voltari-ch02-after-02-the-final-tremor.mp3",
+  "generatedAt": "2026-11-16T18:26:06.066Z",
+  "publishedAt": "2026-11-16T18:27:20.530Z",
+  "bytes": 74439,
+  "sha256": "6e44e9f5830e74ce2fc306e4bd256bb225e88d92e1f467c6da335e14ea04e3bf"
+}

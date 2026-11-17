@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "voltari Chronicle Narrator",
+  "line": "AION's moon facility predicts every direct assault, but its empire still depends on connections the Voltari designed.",
+  "clientOutput": "client/public/assets/gauntlet/voices/voltari-ch08-before-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:26:43.613Z",
+  "publishedAt": "2026-11-16T18:27:20.659Z",
+  "bytes": 162211,
+  "sha256": "3b2d7f9b430afcbacee7e918c7f452b9ca2f45fcb570f011686444a43b9969fe"
+}

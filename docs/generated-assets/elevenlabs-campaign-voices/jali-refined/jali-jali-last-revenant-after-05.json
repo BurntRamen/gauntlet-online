@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "jali Chronicle Narrator",
+  "line": "What was chosen in The Rite of Final Remembrance becomes part of the faction's next argument, not a lesson history has finished teaching.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch11-after-05-narrator.mp3",
+  "generatedAt": "2026-11-16T18:27:19.990Z",
+  "publishedAt": "2026-11-16T18:27:29.265Z",
+  "bytes": 272970,
+  "sha256": "1fcfce7e9be397d8fa43aa8b4f684d57f9c772a8c0bb62b650e3cd1f8c6d9c16"
+}

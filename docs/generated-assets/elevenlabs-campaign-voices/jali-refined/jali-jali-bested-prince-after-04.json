@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "jali Campaign Protagonist",
+  "line": "No body falls from the ruins, and Aozora inherits an unfinished unification.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch04-after-04-watane.mp3",
+  "generatedAt": "2026-11-16T18:26:19.199Z",
+  "publishedAt": "2026-11-16T18:27:29.128Z",
+  "bytes": 115399,
+  "sha256": "f79aa643316f8db82e9502ae87fa6eb9645b90bfc1759287fe2190cbc7a6c87a"
+}

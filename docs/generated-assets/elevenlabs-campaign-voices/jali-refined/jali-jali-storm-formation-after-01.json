@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "jali Chronicle Narrator",
+  "line": "Tengu, kitsune, oni, yuki-onna, and tsukumogami hold the city as one moving formation. Seimei records that cooperation altered the recalled spirits as surely as it altered the living.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch05-after-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:26:26.204Z",
+  "publishedAt": "2026-11-16T18:27:29.142Z",
+  "bytes": 316856,
+  "sha256": "b6fd2423ac48dca1c7d36613e2ea757deba64dec7ce055c84c0efdc0ffa92b5b"
+}

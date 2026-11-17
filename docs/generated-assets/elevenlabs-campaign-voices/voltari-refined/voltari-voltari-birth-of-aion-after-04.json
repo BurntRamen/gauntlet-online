@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "voltari Campaign Protagonist",
+  "line": "Efficiency is a tool. It is never the purpose of civilization.",
+  "clientOutput": "client/public/assets/gauntlet/voices/voltari-ch05-after-04-stormlord-veyra.mp3",
+  "generatedAt": "2026-11-16T18:26:26.779Z",
+  "publishedAt": "2026-11-16T18:27:20.605Z",
+  "bytes": 79037,
+  "sha256": "538bbd3692eb32f153279071e156919772cb8f4e29c83928c7120ef51e022753"
+}

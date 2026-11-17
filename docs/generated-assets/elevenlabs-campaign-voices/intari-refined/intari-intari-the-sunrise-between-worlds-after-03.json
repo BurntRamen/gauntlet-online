@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "intari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "intari Campaign Protagonist",
+  "line": "The center survives by serving the quarters, not consuming them.",
+  "clientOutput": "client/public/assets/gauntlet/voices/intari-ch12-after-03-amaru-kuntur.mp3",
+  "generatedAt": "2026-11-16T18:25:17.776Z",
+  "publishedAt": "2026-11-16T18:25:19.255Z",
+  "bytes": 70260,
+  "sha256": "b9c5df259189684f0d64bd632d3a103c819e96e1d414b9f439e97e7703eefd83"
+}

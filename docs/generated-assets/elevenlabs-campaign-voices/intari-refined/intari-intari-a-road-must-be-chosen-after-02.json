@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "intari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "intari Campaign Opposition",
+  "line": "Your voluntary road will never reach as far as conquest.",
+  "clientOutput": "client/public/assets/gauntlet/voices/intari-ch11-after-02-the-restoration-bloc.mp3",
+  "generatedAt": "2026-11-16T18:25:10.413Z",
+  "publishedAt": "2026-11-16T18:25:19.230Z",
+  "bytes": 76947,
+  "sha256": "1e7e0f55d2e55cdf6f896a298522a449d4567282fd41f7b9133ffea36392c3bd"
+}

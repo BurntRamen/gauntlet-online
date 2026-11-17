@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "gracus",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "gracus Campaign Opposition",
+  "line": "DISAGREEMENT SHOULD HAVE DIVIDED YOU.",
+  "clientOutput": "client/public/assets/gauntlet/voices/gracus-ch09-after-02-the-marble-hydra.mp3",
+  "generatedAt": "2026-11-16T18:19:43.463Z",
+  "publishedAt": "2026-11-16T18:20:06.511Z",
+  "bytes": 71514,
+  "sha256": "95c3b5fd7d5edbe80d07f794c75c064f4b56bba81e8d3844a562840dd0f8afc1"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "intari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "intari Campaign Protagonist",
+  "line": "Build the road, but leave each valley the power to choose where it leads.",
+  "clientOutput": "client/public/assets/gauntlet/voices/intari-ch03-before-02-sapa-intar.mp3",
+  "generatedAt": "2026-11-16T18:24:14.590Z",
+  "publishedAt": "2026-11-16T18:25:19.041Z",
+  "bytes": 80709,
+  "sha256": "cb7ecf2c8d2bfa2f8a66d5cd48a5dbbd9b660c6793e60ef55934f682d6f5e7bc"
+}

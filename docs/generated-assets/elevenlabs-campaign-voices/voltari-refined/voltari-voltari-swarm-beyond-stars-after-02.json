@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "voltari Campaign Opposition",
+  "line": "WE REMEMBER EVERY WOUND.",
+  "clientOutput": "client/public/assets/gauntlet/voices/voltari-ch03-after-02-the-silent-brood.mp3",
+  "generatedAt": "2026-11-16T18:26:12.342Z",
+  "publishedAt": "2026-11-16T18:27:20.553Z",
+  "bytes": 42674,
+  "sha256": "04e6c8e99c5a4df5ec4b1e16622e51bf2043a643b07a8c2751dd21143446761d"
+}

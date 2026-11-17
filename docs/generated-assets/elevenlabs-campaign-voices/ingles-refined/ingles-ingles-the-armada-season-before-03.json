@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "ingles",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "ingles Campaign Opposition",
+  "line": "A crown that asks permission has already admitted it cannot rule.",
+  "clientOutput": "client/public/assets/gauntlet/voices/ingles-ch04-before-03-the-meridian-armada.mp3",
+  "generatedAt": "2026-11-16T18:22:42.845Z",
+  "publishedAt": "2026-11-16T18:23:30.317Z",
+  "bytes": 76111,
+  "sha256": "f813d27ca08b08222626aaba0d7824b11880afc8a60dd989fe83868ce96623ac"
+}

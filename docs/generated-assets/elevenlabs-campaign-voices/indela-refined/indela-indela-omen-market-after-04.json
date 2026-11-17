@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "indela Campaign Protagonist",
+  "line": "Let descendants see not only what we knew, but how we learned.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch10-after-04-vatsyayana.mp3",
+  "generatedAt": "2026-11-16T18:21:39.454Z",
+  "publishedAt": "2026-11-16T18:21:53.930Z",
+  "bytes": 74021,
+  "sha256": "2cf1708911d76c205c8c0072b4fe5345679b89ec51c4f92821147ead3057fda8"
+}

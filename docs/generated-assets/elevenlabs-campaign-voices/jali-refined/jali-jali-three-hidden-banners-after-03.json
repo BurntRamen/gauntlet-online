@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "jali Campaign Protagonist",
+  "line": "Without honest history, there can only be obedience.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch02-after-03-watane.mp3",
+  "generatedAt": "2026-11-16T18:26:03.896Z",
+  "publishedAt": "2026-11-16T18:27:29.087Z",
+  "bytes": 75275,
+  "sha256": "69fec780564decccabd72e6f39d0515fccd3077bc07d60b2d8f2aaf197738aed"
+}

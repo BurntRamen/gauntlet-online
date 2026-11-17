@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "ingles",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "ally",
+  "voiceName": "ingles Campaign Counselor",
+  "line": "A realm endures by allowing memory to argue with ceremony.",
+  "clientOutput": "client/public/assets/gauntlet/voices/ingles-ch04-after-03-admiral-rowan-vale.mp3",
+  "generatedAt": "2026-11-16T18:22:45.203Z",
+  "publishedAt": "2026-11-16T18:23:30.332Z",
+  "bytes": 57721,
+  "sha256": "eca9c61a3ac9cb170e551e27a046db370371a5501fed96a62829a9696a8cab52"
+}

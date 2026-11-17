@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "jali Campaign Opposition",
+  "line": "I saved you. We were never born. I remember your surrender tomorrow. We offer the freedom I forbid.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch10-before-03-the-forgotten-sovereign.mp3",
+  "generatedAt": "2026-11-16T18:27:04.415Z",
+  "publishedAt": "2026-11-16T18:27:29.234Z",
+  "bytes": 205261,
+  "sha256": "54cb8e24953848de1b90be60ca030e2da14e7d8221ee65fcf725c63a70207ea7"
+}

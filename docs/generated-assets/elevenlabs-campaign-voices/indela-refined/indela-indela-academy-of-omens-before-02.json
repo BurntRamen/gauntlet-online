@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "indela Campaign Protagonist",
+  "line": "Unity is useful only if thought remains free inside it.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch02-before-02-katel.mp3",
+  "generatedAt": "2026-11-16T18:20:43.646Z",
+  "publishedAt": "2026-11-16T18:21:53.703Z",
+  "bytes": 61065,
+  "sha256": "0cdc9d785bb8f48af57f6b9b06c81ecdf8d4f6de3305e2486ca4b27825d38239"
+}

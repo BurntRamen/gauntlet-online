@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "astral-vanguard Campaign Protagonist",
+  "line": "Agreement is only a slower dream.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch06-before-06-unknown-voice.mp3",
+  "generatedAt": "2026-11-16T18:17:32.050Z",
+  "publishedAt": "2026-11-16T18:18:14.104Z",
+  "bytes": 37659,
+  "sha256": "6f0b2e6c374671fdcbcd1114feec3e31a7903aa33dc939df4102d8479027702f"
+}

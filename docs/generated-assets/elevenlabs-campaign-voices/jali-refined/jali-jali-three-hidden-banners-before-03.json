@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "jali Campaign Opposition",
+  "line": "Our ancestors chose us before your formation existed.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch02-before-03-the-mirror-clan.mp3",
+  "generatedAt": "2026-11-16T18:26:00.724Z",
+  "publishedAt": "2026-11-16T18:27:29.078Z",
+  "bytes": 104950,
+  "sha256": "c9eed3eccda52e9883e63ad1998bde2817a8c72784faa6445953d6f04d70afe8"
+}

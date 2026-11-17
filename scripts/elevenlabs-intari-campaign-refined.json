@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "factionId": "intari",
+  "voiceDesignModelId": "eleven_multilingual_ttv_v2",
+  "speechModelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "stagingDirectory": "artifacts/elevenlabs-campaign-voices/intari-refined",
+  "publicDirectory": "client/public/assets/gauntlet/voices",
+  "provenanceDirectory": "docs/generated-assets/elevenlabs-campaign-voices/intari-refined",
+  "contentRegistry": "server/campaignVoiceAssets/intari.json",
+  "voices": {
+    "narrator": {
+      "name": "intari Chronicle Narrator",
+      "description": "An original fictional narrator for a campaign about condor-like mountain builders with spacious breath, solar warmth, collective ceremonial weight, and no imitation of a real-world Indigenous accent. Grounded low-mid register, vivid but restrained storytelling, excellent clarity, and no imitation of a real performer.",
+      "previewText": "History does not enter a battlefield alone. It arrives through the people who remember what every victory cost, what every silence concealed, and what the survivors still refuse to surrender."
+    },
+    "protagonist": {
+      "name": "intari Campaign Protagonist",
+      "description": "An original lead character voice from a people described as condor-like mountain builders with spacious breath, solar warmth, collective ceremonial weight, and no imitation of a real-world Indigenous accent. Decisive, emotionally specific, naturally paced, never a stock hero, and never an imitation of a real performer.",
+      "previewText": "We are not here to repeat the answer we inherited. We are here to discover what it asks of us now, and to leave the people beside us enough freedom to answer differently tomorrow."
+    },
+    "ally": {
+      "name": "intari Campaign Counselor",
+      "description": "An original ally and counselor voice from a people described as condor-like mountain builders with spacious breath, solar warmth, collective ceremonial weight, and no imitation of a real-world Indigenous accent. Observant, humane, distinct from the protagonist, capable of disagreement without losing warmth, and never an imitation of a real performer.",
+      "previewText": "The fastest answer can still leave the wrong person carrying its weight. Listen once more before we move, because the voice at the edge of the council may be the one that survives our decision."
+    },
+    "antagonist": {
+      "name": "intari Campaign Opposition",
+      "description": "An original opposing voice suited to a campaign about condor-like mountain builders with spacious breath, solar warmth, collective ceremonial weight, and no imitation of a real-world Indigenous accent. Intelligible, persuasive, unsettling through conviction rather than shouting, distinct from the other roles, and never an imitation of a real performer.",
+      "previewText": "You call your hesitation wisdom because you have not yet paid the price of waiting. When the hour closes around you, conviction will be the only mercy your frightened people understand."
+    }
+  },
+  "speakerVoices": {
+    "Narrator": "narrator",
+    "The Golden Siblings": "protagonist",
+    "The Stonefeather Chieftain": "antagonist",
+    "The First Quipu Keeper": "ally",
+    "Sapa Intar": "protagonist",
+    "Warlord Chaska": "antagonist",
+    "Illari": "ally",
+    "Queen Yana": "antagonist",
+    "The Broken Pass": "antagonist",
+    "Governor Qhapaq": "antagonist",
+    "The Imperial Council": "antagonist",
+    "The Eclipsed Priesthood": "antagonist",
+    "Amaru Kuntur": "protagonist",
+    "Prince Atar": "antagonist",
+    "The Conqueror Beyond the Gate": "antagonist",
+    "The Silent Receiver": "antagonist",
+    "The Restoration Bloc": "antagonist",
+    "The Convergence Storm": "antagonist"
+  }
+}

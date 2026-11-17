@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "jali Chronicle Narrator",
+  "line": "Katana descends between rival fleets while the Mirror overlays triumph, defeat, and the city's destruction on the same sky.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch08-before-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:26:48.012Z",
+  "publishedAt": "2026-11-16T18:27:29.195Z",
+  "bytes": 226994,
+  "sha256": "6d41c8640797e2399fe13ce6ff5d697eedf5fefbb97fc3ce5008dff277597143"
+}

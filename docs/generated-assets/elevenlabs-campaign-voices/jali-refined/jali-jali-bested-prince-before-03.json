@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "jali Campaign Opposition",
+  "line": "Then help me bury the conqueror with the mirror he would steal.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch04-before-03-prince-daigo.mp3",
+  "generatedAt": "2026-11-16T18:26:15.108Z",
+  "publishedAt": "2026-11-16T18:27:29.116Z",
+  "bytes": 67752,
+  "sha256": "a7b841dbecd8b4680656ac0498352c192e73ec96c81cafff573aa52f8ed29eb7"
+}

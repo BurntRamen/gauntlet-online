@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "jali Campaign Opposition",
+  "line": "You built unity from incompatible spirits.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch05-after-02-the-thunder-ronin.mp3",
+  "generatedAt": "2026-11-16T18:26:26.911Z",
+  "publishedAt": "2026-11-16T18:27:29.143Z",
+  "bytes": 104532,
+  "sha256": "5c9dd8940a4eb2fecc639a215bbadd6357769a62e1c1fdcea3f58dc7e4efd875"
+}

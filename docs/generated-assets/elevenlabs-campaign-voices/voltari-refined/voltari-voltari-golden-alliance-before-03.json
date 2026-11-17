@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "voltari Campaign Opposition",
+  "line": "If aid requires your procedures, when does help become incorporation?",
+  "clientOutput": "client/public/assets/gauntlet/voices/voltari-ch10-before-03-the-isolation-compact.mp3",
+  "generatedAt": "2026-11-16T18:26:59.221Z",
+  "publishedAt": "2026-11-16T18:27:20.708Z",
+  "bytes": 150508,
+  "sha256": "eabca2f03d5ce7a589c2c90a79c52f29f445fc6c3cf1ff82e15ec2c328caa7bc"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "astral-vanguard Campaign Protagonist",
+  "line": "All sides hold. Prove what you detected.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch05-before-06-alden.mp3",
+  "generatedAt": "2026-11-16T18:17:25.894Z",
+  "publishedAt": "2026-11-16T18:18:14.071Z",
+  "bytes": 47272,
+  "sha256": "dced5dfb37e4a23c80f63eb7aa127a46014f686b46dbedb333ea35efeb543f8c"
+}

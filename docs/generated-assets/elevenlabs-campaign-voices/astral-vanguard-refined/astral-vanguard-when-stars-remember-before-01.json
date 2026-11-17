@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "astral-vanguard Chronicle Narrator",
+  "line": "Reath must be held in one coherent state long enough to close the uncontrolled paths. The Astral Nexus offers perfect information and optimized orders, but removes uncertainty by transferring every battlefield decision to one authority.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch12-before-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:18:07.486Z",
+  "publishedAt": "2026-11-16T18:18:14.323Z",
+  "bytes": 284255,
+  "sha256": "a6f3ef3e2e70bef60e29b09ce62221bf1e4e8523be6a6a54e820ad4d5c02f6ba"
+}

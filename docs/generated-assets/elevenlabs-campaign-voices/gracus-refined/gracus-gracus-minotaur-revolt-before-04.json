@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "gracus",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "ally",
+  "voiceName": "gracus Campaign Counselor",
+  "line": "Then we give every voice a task it performs better than hunger.",
+  "clientOutput": "client/public/assets/gauntlet/voices/gracus-ch09-before-04-themin.mp3",
+  "generatedAt": "2026-11-16T18:19:41.479Z",
+  "publishedAt": "2026-11-16T18:20:06.506Z",
+  "bytes": 119997,
+  "sha256": "78c5f0c64595d55092579f76f9613d218da11f1f6b6b0417427b1145459ad4ea"
+}

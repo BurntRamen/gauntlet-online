@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "voltari Chronicle Narrator",
+  "line": "What was chosen in The Last Calculation becomes part of the faction's next argument, not a lesson history has finished teaching.",
+  "clientOutput": "client/public/assets/gauntlet/voices/voltari-ch08-after-05-narrator.mp3",
+  "generatedAt": "2026-11-16T18:26:49.866Z",
+  "publishedAt": "2026-11-16T18:27:20.679Z",
+  "bytes": 177257,
+  "sha256": "983bb40d240df4299a4a0ee4cfa5eab9e717286cf9ff3e948d9c50a6c141a431"
+}

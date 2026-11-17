@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "astral-vanguard Chronicle Narrator",
+  "line": "Hale disables compulsory control while preserving the Nexus as a voluntary information network. The fractures close, Protocol Nine is abolished, and Reath survives as a permanent meeting point whose strength comes from coordinated differences.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch12-after-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:18:10.788Z",
+  "publishedAt": "2026-11-16T18:18:14.341Z",
+  "bytes": 277567,
+  "sha256": "036667acc6d7229c641d8900ff9e4e5a786399c86c5aabde956da3689fc8e1ed"
+}

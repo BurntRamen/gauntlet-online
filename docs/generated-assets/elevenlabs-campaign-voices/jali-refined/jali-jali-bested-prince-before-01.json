@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "jali Chronicle Narrator",
+  "line": "Rebels surround the Temple of Ten Thousand Dreams as Daigo prepares to shatter hundreds of Reflections at once.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch04-before-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:26:14.133Z",
+  "publishedAt": "2026-11-16T18:27:29.112Z",
+  "bytes": 202335,
+  "sha256": "37471d2e2eb8f448fd43fa72a1a47a78d71bedde4e2e3dc60ebb94c756fda1b3"
+}

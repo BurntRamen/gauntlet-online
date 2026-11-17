@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "voltari Chronicle Narrator",
+  "line": "What was chosen in The Swarm Beyond the Stars becomes part of the faction's next argument, not a lesson history has finished teaching.",
+  "clientOutput": "client/public/assets/gauntlet/voices/voltari-ch03-after-05-narrator.mp3",
+  "generatedAt": "2026-11-16T18:26:14.317Z",
+  "publishedAt": "2026-11-16T18:27:20.563Z",
+  "bytes": 171824,
+  "sha256": "7deb338e3528e3540c18b83aa28f3cf95bd272609635a6f8cc61f6cd2e1fc47c"
+}

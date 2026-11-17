@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "astral-vanguard Campaign Protagonist",
+  "line": "Our people maintain the perimeter. Your engineers place the anchors.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch06-before-03-alden.mp3",
+  "generatedAt": "2026-11-16T18:17:30.896Z",
+  "publishedAt": "2026-11-16T18:18:14.096Z",
+  "bytes": 76947,
+  "sha256": "5aa1d8432e164404c5f0179864f87c32661e9ca3d963da136b478fd88a9a0ce2"
+}

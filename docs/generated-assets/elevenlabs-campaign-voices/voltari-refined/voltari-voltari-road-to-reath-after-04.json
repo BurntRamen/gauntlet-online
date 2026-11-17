@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "voltari Campaign Protagonist",
+  "line": "Voltara is our origin. Reath is the convergence point, and no network here will own the minds within it.",
+  "clientOutput": "client/public/assets/gauntlet/voices/voltari-ch12-after-04-stormlord-veyra.mp3",
+  "generatedAt": "2026-11-16T18:27:19.760Z",
+  "publishedAt": "2026-11-16T18:27:20.759Z",
+  "bytes": 138387,
+  "sha256": "2af26373db3e4272f6e0a1902f3bc5d6d326dd5c3374484f05cdc3f556c145fa"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "voltari Chronicle Narrator",
+  "line": "Pelion survives and keeps a limited connection by choice. The alliance grows because participants can share effort without becoming interchangeable parts.",
+  "clientOutput": "client/public/assets/gauntlet/voices/voltari-ch10-after-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:27:01.862Z",
+  "publishedAt": "2026-11-16T18:27:20.715Z",
+  "bytes": 221561,
+  "sha256": "7c07ac6c2c1ef4845dec0c82a0856d6689ebabf37b963b2df17e758f6ebabcd0"
+}

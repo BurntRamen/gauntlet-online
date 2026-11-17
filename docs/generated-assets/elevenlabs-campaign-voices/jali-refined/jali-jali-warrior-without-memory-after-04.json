@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "jali Campaign Protagonist",
+  "line": "The Veiled Sky cannot hide that another world has begun reflecting Aozora.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch09-after-04-watane.mp3",
+  "generatedAt": "2026-11-16T18:27:00.821Z",
+  "publishedAt": "2026-11-16T18:27:29.228Z",
+  "bytes": 142985,
+  "sha256": "46d204349bf3ff304599a99bafa797f445ec94ed27634c37f84ec97c8dc3d8c8"
+}

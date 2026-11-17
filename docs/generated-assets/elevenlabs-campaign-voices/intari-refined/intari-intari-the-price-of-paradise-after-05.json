@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "intari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "intari Chronicle Narrator",
+  "line": "The consequences of The Price of Paradise travel with the Intari beyond this battlefield.",
+  "clientOutput": "client/public/assets/gauntlet/voices/intari-ch05-after-05-narrator.mp3",
+  "generatedAt": "2026-11-16T18:24:32.775Z",
+  "publishedAt": "2026-11-16T18:25:19.104Z",
+  "bytes": 160957,
+  "sha256": "bd23f8c7f03881ba5e76cc4d473d0f1373b51fea2dcd9515a6051bf85b72516d"
+}

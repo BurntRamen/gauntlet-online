@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "gracus",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "gracus Campaign Protagonist",
+  "line": "Hold the harbor, compare the orders, and leave Nemeon a road back from fear.",
+  "clientOutput": "client/public/assets/gauntlet/voices/gracus-ch02-before-05-epicura.mp3",
+  "generatedAt": "2026-11-16T18:18:53.664Z",
+  "publishedAt": "2026-11-16T18:20:06.340Z",
+  "bytes": 117907,
+  "sha256": "76575b388f0db3789213136f4d0e523817efd8a86658ab52f245b1a18fd4322e"
+}

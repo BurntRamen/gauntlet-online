@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "astral-vanguard Campaign Protagonist",
+  "line": "Containment successful within expected error.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch06-after-02-oru.mp3",
+  "generatedAt": "2026-11-16T18:17:33.154Z",
+  "publishedAt": "2026-11-16T18:18:14.109Z",
+  "bytes": 42674,
+  "sha256": "2a44a6502297cfb7c5b985b43fb0237f7fcea7d2bdc0ce18a2b233c394a22595"
+}

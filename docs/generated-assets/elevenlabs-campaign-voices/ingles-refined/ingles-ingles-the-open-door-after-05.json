@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "ingles",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "ingles Chronicle Narrator",
+  "line": "The consequences of The Open Door travel with the Ingles beyond this battlefield.",
+  "clientOutput": "client/public/assets/gauntlet/voices/ingles-ch12-after-05-narrator.mp3",
+  "generatedAt": "2026-11-16T18:23:30.178Z",
+  "publishedAt": "2026-11-16T18:23:30.591Z",
+  "bytes": 67334,
+  "sha256": "f10bfc729a3ffc842e2e1a7ab80b5ab13d82450d66b30d544f2eeaf4fc43948b"
+}

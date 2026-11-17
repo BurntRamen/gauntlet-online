@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "indela Chronicle Narrator",
+  "line": "Regional rulers seize observatories and burn libraries while demanding that Kashi spend its last strength restoring their obedience.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch09-before-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:21:29.120Z",
+  "publishedAt": "2026-11-16T18:21:53.877Z",
+  "bytes": 164718,
+  "sha256": "8ee69bdedb166249343546c22cf9c5a59ce71540cab02c7349beb8348b5829d6"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "ingles",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "ingles Campaign Protagonist",
+  "line": "A realm endures by allowing memory to argue with ceremony.",
+  "clientOutput": "client/public/assets/gauntlet/voices/ingles-ch08-after-03-elian-wren.mp3",
+  "generatedAt": "2026-11-16T18:23:07.314Z",
+  "publishedAt": "2026-11-16T18:23:30.460Z",
+  "bytes": 50198,
+  "sha256": "2ccc3a04ffecc9d1cd758c12a54ed208de11847370eb13eb586e3cc2b809ed06"
+}

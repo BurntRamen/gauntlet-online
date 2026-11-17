@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "jali Campaign Opposition",
+  "line": "They abandon you. I preserve them. We are being murdered by consent.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch11-after-02-the-forgotten-sovereign.mp3",
+  "generatedAt": "2026-11-16T18:27:17.303Z",
+  "publishedAt": "2026-11-16T18:27:29.261Z",
+  "bytes": 144656,
+  "sha256": "f4fd65b05d62580431f1f6f985f63739fb9b303ad1171b6f38b960e51a78d3b7"
+}

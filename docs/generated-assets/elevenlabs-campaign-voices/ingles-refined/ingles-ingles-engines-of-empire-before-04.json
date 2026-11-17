@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "ingles",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "ingles Campaign Protagonist",
+  "line": "Continuity matters only if the next generation may revise what it inherits.",
+  "clientOutput": "client/public/assets/gauntlet/voices/ingles-ch06-before-04-lord-arthur-wellington.mp3",
+  "generatedAt": "2026-11-16T18:22:53.923Z",
+  "publishedAt": "2026-11-16T18:23:30.386Z",
+  "bytes": 66498,
+  "sha256": "ee293491e3f157076adee9d819bb2fe53fae51cb161d4271f789d2ee33f576c7"
+}

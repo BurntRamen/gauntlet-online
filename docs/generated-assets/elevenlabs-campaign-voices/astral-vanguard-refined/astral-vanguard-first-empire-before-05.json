@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "astral-vanguard Campaign Protagonist",
+  "line": "We are not here to conquer Orthea.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch10-before-05-alden.mp3",
+  "generatedAt": "2026-11-16T18:17:55.501Z",
+  "publishedAt": "2026-11-16T18:18:14.256Z",
+  "bytes": 40585,
+  "sha256": "6c5ed9547ce61325141e81f1f61fcc356914fb4fdec4a40c74f39ffeb5b38891"
+}

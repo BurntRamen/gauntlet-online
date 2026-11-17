@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "ingles",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "ingles Campaign Opposition",
+  "line": "A crown that asks permission has already admitted it cannot rule.",
+  "clientOutput": "client/public/assets/gauntlet/voices/ingles-ch10-before-03-the-closed-horizon.mp3",
+  "generatedAt": "2026-11-16T18:23:15.489Z",
+  "publishedAt": "2026-11-16T18:23:30.504Z",
+  "bytes": 102025,
+  "sha256": "9f3ec74b88bacaad1ca0bc268deec22d5ee55fe7863616a028befde4bacf7e7d"
+}

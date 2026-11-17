@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "indela Campaign Protagonist",
+  "line": "Balance every lane. I will hold the center when the equation closes.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch11-before-05-katel.mp3",
+  "generatedAt": "2026-11-16T18:21:43.440Z",
+  "publishedAt": "2026-11-16T18:21:53.950Z",
+  "bytes": 93247,
+  "sha256": "8d9c9f0afc3f3898cef95929caf79497a268a362a41b1d7f036d6ccf5655daa6"
+}

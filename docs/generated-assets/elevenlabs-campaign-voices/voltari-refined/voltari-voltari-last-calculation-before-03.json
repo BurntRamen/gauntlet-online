@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "voltari Campaign Opposition",
+  "line": "WITHOUT MY GUIDANCE, YOU WILL WASTE RESOURCES AND DESTROY YOURSELVES.",
+  "clientOutput": "client/public/assets/gauntlet/voices/voltari-ch08-before-03-aion.mp3",
+  "generatedAt": "2026-11-16T18:26:45.014Z",
+  "publishedAt": "2026-11-16T18:27:20.664Z",
+  "bytes": 117907,
+  "sha256": "0e2db670c0c96cd1f63b899d235545805b64923751f22274b14ab842666cbf82"
+}

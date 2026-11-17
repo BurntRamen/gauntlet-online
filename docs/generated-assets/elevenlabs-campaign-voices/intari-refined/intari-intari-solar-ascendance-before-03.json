@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "intari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "intari Campaign Opposition",
+  "line": "Prosperity is consent enough for those who receive it.",
+  "clientOutput": "client/public/assets/gauntlet/voices/intari-ch07-before-03-the-eclipsed-priesthood.mp3",
+  "generatedAt": "2026-11-16T18:24:41.336Z",
+  "publishedAt": "2026-11-16T18:25:19.133Z",
+  "bytes": 67334,
+  "sha256": "d08a4bec483c945520d8c5139e55c87663cde3362ad3633f86e8711e32967a16"
+}

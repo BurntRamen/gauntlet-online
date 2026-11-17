@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "gracus",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "gracus Chronicle Narrator",
+  "line": "The aperture can transmit only a bounded pattern: no army, no city, and no guarantee the receiving world will understand what arrives.",
+  "clientOutput": "client/public/assets/gauntlet/voices/gracus-ch11-before-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:19:53.188Z",
+  "publishedAt": "2026-11-16T18:20:06.542Z",
+  "bytes": 191468,
+  "sha256": "3357bcaa64e4d765c73345ed7f3fd4e58aeebf612b8db39833b733e84c8d8a81"
+}

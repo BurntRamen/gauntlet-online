@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "gracus",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "gracus Chronicle Narrator",
+  "line": "What was chosen in Everything Flows becomes part of the faction's next argument, not a lesson history has finished teaching.",
+  "clientOutput": "client/public/assets/gauntlet/voices/gracus-ch06-after-05-narrator.mp3",
+  "generatedAt": "2026-11-16T18:19:25.104Z",
+  "publishedAt": "2026-11-16T18:20:06.455Z",
+  "bytes": 192722,
+  "sha256": "25531e2d3ddd91d4d85db90cc3fd278d4b2a433a2dc0cc87d98d4253a2f88a50"
+}

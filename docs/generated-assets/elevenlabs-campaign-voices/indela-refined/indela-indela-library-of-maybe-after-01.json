@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "indela Chronicle Narrator",
+  "line": "Kalidasa restores the manuscript, but one recurring image of fire beneath Kashi remains unexplained.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch06-after-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:21:11.809Z",
+  "publishedAt": "2026-11-16T18:21:53.814Z",
+  "bytes": 137133,
+  "sha256": "2465a34cab439a28394f6b108f05f128b0de5c577ca5508b28a46cb8b8156bc8"
+}

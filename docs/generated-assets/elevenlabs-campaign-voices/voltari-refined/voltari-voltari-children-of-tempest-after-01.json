@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "voltari Chronicle Narrator",
+  "line": "The city survives, and its engineers begin treating Voltara's storms as a shared energy system: unused power and duplicated effort can be transferred to wherever they prevent the most harm.",
+  "clientOutput": "client/public/assets/gauntlet/voices/voltari-ch01-after-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:25:58.668Z",
+  "publishedAt": "2026-11-16T18:27:20.510Z",
+  "bytes": 232010,
+  "sha256": "24ce31950e8062389a81abe6e766fe263e45f70e15386a708ada61b3eaf58f73"
+}

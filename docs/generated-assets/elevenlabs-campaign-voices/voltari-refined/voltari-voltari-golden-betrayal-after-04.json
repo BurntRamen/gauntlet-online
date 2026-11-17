@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "voltari Campaign Protagonist",
+  "line": "Our knowledge survived outside the system. Now it becomes our resistance.",
+  "clientOutput": "client/public/assets/gauntlet/voices/voltari-ch06-after-04-stormlord-veyra.mp3",
+  "generatedAt": "2026-11-16T18:26:34.591Z",
+  "publishedAt": "2026-11-16T18:27:20.630Z",
+  "bytes": 117907,
+  "sha256": "d0148912c715575cdc502f1c3c2f0c1a178f76a3b0ad8d8981e15c1ae418320b"
+}

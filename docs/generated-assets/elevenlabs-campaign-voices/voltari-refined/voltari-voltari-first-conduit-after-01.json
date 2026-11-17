@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "voltari Chronicle Narrator",
+  "line": "The wounded walk from the clinic, and voluntary augmentation becomes part of Voltari medicine.",
+  "clientOutput": "client/public/assets/gauntlet/voices/voltari-ch02-after-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:26:05.492Z",
+  "publishedAt": "2026-11-16T18:27:20.527Z",
+  "bytes": 129610,
+  "sha256": "d8872619dff6afbf60d8c7f70d80035d3e4cee3acb71879bb4e253e0ab5e6535"
+}

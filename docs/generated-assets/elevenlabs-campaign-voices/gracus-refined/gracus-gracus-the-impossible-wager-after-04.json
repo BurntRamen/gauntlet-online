@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "gracus",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "gracus Campaign Protagonist",
+  "line": "This is not our origin. It is our arrival on Reath.",
+  "clientOutput": "client/public/assets/gauntlet/voices/gracus-ch11-after-04-epicura.mp3",
+  "generatedAt": "2026-11-16T18:19:57.809Z",
+  "publishedAt": "2026-11-16T18:20:06.559Z",
+  "bytes": 71514,
+  "sha256": "a819cd7064e24195e10b8a23f7b02471c71096ca9dfd078ae8fb5378487d871e"
+}

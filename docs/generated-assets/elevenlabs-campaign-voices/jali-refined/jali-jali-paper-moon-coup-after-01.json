@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "jali Chronicle Narrator",
+  "line": "The false Revenants collapse under scrutiny. Amateru loses trusted allies but gains an honest mandate to confront the armies gathering above the Sea of Silent Clouds.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch07-after-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:26:44.014Z",
+  "publishedAt": "2026-11-16T18:27:29.180Z",
+  "bytes": 321453,
+  "sha256": "3b97dbbb725f87918df8e522e99ad1d4be3ad6d1ed4bb26f40286b561bf9a971"
+}

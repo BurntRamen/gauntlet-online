@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "indela Campaign Protagonist",
+  "line": "Varuna's heavens have made opposition into relationship.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch04-after-04-aryabhata.mp3",
+  "generatedAt": "2026-11-16T18:21:00.521Z",
+  "publishedAt": "2026-11-16T18:21:53.767Z",
+  "bytes": 64826,
+  "sha256": "a4b7d99d5b9cd4a44a8d8b1ed6f687cfc0e5917174d450d8a86ceef4e8bcd4fd"
+}

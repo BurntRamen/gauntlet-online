@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "astral-vanguard Campaign Protagonist",
+  "line": "You finally arrived.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch01-after-05-unknown-voice.mp3",
+  "generatedAt": "2026-11-16T18:17:05.885Z",
+  "publishedAt": "2026-11-16T18:18:13.925Z",
+  "bytes": 21776,
+  "sha256": "7c04900912ecf4da1868153618e18e164230f6192c951f825fb3848cb6ffad92"
+}

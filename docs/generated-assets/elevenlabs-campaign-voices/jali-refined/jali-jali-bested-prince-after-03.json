@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "ally",
+  "voiceName": "jali Campaign Counselor",
+  "line": "Or remembered strongly enough to return.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch04-after-03-yamabuki-no-kami.mp3",
+  "generatedAt": "2026-11-16T18:26:18.606Z",
+  "publishedAt": "2026-11-16T18:27:29.126Z",
+  "bytes": 49362,
+  "sha256": "b10b6d2c4645cdeb79077668d06eeb25130f03165a750a7001e94c655654fa50"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "voltari Campaign Protagonist",
+  "line": "No machine should replace the difficult work of thinking together.",
+  "clientOutput": "client/public/assets/gauntlet/voices/voltari-ch04-after-04-stormlord-veyra.mp3",
+  "generatedAt": "2026-11-16T18:26:19.690Z",
+  "publishedAt": "2026-11-16T18:27:20.581Z",
+  "bytes": 81127,
+  "sha256": "00edae918d43a193c14e7c0218f7476ca4835cbbe6d9d29ef151d3cd20b8c024"
+}

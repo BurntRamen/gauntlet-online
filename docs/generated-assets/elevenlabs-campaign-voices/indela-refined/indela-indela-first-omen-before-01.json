@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "indela Chronicle Narrator",
+  "line": "Dean Var attacks Kashi before its open academy can draw fire and ice students away from the older city-states.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch01-before-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:20:35.688Z",
+  "publishedAt": "2026-11-16T18:21:53.668Z",
+  "bytes": 141313,
+  "sha256": "fc6dcd25e8f03e6271c2036d01fa8854432e9ab78c4d58028b22e2cd069640c6"
+}

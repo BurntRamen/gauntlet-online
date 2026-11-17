@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "intari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "intari Campaign Protagonist",
+  "line": "We carry the flame; we do not claim every shore it illuminates.",
+  "clientOutput": "client/public/assets/gauntlet/voices/intari-ch03-after-04-sapa-intar.mp3",
+  "generatedAt": "2026-11-16T18:24:19.018Z",
+  "publishedAt": "2026-11-16T18:25:19.057Z",
+  "bytes": 97009,
+  "sha256": "1a96ef146a2cd1a33a3f8aae59c11806747cef9f305c5ed0fd27a989d11903a6"
+}

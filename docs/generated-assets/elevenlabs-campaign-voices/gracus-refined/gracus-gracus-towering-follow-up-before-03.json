@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "gracus",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "ally",
+  "voiceName": "gracus Campaign Counselor",
+  "line": "Stone does not forge orders or vanish in the night.",
+  "clientOutput": "client/public/assets/gauntlet/voices/gracus-ch03-before-03-leo.mp3",
+  "generatedAt": "2026-11-16T18:18:59.165Z",
+  "publishedAt": "2026-11-16T18:20:06.360Z",
+  "bytes": 89486,
+  "sha256": "9a74a21c4946421fda8f9de90b0d724802ca99115add6b1ae2d1c22e3e80895e"
+}

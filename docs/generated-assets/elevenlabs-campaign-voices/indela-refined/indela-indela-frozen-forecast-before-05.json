@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "indela Campaign Protagonist",
+  "line": "Ice holds the pass. Fire breaks the artifacts only after civilians clear the valley.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch08-before-05-skandagupta.mp3",
+  "generatedAt": "2026-11-16T18:21:24.137Z",
+  "publishedAt": "2026-11-16T18:21:53.861Z",
+  "bytes": 104950,
+  "sha256": "191d6b8fbb6379804c14bda5a37106355879e70b5bde8760bb438bf86674311d"
+}

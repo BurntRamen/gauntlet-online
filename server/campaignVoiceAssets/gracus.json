@@ -1,0 +1,198 @@
+{
+  "schemaVersion": 1,
+  "factionId": "gracus",
+  "chapters": {
+    "gracus-cliffs-of-athun": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/gracus-ch01-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/gracus-ch01-before-02-epicura.mp3",
+        "/assets/gauntlet/voices/gracus-ch01-before-03-alexiti.mp3",
+        "/assets/gauntlet/voices/gracus-ch01-before-04-socratus.mp3",
+        "/assets/gauntlet/voices/gracus-ch01-before-05-epicura.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/gracus-ch01-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/gracus-ch01-after-02-alexiti.mp3",
+        "/assets/gauntlet/voices/gracus-ch01-after-03-socratus.mp3",
+        "/assets/gauntlet/voices/gracus-ch01-after-04-epicura.mp3",
+        "/assets/gauntlet/voices/gracus-ch01-after-05-narrator.mp3"
+      ]
+    },
+    "gracus-first-minotaur": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/gracus-ch02-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/gracus-ch02-before-02-epicura.mp3",
+        "/assets/gauntlet/voices/gracus-ch02-before-03-governor-nemeon.mp3",
+        "/assets/gauntlet/voices/gracus-ch02-before-04-themin.mp3",
+        "/assets/gauntlet/voices/gracus-ch02-before-05-epicura.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/gracus-ch02-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/gracus-ch02-after-02-governor-nemeon.mp3",
+        "/assets/gauntlet/voices/gracus-ch02-after-03-themin.mp3",
+        "/assets/gauntlet/voices/gracus-ch02-after-04-epicura.mp3",
+        "/assets/gauntlet/voices/gracus-ch02-after-05-narrator.mp3"
+      ]
+    },
+    "gracus-towering-follow-up": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/gracus-ch03-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/gracus-ch03-before-02-epicura.mp3",
+        "/assets/gauntlet/voices/gracus-ch03-before-03-leo.mp3",
+        "/assets/gauntlet/voices/gracus-ch03-before-04-themin.mp3",
+        "/assets/gauntlet/voices/gracus-ch03-before-05-epicura.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/gracus-ch03-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/gracus-ch03-after-02-leo.mp3",
+        "/assets/gauntlet/voices/gracus-ch03-after-03-themin.mp3",
+        "/assets/gauntlet/voices/gracus-ch03-after-04-epicura.mp3",
+        "/assets/gauntlet/voices/gracus-ch03-after-05-narrator.mp3"
+      ]
+    },
+    "gracus-tribute-refused": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/gracus-ch04-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/gracus-ch04-before-02-socratus.mp3",
+        "/assets/gauntlet/voices/gracus-ch04-before-03-the-certainty-league.mp3",
+        "/assets/gauntlet/voices/gracus-ch04-before-04-epicura.mp3",
+        "/assets/gauntlet/voices/gracus-ch04-before-05-socratus.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/gracus-ch04-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/gracus-ch04-after-02-the-certainty-league.mp3",
+        "/assets/gauntlet/voices/gracus-ch04-after-03-epicura.mp3",
+        "/assets/gauntlet/voices/gracus-ch04-after-04-socratus.mp3",
+        "/assets/gauntlet/voices/gracus-ch04-after-05-narrator.mp3"
+      ]
+    },
+    "gracus-arena-of-echoes": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/gracus-ch05-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/gracus-ch05-before-02-epicura.mp3",
+        "/assets/gauntlet/voices/gracus-ch05-before-03-alexiti.mp3",
+        "/assets/gauntlet/voices/gracus-ch05-before-04-leo.mp3",
+        "/assets/gauntlet/voices/gracus-ch05-before-05-epicura.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/gracus-ch05-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/gracus-ch05-after-02-alexiti.mp3",
+        "/assets/gauntlet/voices/gracus-ch05-after-03-leo.mp3",
+        "/assets/gauntlet/voices/gracus-ch05-after-04-epicura.mp3",
+        "/assets/gauntlet/voices/gracus-ch05-after-05-narrator.mp3"
+      ]
+    },
+    "gracus-giants-coast": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/gracus-ch06-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/gracus-ch06-before-02-hera.mp3",
+        "/assets/gauntlet/voices/gracus-ch06-before-03-the-moving-statues.mp3",
+        "/assets/gauntlet/voices/gracus-ch06-before-04-epicura.mp3",
+        "/assets/gauntlet/voices/gracus-ch06-before-05-hera.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/gracus-ch06-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/gracus-ch06-after-02-the-moving-statues.mp3",
+        "/assets/gauntlet/voices/gracus-ch06-after-03-epicura.mp3",
+        "/assets/gauntlet/voices/gracus-ch06-after-04-hera.mp3",
+        "/assets/gauntlet/voices/gracus-ch06-after-05-narrator.mp3"
+      ]
+    },
+    "gracus-broken-horn": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/gracus-ch07-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/gracus-ch07-before-02-epicura.mp3",
+        "/assets/gauntlet/voices/gracus-ch07-before-03-keeper-theros.mp3",
+        "/assets/gauntlet/voices/gracus-ch07-before-04-hera.mp3",
+        "/assets/gauntlet/voices/gracus-ch07-before-05-epicura.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/gracus-ch07-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/gracus-ch07-after-02-keeper-theros.mp3",
+        "/assets/gauntlet/voices/gracus-ch07-after-03-hera.mp3",
+        "/assets/gauntlet/voices/gracus-ch07-after-04-epicura.mp3",
+        "/assets/gauntlet/voices/gracus-ch07-after-05-narrator.mp3"
+      ]
+    },
+    "gracus-three-arena-war": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/gracus-ch08-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/gracus-ch08-before-02-alexiti.mp3",
+        "/assets/gauntlet/voices/gracus-ch08-before-03-keeper-theros.mp3",
+        "/assets/gauntlet/voices/gracus-ch08-before-04-epicura.mp3",
+        "/assets/gauntlet/voices/gracus-ch08-before-05-alexiti.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/gracus-ch08-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/gracus-ch08-after-02-keeper-theros.mp3",
+        "/assets/gauntlet/voices/gracus-ch08-after-03-epicura.mp3",
+        "/assets/gauntlet/voices/gracus-ch08-after-04-alexiti.mp3",
+        "/assets/gauntlet/voices/gracus-ch08-after-05-narrator.mp3"
+      ]
+    },
+    "gracus-minotaur-revolt": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/gracus-ch09-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/gracus-ch09-before-02-chilis.mp3",
+        "/assets/gauntlet/voices/gracus-ch09-before-03-the-marble-hydra.mp3",
+        "/assets/gauntlet/voices/gracus-ch09-before-04-themin.mp3",
+        "/assets/gauntlet/voices/gracus-ch09-before-05-chilis.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/gracus-ch09-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/gracus-ch09-after-02-the-marble-hydra.mp3",
+        "/assets/gauntlet/voices/gracus-ch09-after-03-themin.mp3",
+        "/assets/gauntlet/voices/gracus-ch09-after-04-chilis.mp3",
+        "/assets/gauntlet/voices/gracus-ch09-after-05-narrator.mp3"
+      ]
+    },
+    "gracus-quiet-arena": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/gracus-ch10-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/gracus-ch10-before-02-epicura.mp3",
+        "/assets/gauntlet/voices/gracus-ch10-before-03-the-first-stone.mp3",
+        "/assets/gauntlet/voices/gracus-ch10-before-04-socratus.mp3",
+        "/assets/gauntlet/voices/gracus-ch10-before-05-epicura.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/gracus-ch10-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/gracus-ch10-after-02-the-first-stone.mp3",
+        "/assets/gauntlet/voices/gracus-ch10-after-03-socratus.mp3",
+        "/assets/gauntlet/voices/gracus-ch10-after-04-epicura.mp3",
+        "/assets/gauntlet/voices/gracus-ch10-after-05-narrator.mp3"
+      ]
+    },
+    "gracus-the-impossible-wager": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/gracus-ch11-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/gracus-ch11-before-02-epicura.mp3",
+        "/assets/gauntlet/voices/gracus-ch11-before-03-the-keeper-remnant.mp3",
+        "/assets/gauntlet/voices/gracus-ch11-before-04-alexiti.mp3",
+        "/assets/gauntlet/voices/gracus-ch11-before-05-epicura.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/gracus-ch11-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/gracus-ch11-after-02-the-keeper-remnant.mp3",
+        "/assets/gauntlet/voices/gracus-ch11-after-03-alexiti.mp3",
+        "/assets/gauntlet/voices/gracus-ch11-after-04-epicura.mp3",
+        "/assets/gauntlet/voices/gracus-ch11-after-05-narrator.mp3"
+      ]
+    },
+    "gracus-worthy-contest": {
+      "dialogueAudio": [
+        "/assets/gauntlet/voices/gracus-ch12-before-01-narrator.mp3",
+        "/assets/gauntlet/voices/gracus-ch12-before-02-epicura.mp3",
+        "/assets/gauntlet/voices/gracus-ch12-before-03-the-convergence-panic.mp3",
+        "/assets/gauntlet/voices/gracus-ch12-before-04-socratus.mp3",
+        "/assets/gauntlet/voices/gracus-ch12-before-05-epicura.mp3"
+      ],
+      "endDialogueAudio": [
+        "/assets/gauntlet/voices/gracus-ch12-after-01-narrator.mp3",
+        "/assets/gauntlet/voices/gracus-ch12-after-02-the-convergence-panic.mp3",
+        "/assets/gauntlet/voices/gracus-ch12-after-03-socratus.mp3",
+        "/assets/gauntlet/voices/gracus-ch12-after-04-epicura.mp3",
+        "/assets/gauntlet/voices/gracus-ch12-after-05-narrator.mp3"
+      ]
+    }
+  }
+}

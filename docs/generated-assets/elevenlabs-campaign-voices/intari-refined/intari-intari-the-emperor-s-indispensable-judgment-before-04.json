@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "intari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "ally",
+  "voiceName": "intari Campaign Counselor",
+  "line": "The Sun gives light without appointing one valley to own the dawn.",
+  "clientOutput": "client/public/assets/gauntlet/voices/intari-ch06-before-04-illari.mp3",
+  "generatedAt": "2026-11-16T18:24:35.325Z",
+  "publishedAt": "2026-11-16T18:25:19.113Z",
+  "bytes": 61065,
+  "sha256": "9d15db2ed174b4d71e0a48bd5356504d61192f2879603ee5f275205c1bf72947"
+}

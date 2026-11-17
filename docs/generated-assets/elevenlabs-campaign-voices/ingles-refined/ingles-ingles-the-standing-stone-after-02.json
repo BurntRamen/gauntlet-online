@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "ingles",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "ingles Campaign Opposition",
+  "line": "History will praise the crown and forget who paid for its reach.",
+  "clientOutput": "client/public/assets/gauntlet/voices/ingles-ch10-after-02-the-closed-horizon.mp3",
+  "generatedAt": "2026-11-16T18:23:17.753Z",
+  "publishedAt": "2026-11-16T18:23:30.516Z",
+  "bytes": 68588,
+  "sha256": "b41fc4d37467df60e6561b05c4e555968e278a6d69265be979a4ea7e4cc0b357"
+}

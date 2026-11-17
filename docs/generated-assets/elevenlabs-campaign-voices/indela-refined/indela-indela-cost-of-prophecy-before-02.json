@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "indela Campaign Protagonist",
+  "line": "Discovery gives us responsibility before it gives us power.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch05-before-02-katel.mp3",
+  "generatedAt": "2026-11-16T18:21:02.934Z",
+  "publishedAt": "2026-11-16T18:21:53.775Z",
+  "bytes": 64826,
+  "sha256": "86b62a465acfd664aa7a57ffcb48ade117750491508ba0ff93b5c543185c08d5"
+}

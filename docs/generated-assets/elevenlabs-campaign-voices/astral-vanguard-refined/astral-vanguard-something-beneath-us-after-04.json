@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "astral-vanguard Campaign Protagonist",
+  "line": "They were absent yesterday.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch02-after-04-alden.mp3",
+  "generatedAt": "2026-11-16T18:17:10.932Z",
+  "publishedAt": "2026-11-16T18:18:13.960Z",
+  "bytes": 26374,
+  "sha256": "4ec46734ac015b347036a95379dd66534b7bab572a6c498aa609367d65f92a57"
+}

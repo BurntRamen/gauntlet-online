@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "ingles",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "ingles Campaign Opposition",
+  "line": "Your law is empire wearing a clerk's clean gloves.",
+  "clientOutput": "client/public/assets/gauntlet/voices/ingles-ch07-before-03-gerrick-warclaws-continental-line.mp3",
+  "generatedAt": "2026-11-16T18:22:58.986Z",
+  "publishedAt": "2026-11-16T18:23:30.415Z",
+  "bytes": 47690,
+  "sha256": "f977c5c04864d9daa1a4db9ca5c1e8867b4af55d8658610486fe55e52d429df4"
+}

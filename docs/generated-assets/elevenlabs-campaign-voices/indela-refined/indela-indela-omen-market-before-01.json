@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "indela Chronicle Narrator",
+  "line": "The Ash Broker offers to fund the archive if inconvenient theories and defeated provinces are erased from its crystals.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch10-before-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:21:34.979Z",
+  "publishedAt": "2026-11-16T18:21:53.906Z",
+  "bytes": 154270,
+  "sha256": "0eb3342366c45ef9a53ef05c2712a84797d89563174d26c8b1b6436e240ffb5f"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "jali Chronicle Narrator",
+  "line": "Hinata asks the Mirror for one lost adviser and receives three versions of her: one loving, one furious, and one who remembers Hinata as a tyrant.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch06-before-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:26:30.855Z",
+  "publishedAt": "2026-11-16T18:27:29.151Z",
+  "bytes": 283419,
+  "sha256": "ec79b7a527309ff2b77f49b3f789a1779953551b508a07a9d7abddc7ad3b2324"
+}

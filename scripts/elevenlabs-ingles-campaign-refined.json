@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "factionId": "ingles",
+  "voiceDesignModelId": "eleven_multilingual_ttv_v2",
+  "speechModelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "stagingDirectory": "artifacts/elevenlabs-campaign-voices/ingles-refined",
+  "publicDirectory": "client/public/assets/gauntlet/voices",
+  "provenanceDirectory": "docs/generated-assets/elevenlabs-campaign-voices/ingles-refined",
+  "contentRegistry": "server/campaignVoiceAssets/ingles.json",
+  "voices": {
+    "narrator": {
+      "name": "ingles Chronicle Narrator",
+      "description": "An original fictional narrator for a campaign about formal avian islanders with crisp public diction, feather-light breath, institutional confidence, and private moral hesitation without a copied historical accent. Grounded low-mid register, vivid but restrained storytelling, excellent clarity, and no imitation of a real performer.",
+      "previewText": "History does not enter a battlefield alone. It arrives through the people who remember what every victory cost, what every silence concealed, and what the survivors still refuse to surrender."
+    },
+    "protagonist": {
+      "name": "ingles Campaign Protagonist",
+      "description": "An original lead character voice from a people described as formal avian islanders with crisp public diction, feather-light breath, institutional confidence, and private moral hesitation without a copied historical accent. Decisive, emotionally specific, naturally paced, never a stock hero, and never an imitation of a real performer.",
+      "previewText": "We are not here to repeat the answer we inherited. We are here to discover what it asks of us now, and to leave the people beside us enough freedom to answer differently tomorrow."
+    },
+    "ally": {
+      "name": "ingles Campaign Counselor",
+      "description": "An original ally and counselor voice from a people described as formal avian islanders with crisp public diction, feather-light breath, institutional confidence, and private moral hesitation without a copied historical accent. Observant, humane, distinct from the protagonist, capable of disagreement without losing warmth, and never an imitation of a real performer.",
+      "previewText": "The fastest answer can still leave the wrong person carrying its weight. Listen once more before we move, because the voice at the edge of the council may be the one that survives our decision."
+    },
+    "antagonist": {
+      "name": "ingles Campaign Opposition",
+      "description": "An original opposing voice suited to a campaign about formal avian islanders with crisp public diction, feather-light breath, institutional confidence, and private moral hesitation without a copied historical accent. Intelligible, persuasive, unsettling through conviction rather than shouting, distinct from the other roles, and never an imitation of a real performer.",
+      "previewText": "You call your hesitation wisdom because you have not yet paid the price of waiting. When the hour closes around you, conviction will be the only mercy your frightened people understand."
+    }
+  },
+  "speakerVoices": {
+    "Narrator": "narrator",
+    "King Alfric the Learned": "protagonist",
+    "The North-Sea Raiders": "antagonist",
+    "Archivist Edwyn": "ally",
+    "The Unwritten Winter": "antagonist",
+    "Queen Elizara": "protagonist",
+    "The Ashen Synod": "antagonist",
+    "Councillor Beatrice Vane": "ally",
+    "The Meridian Armada": "antagonist",
+    "Admiral Rowan Vale": "ally",
+    "The Censor's Office": "antagonist",
+    "Elian Wren": "protagonist",
+    "Queen Victoria Ashbourne": "protagonist",
+    "The Furnace Compact": "antagonist",
+    "Lord Arthur Wellington": "protagonist",
+    "Gerrick Warclaw's Continental Line": "antagonist",
+    "The Imperial Hardliners": "antagonist",
+    "The Unfinished Treaty": "antagonist",
+    "Mara Kest": "ally",
+    "The Closed Horizon": "antagonist",
+    "The Convergence Storm": "antagonist"
+  }
+}

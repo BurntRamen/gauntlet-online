@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "indela Campaign Protagonist",
+  "line": "Preservation without new questions turns an archive into a tomb.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch12-before-02-a-young-archivist.mp3",
+  "generatedAt": "2026-11-16T18:21:48.648Z",
+  "publishedAt": "2026-11-16T18:21:53.979Z",
+  "bytes": 56049,
+  "sha256": "0a9c0990ac38aa7d3c9f2a9a2c7d03fc250e03ba6c508da5f6a18c4c302a2adf"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "ingles",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "ingles Campaign Protagonist",
+  "line": "Hold the line, but leave Parliament enough room to question why it was drawn.",
+  "clientOutput": "client/public/assets/gauntlet/voices/ingles-ch10-before-02-elian-wren.mp3",
+  "generatedAt": "2026-11-16T18:23:14.857Z",
+  "publishedAt": "2026-11-16T18:23:30.501Z",
+  "bytes": 58139,
+  "sha256": "0cf1ca1ab6b3f041954ad07ae679d0a3d30676d99349317af2b2d9c6fb0d64d0"
+}

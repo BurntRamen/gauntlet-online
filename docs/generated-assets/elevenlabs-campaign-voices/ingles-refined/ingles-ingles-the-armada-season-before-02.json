@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "ingles",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "ingles Campaign Protagonist",
+  "line": "Hold the line, but leave Parliament enough room to question why it was drawn.",
+  "clientOutput": "client/public/assets/gauntlet/voices/ingles-ch04-before-02-queen-elizara.mp3",
+  "generatedAt": "2026-11-16T18:22:42.301Z",
+  "publishedAt": "2026-11-16T18:23:30.314Z",
+  "bytes": 61901,
+  "sha256": "a7c92d90f081171bde122aad5b2b973ebf66860961e573ffc59844dc69be0f0e"
+}

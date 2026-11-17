@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "intari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "intari Campaign Opposition",
+  "line": "Without one sacred center, the quarters will fracture.",
+  "clientOutput": "client/public/assets/gauntlet/voices/intari-ch06-after-02-the-imperial-council.mp3",
+  "generatedAt": "2026-11-16T18:24:37.212Z",
+  "publishedAt": "2026-11-16T18:25:19.120Z",
+  "bytes": 53123,
+  "sha256": "7fb4e729d6bfd9ec3810fc49922fa5d02692996dcef95be11253b23b2b84dcd5"
+}

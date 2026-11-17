@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "factionId": "khevar",
+  "voiceDesignModelId": "eleven_multilingual_ttv_v2",
+  "speechModelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "stagingDirectory": "artifacts/elevenlabs-campaign-voices/khevar-refined",
+  "publicDirectory": "client/public/assets/gauntlet/voices",
+  "provenanceDirectory": "docs/generated-assets/elevenlabs-campaign-voices/khevar-refined",
+  "contentRegistry": "server/campaignVoiceAssets/khevar.json",
+  "voices": {
+    "narrator": {
+      "name": "khevar Chronicle Narrator",
+      "description": "An original fictional narrator for a campaign about jackal-like river judges with dry ceremonial resonance, exact diction, audible patience, and a public-court gravity free of cultural caricature. Grounded low-mid register, vivid but restrained storytelling, excellent clarity, and no imitation of a real performer.",
+      "previewText": "History does not enter a battlefield alone. It arrives through the people who remember what every victory cost, what every silence concealed, and what the survivors still refuse to surrender."
+    },
+    "protagonist": {
+      "name": "khevar Campaign Protagonist",
+      "description": "An original lead character voice from a people described as jackal-like river judges with dry ceremonial resonance, exact diction, audible patience, and a public-court gravity free of cultural caricature. Decisive, emotionally specific, naturally paced, never a stock hero, and never an imitation of a real performer.",
+      "previewText": "We are not here to repeat the answer we inherited. We are here to discover what it asks of us now, and to leave the people beside us enough freedom to answer differently tomorrow."
+    },
+    "ally": {
+      "name": "khevar Campaign Counselor",
+      "description": "An original ally and counselor voice from a people described as jackal-like river judges with dry ceremonial resonance, exact diction, audible patience, and a public-court gravity free of cultural caricature. Observant, humane, distinct from the protagonist, capable of disagreement without losing warmth, and never an imitation of a real performer.",
+      "previewText": "The fastest answer can still leave the wrong person carrying its weight. Listen once more before we move, because the voice at the edge of the council may be the one that survives our decision."
+    },
+    "antagonist": {
+      "name": "khevar Campaign Opposition",
+      "description": "An original opposing voice suited to a campaign about jackal-like river judges with dry ceremonial resonance, exact diction, audible patience, and a public-court gravity free of cultural caricature. Intelligible, persuasive, unsettling through conviction rather than shouting, distinct from the other roles, and never an imitation of a real performer.",
+      "previewText": "You call your hesitation wisdom because you have not yet paid the price of waiting. When the hour closes around you, conviction will be the only mercy your frightened people understand."
+    }
+  },
+  "speakerVoices": {
+    "Narrator": "narrator",
+    "Pharaoh Atenkar": "protagonist",
+    "The Palace Guard": "antagonist",
+    "Archivist Meret": "ally",
+    "The Counterfeit Priests": "antagonist",
+    "The Royal Redactors": "antagonist",
+    "The Upstream Houses": "antagonist",
+    "The Coronation Council": "antagonist",
+    "The Preservation Edict": "antagonist",
+    "The River Reavers": "antagonist",
+    "The Perfect Procedure": "antagonist",
+    "The Last Seal": "antagonist",
+    "The Funerary Warden": "antagonist",
+    "The Closed Record": "antagonist",
+    "The Convergence Storm": "antagonist"
+  }
+}

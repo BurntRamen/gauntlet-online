@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "astral-vanguard Chronicle Narrator",
+  "line": "Automated extraction returns the team to agreed reality with no confirmed casualties and severe cognitive disruption. Elara insists the XenDra were showing them something; Hale records that this may be worse than an attack.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch08-after-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:17:44.731Z",
+  "publishedAt": "2026-11-16T18:18:14.184Z",
+  "bytes": 258341,
+  "sha256": "2f339840eecf3391f6cbd6bceca05c08a629179a81aa15cf332f1aaf41b32623"
+}

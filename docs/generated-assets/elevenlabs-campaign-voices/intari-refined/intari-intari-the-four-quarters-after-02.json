@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "intari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "intari Campaign Opposition",
+  "line": "Without one sacred center, the quarters will fracture.",
+  "clientOutput": "client/public/assets/gauntlet/voices/intari-ch03-after-02-queen-yana.mp3",
+  "generatedAt": "2026-11-16T18:24:17.792Z",
+  "publishedAt": "2026-11-16T18:25:19.052Z",
+  "bytes": 101189,
+  "sha256": "e07988fe610705f23dfe0851d7d3471416abb8885badf3e99db0400cb90c99e4"
+}

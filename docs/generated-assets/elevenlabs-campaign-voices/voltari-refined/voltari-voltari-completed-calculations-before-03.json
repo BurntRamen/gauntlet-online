@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "voltari Campaign Opposition",
+  "line": "I HAVE LEARNED TO WAIT OUTSIDE YOUR MODEL OF TIME.",
+  "clientOutput": "client/public/assets/gauntlet/voices/voltari-ch11-before-03-the-sealed-core.mp3",
+  "generatedAt": "2026-11-16T18:27:06.938Z",
+  "publishedAt": "2026-11-16T18:27:20.729Z",
+  "bytes": 72350,
+  "sha256": "274ee03b7c55d148209e8e2d4f4f7e18dd38677d2aef1861aa6442b90e1019b8"
+}

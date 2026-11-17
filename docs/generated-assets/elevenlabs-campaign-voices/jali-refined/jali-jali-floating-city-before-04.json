@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "ally",
+  "voiceName": "jali Campaign Counselor",
+  "line": "They fight together because I offered a future larger than ancestry.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch03-before-04-yamabuki-no-kami.mp3",
+  "generatedAt": "2026-11-16T18:26:09.022Z",
+  "publishedAt": "2026-11-16T18:27:29.099Z",
+  "bytes": 112474,
+  "sha256": "764aca3eba169b085e532d56af5839959bbe649f0d4ab575e1252ce5d4d6557a"
+}

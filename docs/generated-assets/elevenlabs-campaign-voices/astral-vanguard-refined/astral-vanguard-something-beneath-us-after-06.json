@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "astral-vanguard Chronicle Narrator",
+  "line": "The voice vanishes into the living tunnels.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch02-after-06-narrator.mp3",
+  "generatedAt": "2026-11-16T18:17:11.851Z",
+  "publishedAt": "2026-11-16T18:18:13.966Z",
+  "bytes": 44346,
+  "sha256": "091717004cb46854a695c9e739703348bd172489637e64276ce234ca2b93127d"
+}

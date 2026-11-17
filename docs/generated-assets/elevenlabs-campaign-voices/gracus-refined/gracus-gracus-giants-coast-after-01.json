@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "gracus",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "gracus Chronicle Narrator",
+  "line": "Behind the panel lies an image of the first Gracus containing a black polyhedral stone.",
+  "clientOutput": "client/public/assets/gauntlet/voices/gracus-ch06-after-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:19:22.765Z",
+  "publishedAt": "2026-11-16T18:20:06.447Z",
+  "bytes": 148000,
+  "sha256": "36458c4dce27bc0f4757974836eefe46e4887d555419b899cc13c17bebe8c61b"
+}

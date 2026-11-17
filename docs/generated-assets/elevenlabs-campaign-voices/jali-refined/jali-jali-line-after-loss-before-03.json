@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "jali Campaign Opposition",
+  "line": "A ghost is only a weakness pretending to stand.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch01-before-03-lord-haruto.mp3",
+  "generatedAt": "2026-11-16T18:25:53.418Z",
+  "publishedAt": "2026-11-16T18:27:29.056Z",
+  "bytes": 90322,
+  "sha256": "baab9305be9da6ecc8ce51fa6b66f26b7629d33863379e78587cee4247cf5f4b"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "astral-vanguard Campaign Protagonist",
+  "line": "We disagree.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch12-before-03-jonah-hale.mp3",
+  "generatedAt": "2026-11-16T18:18:08.526Z",
+  "publishedAt": "2026-11-16T18:18:14.329Z",
+  "bytes": 16761,
+  "sha256": "38308f917755b90f5dbbb2cff0772ed843108a89956869d99c93b62f1384339b"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "voltari Campaign Opposition",
+  "line": "TRUST IS ONLY A FREQUENCY WE HAVE NOT TUNED.",
+  "clientOutput": "client/public/assets/gauntlet/voices/voltari-ch04-before-03-the-voice-behind-sleep.mp3",
+  "generatedAt": "2026-11-16T18:26:16.340Z",
+  "publishedAt": "2026-11-16T18:27:20.568Z",
+  "bytes": 67752,
+  "sha256": "a5590debd186579366f910765f7bd950264163f69b43c931fedfa70c3a56465d"
+}

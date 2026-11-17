@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "gracus",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "gracus Chronicle Narrator",
+  "line": "Competing factions fill Athun's plazas, each promising safety if the city stops listening to everyone else.",
+  "clientOutput": "client/public/assets/gauntlet/voices/gracus-ch04-before-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:19:04.459Z",
+  "publishedAt": "2026-11-16T18:20:06.378Z",
+  "bytes": 169734,
+  "sha256": "1dfed50f8f032255b6e588c8418536e0660ec2833da0e0af75109e0ded667df4"
+}

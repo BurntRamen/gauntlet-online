@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "astral-vanguard Chronicle Narrator",
+  "line": "Biomass from each fallen organism is reclaimed by the next wave, turning a simple defense into an accelerating ecological war.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch03-before-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:17:12.717Z",
+  "publishedAt": "2026-11-16T18:18:13.972Z",
+  "bytes": 160957,
+  "sha256": "8f7f5ceccf33816a38e92d59c9aea0b5c26f5531bd813748b9b1a70728b0d8c8"
+}

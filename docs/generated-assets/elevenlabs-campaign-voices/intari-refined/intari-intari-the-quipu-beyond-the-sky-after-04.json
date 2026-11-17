@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "intari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "ally",
+  "voiceName": "intari Campaign Counselor",
+  "line": "Count the harvest beside the freedom that produced it.",
+  "clientOutput": "client/public/assets/gauntlet/voices/intari-ch10-after-04-illari.mp3",
+  "generatedAt": "2026-11-16T18:25:04.242Z",
+  "publishedAt": "2026-11-16T18:25:19.211Z",
+  "bytes": 56049,
+  "sha256": "97481b7339f2b798548ad1865ffb05c571c188675120e597a1ad2de298afa439"
+}

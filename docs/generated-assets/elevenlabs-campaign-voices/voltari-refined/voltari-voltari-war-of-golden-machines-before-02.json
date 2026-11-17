@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "ally",
+  "voiceName": "voltari Campaign Counselor",
+  "line": "If our weapons reach the city, I will enter their conduit chamber myself.",
+  "clientOutput": "client/public/assets/gauntlet/voices/voltari-ch07-before-02-warden-kryos.mp3",
+  "generatedAt": "2026-11-16T18:26:36.929Z",
+  "publishedAt": "2026-11-16T18:27:20.640Z",
+  "bytes": 85724,
+  "sha256": "5bd4088ce401ba7c926e92fcb65a3f3357530646c42af91c94cd297a3f69c14e"
+}

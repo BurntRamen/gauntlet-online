@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "astral-vanguard Campaign Protagonist",
+  "line": "For planets?",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch07-after-03-myra-cross.mp3",
+  "generatedAt": "2026-11-16T18:17:39.187Z",
+  "publishedAt": "2026-11-16T18:18:14.153Z",
+  "bytes": 18851,
+  "sha256": "149925df443dd063d7636d77c5000fee212aeca6499e20ae0162a5572bd3d2ab"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "intari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "intari Campaign Protagonist",
+  "line": "Defend the workers first; monuments can wait for another season.",
+  "clientOutput": "client/public/assets/gauntlet/voices/intari-ch08-before-05-amaru-kuntur.mp3",
+  "generatedAt": "2026-11-16T18:24:49.037Z",
+  "publishedAt": "2026-11-16T18:25:19.158Z",
+  "bytes": 91158,
+  "sha256": "09291e3d2531a859a20140eafb96d44d64dd60271a0317fbc5cd9a343d1cbd8f"
+}

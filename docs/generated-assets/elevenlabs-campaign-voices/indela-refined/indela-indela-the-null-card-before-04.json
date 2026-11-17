@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "ally",
+  "voiceName": "indela Campaign Counselor",
+  "line": "Ambition has become appetite carrying a research seal.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch07-before-04-vara.mp3",
+  "generatedAt": "2026-11-16T18:21:16.769Z",
+  "publishedAt": "2026-11-16T18:21:53.833Z",
+  "bytes": 51034,
+  "sha256": "0a092472c0219f8d7e859769c0e55cb9a29f633e3dccf5d5988248a973abc17a"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "gracus",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "gracus Campaign Protagonist",
+  "line": "Athun is unfinished and alive. We will learn what called to it.",
+  "clientOutput": "client/public/assets/gauntlet/voices/gracus-ch10-after-04-epicura.mp3",
+  "generatedAt": "2026-11-16T18:19:51.255Z",
+  "publishedAt": "2026-11-16T18:20:06.538Z",
+  "bytes": 86560,
+  "sha256": "e876c15ffa0c6f4db3f565615ce3211be701642710415e8676bf8ec1a2dac8ca"
+}

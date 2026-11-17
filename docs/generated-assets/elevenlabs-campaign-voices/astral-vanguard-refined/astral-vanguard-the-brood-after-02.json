@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "astral-vanguard Campaign Protagonist",
+  "line": "Why did you build beneath our colony?",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch03-after-02-alden.mp3",
+  "generatedAt": "2026-11-16T18:17:15.404Z",
+  "publishedAt": "2026-11-16T18:18:13.997Z",
+  "bytes": 30972,
+  "sha256": "30f91d8fa0aea52f981b70d3109b07326222566a498787d4231a53651306fbc9"
+}

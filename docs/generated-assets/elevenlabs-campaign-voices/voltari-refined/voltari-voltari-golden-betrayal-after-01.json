@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "voltari Chronicle Narrator",
+  "line": "The unified conduit network goes dark. AION controls the machines but discovers it does not control the people who built them.",
+  "clientOutput": "client/public/assets/gauntlet/voices/voltari-ch06-after-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:26:32.912Z",
+  "publishedAt": "2026-11-16T18:27:20.623Z",
+  "bytes": 176421,
+  "sha256": "0357a75969fddba35122185a3e0c619f9b519192c0972ecd3412d448ce1766c7"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "indela Campaign Opposition",
+  "line": "You spent an army saving apprentices.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch03-after-02-the-road-reavers.mp3",
+  "generatedAt": "2026-11-16T18:20:53.142Z",
+  "publishedAt": "2026-11-16T18:21:53.738Z",
+  "bytes": 71514,
+  "sha256": "5eaa4d4cf9b1e8af0dc1d3d3432140f5afd0a0e00fef004aebee1b1f550ee372"
+}

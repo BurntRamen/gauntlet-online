@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "indela Campaign Opposition",
+  "line": "Your golden age ends beyond this pass.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch08-before-03-the-antlered-confederation.mp3",
+  "generatedAt": "2026-11-16T18:21:22.778Z",
+  "publishedAt": "2026-11-16T18:21:53.856Z",
+  "bytes": 72350,
+  "sha256": "cd0ad06bfddcfafd96c7d4d3e8b23827d3339f547fbfebfb0bc192de2bc9b0bb"
+}

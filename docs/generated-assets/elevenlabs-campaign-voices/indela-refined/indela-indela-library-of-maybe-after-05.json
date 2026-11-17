@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "indela Chronicle Narrator",
+  "line": "What was chosen in The Poet and the Flame becomes part of the faction's next argument, not a lesson history has finished teaching.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch06-after-05-narrator.mp3",
+  "generatedAt": "2026-11-16T18:21:14.289Z",
+  "publishedAt": "2026-11-16T18:21:53.824Z",
+  "bytes": 174750,
+  "sha256": "ef97420da7249c5b3164658bfb3704dd145c787f6b1e30c55819d1eec1c292f2"
+}

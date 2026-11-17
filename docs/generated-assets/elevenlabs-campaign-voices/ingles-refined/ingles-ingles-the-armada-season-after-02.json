@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "ingles",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "ingles Campaign Opposition",
+  "line": "History will praise the crown and forget who paid for its reach.",
+  "clientOutput": "client/public/assets/gauntlet/voices/ingles-ch04-after-02-the-meridian-armada.mp3",
+  "generatedAt": "2026-11-16T18:22:44.717Z",
+  "publishedAt": "2026-11-16T18:23:30.329Z",
+  "bytes": 86560,
+  "sha256": "f735fe30d9c5211e997e463282f433ca800bb63caa2b218f590158a386e738d5"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "jali Campaign Protagonist",
+  "line": "Then reveal the witnesses and the hands directing them.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch02-before-04-watane.mp3",
+  "generatedAt": "2026-11-16T18:26:01.177Z",
+  "publishedAt": "2026-11-16T18:27:29.080Z",
+  "bytes": 77783,
+  "sha256": "d4625cc21d937c23adaa4b4edb51f830663f0125aa409c0de5cd04c3af4053c9"
+}

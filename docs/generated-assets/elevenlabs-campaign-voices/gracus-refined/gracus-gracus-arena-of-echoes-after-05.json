@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "gracus",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "gracus Chronicle Narrator",
+  "line": "What was chosen in Alexiti's Peace becomes part of the faction's next argument, not a lesson history has finished teaching.",
+  "clientOutput": "client/public/assets/gauntlet/voices/gracus-ch05-after-05-narrator.mp3",
+  "generatedAt": "2026-11-16T18:19:18.503Z",
+  "publishedAt": "2026-11-16T18:20:06.435Z",
+  "bytes": 211948,
+  "sha256": "be8ce848858847b626f37a142031ff7265f6d9d789da3e64036277ab9b28877b"
+}

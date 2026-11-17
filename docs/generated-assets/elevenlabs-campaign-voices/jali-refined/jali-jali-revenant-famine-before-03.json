@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "jali Campaign Opposition",
+  "line": "Oblivion is the only true cruelty. Let every version return.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch06-before-03-the-white-abbot.mp3",
+  "generatedAt": "2026-11-16T18:26:32.059Z",
+  "publishedAt": "2026-11-16T18:27:29.155Z",
+  "bytes": 110384,
+  "sha256": "d8d5625c6814369a0f99dd3d6ef802b44b9e52370b2010ec50099d50b4718c7b"
+}

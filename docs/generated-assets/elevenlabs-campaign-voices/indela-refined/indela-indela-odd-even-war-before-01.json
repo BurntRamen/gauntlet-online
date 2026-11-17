@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "indela Chronicle Narrator",
+  "line": "The Orthodoxy attacks Kashi's new observatory before its enchanted lenses can complete the longest night of measurements.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch04-before-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:20:55.942Z",
+  "publishedAt": "2026-11-16T18:21:53.748Z",
+  "bytes": 162211,
+  "sha256": "55d89fe2555543fb909a11a0f73f6ecbc056b95ecfd4aed0081c4fd94ccb84cc"
+}

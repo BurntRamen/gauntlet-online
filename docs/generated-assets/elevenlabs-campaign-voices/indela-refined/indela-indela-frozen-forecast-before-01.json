@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "indela Chronicle Narrator",
+  "line": "Border cities fall and refugees cross the Frozen Pass as the confederation advances toward Kashi's archives.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch08-before-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:21:21.642Z",
+  "publishedAt": "2026-11-16T18:21:53.851Z",
+  "bytes": 134625,
+  "sha256": "cfebd847d06921a9411d3a2005e095d0ff6fa3c56835f67746e246e2454129f1"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "jali Campaign Opposition",
+  "line": "You conquered the sky with a lie.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch03-after-02-the-coalition-of-seven-peaks.mp3",
+  "generatedAt": "2026-11-16T18:26:11.022Z",
+  "publishedAt": "2026-11-16T18:27:29.105Z",
+  "bytes": 58975,
+  "sha256": "a10a8ed4167f9e5796156fea4717d5c93ffbd3d87f3b187e4d6d53a0265abe46"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "astral-vanguard Campaign Opposition",
+  "line": "It is not a time machine. It is a receiver index.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch07-after-02-dr-sera-venn.mp3",
+  "generatedAt": "2026-11-16T18:17:38.825Z",
+  "publishedAt": "2026-11-16T18:18:14.150Z",
+  "bytes": 64408,
+  "sha256": "06c5883ca30b0b1f737db6ee4d4b79cb119fdbb86b2e383863f9b128410e3bae"
+}

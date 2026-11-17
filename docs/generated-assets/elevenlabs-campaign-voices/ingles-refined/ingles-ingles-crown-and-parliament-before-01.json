@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "ingles",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "ingles Chronicle Narrator",
+  "line": "The Imperial Hardliners threatens Ashbourne, forcing an argument about power to become a battle with consequences beyond victory.",
+  "clientOutput": "client/public/assets/gauntlet/voices/ingles-ch08-before-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:23:03.444Z",
+  "publishedAt": "2026-11-16T18:23:30.442Z",
+  "bytes": 131282,
+  "sha256": "ec03153dd4c7d59666b51feeede93da69524ebfab0f6abb06fdc50dc283bd263"
+}

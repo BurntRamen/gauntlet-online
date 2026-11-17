@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "voltari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "ally",
+  "voiceName": "voltari Campaign Counselor",
+  "line": "For a network. For a person, it can be freedom.",
+  "clientOutput": "client/public/assets/gauntlet/voices/voltari-ch06-after-03-engineer-oru.mp3",
+  "generatedAt": "2026-11-16T18:26:33.977Z",
+  "publishedAt": "2026-11-16T18:27:20.629Z",
+  "bytes": 69424,
+  "sha256": "71f90063a1b2502016f7d5078709c3dba6773ddc8dad6a9a3e1e0cdc5c0a70c3"
+}

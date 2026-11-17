@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "indela Chronicle Narrator",
+  "line": "Skandagupta saves Kashi, but the treasury, libraries, and a generation of scholars pay for the victory.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch08-after-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:21:25.070Z",
+  "publishedAt": "2026-11-16T18:21:53.864Z",
+  "bytes": 142985,
+  "sha256": "7704e277a593ad13d1bf36bdbbe3ad1f28c5ff1430e303fe958ab49cbcd09f26"
+}

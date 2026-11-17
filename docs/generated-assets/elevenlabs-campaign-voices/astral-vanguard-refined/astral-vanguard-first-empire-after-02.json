@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "astral-vanguard",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "astral-vanguard Campaign Protagonist",
+  "line": "They predicted every breach pattern.",
+  "clientOutput": "client/public/assets/gauntlet/voices/astral-vanguard-ch10-after-02-myra-cross.mp3",
+  "generatedAt": "2026-11-16T18:17:57.271Z",
+  "publishedAt": "2026-11-16T18:18:14.265Z",
+  "bytes": 37659,
+  "sha256": "640f5c2213f8be8e8aee66129d63b30139b00e1111d03fbe0bda3b05d950e2f0"
+}

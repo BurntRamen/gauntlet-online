@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "narrator",
+  "voiceName": "indela Chronicle Narrator",
+  "line": "A luminous mandala appears above Kashi as fire and ice resolve into two expressions of one deeper field.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch04-after-01-narrator.mp3",
+  "generatedAt": "2026-11-16T18:20:59.023Z",
+  "publishedAt": "2026-11-16T18:21:53.759Z",
+  "bytes": 154270,
+  "sha256": "6a25798d9a67428efc431039708e51ea5eae765494c3ffcea39191efbed476f4"
+}

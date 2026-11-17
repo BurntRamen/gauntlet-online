@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "jali",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "jali Campaign Opposition",
+  "line": "I still do not know my name.",
+  "clientOutput": "client/public/assets/gauntlet/voices/jali-ch09-after-02-nameless-revenant.mp3",
+  "generatedAt": "2026-11-16T18:26:59.712Z",
+  "publishedAt": "2026-11-16T18:27:29.224Z",
+  "bytes": 54377,
+  "sha256": "572a542273e8898a86550dcfd7a3e4912bc3adbb7d8126f268901aa924e96333"
+}

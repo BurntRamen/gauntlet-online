@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "indela Campaign Protagonist",
+  "line": "Art enlarges knowledge because it lets us examine futures before choosing them.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch06-after-04-kalidasa.mp3",
+  "generatedAt": "2026-11-16T18:21:13.349Z",
+  "publishedAt": "2026-11-16T18:21:53.821Z",
+  "bytes": 92412,
+  "sha256": "9a0508abb578b6833f47ff7a1859ab7e95a5eac557494487cc41d3c18c8906bf"
+}

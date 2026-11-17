@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "indela",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "protagonist",
+  "voiceName": "indela Campaign Protagonist",
+  "line": "His staff remains, but the instruments cannot say whether he died or crossed elsewhere.",
+  "clientOutput": "client/public/assets/gauntlet/voices/indela-ch11-after-03-aryabhata.mp3",
+  "generatedAt": "2026-11-16T18:21:45.487Z",
+  "publishedAt": "2026-11-16T18:21:53.962Z",
+  "bytes": 102861,
+  "sha256": "b2aaf5d4ce2d7ee64c37c20ef2612a918b7f4e5b3e8d456fe3a42f8bc710331c"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "intari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "ally",
+  "voiceName": "intari Campaign Counselor",
+  "line": "Quipu records count labor. Let them also record refusal.",
+  "clientOutput": "client/public/assets/gauntlet/voices/intari-ch05-before-04-illari.mp3",
+  "generatedAt": "2026-11-16T18:24:29.063Z",
+  "publishedAt": "2026-11-16T18:25:19.091Z",
+  "bytes": 71514,
+  "sha256": "a9a1e2d90369025c5151ef2beb826630123434f0d54749bcdf4c2711b7ccf182"
+}

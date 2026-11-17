@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "creator": "ElevenLabs Text to Speech API",
+  "factionId": "intari",
+  "modelId": "eleven_multilingual_v2",
+  "outputFormat": "mp3_44100_128",
+  "voiceKey": "antagonist",
+  "voiceName": "intari Campaign Opposition",
+  "line": "Your voluntary road will never reach as far as conquest.",
+  "clientOutput": "client/public/assets/gauntlet/voices/intari-ch05-after-02-governor-qhapaq.mp3",
+  "generatedAt": "2026-11-16T18:24:30.815Z",
+  "publishedAt": "2026-11-16T18:25:19.098Z",
+  "bytes": 73185,
+  "sha256": "4b51c76a0b0ad1443e7a39da76c3d9aa99ab123a1bfaf71a0bfd8a2cafcbc0a9"
+}
