@@ -14,6 +14,16 @@ function Harness({ initialDirty = false, busy = false, onDiscard = jest.fn(), on
 beforeEach(() => { localStorage.clear(); window.history.replaceState(null, "", "/admin/gauntlet"); jest.spyOn(window, "scrollTo").mockImplementation(() => {}); });
 afterEach(() => jest.restoreAllMocks());
 
+test("legacy pipeline links open the owning editor without creating a Back-navigation redirect", () => {
+  window.history.replaceState(null, "", "/admin/gauntlet?workshop=sets&object=set-one&section=pipeline-set");
+  const push = jest.spyOn(window.history, "pushState");
+  render(<Harness />);
+  expect(workspace.target).toEqual({ domain: "sets", id: "set-one", section: null });
+  act(() => workspace.navigate({ domain: "sets", id: "set-one", section: "pipeline-set" }));
+  expect(workspace.backCount).toBe(0);
+  expect(push).not.toHaveBeenCalled();
+});
+
 test("typed registry links round-trip through the guarded URL and only acknowledge an accepted detour", () => {
   const accepted = jest.fn();
   render(<Harness initialDirty />);

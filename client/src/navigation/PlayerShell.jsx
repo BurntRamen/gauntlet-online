@@ -1,3 +1,4 @@
+import PlayerPageHeader from "./PlayerPageHeader";
 import { brandText, useBrandPreview } from '../brand/brandPreview';
 import SuitFireBrand from '../brand/SuitFireBrand';
 import { PlayerAvatar } from '../ProfileAvatar';
@@ -102,7 +103,7 @@ function MoreSheet({ destination, onNavigate, onClose, onCustomize, customizable
   );
 }
 
-export default function PlayerShell({ serverUrl, destination = "play", navigationKey = destination, pageTitle, pageDescription, pageEyebrow, pageDetail, onNavigate, account, audioMuted = false, onToggleAudio, ownerAuthorized = false, onAdmin, onCustomize, customizable = false, editing = false, onDoneEditing, children, notices }) {
+export default function PlayerShell({ serverUrl, destination = "play", navigationKey = destination, pageTitle, pageDescription, pageImage, pageEyebrow, pageDetail, onNavigate, account, audioMuted = false, onToggleAudio, ownerAuthorized = false, onAdmin, onCustomize, customizable = false, editing = false, onDoneEditing, children, notices }) {
   const preview = useBrandPreview();
   const [moreOpen, setMoreOpen] = useState(false);
   const returnFocusRef = useRef(null);
@@ -160,7 +161,7 @@ export default function PlayerShell({ serverUrl, destination = "play", navigatio
           <div className="cd-rail-footer"><span className="cd-rail-suits" aria-hidden="true">♠ <span>♦</span> ♣ <span>♥</span></span><p>Simple to start.<br />More to master.</p>{ownerAuthorized && onAdmin && <button type="button" className="cd-button-quiet" onClick={onAdmin}>Admin workspace ↗</button>}</div>
         </aside>
         <main className="cd-main" id={mainId} ref={mainRef} tabIndex={-1}>
-          <header className="cd-page-header"><div>{pageEyebrow && <span className="cd-eyebrow">{pageEyebrow}</span>}<h1 ref={titleRef} tabIndex={-1}>{pageTitle || current.title}</h1><p>{pageDescription || current.description}</p>{pageDetail && <p className="cd-authored-detail">{pageDetail}</p>}</div>{editing && <span className="cd-editing-badge">Editing page layout</span>}</header>
+          <PlayerPageHeader title={pageTitle || current.title} description={pageDescription || current.description} eyebrow={pageEyebrow} detail={pageDetail} image={pageImage} headingRef={titleRef}>{editing && <span className="cd-editing-badge">Editing page layout</span>}</PlayerPageHeader>
           {notices && <div className="cd-critical-notices">{notices}</div>}
           {children}
         </main>

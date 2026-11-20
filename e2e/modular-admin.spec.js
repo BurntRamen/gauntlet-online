@@ -3,14 +3,14 @@ const { origin } = require("./admin-urls");
 const { area } = require("./admin-navigation");
 const fs = require("node:fs"), path = require("node:path"), AxeBuilder = require("@axe-core/playwright").default;
 
-test("seven areas connect a named future Ranked season, shared player preview, publication and retained terms", async ({ page, request }) => {
+test("six destinations connect a named future Ranked season, shared player preview, publication and retained terms", async ({ page, request }) => {
   test.setTimeout(120000);
   const token = JSON.parse(fs.readFileSync(path.resolve(__dirname, "../.playwright-data/admin/sessions.json"))).simply;
   const headers = { Authorization: `Bearer ${token}` };
   await page.addInitScript(token => localStorage.setItem("gauntlet_auth_token", token), token);
   await page.goto("/admin/gauntlet");
   const nav = page.getByRole("navigation", { name: "Administration sections" });
-  for (const name of ["Home", "Content", "Competition", "Store & Economy", "Players", "Publishing", "Operations"]) await expect(nav.getByRole("button", { name, exact: true })).toBeVisible();
+  for (const name of ["Home", "Create & Edit", "Website", "Events & Commerce", "Publishing", "Operations"]) await expect(nav.getByRole("button", { name, exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Needs attention", exact: true })).toBeVisible();
   await page.screenshot({ path: "artifacts/modular-home-desktop.png", fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });
@@ -19,7 +19,7 @@ test("seven areas connect a named future Ranked season, shared player preview, p
   await page.screenshot({ path: "artifacts/modular-home-mobile.png", fullPage: true });
   await page.setViewportSize({ width: 1440, height: 1000 });
   await area(page, "Competition");
-  await page.getByRole("navigation", { name: "Competition workspaces" }).getByRole("button", { name: "Ranked & Gauntlet", exact: true }).click();
+  await page.getByRole("navigation", { name: "Events & Commerce workspaces" }).getByRole("button", { name: "Ranked rules", exact: true }).click();
   await page.getByRole("button", { name: "Create season draft", exact: true }).click();
   await page.getByRole("button", { name: /New season draft/ }).click();
   await page.getByLabel("Name", { exact: true }).fill("Browser future Ranked");
@@ -37,12 +37,14 @@ test("seven areas connect a named future Ranked season, shared player preview, p
   await expect(page.getByText("Win 6 · Draw 1 · Loss 0 points", { exact: true })).toBeVisible();
   const before = await (await request.get(origin + "/api/admin/competition", { headers })).json();
   expect(before.seasons.some(s => s.definition.displayName === "Browser future Ranked")).toBe(false);
+  await require("./admin-navigation").area(page, "Publishing");
   await page.getByRole("button", { name: "Validate draft", exact: true }).click();
+  await require("./admin-navigation").area(page, "Publishing");
   await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
   await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible();
   await area(page, "Publishing"); await page.getByLabel("Release name").fill("Browser managed future competition");
   await page.getByRole("button", { name: "Publish release", exact: true }).click(); await page.getByRole("button", { name: "Confirm publish", exact: true }).click();
-  await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible();
+  await expect(page.getByText("No saved changes to review.", { exact: true })).toBeVisible();
   const after = await (await request.get(origin + "/api/admin/competition", { headers })).json();
   expect(after.seasons.find(s => s.definition.displayName === "Browser future Ranked").definition.scoring.win).toBe(6);
   await area(page, "Competition"); await page.getByRole("button", { name: /Browser future Ranked scheduled/ }).click();

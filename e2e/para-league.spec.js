@@ -71,8 +71,10 @@ test("operators author Para definitions, simulate, publish and restore without t
   await expect(page.getByLabel("Name", { exact: true })).toHaveValue("Unsaved edit");
   await page.getByLabel("Name", { exact: true }).fill("Browser season");
   await page.getByRole("button", { name: "Close definition" }).click();
+  await require("./admin-navigation").area(page, "Publishing");
   await page.getByRole("button", { name: "Validate draft", exact: true }).click();
   await expect(page.getByRole("status")).toHaveText("Draft validation completed.");
+  await require("./admin-navigation").area(page, "Publishing");
   await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
   await expect(page.getByRole("region", { name: "Saved Para catalog preview" })).toContainText("600 Gold or 120 Gems");
   await adminArea(page, "Publishing");
@@ -80,7 +82,7 @@ test("operators author Para definitions, simulate, publish and restore without t
   await page.getByLabel("Release name").fill("Reviewed inactive Season Zero proposals");
   await page.getByRole("button", { name: "Publish release", exact: true }).click();
   await page.getByRole("button", { name: "Confirm publish", exact: true }).click();
-  await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible();
+  await expect(page.getByText("No saved changes to review.", { exact: true })).toBeVisible();
   const published = await get("/api/admin/authoring");
   expect(published.live.paraLeague.events.find((e) => e.id === "browser-event").prestige[7]).toBe(35);
   expect(published.live.paraLeague.products.every((p) => p.status === "unavailable")).toBe(true);

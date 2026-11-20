@@ -1,0 +1,11 @@
+.cd-page-header { position:relative; isolation:isolate; display:flex; align-items:center; justify-content:space-between; gap:16px; margin:0 0 18px; }
+.cd-page-header > div { position:relative; max-width:100%; padding-right:20px; }
+.cd-page-header h1 { margin:0 0 4px; color:var(--cd-accent,#e3c28a); font-family:Georgia,"Times New Roman",serif; font-size:27px; font-weight:600; letter-spacing:-.4px; line-height:1.2; text-shadow:0 2px 15px #000; }
+.cd-page-header h1:focus { outline:none; }
+.cd-page-header p { margin:0; color:var(--cd-muted,#afbac6); font-size:14px; }
+.cd-page-header.has-artwork { min-height:220px; padding:28px; overflow:hidden; border-radius:12px; background:#09131b; }
+.cd-page-header.has-artwork::after { content:""; position:absolute; inset:0; z-index:-1; background:linear-gradient(90deg,#09131bf5,#09131bc9 55%,#09131bbd); }
+.cd-page-header > .cd-page-artwork { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:-2; }
+.cd-page-header.has-artwork > div { max-width:650px; background:none; }
+.cd-page-header.has-artwork p { color:#e2e7ed; }
+@media(max-width:750px) { .cd-page-header { align-items:flex-start; flex-wrap:wrap; gap:10px; }.cd-page-header h1 { font-size:25px; }.cd-page-header.has-artwork { padding:20px; } }

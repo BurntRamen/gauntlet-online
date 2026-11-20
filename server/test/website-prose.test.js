@@ -70,3 +70,25 @@ test("new prose is bounded plain text with explicit owners; arbitrary fields and
   assert.throws(() => store.patch({ expectedRevision: store.status().revision, domain: "game", id: "practice", field: "html", value: "No" }), /engine-controlled/);
   assert.equal(validateAuthoredContent(baseline, baseline).valid, true);
 });
+
+test("website artwork uses validated immutable references, real player projection, dependency evidence and rollback", () => {
+  const store = createContentPublication({ baseline, memory: true }), original = store.status().activeReleaseId;
+  const asset = require("../contentAssets").assetManifest.entries.find(row => row.mediaType === "image/webp");
+  const saved = store.patch({ expectedRevision: 0, domain: "game", id: "practice", field: "playPageImage", value: asset.id }, "admin");
+  assert.equal(saved.validation.valid, true);
+  assert.equal(store.active().manifest.websiteProse.play.image, undefined);
+  assert.equal(releaseReview(saved).readiness.engineTestRequired, false);
+  const graph = require("../adminContentRelationships").contentRelationships(saved.draft.snapshot);
+  assert.ok(graph.edges.some(edge => edge.from === "game:practice" && edge.to === `asset-library:${asset.id}` && edge.kind === "uses-asset"));
+  const preview = store.preview({ expectedRevision: saved.revision }).preview;
+  assert.equal(preview.manifest.websiteProse.play.image, asset.path);
+  store.publish({ expectedRevision: store.status().revision, label: "Website image fixture" }, "admin");
+  assert.equal(store.active().manifest.websiteProse.play.image, asset.path);
+  store.rollback({ expectedRevision: store.status().revision, releaseId: original }, "admin");
+  assert.equal(store.active().manifest.websiteProse.play.image, undefined);
+  for (const value of ["https://untrusted.invalid/art.png", "javascript:alert(1)", "missing-version"]) {
+    const invalid = store.patch({ expectedRevision: store.status().revision, domain: "game", id: "practice", field: "playPageImage", value }, "admin");
+    assert.equal(invalid.validation.valid, false);
+    assert.throws(() => store.preview({ expectedRevision: invalid.revision }), /validation|invalid|correct/i);
+  }
+});

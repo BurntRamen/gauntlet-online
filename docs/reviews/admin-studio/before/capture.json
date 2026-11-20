@@ -1,0 +1,14 @@
+{
+  "phase": "before",
+  "client": "http://127.0.0.1:3188",
+  "backend": "http://127.0.0.1:4188",
+  "externalRequests": "blocked",
+  "baseline": "41d8801f",
+  "fixture": {
+    "mechanic": "mechanic-ed891478-5a7c-41c6-bfab-baa613393b23",
+    "offer": "auth-offer-08cf6e21-eb14-4b24-ba38-c72643436e89",
+    "event": "competition-9c596b17-95f1-4938-946b-60a5b936d1ac"
+  },
+  "viewport": "1440 × 1000",
+  "capturedAt": "2026-11-20T20:39:58.073Z"
+}

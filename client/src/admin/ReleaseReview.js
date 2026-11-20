@@ -28,17 +28,18 @@ export default function ReleaseReview({ state, review, onInspect, onPublish, onD
   return <section aria-label="Shared release review">
     <header className="design-header"><span className="admin-eyebrow">Publishing</span><h3>One release, across all workshops</h3><p className="admin-note">{helpCopy.releaseIntro}</p><ReleaseProgress state={state} receipt={review} unsaved={unsaved} /></header>
     {unsaved && <Help className="admin-alert" topic="ReleaseReview1" />}
-    {!!review?.contributors?.length && <p className="admin-note">Included operators: {review.contributors.join(" · ")}. {review.unattributed > 0 ? `${review.unattributed} older changes have no recorded field author.` : helpCopy.releaseAuthors}</p>}
     <div className="admin-release-layout"><section className="admin-release-summary" aria-label="Release summary">
       {state.draft && readiness && !readiness.ready && <WorkshopSection title="Next steps" id="review-blockers"><div className="admin-release-blockers">
         {!state.writable && <Help topic="workspaceReleaseReview4" role="status" />}
         <Validation validation={{ ...state.validation, warnings: [] }} guide={state.guide} onInspect={onInspect} />
-        {!readiness.validated && <><Help topic="workspaceReleaseReview5" />{onValidate && <button disabled={blocked} onClick={onValidate}>Validate draft</button>}</>}
-        {!readiness.previewed && <><Help topic="workspaceReleaseReview6" />{onPreview && <button disabled={blocked || !readiness.validated} onClick={onPreview}>Preview saved draft</button>}</>}
+        {!readiness.validated && <Help topic="workspaceReleaseReview5" />}
+        {!readiness.previewed && <Help topic="workspaceReleaseReview6" />}
         {readiness.engineTestRequired && !readiness.engineTested && <><Help topic="workspaceReleaseReview7" />{affected && onInspect && <button onClick={() => onInspect(affected.domain, affected.id, affected.field)}>Open {affected.label || affected.id} for testing</button>}</>}
         {state.pending && <Help topic="workspaceReleaseReview8" />}
       </div></WorkshopSection>}
+      {state.draft && <div className="admin-actions admin-release-actions"><button disabled={blocked} onClick={onValidate}>Validate draft</button><button disabled={blocked || !state.validation?.valid} onClick={onPreview}>Preview saved draft</button></div>}
       <WorkshopSection title="Release summary" id="review-publish"><dl className="design-facts"><div><dt>Saved changes</dt><dd>{review ? changes.length : "Unavailable"}</dd></div><div><dt>Affected records</dt><dd>{review ? records : "Unavailable"}</dd></div></dl>
+        {!!review?.contributors?.length && <p className="admin-note">Included operators: {review.contributors.join(" · ")}. {review.unattributed > 0 ? `${review.unattributed} older changes have no recorded field author.` : helpCopy.releaseAuthors}</p>}
         {state.draft ? <><label className="admin-search">Release name<input value={releaseName} maxLength={100} disabled={busy || !!state.pending} onChange={event => onReleaseName?.(event.target.value)} placeholder="Describe this release" /></label><button className="admin-primary" aria-describedby="release-action-reason" disabled={busy || !progress.ready || !releaseName.trim()} onClick={onPublish}>Publish release</button><p id="release-action-reason" role="status">{reason}</p><p className="admin-note">Includes all {changes.length} saved changes across {records}{helpCopy.releaseNote1}</p></> : <Help topic="workspaceReleaseReview3" className="admin-note" />}
         <details className="admin-json"><summary>Active release & source</summary><p>{state.publication?.message || "Publication service status is not available."}</p><code>{state.activeReleaseId || "Not recorded"}</code><p>Draft revision {state.revision ?? "not recorded"}</p></details>
       </WorkshopSection>

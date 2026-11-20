@@ -24,6 +24,7 @@ test("Admin publication becomes a free human event with durable Prestige and ins
   const save = () => saveDefinition(page);
   const preview = async () => {
     const pending = page.waitForResponse(response => response.url().endsWith("/authoring/preview") && response.request().method() === "POST", { timeout: 15000 });
+    await require("./admin-navigation").area(page, "Publishing");
     await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
     const response = await pending; expect(response.ok()).toBeTruthy(); await response.finished();
     await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible();
@@ -48,9 +49,10 @@ test("Admin publication becomes a free human event with durable Prestige and ins
   }
   await createEvent("runtime-qualifier", "Runtime Classic Trial", 1, "qualifier");
   await createEvent("runtime-invitational", "Runtime Invitational", 2, "invitational");
+  await require("./admin-navigation").area(page, "Publishing");
   await page.getByRole("button", { name: "Validate draft", exact: true }).click();
   await preview();
-  const publish = async (name) => { await adminArea(page, "Publishing"); await page.getByLabel("Release name").fill(name); await page.getByRole("button", { name: "Publish release", exact: true }).click(); await page.getByRole("button", { name: "Confirm publish", exact: true }).click(); await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible(); };
+  const publish = async (name) => { await adminArea(page, "Publishing"); await page.getByLabel("Release name").fill(name); await page.getByRole("button", { name: "Publish release", exact: true }).click(); await page.getByRole("button", { name: "Confirm publish", exact: true }).click(); await expect(page.getByText("No saved changes to review.", { exact: true })).toBeVisible(); };
   await publish("Browser official runtime event"); const release = (await get("/api/admin/authoring")).activeReleaseId;
   const contexts = await Promise.all([browser.newContext(), browser.newContext()]);
   try {
@@ -88,7 +90,7 @@ test("Admin publication becomes a free human event with durable Prestige and ins
     await page.getByRole("button", { name: /^Runtime Classic Trial runtime-qualifier/ }).click(); await page.getByLabel("Prestige for 0 wins", { exact: true }).fill("99"); await save();
     await preview(); await publish("Later scoring definition");
     expect((await get("/api/admin/para")).awards).toEqual(before);
-    await nav.getByRole("button", { name: "Competition", exact: true }).click(); await page.getByRole("navigation", { name: "Competition workspaces" }).getByRole("button", { name: "Results", exact: true }).click();
+    await nav.getByRole("button", { name: "Events & Commerce", exact: true }).click(); await page.getByRole("navigation", { name: "Events & Commerce workspaces" }).getByRole("button", { name: "Results", exact: true }).click();
     await expect(page.getByText(/^#1 · Visitor · 12 Prestige/)).toBeVisible();
     await expect(page.getByText("Published definition differs; pinned rules retained.")).toBeVisible();
     await page.getByText("Visitor · 12 Prestige", { exact: true }).click(); await expect(page.getByText(before[0].evidence[0].matchId, { exact: true })).toBeVisible();

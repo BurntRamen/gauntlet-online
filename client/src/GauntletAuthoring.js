@@ -27,8 +27,6 @@ import GauntletParaLeague from "./GauntletParaLeague";
 import CompetitionWorkshop from "./admin/CompetitionWorkshop";
 import WebsiteProseWorkshop from "./admin/WebsiteProseWorkshop";
 import ProductionGuide from "./admin/ProductionGuide";
-import ProductionPipeline from "./admin/ProductionPipeline";
-import { useOperatorPreferences } from "./admin/OperatorPreferences";
 const ENGINE_DOMAINS = ["rule-modifiers", "mechanics", "card-effects", "faction-effects", "encounter-mechanics", "game"];
 function domainRows(state, domain) {
   const snapshot = state?.draft?.snapshot || state?.live;
@@ -40,9 +38,6 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
   const [state, setState] = useState(null);
   const guide = state?.guide || {};
   const help = guide.help || {};
-  const operator = useOperatorPreferences();
-  const task = operator?.preferences.task;
-  const taskDefinition = guide.pipelines?.find(item => item.id === task?.id);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [session, setSession] = useState(null);
@@ -94,7 +89,7 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
     onNavigate: (target) => {
       if (target.domain !== domainChoice || target.id !== selected) { setCreation(null); setScenario(null); setScenarioDirty(false); }
       if (target.domain.includes(":")) {
-        const [kind, definitionDomain] = target.domain.split(":"), economy = kind === "para" && (["awards", "products", "entitlements"].includes(definitionDomain) || definitionDomain === "seasons" && (area === "Economy" || task?.id === "economy"));
+        const [kind, definitionDomain] = target.domain.split(":"), economy = kind === "para" && (["awards", "products", "entitlements"].includes(definitionDomain) || definitionDomain === "seasons" && area === "Economy");
         setDefinitionTarget({ kind, domain: definitionDomain, id: target.id, field: target.field });
         onNavigate?.(economy ? "Store & Economy" : "Competition", undefined, undefined, undefined, undefined, undefined, { internal: true, workspace: economy ? "Gold & Rewards" : kind === "competition" ? "Ranked & Gauntlet" : help.workspaceCopy1 });
         return;
@@ -109,15 +104,6 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
   // Restore a typed registry route after reload; ordinary moves already notify the parent.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [domainChoice]);
-  const requestedTask = context.target.section?.startsWith("pipeline-") ? context.target.section.slice(9) : null;
-  useEffect(() => {
-    if (!requestedTask || !guide.pipelines?.some(item => item.id === requestedTask)) return;
-    operator?.update({ task: { id: requestedTask, root: null } });
-    context.navigate({ ...context.target, section: null });
-  }, [requestedTask, guide.pipelines, operator, context]);
-  useEffect(() => {
-    if (taskDefinition && !task.root && taskDefinition.domain === domainChoice && selected) operator?.update({ task: { ...task, root: selected } });
-  }, [taskDefinition, task, domainChoice, selected, operator]);
   const domain = domainChoice === "modes" ? "game" : domainChoice;
   const query = context.context.query || "";
   const setQuery = value => context.remember({ query: value });
@@ -300,7 +286,7 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
       }} />;
   const search = <><BrowserControls label={(DOMAINS[domain] || (domain === "asset-library" ? "media" : "rules")).toLowerCase()} rows={rows} snapshot={snapshot} query={query} onQuery={setQuery} filters={context.context} onFilters={context.remember} />{!creation && <div className="admin-browser-create">{creationControls}</div>}</>;
   const list = <ContentBrowser rows={visibleRows} total={rows.length} domain={domain} selected={row?.id} busy={busy} onSelect={id => inspect(domainChoice, id)} snapshot={snapshot} changes={state.changes} preview={previewContent} sort={context.context.sort} position={context.context.browserScroll} onPosition={browserScroll => context.remember({ browserScroll })} />;
-  const presentation = previewContent && row && <Preview source={source} suit={suit} variantId={variantId} guide={guide} preview={previewContent} domain={domain} row={row} catalog={catalog} onClose={() => { setPreview(null); setResolvedView(null); }} />;
+  const presentation = previewContent && row && <Preview surface={context.target.section} source={source} suit={suit} variantId={variantId} guide={guide} preview={previewContent} domain={domain} row={row} catalog={catalog} onClose={() => { setPreview(null); setResolvedView(null); }} />;
   const playtest = <GauntletPlaytest printingId={domain === "cards" ? snapshot.domains.assets.find(item => item.id === variantId && item.gameplayCardId === row?.id)?.id || row?.defaultVariantId : undefined} request={request} state={state} row={row} domain={domain} disabled={busy || unsaved || !metadata?.capabilities?.liveTests} onAuthoring={setState} session={session} onSession={setSession} onInspect={inspect} onBusy={setBusy} onRefresh={refresh} subjectTarget={context.target} metadata={metadata} scenario={scenario} onScenario={value => { setScenario(value); setScenarioDirty(true); }} onScenarioStarted={() => setScenarioDirty(false)} />;
   const reviewRelease = () => onNavigate("Publishing");
   const Editor = domainChoice === "modes" ? WebsiteProseWorkshop : ({ decks: DeckWorkshop, offers: OfferWorkshop, cards: CardWorkshop, encounters: EncounterWorkshop })[domain] || (ENGINE_DOMAINS.includes(domainChoice) ? EngineWorkshop : null);
@@ -312,7 +298,7 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
     field: renderField, onInspect: inspect, onReview: reviewRelease, preview: presentation,
     section: context.target.section, onSection: section => context.navigate({ ...context.target, section }), context: context.context, onContext: context.remember
   };
-  if (domainChoice === "modes") Object.assign(editorProps, { target: context.target, onTarget: context.navigate });
+  if (domainChoice === "modes") Object.assign(editorProps, { target: context.target, onTarget: context.navigate, buffers });
   if (domain === "cards") Object.assign(editorProps, { suit, onSuit: setSuit, variantId, onVariantChange: setVariantId,
     onCreatePrinting: sourceId => leave(() => setCreation({ domain: "assets", gameplayCardId: row.id, ...(sourceId ? { sourceId } : {}) })) });
   if (["decks", "offers"].includes(domain)) editorProps.fields = Object.keys(fields).map(renderField);
@@ -335,12 +321,10 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
     {state.pending && <section className="admin-preview" aria-label={help.workspaceCopy24}><h4>{help.workspaceCopy25}{state.pending.phase.replaceAll("-", " ")}</h4><p>{guide.deploymentPending}</p>{state.pending.url && <a href={state.pending.url} target="_blank" rel="noreferrer">{help.workspaceCopy26}</a>}<div className="admin-actions"><button disabled={busy} onClick={() => act("reconcile")}>{help.workspaceCopy27}</button>{state.pending.phase !== "deploying" && <button disabled={busy} onClick={() => setConfirm({ action: "cancel-publication" })}>{help.workspaceCopy28}</button>}</div></section>}
     {projectionError && <p className="admin-note" role="status">{help.workspaceCopy29}{projectionError}</p>}{error && <p role="alert" className="admin-alert">{error}</p>}{notice && <p role="status" className="admin-good">{notice}</p>}
 
-    {taskDefinition && <ProductionPipeline key={task.id} request={request} state={state} task={task} busy={busy} unsaved={unsaved}
-      onRoot={id => leave(() => { operator.update({ task: { ...task, root: id } }); inspect(taskDefinition.domain, id); })}
-      onClose={() => operator.update({ task: null })} onInspect={inspect} onCreate={beginCreation} onReview={reviewRelease} />}
     {creation && creationControls}
     {area === "Ranked & Gauntlet" ? <CompetitionWorkshop onSelect={(domain, id) => setCreatedTarget({ domain: "competition:" + domain, id })} initialTarget={definitionTarget?.kind === "competition" ? definitionTarget : null} key={paraEditor} state={state} act={act} busy={busy} onDirty={onParaDirty} /> : ["Para League & Economy", "Competition", "Economy"].includes(area) ? (state.para ? <GauntletParaLeague onSelect={(domain, id) => setCreatedTarget({ domain: "para:" + domain, id })} initialTarget={definitionTarget?.kind === "para" ? definitionTarget : null} key={`${paraEditor}-${area}`} scope={area} state={state} act={act} busy={busy} request={request} onDirty={onParaDirty} preview={preview} /> : <p role="status">{help.workspaceDefinitionsUnavailable}</p>) : area === "Publishing" ? <>
       <ReleaseReview onValidate={() => act("validate")} onPreview={() => act("preview")} state={state} review={review} error={reviewError} onRetry={refresh} busy={busy} unsaved={unsaved} onInspect={inspectIssue} releaseName={releaseName} onReleaseName={setReleaseName} onPublish={() => setConfirm({ action: "publish", label: releaseName })} onDiscard={() => setConfirm({ action: "discard" })} />
+      {preview && presentation}
       <details className="admin-json"><summary>{help.workspaceCopy30}</summary><p>{guide.publishingHelp}</p><p>{help.workspaceCopy31}<code>{state.activeReleaseId}</code><br />{help.workspaceCopy32}{state.revision}<br />{state.storage}</p></details>
       <section className="admin-recovery" aria-label={help.workspaceCopy33}><h4>{help.workspaceCopy34}</h4><div className="admin-releases">{[...state.releases].reverse().map((release) => <article className="admin-source" key={release.id}><h5>{release.label} {release.id === state.activeReleaseId && <span className="admin-badge">Active</span>}</h5><p className="admin-note">{new Date(release.createdAt).toLocaleString()} · {release.compatible ? "Compatible" : help.workspaceCopy35}</p>{release.rollbackBlocked && <p className="admin-note">{release.rollbackBlocked}</p>}<details className="admin-json"><summary>{help.workspaceCopy36}</summary><code>{release.id}</code><p className="admin-note">SHA-256 {release.sha256}</p></details><button disabled={busy} onClick={async () => { try { const value = await request(`/api/admin/workshops/releases/${encodeURIComponent(release.id)}/review`); setReview(current => ({ ...current, comparison: value })); } catch (failure) { setError(failure.message); } }}>{help.workspaceCopy37}</button><button disabled={busy || unsaved || !state.writable || !!state.draft || !release.compatible || !!release.rollbackBlocked || release.id === state.activeReleaseId} onClick={() => setConfirm({ action: "rollback", releaseId: release.id, label: release.label })}>Restore {release.label}</button></article>)}</div>
       <details className="admin-json"><summary>{help.workspaceCopy38}</summary><pre>{JSON.stringify(state.activations, null, 2)}</pre></details></section>
@@ -361,8 +345,7 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
       </>}
     </>}
     {domain === "encounters" && row && relationships && area !== "Publishing" && <RelatedContent data={relationships} domain={domain} id={row.id} onInspect={inspect} />}
-    <div className="admin-shared-draft-tools">    <div className="admin-draft-bar"><div><strong>{state.draft ? `${changeCount} saved field change${changeCount === 1 ? "" : "s"}` : state.liveOnly ? help.workspaceCopy51 : help.workspaceCopy52}</strong><p className="admin-note">{unsaved ? help.workspaceUnsavedPreview : help.workspaceDraftBoundary}</p></div><div className="admin-actions" hidden={!state.draft}><button disabled={busy || unsaved || !state.draft || !state.writable} onClick={() => act("validate")}>{help.workspaceCopy53}</button><button disabled={busy || unsaved || !state.draft || !state.validation.valid || !state.writable} onClick={() => act("preview")}>{help.workspaceCopy54}</button></div></div>
-    <details id="admin-validation" tabIndex={-1} className="admin-json admin-global-validation" open={!state.validation.valid} hidden={area !== "Publishing" && !state.draft && state.validation.valid}><summary>{help.workspaceCopy55}{state.validation.errors.length} errors · {state.validation.warnings.length} warnings</summary><Validation guide={guide} validation={state.validation} onInspect={inspectIssue} /></details></div>
+    {area !== "Publishing" && <footer className="admin-shared-draft-tools"><div className="admin-draft-bar"><div><strong>{state.draft ? `${changeCount} saved change${changeCount === 1 ? "" : "s"} in the shared draft` : state.liveOnly ? help.workspaceCopy51 : "Published content"}</strong><p className="admin-note">{unsaved ? "Your local edits are not included until saved." : "Publishing includes every saved change from both operators."}</p></div></div></footer>}
     {confirm && <section ref={confirmationRef} tabIndex={-1} className="admin-confirm" aria-label={help.workspaceCopy56}><h4>{confirm.action === "publish" ? `Publish ${confirm.label}?` : confirm.action === "rollback" ? `Restore ${confirm.label}?` : confirm.action === "cancel-publication" ? "Cancel this publication?" : "Discard the shared draft?"}</h4><p>{confirm.action === "cancel-publication" ? guide.cancelHelp : confirm.action === "discard" ? guide.discardHelp : guide.publishHelp}</p><div className="admin-actions"><button disabled={busy} onClick={async () => { if (await act(confirm.action, confirm)) { if (confirm.action === "discard") setBuffers({}); } }}>Confirm {confirm.action}</button><button disabled={busy} onClick={() => setConfirm(null)}>Cancel</button></div></section>}
   </EditorSessionContext.Provider></PrivateAssetProvider></HelpProvider>;
 }

@@ -16,12 +16,16 @@ function proseFields(id) {
   return Object.fromEntries([...(defaults[id] || []).map((defaultValue, index) => {
     const [key, label, maxLength] = fields[index];
     return [key, { label, type: "text", maxLength, required: true, defaultValue, note: `Shown in ${locations[id]}. Presentation only; save to the shared draft, preview, then publish.` }];
-  }), ...surfaces.filter(surface => surface.owner === id).flatMap(surface => ["title", "description"].map(part => [`${surface.id}Page${part === "title" ? "Title" : "Description"}`, { label: `${surface.name} · ${part === "title" ? "heading" : "introduction"}`, type: "text", maxLength: part === "title" ? 160 : 600, required: true, defaultValue: surface[part], note: `Shown in ${surface.name}. Presentation only; navigation labels, account controls and game actions stay fixed. Save, preview and publish through the shared release.` }]))]);
+  }), ...surfaces.filter(surface => surface.owner === id).flatMap(surface => [
+    ...["title", "description"].map(part => [`${surface.id}Page${part === "title" ? "Title" : "Description"}`, { label: `${surface.name} · ${part === "title" ? "heading" : "introduction"}`, type: "text", maxLength: part === "title" ? 160 : 600, required: true, defaultValue: surface[part], note: `Shown in ${surface.name}. Save to the shared draft; publish from Publishing.` }]),
+    [`${surface.id}PageImage`, { label: `${surface.name} · header image`, type: "asset", media: "image", maxLength: 600, required: false, defaultValue: "", note: "Optional decorative header artwork. Choose a versioned image; clearing it restores the standard header. Existing releases keep their original image." }]
+  ])]);
 }
-function projectProse(domains) {
+function projectProse(domains, versions = [], releaseId = "") {
   return Object.fromEntries(surfaces.map(surface => {
     const row = domains.game.find(mode => mode.id === surface.owner);
-    return [surface.id, Object.fromEntries(["title", "description"].map(part => [part, row?.[`${surface.id}Page${part === "title" ? "Title" : "Description"}`] ?? surface[part]]))];
+    const image = row?.[`${surface.id}PageImage`];
+    return [surface.id, { ...Object.fromEntries(["title", "description"].map(part => [part, row?.[`${surface.id}Page${part === "title" ? "Title" : "Description"}`] ?? surface[part]])), ...(image ? { image: require("./contentAssets").resolveAsset(image, versions, releaseId) } : {}) }];
   }));
 }
 module.exports = { proseFields, projectProse, surfaces };

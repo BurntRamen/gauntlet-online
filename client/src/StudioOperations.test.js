@@ -6,7 +6,7 @@ const response = (body, status = 200) => ({ ok: status === 200, status, json: as
 const home = { guide: require("../../server/adminHomeGuide.json"), seasons: [], events: [], purchases: [], modules: [], tasks: [], storefront: {}, players: {}, publication: {} };
 const system = { guide: require("../../server/adminSystemGuide.json"), issues: [], versions: {}, storage: {}, sources: [], boundaries: [], validation: {} };
 const overview = { generatedAt: "2026-11-08T00:00:00Z", accounts: { total: 2 }, system: {}, activePlay: {}, matches: {}, season: {}, collector: {} };
-const select = name => fireEvent.click(within(screen.getByRole("navigation", { name: "Administration sections" })).getByRole("button", { name, exact: true }));
+const select = name => { fireEvent.click(within(screen.getByRole("navigation", { name: "Administration sections" })).getByRole("button", { name, exact: true })); if (name === "Operations") fireEvent.click(screen.getByRole("button", { name: "Health & recovery" })); };
 const overviewReads = () => global.fetch.mock.calls.filter(([url]) => url.endsWith("/overview"));
 
 beforeEach(() => {
@@ -24,10 +24,10 @@ test("Home defers historical operations, which remain readable, refreshable and 
     throw new Error(`Unexpected read: ${url}`);
   });
   render(<Studio serverUrl="http://localhost:4000" authToken="test-session" />);
-  await screen.findByRole("heading", { name: "Your production workspace" });
+  await screen.findByRole("heading", { name: "Back to making great games." });
   expect(overviewReads()).toHaveLength(0);
   fireEvent.click(screen.getByText("Refresh admin"));
-  await screen.findByRole("heading", { name: "Your production workspace" });
+  await screen.findByRole("heading", { name: "Back to making great games." });
   expect(overviewReads()).toHaveLength(0);
 
   select("Operations");
@@ -39,7 +39,7 @@ test("Home defers historical operations, which remain readable, refreshable and 
   await waitFor(() => expect(screen.getByRole("button", { name: "Refresh operations" })).toBeEnabled());
 
   select("Home");
-  await screen.findByRole("heading", { name: "Your production workspace" });
+  await screen.findByRole("heading", { name: "Back to making great games." });
   expect(overviewReads()).toHaveLength(2);
   select("Operations");
   await waitFor(() => expect(overviewReads()).toHaveLength(3));
@@ -62,7 +62,7 @@ test("direct Operations entry loads its data, reports failure and retries on re-
   expect(global.fetch.mock.calls.some(([url]) => url.endsWith("/home"))).toBe(false);
   unavailable = false;
   select("Home");
-  await screen.findByRole("heading", { name: "Your production workspace" });
+  await screen.findByRole("heading", { name: "Back to making great games." });
   select("Operations");
   await screen.findByRole("heading", { name: "Gauntlet Studio" });
   expect(overviewReads()).toHaveLength(2);

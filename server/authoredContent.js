@@ -187,7 +187,7 @@ function validateAuthoredFields(snapshot, baseline, catalogCards) {
         if (values.some((entry) => !(field.type === "assets" && entry === null) && (typeof entry !== "string" || entry.length > field.maxLength || /[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(entry) || (field.required && !entry.trim())))) issue(domain, row.id, key, `Use ${field.required ? "nonempty " : ""}text, at most ${field.maxLength} characters per entry.`);
         if (field.type === "asset" || field.type === "assets") {
           if (values.some((entry) => !validAsset(entry, field.media, snapshot.assetVersions))) issue(domain, row.id, key, "Choose an existing asset from the versioned manifest with the required media type.");
-          if (canonicalJson(value) !== canonicalJson(original[key])) warnings.push({ domain, id: row.id, field: key, message: "The reference resolves to immutable, digest-verified bytes in the asset manifest. Inspect its preview before publishing." });
+          if (canonicalJson(value ?? null) !== canonicalJson(fieldValue(original, key, field) ?? null)) warnings.push({ domain, id: row.id, field: key, message: "The reference resolves to immutable, digest-verified bytes in the asset manifest. Inspect its preview before publishing." });
         }
         if (domain === "cards" && key === "text" && value !== original.text) warnings.push({ domain, id: row.id, field: key, message: "Rules wording changed; the executable effect is unchanged. Verify that the wording remains accurate." });
       }
@@ -279,7 +279,7 @@ function resolveEngineContent(snapshot, releaseId) {
   for (const offer of manifest.deckOffers) offer.cardBack = manifest.presentationAssets[({ classic: "/assets/gauntlet/match/gauntlet-card-back-official.jpg", arenaCircuit: "/assets/gauntlet/card-backs/arena-circuit-v1.webp", victorGold: "/assets/gauntlet/card-backs/victor-gold-v1.webp", campaignMap: "/assets/gauntlet/card-backs/campaign-map-v1.webp" })[offer.cardBackId]];
   manifest.gameConfig = { version: 1, startingLife: config.STARTING_LIFE, handSize: domains.game.find((row) => row.id === "shared-rules").handSize };
   manifest.packComposition = clone(domains.game.find(row => row.id === "shared-rules").packComposition || require("../shared/duel-rules/packComposition").defaults);
-  manifest.websiteProse = require("./websiteProse").projectProse(domains);
+  manifest.websiteProse = require("./websiteProse").projectProse(domains, versions, releaseId);
   manifest.trainingOpponent = { name: characters.get("training-ai").name, opponentKind: "training-ai" };
   manifest.assetManifest = { version: assets.assetManifest.version, entries: clone([...assets.assetManifest.entries, ...versions.map(row => assets.assetEntry(row.id, versions, releaseId))]) };
   manifest.contentBinding = { authoredRelease: releaseId, rulesVersion: duel.RULES_VERSION, cardEffectContractVersion: effects.CARD_EFFECT_CONTRACT_VERSION, factionEffectContractVersion: effects.FACTION_EFFECT_CONTRACT_VERSION, encounterContractVersion: encounterContract.ENCOUNTER_CONTRACT_VERSION, assetManifestVersion: assets.assetManifest.version, gameConfigVersion: config.GAME_CONFIG_VERSION };

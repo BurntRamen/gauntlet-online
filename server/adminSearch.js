@@ -2,32 +2,41 @@
 
 const { fieldsFor, fieldValue, hash } = require("./authoredContent");
 const { cardAuthoringDefinitions } = require("./adminCardAuthoring");
+const { destination } = require("../shared/admin/navigation");
 const labels = { campaigns: "Campaigns", encounters: "Encounters", cards: "Cards", sets: "Sets", factions: "Factions", characters: "Characters", decks: "Deck templates", offers: "Store offers", game: "Website prose" };
 const normalize = value => String(value || "").normalize("NFKD").replace(/\p{Diacritic}/gu, "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
-const label = row => row.name || row.title || row.commanderName || row.id;
+const label = row => row.name || row.displayName || row.title || row.commanderName || row.id;
 const menus = [
   ...require("./adminModules").areas.map(area => ({ label: area, detail: ({ Content: "Content workshops and game rules", Players: "Player profiles and metadata", Competition: "Seasons, events and results", "Store & Economy": "Products, prices and financial evidence", Publishing: "Review changes, publish and rollback", Operations: "Diagnostics, match evidence and recovery" })[area] || "Administration", target: { area } })),
   ...[["encounters", "Encounters", "Stories, dialogue, setup and artwork"], ["cards", "Cards", "Create cards, rules wording, effects and artwork"], ["sets", "Sets", "Create sets, membership and limited availability"], ["card-effects", "Engine / Rules", "Mechanics, faction effects and shared settings"], ["modes", "Website prose", "Editable website copy, page headings and mode descriptions"], ["campaigns", "Campaigns", "Campaign headings and introductions"], ["characters", "Characters", "Names, biographies and portraits"], ["factions", "Factions", "Faction names and artwork"], ["decks", "Deck templates", "Compositions, printings, practice and campaign opponents"], ["offers", "Store offers", "Deck products, prices, availability and fulfillment"], ["assets", "Collector artwork", "Images, assets and collector card versions"]].map(([domain, name, detail]) => ({ label: name, detail, target: { area: "Design", domain } }))
-].map(row => ({ ...row, kind: "menu", key: `menu:${row.label}` }));
+].map(row => ({ ...row, target: { ...row.target, area: destination(row.target.area, row.target.domain) }, kind: "menu", key: `menu:${row.label}` }));
 
 function validateSearchQuery({ q = "", kind = "all", offset = "0" } = {}) {
-  if (typeof q !== "string" || q.length > 160 || !["all", "menus", "prose"].includes(kind) || !/^\d{1,5}$/.test(String(offset))) throw Object.assign(new Error("Use a search of at most 160 characters and a valid category."), { status: 400 });
+  if (typeof q !== "string" || q.length > 160 || !["all", "menus", "prose", "records"].includes(kind) || !/^\d{1,5}$/.test(String(offset))) throw Object.assign(new Error("Use a search of at most 160 characters and a valid category."), { status: 400 });
 }
 
 function searchAdmin(status, { q = "", kind = "all", offset = "0" } = {}) {
   validateSearchQuery({ q, kind, offset });
   const terms = normalize(q).split(" ").filter(Boolean), snapshot = status?.draft?.snapshot || status?.live;
-  const rows = kind === "prose" ? [] : [...menus];
+  const rows = ["prose", "records"].includes(kind) ? [] : [...menus];
   if (snapshot && kind !== "menus") {
+    const record = (domain, row, detail) => rows.push({ key: `record:${domain}:${row.id}`, kind: "record", label: label(row), detail, text: row.description || "", target: { area: destination("Content", domain), domain, id: row.id } });
+    if (kind !== "prose") {
+      for (const [domain, objects] of Object.entries(snapshot.domains)) for (const row of objects) record(domain === "game" && row.id !== "shared-rules" ? "modes" : domain, row, labels[domain] || domain);
+      for (const [domain, objects] of [["mechanics", snapshot.studio?.mechanics], ["rule-modifiers", snapshot.studio?.modifiers], ...["seasons", "events", "awards", "products", "entitlements"].map(key => [`para:${key}`, snapshot.paraLeague?.[key]]), ...["ranked", "events"].map(key => [`competition:${key}`, snapshot.competition?.[key]])]) for (const row of objects || []) record(domain, row, domain.replace(":", " · "));
+      for (const row of snapshot.assetVersions || []) record("asset-library", { id: row.id, name: `${row.mediaType?.startsWith("audio/") ? "Audio" : "Artwork"} version ${row.version}`, description: row.source }, "Immutable media version");
+    }
+    if (kind !== "records") {
     for (const [domain, objects] of Object.entries(snapshot.domains)) for (const row of objects) {
       for (const [field, spec] of Object.entries(fieldsFor(domain, row))) {
         if (!["text", "lines"].includes(spec.type)) continue;
         const value = fieldValue(row, field, spec) ?? "";
         const text = Array.isArray(value) ? value.join("\n") : String(value);
         rows.push({ key: `${domain}:${row.id}:${field}`, kind: "prose", label: label(row), detail: `${labels[domain] || domain} · ${spec.label}`, text,
-          target: { area: "Design", domain: domain === "game" ? "modes" : domain, id: row.id, field,
+          target: { area: destination("Content", domain === "game" ? "modes" : domain), domain: domain === "game" ? "modes" : domain, id: row.id, field,
             section: domain === "encounters" ? "story" : domain === "cards" ? "identity" : null } });
       }
+    }
     }
     if (kind === "all") for (const effect of cardAuthoringDefinitions()) rows.push({ key: `effect:${effect.id}`, kind: "reference", label: effect.label, detail: "Card effect · read-only registry", text: effect.description, target: { area: "Design", domain: "card-effects", id: effect.id } });
   }

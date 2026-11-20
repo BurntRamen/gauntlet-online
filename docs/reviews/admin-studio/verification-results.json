@@ -1,0 +1,543 @@
+{
+  "recordedAt": "2026-11-20T21:46:51.510161+00:00",
+  "baseline": "41d8801fd9d1785180d20da45514343bc2d6c28d",
+  "scope": "Local compiled-client verification against isolated fixture stores; latest result per distinct case after targeted repairs. Not a claim of one clean all-tests run.",
+  "counts": {
+    "passed": 30
+  },
+  "runs": [
+    {
+      "report": "admin-studio-first-results.json",
+      "stats": {
+        "startTime": "2026-11-20T20:46:43.088Z",
+        "duration": 1097070.848,
+        "expected": 18,
+        "skipped": 4,
+        "unexpected": 6,
+        "flaky": 0
+      }
+    },
+    {
+      "report": "admin-studio-second-results.json",
+      "stats": {
+        "startTime": "2026-11-20T21:07:11.183Z",
+        "duration": 729609.879,
+        "expected": 7,
+        "skipped": 0,
+        "unexpected": 3,
+        "flaky": 0
+      }
+    },
+    {
+      "report": "admin-studio-third-results.json",
+      "stats": {
+        "startTime": "2026-11-20T21:22:35.170Z",
+        "duration": 600630.336,
+        "expected": 4,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      }
+    },
+    {
+      "report": "admin-studio-fourth-results.json",
+      "stats": {
+        "startTime": "2026-11-20T21:38:00.574Z",
+        "duration": 106176.11899999999,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "report": "admin-studio-legacy-first-results.json",
+      "stats": {
+        "startTime": "2026-11-20T21:32:42.591Z",
+        "duration": 142212.434,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      }
+    },
+    {
+      "report": "admin-studio-legacy-second-results.json",
+      "stats": {
+        "startTime": "2026-11-20T21:39:51.334Z",
+        "duration": 61752.744,
+        "expected": 0,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      }
+    },
+    {
+      "report": "admin-studio-legacy-results.json",
+      "stats": {
+        "startTime": "2026-11-20T21:44:18.410Z",
+        "duration": 84970.897,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    }
+  ],
+  "cases": [
+    {
+      "file": "e2e/admin-pipelines.spec.js",
+      "title": "a reusable mechanic can be created, attached and executed through ordinary content editors",
+      "status": "passed",
+      "durationMs": 140672,
+      "runs": [
+        {
+          "report": "admin-studio-first-results.json",
+          "status": "failed"
+        },
+        {
+          "report": "admin-studio-second-results.json",
+          "status": "failed"
+        },
+        {
+          "report": "admin-studio-third-results.json",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "e2e/admin-pipelines.spec.js",
+      "title": "card modules save, reload, navigate dependencies and execute ordered effects with captured revisions",
+      "status": "passed",
+      "durationMs": 85711,
+      "runs": [
+        {
+          "report": "admin-studio-first-results.json",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "e2e/admin-pipelines.spec.js",
+      "title": "direct set creation carries membership through contextual card creation, reload and shared review",
+      "status": "passed",
+      "durationMs": 56850,
+      "runs": [
+        {
+          "report": "admin-studio-first-results.json",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "e2e/admin-pipelines.spec.js",
+      "title": "events have one home and a reload restores their authoritative definition",
+      "status": "passed",
+      "durationMs": 29658,
+      "runs": [
+        {
+          "report": "admin-studio-first-results.json",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "e2e/admin-pipelines.spec.js",
+      "title": "faction and campaign creation connects a chapter and guards cross-record departure",
+      "status": "passed",
+      "durationMs": 42194,
+      "runs": [
+        {
+          "report": "admin-studio-first-results.json",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "e2e/admin-pipelines.spec.js",
+      "title": "native 200 percent browser zoom retains reflow, keyboard focus and accessible review views",
+      "status": "passed",
+      "durationMs": 137258,
+      "runs": [
+        {
+          "report": "admin-studio-first-results.json",
+          "status": "failed"
+        },
+        {
+          "report": "admin-studio-second-results.json",
+          "status": "passed"
+        },
+        {
+          "report": "admin-studio-third-results.json",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "e2e/admin-redesign.spec.js",
+      "title": "browser Back from player corrections resumes the requested content destination after a deliberate choice",
+      "status": "passed",
+      "durationMs": 16927,
+      "runs": [
+        {
+          "report": "admin-studio-first-results.json",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "e2e/admin-redesign.spec.js",
+      "title": "card fields stay local across sections and browser Back, then save together to the shared draft",
+      "status": "passed",
+      "durationMs": 21127,
+      "runs": [
+        {
+          "report": "admin-studio-first-results.json",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "e2e/admin-redesign.spec.js",
+      "title": "creation selects the new record and printing comparison retains the selected version",
+      "status": "passed",
+      "durationMs": 36200,
+      "runs": [
+        {
+          "report": "admin-studio-first-results.json",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "e2e/admin-redesign.spec.js",
+      "title": "encounter setup earns exact-draft engine evidence and a later change invalidates it",
+      "status": "passed",
+      "durationMs": 52791,
+      "runs": [
+        {
+          "report": "admin-studio-first-results.json",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "e2e/admin-redesign.spec.js",
+      "title": "failed saves preserve input and two operators deliberately reconcile a stale record",
+      "status": "passed",
+      "durationMs": 27647,
+      "runs": [
+        {
+          "report": "admin-studio-first-results.json",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "e2e/admin-redesign.spec.js",
+      "title": "genuine departure offers keep, discard, and save-and-continue only after acknowledgement",
+      "status": "passed",
+      "durationMs": 40556,
+      "runs": [
+        {
+          "report": "admin-studio-first-results.json",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "e2e/admin-redesign.spec.js",
+      "title": "keyboard search is a modal extension, restores focus and opens exact editable text",
+      "status": "passed",
+      "durationMs": 13182,
+      "runs": [
+        {
+          "report": "admin-studio-first-results.json",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "e2e/admin-redesign.spec.js",
+      "title": "operator preferences are scoped and private recent work clears when accounts change",
+      "status": "passed",
+      "durationMs": 29602,
+      "runs": [
+        {
+          "report": "admin-studio-first-results.json",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "e2e/admin-redesign.spec.js",
+      "title": "player support and match evidence retain their readable authoritative detail",
+      "status": "passed",
+      "durationMs": 7997,
+      "runs": [
+        {
+          "report": "admin-studio-first-results.json",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "e2e/admin-redesign.spec.js",
+      "title": "release blockers open the exact field and the corrected record returns to review",
+      "status": "passed",
+      "durationMs": 25969,
+      "runs": [
+        {
+          "report": "admin-studio-first-results.json",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "e2e/admin-redesign.spec.js",
+      "title": "review screenshots and responsive workspace preserve usable content and keyboard access",
+      "status": "passed",
+      "durationMs": 141707,
+      "runs": [
+        {
+          "report": "admin-studio-first-results.json",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "e2e/admin-redesign.spec.js",
+      "title": "saved-draft preview and fixture publication verify active without claiming local values are live",
+      "status": "passed",
+      "durationMs": 47805,
+      "runs": [
+        {
+          "report": "admin-studio-first-results.json",
+          "status": "failed"
+        },
+        {
+          "report": "admin-studio-second-results.json",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "e2e/admin-refinement.spec.js",
+      "title": "mobile record actions remain visible without covering the focused field",
+      "status": "passed",
+      "durationMs": 16380,
+      "runs": [
+        {
+          "report": "admin-studio-first-results.json",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "e2e/admin-refinement.spec.js",
+      "title": "review loading and failed responses are distinct and retry is read-only",
+      "status": "passed",
+      "durationMs": 22079,
+      "runs": [
+        {
+          "report": "admin-studio-first-results.json",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "e2e/admin-refinement.spec.js",
+      "title": "validation repair returns to its issue list with keyboard focus and stales old evidence",
+      "status": "passed",
+      "durationMs": 34660,
+      "runs": [
+        {
+          "report": "admin-studio-first-results.json",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "e2e/admin-refinement.spec.js",
+      "title": "visual baseline and release surfaces \u00b7 desktop",
+      "status": "passed",
+      "durationMs": 109072,
+      "runs": [
+        {
+          "report": "admin-studio-first-results.json",
+          "status": "failed"
+        },
+        {
+          "report": "admin-studio-second-results.json",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "e2e/admin-refinement.spec.js",
+      "title": "visual baseline and release surfaces \u00b7 laptop",
+      "status": "passed",
+      "durationMs": 106610,
+      "runs": [
+        {
+          "report": "admin-studio-first-results.json",
+          "status": "failed"
+        },
+        {
+          "report": "admin-studio-second-results.json",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "e2e/admin-refinement.spec.js",
+      "title": "visual baseline and release surfaces \u00b7 phone",
+      "status": "passed",
+      "durationMs": 110558,
+      "runs": [
+        {
+          "report": "admin-studio-first-results.json",
+          "status": "failed"
+        },
+        {
+          "report": "admin-studio-second-results.json",
+          "status": "failed"
+        },
+        {
+          "report": "admin-studio-third-results.json",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "e2e/admin-studio.spec.js",
+      "title": "Home stays compact and six destinations lead directly to the owning workspace",
+      "status": "passed",
+      "durationMs": 17623,
+      "runs": [
+        {
+          "report": "admin-studio-first-results.json",
+          "status": "skipped"
+        },
+        {
+          "report": "admin-studio-second-results.json",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "e2e/admin-studio.spec.js",
+      "title": "phone website editing and keyboard search stay accessible with a protected local buffer",
+      "status": "passed",
+      "durationMs": 16573,
+      "runs": [
+        {
+          "report": "admin-studio-first-results.json",
+          "status": "skipped"
+        },
+        {
+          "report": "admin-studio-second-results.json",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "e2e/admin-studio.spec.js",
+      "title": "season eligibility, event rewards and product terms save through their owning editors",
+      "status": "passed",
+      "durationMs": 93897,
+      "runs": [
+        {
+          "report": "admin-studio-first-results.json",
+          "status": "skipped"
+        },
+        {
+          "report": "admin-studio-second-results.json",
+          "status": "failed"
+        },
+        {
+          "report": "admin-studio-third-results.json",
+          "status": "failed"
+        },
+        {
+          "report": "admin-studio-fourth-results.json",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "e2e/admin-studio.spec.js",
+      "title": "website artwork and card edits share a release, reach the actual player and roll back together",
+      "status": "passed",
+      "durationMs": 95852,
+      "runs": [
+        {
+          "report": "admin-studio-first-results.json",
+          "status": "skipped"
+        },
+        {
+          "report": "admin-studio-second-results.json",
+          "status": "passed"
+        },
+        {
+          "report": "admin-studio-third-results.json",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "e2e/admin.spec.js",
+      "title": "manifest-picked faction and portrait artwork previews load immutable draft assets",
+      "status": "passed",
+      "durationMs": 65902,
+      "runs": [
+        {
+          "report": "admin-studio-legacy-first-results.json",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "e2e/admin.spec.js",
+      "title": "typed mechanics can be edited, playtested in the real engine, published and rolled back",
+      "status": "passed",
+      "durationMs": 71730,
+      "runs": [
+        {
+          "report": "admin-studio-legacy-first-results.json",
+          "status": "failed"
+        },
+        {
+          "report": "admin-studio-legacy-second-results.json",
+          "status": "failed"
+        },
+        {
+          "report": "admin-studio-legacy-results.json",
+          "status": "passed"
+        }
+      ]
+    }
+  ],
+  "server": {
+    "total": 677,
+    "originalPassed": 674,
+    "originalFailed": 3,
+    "baselineReproducedFailures": 2,
+    "backupEnvironmentRecheck": "4/4 passed outside the Windows sandbox junction restriction"
+  },
+  "client": {
+    "fullSuites": 133,
+    "fullTestsPassed": 1068,
+    "focusedComponentTestsPassed": 28,
+    "focusedRoutingTestsPassed": 37
+  },
+  "qualificationTestsPassed": 60,
+  "toolchainTestsPassed": 4,
+  "bundleKiB": {
+    "main": 179.1,
+    "largestAsync": 269.3,
+    "player": 758.6,
+    "initialAdmin": 11.6,
+    "allLazyAdmin": 74.8
+  }
+}

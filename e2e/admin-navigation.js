@@ -6,25 +6,23 @@ async function navigation(page) {
   return nav;
 }
 async function area(page, name) {
-  const target = { Design: "Content", Overview: "Home", Matches: "Operations", System: "Operations", "Para League & Economy": "Competition" }[name] || name;
+  const target = { Design: "Create & Edit", Content: "Create & Edit", Overview: "Home", Players: "Operations", Matches: "Operations", System: "Operations", Competition: "Events & Commerce", "Store & Economy": "Events & Commerce", "Para League & Economy": "Events & Commerce" }[name] || name;
   await (await navigation(page)).getByRole("button", { name: target, exact: true }).click();
-  if (["Matches", "System"].includes(name)) {
-    const workspace = page.getByRole("navigation", { name: "Operations workspaces" });
-    if (await workspace.isVisible()) await workspace.getByRole("button", { name: name === "Matches" ? "Match evidence" : "Health", exact: true }).click();
-  }
+  if (await page.getByRole("dialog", { name: "Unsaved local changes" }).isVisible()) return;
+  const secondary = { Matches: "Match evidence", System: "Health & recovery", "Store & Economy": "Deck products" }[name];
+  if (secondary) await page.getByRole("navigation", { name: target + " workspaces" }).getByRole("button", { name: secondary, exact: true }).click();
 }
 async function destination(page, name) {
-  if (name === "Store") { await area(page, "Store & Economy"); await page.getByRole("navigation", { name: "Store & Economy workspaces" }).getByRole("button", { name: "Products", exact: true }).click(); return; }
+  if (name === "Store") { await area(page, "Store & Economy"); return; }
+  if (name === "Website prose") { await area(page, "Website"); return; }
   const targets = {
     Cards: ["Cards"], Decks: ["Decks"], Encounters: ["Campaigns & Encounters", "encounters"], Campaigns: ["Campaigns & Encounters", "campaigns"], Factions: ["Factions & Characters", "factions"], Characters: ["Factions & Characters", "characters"], "Characters / opponents": ["Factions & Characters", "characters"],
-    "Engine / Rules": ["Mechanics & Rules", "card-effects"], "Website prose": ["Lore & Website Text"], "Collector artwork": ["Printings & Sets", "assets"], Sets: ["Printings & Sets", "sets"], "Other content": ["Campaigns & Encounters", "campaigns"]
+    "Engine / Rules": ["Mechanics & Rules", "card-effects"], "Collector artwork": ["Printings & Sets", "assets"], Sets: ["Printings & Sets", "sets"], "Other content": ["Campaigns & Encounters", "campaigns"]
   };
   const [group, type] = targets[name] || [name];
-  const nav = await navigation(page);
   if (!await page.getByRole("navigation", { name: "Content destinations" }).isVisible()) {
-    await nav.getByRole("button", { name: "Content", exact: true }).click();
+    await area(page, "Content");
     if (await page.getByRole("dialog", { name: "Unsaved local changes" }).isVisible()) return;
-    await navigation(page);
   }
   await page.getByRole("navigation", { name: "Content destinations" }).getByRole("button", { name: group, exact: true }).click();
   if (await page.getByRole("dialog", { name: "Unsaved local changes" }).isVisible()) return;
@@ -33,7 +31,15 @@ async function destination(page, name) {
   const backToList = page.getByRole("button", { name: "Back to list", exact: true });
   if (await backToList.isVisible()) await backToList.click();
 }
+async function returnFromPublishing(page) {
+  const publishing = page.getByRole("navigation", { name: "Administration sections" }).getByRole("button", { name: "Publishing", exact: true });
+  if (await publishing.getAttribute("aria-current") === "page") {
+    await expect(page.locator(".admin-save-context")).not.toHaveText("Working…");
+    await page.getByRole("button", { name: "Back to previous view", exact: true }).click();
+  }
+}
 async function workspaceView(page, name) {
+  await returnFromPublishing(page);
   const controls = page.locator('[aria-label="Workspace view"]');
   if (name === "Preview") await controls.waitFor({ state: "visible" });
   if (await controls.isVisible()) await controls.getByRole("button", { name, exact: true }).click();
@@ -50,6 +56,7 @@ async function workspaceView(page, name) {
   }
 }
 async function workspaceSection(page, workshop, label) {
+  await returnFromPublishing(page);
   await page.getByRole("region", { name: workshop, exact: true }).waitFor({ state: "visible" });
   await workspaceView(page, "Editor");
   const select = page.getByRole("combobox", { name: `${workshop} section`, exact: true });
@@ -65,6 +72,7 @@ async function searchCollection(page, label, value) {
 }
 async function saveRecord(page, recordName) {
   await page.getByRole("region", { name: "Save record changes", exact: true }).getByRole("button", { name: recordName ? `Save changes to ${recordName}` : /^Save changes/ }).click();
+  await expect(page.locator(".admin-save-context")).not.toHaveText("Working…", { timeout: 45000 });
 }
 async function saveDefinition(page) {
   const name = page.getByLabel("Name", { exact: true });
@@ -86,6 +94,7 @@ async function saveDefinition(page) {
   await expect(name).toHaveCount(0);
 }
 async function previewSavedDraft(page) {
+  if (!await page.getByRole("button", { name: "Preview saved draft", exact: true }).isVisible()) await area(page, "Publishing");
   const pending = page.waitForResponse(response => response.url().endsWith("/authoring/preview") && response.request().method() === "POST");
   await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
   const response = await pending;
@@ -101,8 +110,8 @@ async function paraTab(page, name) {
   const store = ["Marketplace", "Entitlements", "Gold Awards"].includes(name);
   if (store) {
     await area(page, "Store & Economy");
-    await page.getByRole("navigation", { name: "Store & Economy workspaces" }).getByRole("button", { name: "Gold & Rewards", exact: true }).click();
-  } else if (["Events", "Prestige"].includes(name) || !await page.getByRole("navigation", { name: "Para workspaces" }).isVisible()) { await area(page, "Competition"); await page.getByRole("navigation", { name: "Competition workspaces" }).getByRole("button", { name: "Para definitions", exact: true }).click(); }
+    await page.getByRole("navigation", { name: "Events & Commerce workspaces" }).getByRole("button", { name: "Gold & rewards", exact: true }).click();
+  } else if (["Events", "Prestige"].includes(name) || !await page.getByRole("navigation", { name: "Para workspaces" }).isVisible()) { await area(page, "Competition"); await page.getByRole("navigation", { name: "Events & Commerce workspaces" }).getByRole("button", { name: "Events & seasons", exact: true }).click(); }
   await page.getByRole("navigation", { name: "Para workspaces" }).getByRole("button", { name, exact: true }).click();
 }
 async function identity(page, value) {

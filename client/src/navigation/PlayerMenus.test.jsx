@@ -35,9 +35,10 @@ const openMore = () => fireEvent.click(screen.getAllByRole("button", { name: "Mo
 beforeEach(() => localStorage.clear());
 
 test.each(["play", "decks", "compete", "matches", "community", "learn", "profile", "settings", "campaign"])("published %s landing prose changes the visible header and preserves navigation", page => {
-  const { props } = renderMenus({ route: { page, view: "" }, content: { factions: [], campaigns: {}, websiteProse: { [page]: { title: "Reviewed heading", description: "Published introduction." } } } });
+  const { props } = renderMenus({ route: { page, view: "" }, content: { factions: [], campaigns: {}, websiteProse: { [page]: { title: "Reviewed heading", description: "Published introduction.", image: "/assets/gauntlet/releases/captured-header.webp" } } } });
   expect(screen.getByRole("heading", { level: 1, name: "Reviewed heading" })).toBeInTheDocument();
   expect(screen.getByText("Published introduction.")).toBeInTheDocument();
+  expect(document.querySelector(".cd-page-header .cd-page-artwork")).toHaveAttribute("src", "/assets/gauntlet/releases/captured-header.webp");
   fireEvent.click(within(screen.getByRole("navigation", { name: "Main navigation" })).getByRole("button", { name: "Decks & Cards" }));
   expect(props.onNavigate).toHaveBeenCalledWith("decks", "");
 });

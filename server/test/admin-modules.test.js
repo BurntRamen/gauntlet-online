@@ -2,7 +2,7 @@ const test = require("node:test"), assert = require("node:assert/strict");
 const { areas, modules, projectModules } = require("../adminModules");
 test("module contracts distinguish deployed interfaces from disabled consumers", () => {
   const result = projectModules({ environment: "production", authoring: { writable: true }, para: { enabled: false }, gold: { enabled: false }, deck: { ready: false, reason: "Missing revision guard" } });
-  assert.equal(areas.length, 7);
+  assert.equal(areas.length, 6);
   assert.equal(new Set(modules.map(m => m.id)).size, modules.length);
   for (const row of result.modules) {
     assert.ok(areas.includes(row.area));

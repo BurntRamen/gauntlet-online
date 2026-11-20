@@ -232,6 +232,7 @@ export default function PlayerMenus({ serverUrl, route, onNavigate, account, own
   return <PlayerShell serverUrl={serverUrl} destination={page} navigationKey={`${page}:${view}:${workflow ? "workflow" : "landing"}`} onNavigate={nav} account={account} ownerAuthorized={ownerAuthorized} onAdmin={() => nav("studio")}
     audioMuted={audioMuted} onToggleAudio={onToggleAudio}
     pageTitle={page === "draft" ? draftPresentation.title : content.websiteProse?.[page]?.title} pageDescription={page === "draft" ? draftPresentation.description : content.websiteProse?.[page]?.description}
+    pageImage={content.websiteProse?.[page]?.image}
     pageEyebrow={page === "draft" ? draftPresentation.eyebrow : undefined} pageDetail={page === "draft" ? draftPresentation.detail : undefined}
     onCustomize={() => setEditing(true)} customizable={customizable} editing={editing} onDoneEditing={() => setEditing(false)} notices={notices}>
     <div className={focused ? "cd-focused-workflow" : "cd-landing"}>{body}</div>

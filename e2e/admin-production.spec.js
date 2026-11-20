@@ -46,15 +46,16 @@ test("a registered website header is previewed, published to the player menu and
   await page.goto("/admin/gauntlet?workshop=modes&object=practice&section=play");
   await page.getByLabel("Draft play landing · heading", { exact: true }).fill("Isolated production heading");
   await saveRecord(page);
-  await expect(page.getByRole("region", { name: "Saved prose preview" })).toContainText("Isolated production heading");
+  await expect(page.getByRole("region", { name: "Website presentation preview" })).toContainText("Isolated production heading");
   await area(page, "Publishing");
+  await require("./admin-navigation").area(page, "Publishing");
   await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
   await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible();
 
   await page.getByLabel("Release name").fill("Isolated website header");
   await page.getByRole("button", { name: "Publish release", exact: true }).click();
   await page.getByRole("button", { name: "Confirm publish", exact: true }).click();
-  await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible();
+  await expect(page.getByText("No saved changes to review.", { exact: true })).toBeVisible();
   const player = await page.context().newPage();
   await player.goto("/"); await navigatePlayer(player, "play");
   await expect(player.getByRole("heading", { name: "Isolated production heading", exact: true })).toBeVisible();
@@ -74,7 +75,7 @@ test("only an admin can restore reviewed progress, with a reason and retained au
     expect((await request.post(endpoint, { headers, data: {} })).status()).toBe(headers.Authorization ? 403 : 401);
   }
   await page.goto("/admin/gauntlet");
-  await nav(page).getByRole("button", { name: "Players", exact: true }).click();
+  await nav(page).getByRole("button", { name: "Operations", exact: true }).click();
   await page.getByRole("button", { name: "View player Visitor", exact: true }).click();
   const profile = page.getByRole("region", { name: "Selected player" });
   await profile.getByRole("button", { name: "Review missing progress", exact: true }).click();
@@ -82,7 +83,7 @@ test("only an admin can restore reviewed progress, with a reason and retained au
   await expect(page.getByRole("region", { name: "Proposed account repair" })).toContainText("1 missing fact");
   await expect(page.getByRole("region", { name: "Proposed account repair" })).toContainText("Campaign clears · Rumin");
   await page.getByLabel("Correction reason").fill("Restore the recorded isolated campaign clear");
-  await nav(page).getByRole("button", { name: "Content", exact: true }).click();
+  await nav(page).getByRole("button", { name: "Create & Edit", exact: true }).click();
   await page.getByRole("dialog", { name: "Unsaved local changes" }).getByRole("button", { name: "Keep editing", exact: true }).click();
   await expect(page.getByLabel("Correction reason")).toHaveValue("Restore the recorded isolated campaign clear");
   await page.setViewportSize({ width: 390, height: 844 });

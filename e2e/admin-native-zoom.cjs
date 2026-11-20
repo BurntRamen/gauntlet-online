@@ -92,7 +92,7 @@ const metrics = page => page.evaluate(() => ({ innerWidth, innerHeight, outerWid
         result.views[name] = { ...measure, axeViolations: axe.violations };
       };
       try {
-        await page.goto(base + '/admin/gauntlet'); const task = page.getByRole('button', { name: 'Build a card set', exact: true }); await expect(task).toBeVisible(); await task.scrollIntoViewIfNeeded(); await captureView('home');
+        await page.goto(base + '/admin/gauntlet'); const task = page.getByRole('button', { name: 'Create a card', exact: true }); await expect(task).toBeVisible(); await task.scrollIntoViewIfNeeded(); await captureView('home');
         await page.goto(base + '/admin/gauntlet?workshop=cards'); const search = page.getByLabel('Search cards', { exact: true }); await expect(search).toBeVisible(); await search.scrollIntoViewIfNeeded(); await captureView('collection');
         await page.goto(base + '/admin/gauntlet?workshop=cards&object=rumin-coin-scale-spear'); await expect(page.getByLabel('Draft name', { exact: true })).toBeVisible();
         await page.getByRole('button', { name: 'Preview', exact: true }).click(); const preview = page.getByRole('region', { name: 'Card Workshop preview and test', exact: true }); const card = preview.getByRole('img', { name: /Dividend Yield Blade/ }).first(); await expect(card).toBeVisible(); await card.scrollIntoViewIfNeeded(); await captureView('editor-preview');

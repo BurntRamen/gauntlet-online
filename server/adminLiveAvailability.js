@@ -22,8 +22,8 @@ async function readWorkshopStatus(publication, source = "live") {
     : publication.status();
 }
 
-async function readAuthoringStatus(publication) {
-  try { return await publication.status(); }
+async function readAuthoringStatus(publication, compact = false) {
+  try { return await (compact && publication.summary ? publication.summary() : publication.status()); }
   catch (failure) {
     if (!publication.deployedSnapshot) throw failure;
     const status = await deployedStatus(publication);
