@@ -181,6 +181,18 @@
         "clicked": "/assets/gauntlet/voices/faction-voltari-general-clicked.mp3?v=f249b7d7f2e3"
       }
     },
+    "morphlings": {
+      "commander": {
+        "selected": "/assets/gauntlet/voices/faction-morphlings-commander-selected.mp3?v=8efba8c8c231",
+        "clicked": "/assets/gauntlet/voices/faction-morphlings-commander-clicked.mp3?v=cdf715ccba8c",
+        "wounded": "/assets/gauntlet/voices/faction-morphlings-commander-wounded.mp3?v=5402ad266eaf",
+        "critical": "/assets/gauntlet/voices/faction-morphlings-commander-critical.mp3?v=7cd2c9f70679",
+        "denied": "/assets/gauntlet/voices/faction-morphlings-commander-denied.mp3?v=e231d6e97ba9"
+      },
+      "general": {
+        "clicked": "/assets/gauntlet/voices/faction-morphlings-general-clicked.mp3?v=8aecd5724a39"
+      }
+    },
     "xendra": {
       "commander": {
         "selected": "/assets/gauntlet/voices/faction-xendra-commander-selected.mp3?v=da7efab7b956",

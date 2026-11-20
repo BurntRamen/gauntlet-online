@@ -42340,6 +42340,138 @@
       "bytes": 53123
     },
     {
+      "id": "asset:voices/faction-morphlings-commander-clicked.mp3",
+      "source": "/assets/gauntlet/voices/faction-morphlings-commander-clicked.mp3",
+      "associations": [
+        {
+          "object": "content.factions.22.commander.announcementAudio.clicked",
+          "usage": "clicked"
+        },
+        {
+          "object": "content.deckRules.factions.22.commander.announcementAudio.clicked",
+          "usage": "clicked"
+        },
+        {
+          "object": "factions.morphlings.commander.announcementAudio.clicked",
+          "usage": "clicked"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/cdf715ccba8c03ff24d78deca3f293309de788e373cfea72a0d4bad3e0713eb0.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "cdf715ccba8c03ff24d78deca3f293309de788e373cfea72a0d4bad3e0713eb0",
+      "bytes": 131457
+    },
+    {
+      "id": "asset:voices/faction-morphlings-commander-critical.mp3",
+      "source": "/assets/gauntlet/voices/faction-morphlings-commander-critical.mp3",
+      "associations": [
+        {
+          "object": "content.factions.22.commander.announcementAudio.critical",
+          "usage": "critical"
+        },
+        {
+          "object": "content.deckRules.factions.22.commander.announcementAudio.critical",
+          "usage": "critical"
+        },
+        {
+          "object": "factions.morphlings.commander.announcementAudio.critical",
+          "usage": "critical"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/7cd2c9f70679c7a0223db48bffc0b196e5106f716309471dab00e7a22c8028dc.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "7cd2c9f70679c7a0223db48bffc0b196e5106f716309471dab00e7a22c8028dc",
+      "bytes": 81720
+    },
+    {
+      "id": "asset:voices/faction-morphlings-commander-denied.mp3",
+      "source": "/assets/gauntlet/voices/faction-morphlings-commander-denied.mp3",
+      "associations": [
+        {
+          "object": "content.factions.22.commander.announcementAudio.denied",
+          "usage": "denied"
+        },
+        {
+          "object": "content.deckRules.factions.22.commander.announcementAudio.denied",
+          "usage": "denied"
+        },
+        {
+          "object": "factions.morphlings.commander.announcementAudio.denied",
+          "usage": "denied"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/e231d6e97ba9659a1cde75f8a41b55bc928071209969961fb5ddaf9ba454397c.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "e231d6e97ba9659a1cde75f8a41b55bc928071209969961fb5ddaf9ba454397c",
+      "bytes": 125188
+    },
+    {
+      "id": "asset:voices/faction-morphlings-commander-selected.mp3",
+      "source": "/assets/gauntlet/voices/faction-morphlings-commander-selected.mp3",
+      "associations": [
+        {
+          "object": "content.factions.22.commander.announcementAudio.selected",
+          "usage": "selected"
+        },
+        {
+          "object": "content.deckRules.factions.22.commander.announcementAudio.selected",
+          "usage": "selected"
+        },
+        {
+          "object": "factions.morphlings.commander.announcementAudio.selected",
+          "usage": "selected"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/8efba8c8c231a1a94d1fdf6dbc8e82d70d6ba08a8ab534c78f0ad1315a6aa8dc.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "8efba8c8c231a1a94d1fdf6dbc8e82d70d6ba08a8ab534c78f0ad1315a6aa8dc",
+      "bytes": 100946
+    },
+    {
+      "id": "asset:voices/faction-morphlings-commander-wounded.mp3",
+      "source": "/assets/gauntlet/voices/faction-morphlings-commander-wounded.mp3",
+      "associations": [
+        {
+          "object": "content.factions.22.commander.announcementAudio.wounded",
+          "usage": "wounded"
+        },
+        {
+          "object": "content.deckRules.factions.22.commander.announcementAudio.wounded",
+          "usage": "wounded"
+        },
+        {
+          "object": "factions.morphlings.commander.announcementAudio.wounded",
+          "usage": "wounded"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/5402ad266eaffee4c1f0c6eb44a7caefcfd0005d9c78b5a407d21ec7fb1cc1b4.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "5402ad266eaffee4c1f0c6eb44a7caefcfd0005d9c78b5a407d21ec7fb1cc1b4",
+      "bytes": 82974
+    },
+    {
+      "id": "asset:voices/faction-morphlings-general-clicked.mp3",
+      "source": "/assets/gauntlet/voices/faction-morphlings-general-clicked.mp3",
+      "associations": [
+        {
+          "object": "content.factions.22.general.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "content.deckRules.factions.22.general.clickedAudio",
+          "usage": "clickedAudio"
+        },
+        {
+          "object": "factions.morphlings.general.clickedAudio",
+          "usage": "clickedAudio"
+        }
+      ],
+      "path": "/assets/gauntlet/releases/8aecd5724a393c6a8f6d5707237473560768deac19b61f37c7708e4622016f55.mp3",
+      "mediaType": "audio/mpeg",
+      "sha256": "8aecd5724a393c6a8f6d5707237473560768deac19b61f37c7708e4622016f55",
+      "bytes": 91751
+    },
+    {
       "id": "asset:voices/faction-mtano-commander-clicked.mp3",
       "source": "/assets/gauntlet/voices/faction-mtano-commander-clicked.mp3",
       "associations": [
@@ -61032,5 +61164,5 @@
     "thalassari-clubs-king": "/assets/gauntlet/thalassari-emblem.svg",
     "thalassari-clubs-ace": "/assets/gauntlet/thalassari-emblem.svg"
   },
-  "version": "gauntlet-assets-67299bf8820cef66bddab0d24d8e6c0aa2a0599032b7890394c253e8263cdc28"
+  "version": "gauntlet-assets-aa5e9f097599f46dfc4237b74959dad9debc3080273c4810c28bc87c5bba0d8d"
 }

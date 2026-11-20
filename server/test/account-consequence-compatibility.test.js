@@ -64,10 +64,16 @@ test("compatibility consequences persist updated stats and receipt together and 
   assert.equal(patchCount, 1);
   assert.equal(account.stats.gamesPlayed, 1);
   assert.equal(account.stats.gamesWon, 1);
-  assert.equal(account.stats.collection.packCredits, 1);
+  assert.equal(account.stats.collection.packCredits, 2);
   assert.deepEqual(account.stats.progression.campaign.rumin, ["first-march"]);
   assert.equal(account.stats.matchConsequenceReceipts[receipt].campaign.firstClear, true);
-  assert.equal(account.stats.matchConsequenceReceipts[receipt].boosterCreditDelta, 1);
+  assert.equal(account.stats.matchConsequenceReceipts[receipt].boosterCreditDelta, 2);
+  assert.deepEqual(account.stats.matchConsequenceReceipts[receipt].boosterCreditBreakdown, {
+    completedGame: 1,
+    weeklyActivity: 0,
+    campaignFirstClear: 1,
+    eventMilestone: 0
+  });
   assert.deepEqual(account.stats.progression.matchHistory, [{
     matchId,
     recordVersion: 2,

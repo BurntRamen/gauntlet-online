@@ -1078,7 +1078,7 @@ function MatchResult({
         <div><dt>Match ID</dt><dd>{resultProjection.matchId || "Pending"}</dd></div>
         {completion?.campaign && <div><dt>Chapter</dt><dd>{completion.campaign.firstClear ? "First clear" : completion.campaign.repeatClear ? "Repeat clear" : "Not cleared"}</dd></div>}
         {campaignPack && <div><dt>Campaign reward</dt><dd>{campaignPack.name} × {campaignPack.count}</dd></div>}
-        {completion && !campaignPack && <div><dt>Pack credits</dt><dd>{Number(completion.rewards?.boosterCreditDelta || 0) > 0 ? `+${completion.rewards.boosterCreditDelta}` : Number(completion.rewards?.boosterCreditDelta || 0)}</dd></div>}
+        {completion && <div><dt>Pack credits</dt><dd>+{completion.rewards?.boosterCreditDelta || 0}</dd></div>}
         {completion?.campaign?.nextMission?.status === "available" && <div><dt>Next mission</dt><dd>{completion.campaign.nextMission.title}</dd></div>}
         <SeasonResultFacts seasonResult={completion?.season} />
       </dl>

@@ -78,6 +78,12 @@ const crypto = require("crypto");
 const cors = require("cors");
 const { Server } = require("socket.io");
 const {
+  WEEKLY_ACTIVITY_TIERS,
+  advanceWeeklyActivity,
+  isoWeekId,
+  normalizeWeeklyActivity
+} = require("./activityPackRewards");
+const {
   buildPasswordResetUrl,
   createPasswordReset,
   isValidEmail,
@@ -802,6 +808,7 @@ function emptyCollection() {
     selectedVariants: {},
     packCredits: 0,
     earnedPackCredits: 0,
+    weeklyActivity: normalizeWeeklyActivity(),
     purchasedPacks: 0,
     purchasedCollectorPacks: 0,
     openedPacks: 0,
@@ -925,6 +932,7 @@ function normalizeCollection(stats = {}) {
     selectedVariants,
     packCredits: Math.max(0, Number(collection.packCredits || 0)),
     earnedPackCredits: Math.max(0, Number(collection.earnedPackCredits || 0)),
+    weeklyActivity: normalizeWeeklyActivity(collection.weeklyActivity),
     purchasedPacks: purchasedCollectorPacks,
     purchasedCollectorPacks,
     openedPacks: openedGameplayPacks,
@@ -2856,6 +2864,17 @@ function applyProgressionForResult(stats, result, context = {}) {
   const factionId = context.factionId || "basic";
   const factionName = context.factionName || (factionId === "basic" ? "Basic" : factionId);
 
+  // Every completed account game grants one gameplay pack credit. Weekly
+  // activity tiers grant additional credits immediately, so there is no
+  // separate claim button or end-of-week job that can be missed.
+  const completionCollection = normalizeCollection(stats);
+  const weeklyReward = advanceWeeklyActivity(completionCollection.weeklyActivity, now);
+  const completedGamePackCredits = 1;
+  completionCollection.packCredits += completedGamePackCredits + weeklyReward.bonusPackCredits;
+  completionCollection.earnedPackCredits += completedGamePackCredits + weeklyReward.bonusPackCredits;
+  completionCollection.weeklyActivity = weeklyReward.activity;
+  stats.collection = completionCollection;
+
   // Compatibility/account index only: immutable match facts remain in record
   // v2. Keep the smallest useful durable reference, keyed by match ID.
   if (context.matchId) {
@@ -2962,10 +2981,40 @@ function accountConsequenceFacts(beforeStats, afterStats, result, context = {}) 
   const cardStylesUnlocked = Object.keys(afterCollection.collectorVariants || {})
     .filter((id) => !beforeCollection.collectorVariants?.[id]);
   const boosterCreditDelta = afterCollection.packCredits - beforeCollection.packCredits;
+  const completedWeekId = isoWeekId(context.completedAt || new Date().toISOString());
+  const beforeWeeklyBonus = beforeCollection.weeklyActivity.weekId === completedWeekId
+    ? beforeCollection.weeklyActivity.bonusPackCredits
+    : 0;
+  const afterWeeklyBonus = afterCollection.weeklyActivity.weekId === completedWeekId
+    ? afterCollection.weeklyActivity.bonusPackCredits
+    : 0;
+  const weeklyPackCredits = Math.max(0, afterWeeklyBonus - beforeWeeklyBonus);
+  const campaignPackCredits = firstClear ? 1 : 0;
+  const completedGamePackCredits = boosterCreditDelta > 0 ? 1 : 0;
+  const eventPackCredits = Math.max(0, boosterCreditDelta - completedGamePackCredits - weeklyPackCredits - campaignPackCredits);
   return {
     result,
     boosterCreditDelta,
-    boosterCreditReason: firstClear ? "campaign_first_clear" : (context.event && boosterCreditDelta > 0 ? "event_win_milestone" : null),
+    boosterCreditReason: firstClear
+      ? "campaign_first_clear"
+      : weeklyPackCredits > 0
+        ? "weekly_activity"
+        : eventPackCredits > 0
+          ? "event_win_milestone"
+          : boosterCreditDelta > 0
+            ? "game_completed"
+            : null,
+    boosterCreditBreakdown: {
+      completedGame: completedGamePackCredits,
+      weeklyActivity: weeklyPackCredits,
+      campaignFirstClear: campaignPackCredits,
+      eventMilestone: eventPackCredits
+    },
+    weeklyActivity: {
+      ...afterCollection.weeklyActivity,
+      tiers: WEEKLY_ACTIVITY_TIERS,
+      bonusAwarded: weeklyPackCredits
+    },
     cardStylesUnlocked,
     goldDelta: afterEconomy.gold - beforeEconomy.gold,
     dailyQuestsCompleted: afterEconomy.daily.quests

@@ -37,11 +37,12 @@ function buildCompletionEnvelope({ record, playerNum, consequence = null, accoun
   const progression = consequence?.progression || {};
   const boosterCreditDelta = Number(consequence?.boosterCreditDelta || 0);
   const campaignFactionId = record?.campaign?.factionId || null;
+  const campaignPackCredits = Number(consequence?.boosterCreditBreakdown?.campaignFirstClear || 0);
   const campaignPack = record?.campaign
     && consequence?.campaign?.firstClear === true
-    && boosterCreditDelta > 0
+    && campaignPackCredits > 0
     ? {
-        count: boosterCreditDelta,
+        count: campaignPackCredits,
         packId: `${campaignFactionId}-foundation`,
         name: `${perspective?.player?.faction?.name || "Faction"} Foundation Pack`
       }
@@ -80,6 +81,8 @@ function buildCompletionEnvelope({ record, playerNum, consequence = null, accoun
     rewards: {
       boosterCreditDelta,
       campaignPack,
+      boosterCreditBreakdown: clone(consequence?.boosterCreditBreakdown || null),
+      weeklyActivity: clone(consequence?.weeklyActivity || null),
       goldDelta: Number(consequence?.goldDelta || 0),
       dailyQuestsCompleted: clone(consequence?.dailyQuestsCompleted || []),
       reason: consequence?.boosterCreditReason || null,
@@ -180,6 +183,8 @@ function createFinalizeCompletedMatch({
           result: consequence.result,
           boosterCreditDelta: Number(applied?.boosterCreditDelta || consequence.boosterCreditDelta || 0),
           boosterCreditReason: applied?.boosterCreditReason || consequence.boosterCreditReason || null,
+          boosterCreditBreakdown: clone(applied?.boosterCreditBreakdown || consequence.boosterCreditBreakdown || null),
+          weeklyActivity: clone(applied?.weeklyActivity || consequence.weeklyActivity || null),
           goldDelta: Number(applied?.goldDelta || consequence.goldDelta || 0),
           dailyQuestsCompleted: clone(applied?.dailyQuestsCompleted || consequence.dailyQuestsCompleted || []),
           campaign: applied?.campaign || campaign,

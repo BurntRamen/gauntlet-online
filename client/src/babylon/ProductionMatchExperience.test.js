@@ -957,7 +957,9 @@ test("uses the App-owned completion and waits for account refresh before continu
       nextMission: { status: "available", factionId: "rumin", chapterId: "the-republic", title: "The Republic" }
     },
     rewards: {
-      boosterCreditDelta: 1,
+      boosterCreditDelta: 3,
+      boosterCreditBreakdown: { completedGame: 1, weeklyActivity: 1, campaignFirstClear: 1, eventMilestone: 0 },
+      weeklyActivity: { weekId: "2026-11-16", gamesPlayed: 3, bonusPackCredits: 1, bonusAwarded: 1 },
       campaignPack: { count: 1, packId: "rumin-foundation", name: "Rumin Foundation Pack" }
     }
   };
@@ -975,6 +977,7 @@ test("uses the App-owned completion and waits for account refresh before continu
   const continueButton = await screen.findByRole("button", { name: "Next Mission: The Republic" });
   expect(continueButton).toBeDisabled();
   expect(screen.getByText("Rumin Foundation Pack × 1")).toBeVisible();
+  expect(screen.getByText("+3")).toBeVisible();
   expect(screen.getByRole("button", { name: "Open earned pack" })).toBeDisabled();
   rendered.rerender(
     <ProductionMatchExperience

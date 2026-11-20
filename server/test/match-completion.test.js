@@ -49,6 +49,10 @@ function makeHarness({ failPersist = false, failConsequence = false } = {}) {
         result: consequence.result,
         boosterCreditDelta: consequence.result === "win" ? 1 : 0,
         boosterCreditReason: "campaign_first_clear",
+        boosterCreditBreakdown: consequence.result === "win"
+          ? { completedGame: 0, weeklyActivity: 0, campaignFirstClear: 1, eventMilestone: 0 }
+          : { completedGame: 0, weeklyActivity: 0, campaignFirstClear: 0, eventMilestone: 0 },
+        weeklyActivity: { weekId: "2026-08-03", gamesPlayed: 1, bonusPackCredits: 0, bonusAwarded: 0, tiers: [] },
         goldDelta: consequence.result === "win" ? 500 : 0,
         dailyQuestsCompleted: consequence.result === "win" ? [{ id: "win-one", name: "Claim Victory", gold: 500 }] : [],
         campaign: consequence.result === "win" ? { outcome: "cleared", firstClear: true, clearType: "first-clear" } : { outcome: "not-cleared", firstClear: false },
@@ -77,6 +81,8 @@ test("finalizes a campaign victory once and returns the durable completion envel
   assert.equal(first.envelope.campaign.firstClear, true);
   assert.equal(first.envelope.campaign.image, "/assets/gauntlet/campaigns/rumin/01-brothers-of-destiny.webp");
   assert.equal(first.envelope.rewards.boosterCreditDelta, 1);
+  assert.equal(first.envelope.rewards.boosterCreditBreakdown.campaignFirstClear, 1);
+  assert.equal(first.envelope.rewards.weeklyActivity.gamesPlayed, 1);
   assert.deepEqual(first.envelope.rewards.campaignPack, {
     count: 1,
     packId: "rumin-foundation",

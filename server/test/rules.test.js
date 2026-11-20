@@ -231,7 +231,7 @@ test("validates constructed replacements against ownership and card slots", () =
   }), /occupies only the 3 of spades/);
 });
 
-test("awards a campaign pack only on the first clear", () => {
+test("awards every completed game and adds a campaign pack only on the first clear", () => {
   const stats = {};
   const context = {
     matchId: "11111111-1111-4111-8111-111111111111",
@@ -250,8 +250,9 @@ test("awards a campaign pack only on the first clear", () => {
   });
 
   assert.deepEqual(stats.progression.campaign.rumin, ["brothers-of-destiny"]);
-  assert.equal(stats.collection.packCredits, 1);
-  assert.equal(stats.collection.earnedPackCredits, 1);
+  assert.equal(stats.collection.packCredits, 3);
+  assert.equal(stats.collection.earnedPackCredits, 3);
+  assert.equal(stats.collection.weeklyActivity.gamesPlayed, 2);
   assert.equal(stats.progression.matchHistory.length, 2);
   assert.deepEqual(Object.keys(stats.progression.matchHistory[0]).sort(), [
     "completedAt",
