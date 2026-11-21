@@ -2,7 +2,7 @@ const FACTION_INTERACTION_QUOTES = Object.freeze({
   rumin: {
     commander: ["Discipline first. Then conquest.", "Rumie survives because we finish what hesitation begins.", "A road, a bank, a legion—each is a promise enforced."],
     city: ["Rumie remembers every road that returns with tribute.", "The Forum is loud because the empire is still alive.", "Stone records what rulers would rather forget."],
-    general: ["The third line advances when the first two refuse to break.", "Orders become victories only after soldiers understand them.", "Keep the formation moving; history favors the army that arrives."]
+    general: ["Then someone must become too expensive to own.", "No. It means the people can smell it too.", "Good. Then I know where to begin."]
   },
   sheen: {
     commander: ["Patience. Growth must be nourished.", "A forest is strongest when no single root commands it.", "We defend tomorrow by tending what can still grow."],

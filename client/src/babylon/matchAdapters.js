@@ -1585,7 +1585,10 @@ export class LiveSocketAdapter extends LocalDuelAdapter {
     connected = true,
     onLeaveMatch = null,
     controlState = {},
-    acknowledgementTimeoutMs = 5000,
+    // Match-ending commands persist rewards and statistics before the server
+    // acknowledges them. Give that durable boundary enough time to finish on
+    // a cold or busy production service instead of reporting a false failure.
+    acknowledgementTimeoutMs = 20000,
     retryCount = 1
   } = {}) {
     super({ seed: "live-adapter-bootstrap", autoSaveLocalHistory: false });

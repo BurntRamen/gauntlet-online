@@ -44,6 +44,9 @@
     "xendra": "F4AXgTwG8nWPB9dcXaTh"
   },
   "speakerVoices": {
+    "rumin": {
+      "general": "rumin-meerus"
+    },
     "zynarth": { "commander": "zynarth-queen", "general": "zynarth-synapse" },
     "astral-vanguard": { "commander": "vanguard-commander", "general": "vanguard-specialist" },
     "voltari": { "commander": "voltari-conduit", "general": "voltari-coordinator" },
@@ -59,7 +62,15 @@
     "xendra-aspect": "vv3OvaW5RkPpKxXJ2mV0",
     "xendra-echo": "0sPS2u5CCyNtVlLpaQS1"
   },
+  "generalLineCounts": {
+    "rumin": 3
+  },
   "voices": {
+    "rumin-meerus": {
+      "name": "Gauntlet — Meerus Augustus",
+      "description": "An original Rumin field general and future statesman with a dry, resonant low-mid register, measured martial breath, and disciplined reptilian texture that remains articulate and emotionally intelligent. Younger and more analytical than Kaiser, with restrained confidence and a habit of weighing law against force. Never a monster growl, generic announcer, or imitation of an existing performer.",
+      "previewText": "The third line advances only when the first two understand why they stand. Discipline is not obedience without thought; it is the promise that strength will arrive where the republic needs it most."
+    },
     "zynarth-queen": {
       "name": "Gauntlet — Zynarth Queen",
       "description": "A mature alien feminine voice with calm sovereign intelligence, broad organic chest resonance, controlled breath pulses, and faint chitin-like clicks between phrases. Maternal without softness, formidable without snarling, clearly articulate and emotionally individual. Natural performance with a very subtle communal subharmonic, never an insect-monster caricature.",

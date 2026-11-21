@@ -278,8 +278,14 @@ test("validates the authoritative versioned game content registry", () => {
       }
     }
     if (faction.general.clickedAudio) {
-      assert.match(faction.general.clickedAudio, /\/assets\/gauntlet\/voices\/.+\.mp3\?v=[a-f0-9]{12}$/);
-      assert.equal(fs.existsSync(path.join(__dirname, "..", "..", "client", "public", voiceAssetPath(faction.general.clickedAudio))), true, `${faction.id}:general`);
+      const generalAudio = Array.isArray(faction.general.clickedAudio) ? faction.general.clickedAudio : [faction.general.clickedAudio];
+      for (const source of generalAudio) {
+        assert.match(source, /\/assets\/gauntlet\/voices\/.+\.mp3(?:\?v=[a-f0-9]{12})?$/);
+        assert.equal(fs.existsSync(path.join(__dirname, "..", "..", "client", "public", voiceAssetPath(source))), true, `${faction.id}:general`);
+      }
+      if (Array.isArray(faction.general.clickedAudio)) {
+        assert.equal(faction.general.clickedAudio.length, faction.general.interactionQuotes.length, `${faction.id}:general quotes must stay paired with their audio`);
+      }
     }
   }
   for (const faction of content.factions) {

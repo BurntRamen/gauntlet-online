@@ -893,6 +893,19 @@ test("live adapter ignores a late acknowledgement after disconnect interrupts th
   adapter.dispose();
 });
 
+test("live adapter allows durable match completion to finish before timing out", () => {
+  const game = createLiveProjection("live-durable-completion-timeout");
+  const adapter = new LiveSocketAdapter({
+    game,
+    player: 1,
+    socket: { emit: jest.fn() },
+    connected: true
+  });
+
+  expect(adapter.acknowledgementTimeoutMs).toBe(20000);
+  adapter.dispose();
+});
+
 test("live adapter serializes gameplay commands and acknowledged match controls", async () => {
   const game = createLiveProjection("live-command-control-serialization");
   const acknowledgements = {};

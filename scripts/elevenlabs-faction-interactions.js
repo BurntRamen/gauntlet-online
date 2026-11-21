@@ -59,7 +59,21 @@ function buildPlan(manifest) {
     for (const [event, text] of Object.entries(faction.commander.announcements)) {
       lines.push({ factionId: faction.id, role: "commander", event, text, voiceId, voiceKey: commanderVoiceKey, fileName: `faction-${faction.id}-commander-${event}.mp3` });
     }
-    lines.push({ factionId: faction.id, role: "general", event: "clicked", text: faction.general.clickedAnnouncement, voiceId, voiceKey: generalVoiceKey, fileName: `faction-${faction.id}-general-clicked.mp3` });
+    const generalLineCount = Math.max(1, Number(manifest.generalLineCounts?.[faction.id] || 1));
+    const generalLines = (faction.general.interactionQuotes || [faction.general.clickedAnnouncement]).slice(0, generalLineCount);
+    generalLines.forEach((text, index) => {
+      const suffix = index === 0 ? "" : `-${index + 1}`;
+      lines.push({
+        factionId: faction.id,
+        role: "general",
+        event: `clicked${suffix}`,
+        registryEvent: "clicked",
+        text,
+        voiceId,
+        voiceKey: generalVoiceKey,
+        fileName: `faction-${faction.id}-general-clicked${suffix}.mp3`
+      });
+    });
   }
   return lines;
 }
@@ -145,7 +159,14 @@ function publish(manifest, root, { force }) {
     fs.copyFileSync(source, destination);
     const audioSha256 = record.sha256 || hash(fs.readFileSync(source));
     registry.factions[line.factionId] ||= { commander: {}, general: {} };
-    registry.factions[line.factionId][line.role][line.event] = `/assets/gauntlet/voices/${line.fileName}?v=${audioSha256.slice(0, 12)}`;
+    const registryEvent = line.registryEvent || line.event;
+    const assetUrl = `/assets/gauntlet/voices/${line.fileName}?v=${audioSha256.slice(0, 12)}`;
+    if (line.registryEvent) {
+      const pool = registry.factions[line.factionId][line.role][registryEvent];
+      registry.factions[line.factionId][line.role][registryEvent] = [...(Array.isArray(pool) ? pool : []), assetUrl];
+    } else {
+      registry.factions[line.factionId][line.role][registryEvent] = assetUrl;
+    }
     writeJson(path.resolve(root, manifest.provenanceDirectory, `${id}.json`), {
       schemaVersion: 1,
       status: "candidate",

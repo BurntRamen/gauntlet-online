@@ -10,7 +10,11 @@
         "denied": "/assets/gauntlet/voices/faction-rumin-commander-denied.mp3?v=a3e3dfa933b6"
       },
       "general": {
-        "clicked": "/assets/gauntlet/voices/faction-rumin-general-clicked.mp3?v=3569ccee66ed"
+        "clicked": [
+          "/assets/gauntlet/voices/rumin-ch02-before-04-young-kaiser.mp3",
+          "/assets/gauntlet/voices/rumin-ch02-after-03-young-kaiser.mp3",
+          "/assets/gauntlet/voices/rumin-ch02-after-05-young-kaiser.mp3"
+        ]
       }
     },
     "sheen": {
