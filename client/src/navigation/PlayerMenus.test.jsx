@@ -61,7 +61,7 @@ test("Play exposes all eight actions with concise labels and accurate click outc
     expect(tile).toHaveTextContent(title);
     expect(tile).toHaveAttribute("aria-description", outcome);
     expect(tile.querySelector(".cd-action-outcome")).toBeNull();
-    expect(tile.querySelector(".cd-action-description")).toBeNull();
+    expect(tile.querySelector(".cd-action-description")).toBeVisible();
     expect(tile.querySelector(".cd-action-icon svg")).toBeInTheDocument();
     fireEvent.click(tile);
     if (Array.isArray(expected)) expect(props.onNavigate).toHaveBeenLastCalledWith(...expected);
@@ -318,6 +318,15 @@ test("published practice prose reaches the focused player surface without changi
   expect(getTile("basic-ai")).toHaveTextContent("Basic vs AI");
   fireEvent.click(getTile("basic-ai"));
   expect(props.actions.basicAi).toHaveBeenCalledTimes(1);
+});
+
+test("play choices explain their purpose visually and identify the first-time path", () => {
+  renderMenus({ route: { page: "play", view: "" } });
+  expect(getTile("basic-ai")).toHaveTextContent("Best place to start");
+  expect(getTile("basic-ai")).toHaveTextContent("Learn the core rules in a quick solo match.");
+  expect(getTile("faction-ai")).toHaveTextContent("practice its signature ability");
+  expect(getTile("ranked")).toHaveTextContent("climb the seasonal standings");
+  expect(getTile("campaign")).toHaveTextContent("earn chapter rewards");
 });
 
 test.each([

@@ -13,6 +13,7 @@ import "./BoardBackgrounds.css";
 import "./FocusedMatchScreen.css";
 import browserStorage from "./navigation/browserStorage";
 import usePlayerNavigation from "./navigation/usePlayerNavigation";
+import { usesPlayModeMusic } from "./navigation/playModeMusic";
 import SetupFrame from "./navigation/SetupFrame";
 import { getModePresentation } from "./navigation/modePresentation";
 import { MENU_LAYOUT_CUSTOMIZATION_ENABLED } from "./navigation/menuFeatures";
@@ -266,6 +267,15 @@ const MUSIC_TRACKS = {
     notes: [220, 246.94, 261.63, 329.63, 293.66, 246.94],
     tempo: 650,
     wave: "sawtooth"
+  },
+  play: {
+    label: "Gauntlet: Contest of Wills",
+    sources: [
+      "/assets/gauntlet/music/play/gauntlet-tactics-v1.mp3",
+      "/assets/gauntlet/music/play/battle-grid-ascendant-v1.mp3",
+      "/assets/gauntlet/music/play/gauntlet-playfield-v1.mp3",
+      "/assets/gauntlet/music/play/tactical-ascend-v1.mp3"
+    ]
   },
   basic: { get label() { return brandText("Basic SuitFire Theme", "Basic Gauntlet Theme"); }, pad: [65.41, 87.31, 130.81], notes: [261.63, 293.66, 329.63, 392, 349.23, 293.66, 246.94, 261.63], tempo: 600, wave: "triangle" },
   rumin: {
@@ -3296,8 +3306,13 @@ export default function App() {
     return () => window.clearTimeout(timer);
   }, [factionVoice]);
 
+  const idleMusicTrack = showCampaign && MUSIC_TRACKS[campaignMusicFaction]
+    ? campaignMusicFaction
+    : usesPlayModeMusic(playerRoute)
+      ? "play"
+      : menuMusicTrack;
   const activeMusicTrack = !game || role === "spectator" || !player
-    ? showCampaign && MUSIC_TRACKS[campaignMusicFaction] ? campaignMusicFaction : menuMusicTrack
+    ? idleMusicTrack
     : game.gameMode === "basic"
       ? "basic"
       : game.players[player]?.faction?.id || "menu";

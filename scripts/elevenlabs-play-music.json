@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "stagingDirectory": "artifacts/elevenlabs/play-music",
+  "provenanceDirectory": "docs/generated-assets/elevenlabs/play-music",
+  "jobs": [
+    {
+      "id": "play-contest-of-wills",
+      "kind": "music",
+      "reviewStatus": "approved",
+      "modelId": "music_v2_5",
+      "prompt": "Original instrumental competitive strategy game music for Gauntlet's Play screen. Moderate-to-fast tempo, 132-148 BPM, tense and energetic without becoming exhausting. Cinematic percussion, driving low strings, sharp brass accents, subtle futuristic synth pulses, occasional choir-like textures used only as instruments, and a memorable tactical motif. Structure it as a full three-minute match arc: confident opening, escalating midgame, brief strategic breath, then a decisive high-energy finale. No vocals, no lyrics, no imitation of any existing game soundtrack. Polished, heroic, mysterious, suitable under card-game sound effects and dialogue.",
+      "parameters": {
+        "music_length_ms": 180000,
+        "force_instrumental": true,
+        "variants": 4,
+        "tempo_bpm": "132-148"
+      },
+      "outputFormat": "mp3",
+      "clientOutputs": [
+        "client/public/assets/gauntlet/music/play/gauntlet-tactics-v1.mp3",
+        "client/public/assets/gauntlet/music/play/battle-grid-ascendant-v1.mp3",
+        "client/public/assets/gauntlet/music/play/gauntlet-playfield-v1.mp3",
+        "client/public/assets/gauntlet/music/play/tactical-ascend-v1.mp3"
+      ]
+    }
+  ]
+}

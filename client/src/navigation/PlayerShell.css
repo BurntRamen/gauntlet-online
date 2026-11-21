@@ -86,8 +86,9 @@
 .cd-action-icon { display: grid; place-items: center; flex-shrink: 0; width: 38px; height: 40px; border: 1px solid rgba(var(--cd-accent-rgb), .45); border-radius: 7px; background: linear-gradient(145deg, rgba(var(--cd-accent-rgb), .19), #19262d); box-shadow: inset 0 0 0 2px #14202a; color: var(--cd-accent); font-size: 20px; overflow: hidden; }
 .cd-action-icon img { width: 100%; height: 100%; object-fit: cover; object-position: center 30%; }
 .cd-action-copy { display: grid; gap: 2px; min-width: 0; }
+.cd-action-badge { width: fit-content; margin-bottom: 1px; padding: 3px 6px; border: 1px solid rgba(var(--cd-accent-rgb), .58); border-radius: 999px; background: rgba(7, 18, 27, .84); color: #f4ddb0; font-size: 9px; font-weight: 800; letter-spacing: .06em; line-height: 1.2; text-transform: uppercase; }
 .cd-action-title { color: #f3f3ed; font-size: 15px; font-weight: 650; line-height: 1.3; }
-.cd-action-description { color: #b4c0ca; font-size: 13px; line-height: 1.35; overflow-wrap: anywhere; }
+.cd-action-description { max-width: 34ch; color: #d2dbe0; font-size: 12px; line-height: 1.35; overflow-wrap: anywhere; text-shadow: 0 1px 3px #000, 0 0 7px #000; }
 .cd-action-outcome { color: #d5ece7; font-size: 13px; line-height: 1.35; }
 .cd-action-arrow { display: grid; place-items: center; flex-shrink: 0; width: 28px; height: 28px; margin-left: auto; border: 1px solid rgba(var(--cd-accent-rgb), .35); border-radius: 50%; background: #08121ba8; color: var(--cd-accent); font-size: 17px; }
 .cd-context { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; min-height: 70px; margin-bottom: 14px; padding: 12px 17px; border: 1px solid #82724e; border-radius: 9px; background-color: #162a2a; background-image: linear-gradient(90deg, #15332ff5, #10232ae6 55%, #10232a85), var(--cd-scene); background-size: cover; background-position: center 58%; box-shadow: inset 3px 0 #c7a76b, 0 4px 18px #0003; }
@@ -180,7 +181,7 @@
 @media (max-width: 760px) {
   .cd-environment { left: 0; }
   .cd-environment img { opacity: .75; }
-  .cd-action-tile.has-artwork { padding: 14px 12px; min-height: 104px; flex-direction: row; align-items: flex-end; }
+  .cd-action-tile.has-artwork { padding: 14px 12px; min-height: 132px; flex-direction: row; align-items: flex-end; }
 
   .cd-action-tile.has-artwork .cd-action-copy { max-width: 100%; padding: 0; }
   .cd-action-tile.has-artwork .cd-action-icon { top: 7px; right: 7px; }
