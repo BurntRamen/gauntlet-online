@@ -1,5 +1,5 @@
 import BrandChoice from '../brand/BrandChoice';
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import PlayerShell from "./PlayerShell";
 import ActionTile from "./ActionTile";
 import SetupFrame from "./SetupFrame";
@@ -9,6 +9,7 @@ import { getModePresentation } from "./modePresentation";
 import { getFactionArtwork, getFactionCover, getFactionAsset, resolveVisualAsset } from "../GauntletVisuals";
 import { getDeckFeaturedArt } from "../contentArt";
 import { MENU_SCENES, STANDARD_DECK_ART, TUTORIAL_ART } from "./menuArtwork";
+import { playFactionVoice } from "../factionVoicePlayback";
 import "./PlayerMenus.css";
 import {WebsitePresentationContext, useWebsitePresentation} from "./WebsitePresentation";
 
@@ -37,7 +38,7 @@ function JoinTable({ code, onCodeChange, onJoin, pending }) {
   </form>;
 }
 
-function RankedSetup({ account, content, status, onJoin, onLeave, onProfile, onEditDeck, deck, decks, onActivateDeck, selections, onSelectionsChange, season }) {
+function RankedSetup({ account, content, status, onJoin, onLeave, onProfile, onEditDeck, deck, decks, onActivateDeck, selections, onSelectionsChange, onCharacterVoice, season }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const factions = (content.factions || []).filter((faction) => !faction.campaignOnly);
@@ -63,8 +64,8 @@ function RankedSetup({ account, content, status, onJoin, onLeave, onProfile, onE
       <label>Ranked format<select value={selections.format} disabled={status.inQueue || busy} onChange={(event) => update({ format: event.target.value })}><option value="factions">Factions</option><option value="basic">Classic — core rules</option></select></label>
       <label>Match length<select value={selections.bestOf} disabled={status.inQueue} onChange={(event) => update({ bestOf: Number(event.target.value) })}><option value={1}>Best of One</option><option value={3}>Best of Three</option></select></label>
       {selections.format === "factions" && <>
-        <label>Faction<select value={selectedFaction?.id || ""} disabled={status.inQueue || busy || !factions.length} onChange={(event) => { const faction = factions.find((entry) => entry.id === event.target.value); update({ factionId: event.target.value, generalId: faction?.general?.id || faction?.generals?.[0]?.id || "" }); }}>{!factions.length && <option value="">Faction content is loading</option>}{factions.map((faction) => <option key={faction.id} value={faction.id}>{faction.name || faction.id}</option>)}</select></label>
-        <label>General<select value={selectedGeneral?.id || ""} disabled={status.inQueue || busy || !generals.length} onChange={(event) => update({ generalId: event.target.value })}>{!generals.length && <option value="">No General selected</option>}{generals.map((general) => <option key={general.id} value={general.id}>{general.name || general.id}</option>)}</select></label>
+        <label>Faction<select value={selectedFaction?.id || ""} disabled={status.inQueue || busy || !factions.length} onChange={(event) => { const faction = factions.find((entry) => entry.id === event.target.value); update({ factionId: event.target.value, generalId: faction?.general?.id || faction?.generals?.[0]?.id || "" }); onCharacterVoice(faction?.commander); }}>{!factions.length && <option value="">Faction content is loading</option>}{factions.map((faction) => <option key={faction.id} value={faction.id}>{faction.name || faction.id}</option>)}</select></label>
+        <label>General<select value={selectedGeneral?.id || ""} disabled={status.inQueue || busy || !generals.length} onChange={(event) => { const general = generals.find((entry) => entry.id === event.target.value); update({ generalId: event.target.value }); onCharacterVoice(general); }}>{!generals.length && <option value="">No General selected</option>}{generals.map((general) => <option key={general.id} value={general.id}>{general.name || general.id}</option>)}</select></label>
         <label>Active constructed deck<select value={selections.deckId || deck?.id || ""} disabled={status.inQueue || !account} onChange={(event) => update({ deckId: event.target.value })}>
           {!decks.length && <option value="">Standard 52-card deck</option>}{decks.map((item) => <option key={item.id} value={item.id}>{item.name} · {item.factionName || item.factionId}</option>)}
         </select></label><div className="cd-row"><button type="button" onClick={onEditDeck}>Edit Deck · return here afterward</button>{deck && <button type="button" disabled={status.inQueue || busy} onClick={() => update({ factionId: deck.factionId, generalId: deck.generalId || "", deckId: deck.id || "" })}>Use Active Deck loadout</button>}</div>
@@ -113,7 +114,23 @@ export default function PlayerMenus({ embedded = false, serverUrl, route, onNavi
   const { customizationEnabled, editing, setEditing } = usePlayerLayout();
   const { page, view } = route;
   const [rankedSelections, setRankedSelections] = useState({ format: "factions", bestOf: 1, factionId: "", generalId: "", deckId: "" });
+  const selectionVoiceRef = useRef(null);
   useEffect(() => setRankedSelections({ format: "factions", bestOf: 1, factionId: "", generalId: "", deckId: "" }), [account?.id]);
+  const stopSelectionVoice = useCallback(() => {
+    selectionVoiceRef.current?.pause?.();
+    selectionVoiceRef.current = null;
+  }, []);
+  useEffect(() => stopSelectionVoice, [stopSelectionVoice]);
+  useEffect(() => { if (audioMuted) stopSelectionVoice(); }, [audioMuted, stopSelectionVoice]);
+  const playCharacterSelectionVoice = useCallback((character) => {
+    if (audioMuted || !character) return;
+    const authoredSource = character.announcementAudio?.selected || character.clickedAudio;
+    const source = Array.isArray(authoredSource) ? authoredSource[0] : authoredSource;
+    if (!source) return;
+    stopSelectionVoice();
+    const AudioCtor = typeof window === "undefined" ? null : window.Audio;
+    selectionVoiceRef.current = playFactionVoice({ AudioCtor, source, voiceStyle: character.voiceStyle });
+  }, [audioMuted, stopSelectionVoice]);
   const focused = !!workflow || !!view || ["draft", "settings"].includes(page);
   const customizable = customizationEnabled && !focused;
   const nav = (destination, nextView = "") => onNavigate(destination, nextView);
@@ -179,7 +196,7 @@ export default function PlayerMenus({ embedded = false, serverUrl, route, onNavi
       action("draft-library", "Draft Deck Library", "Manage saved Live Draft, Bot Draft, and Sealed decks.", "Open saved decks", () => nav("decks", "library"), "draft"),
     ]} /><section className="cd-panel"><h2>Current deck</h2><p>{state.deck ? `${state.deck.name} · ${state.deck.factionName || state.deck.factionId}` : "Standard deck · no custom replacements required"}</p>{!account && <button onClick={profile}>Sign in to save decks and rewards</button>}</section></>;
   else if (page === "draft") body = <DraftSetup view={view} onNavigate={nav} account={account} content={content} actions={actions} status={state.draftQueue} savedDecks={state.savedDraftDecks} draftSetId={state.draftSetId} />;
-  else if (page === "compete" && view === "ranked") body = <SetupFrame autoFocus={!embedded} {...getModePresentation("ranked", content.modeMetadata, { title: "Ranked Match", description: "Review your setup. Queue only when you choose Find Ranked Match." })} onBack={() => nav("compete")} backLabel="Back to Compete"><RankedSetup account={account} content={content} status={state.ranked} onJoin={actions.joinRanked} onLeave={actions.leaveRanked} onProfile={profile} onEditDeck={() => actions.collection("decks")} deck={state.deck} decks={state.constructedDecks} onActivateDeck={actions.activateDeck} selections={rankedSelections} onSelectionsChange={setRankedSelections} season={state.season} /></SetupFrame>;
+  else if (page === "compete" && view === "ranked") body = <SetupFrame autoFocus={!embedded} {...getModePresentation("ranked", content.modeMetadata, { title: "Ranked Match", description: "Review your setup. Queue only when you choose Find Ranked Match." })} onBack={() => nav("compete")} backLabel="Back to Compete"><RankedSetup account={account} content={content} status={state.ranked} onJoin={actions.joinRanked} onLeave={actions.leaveRanked} onProfile={profile} onEditDeck={() => actions.collection("decks")} deck={state.deck} decks={state.constructedDecks} onActivateDeck={actions.activateDeck} selections={rankedSelections} onSelectionsChange={setRankedSelections} onCharacterVoice={playCharacterSelectionVoice} season={state.season} /></SetupFrame>;
   else if (page === "compete" && ["events", "para"].includes(view)) body = <SetupFrame autoFocus={!embedded} title={view === "events" ? "Official Events" : "Para League"} description="Published events, eligibility, official runs, and Prestige." onBack={() => nav("compete")} backLabel="Back to Compete">{!account && <button onClick={profile}>Sign in to view eligibility and enter</button>}{slots.events}</SetupFrame>;
   else if (page === "compete" && view === "standings") body = <SetupFrame autoFocus={!embedded} title="Standings" description="Actual season results and live ranked tables." onBack={() => nav("compete")} backLabel="Back to Compete">{slots.standings}{slots.liveMatches}</SetupFrame>;
   else if (page === "compete") body = <><p className="cd-note">{account ? `Signed in as ${account.name}. Official event eligibility is checked by the server.` : "Sign in to enter ranked queues and official events. Standings are public."}</p><Tiles pageId="compete" items={[

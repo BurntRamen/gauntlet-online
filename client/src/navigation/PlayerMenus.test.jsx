@@ -125,6 +125,32 @@ test("Ranked only queues on explicit submission and preserves format, faction, G
   expect(props.actions.joinRanked).toHaveBeenLastCalledWith(3, { format: "basic", factionId: null, generalId: null });
 });
 
+test("Ranked character selectors play authored Commander and General voices without overlap", () => {
+  const originalAudio = window.Audio;
+  const played = [];
+  const paused = [];
+  window.Audio = jest.fn((source) => ({
+    play: jest.fn(() => { played.push(source); return Promise.resolve(); }),
+    pause: jest.fn(() => paused.push(source)),
+  }));
+  try {
+    renderMenus({
+      account: { id: "account-1", name: "River" },
+      route: { page: "compete", view: "ranked" },
+      content: { factions: [
+        { id: "ember", name: "Ember", commander: { name: "Ash", announcementAudio: { selected: "/voices/ash.mp3" }, voiceStyle: { playbackRate: 1, volume: .8 } }, general: { id: "ash", name: "Ash General", clickedAudio: "/voices/ash-general.mp3" }, generals: [{ id: "ash", name: "Ash General", clickedAudio: "/voices/ash-general.mp3" }] },
+        { id: "tide", name: "Tide", commander: { name: "Maris", announcementAudio: { selected: "/voices/maris.mp3" }, voiceStyle: { playbackRate: .96, volume: .9 } }, general: { id: "wave", name: "Wave General", clickedAudio: "/voices/wave.mp3", voiceStyle: { playbackRate: 1.04, volume: .85 } }, generals: [{ id: "wave", name: "Wave General", clickedAudio: "/voices/wave.mp3", voiceStyle: { playbackRate: 1.04, volume: .85 } }] },
+      ], campaigns: {} },
+    });
+    fireEvent.change(screen.getByLabelText("Faction"), { target: { value: "tide" } });
+    fireEvent.change(screen.getByLabelText("General"), { target: { value: "wave" } });
+    expect(played).toEqual(["/voices/maris.mp3", "/voices/wave.mp3"]);
+    expect(paused).toEqual(["/voices/maris.mp3"]);
+  } finally {
+    window.Audio = originalAudio;
+  }
+});
+
 test("Ranked guest status and actual queue state expose the appropriate action", () => {
   const first = renderMenus({ route: { page: "compete", view: "ranked" } });
   expect(screen.getByRole("button", { name: "Find Ranked Match" })).toBeDisabled();

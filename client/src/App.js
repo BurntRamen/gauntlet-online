@@ -3842,6 +3842,14 @@ export default function App() {
     speakFactionQuote(audio, commander?.voiceStyle);
   }, [gameContent?.factions, speakFactionQuote]);
 
+  const announceGeneral = useCallback((factionId, general, detail = "General selected") => {
+    if (!factionId || !general) return;
+    const [quote, quoteIndex] = nextFactionQuote(`${factionId}:general:${general.id || general.name}`, general.interactionQuotes, general.clickedAnnouncement || "The general is ready.");
+    setFactionVoice({ quote, detail, speaker: general.name || "General", kind: "clicked" });
+    const audio = Array.isArray(general.clickedAudio) ? general.clickedAudio[quoteIndex % general.clickedAudio.length] : general.clickedAudio;
+    speakFactionQuote(audio, general.voiceStyle);
+  }, [speakFactionQuote]);
+
   const announceFactionFeatureClick = useCallback((featureRole) => {
     if (!game || role === "spectator" || !player) return;
     const currentPlayer = game.players?.[player];
@@ -3856,10 +3864,7 @@ export default function App() {
     const feature = currentPlayer.faction[featureRole];
     if (!feature) return;
     if (featureRole === "general") {
-      const [quote, quoteIndex] = nextFactionQuote(`${currentPlayer.faction.id}:general:${feature.id || feature.name}`, feature.interactionQuotes, feature.clickedAnnouncement || "The general is ready.");
-      setFactionVoice({ quote, speaker: feature.name || "General", kind: "clicked" });
-      const audio = Array.isArray(feature.clickedAudio) ? feature.clickedAudio[quoteIndex % feature.clickedAudio.length] : feature.clickedAudio;
-      speakFactionQuote(audio, feature.voiceStyle);
+      announceGeneral(currentPlayer.faction.id, feature);
       return;
     }
     if (featureRole === "city") {
@@ -3867,7 +3872,7 @@ export default function App() {
       setFactionVoice({ quote, speaker: feature.name || "City", kind: "clicked" });
       speakFactionQuote(feature.clickedSound, feature.voiceStyle);
     }
-  }, [announceCommander, game, player, role, speakFactionQuote]);
+  }, [announceCommander, announceGeneral, game, player, role, speakFactionQuote]);
 
   useEffect(() => {
     const matchId = game?.matchId || "";
@@ -4439,7 +4444,14 @@ export default function App() {
 
   function chooseFaction(factionId, generalId) {
     const faction = gameContent?.factions?.find((entry) => entry.id === factionId);
-    announceCommander(faction || factionId, "selected", faction?.commander?.name || faction?.name || "Commander", "Faction chosen");
+    const currentChoice = role === "player" && player ? lobby?.players?.[player] : null;
+    const changingOnlyGeneral = currentChoice?.factionId === factionId && generalId && currentChoice?.generalId !== generalId;
+    if (changingOnlyGeneral) {
+      const general = (faction?.generals || (faction?.general ? [faction.general] : [])).find((entry) => entry.id === generalId);
+      announceGeneral(factionId, general);
+    } else {
+      announceCommander(faction || factionId, "selected", faction?.commander?.name || faction?.name || "Commander", "Faction chosen");
+    }
     socket.emit("selectFaction", { factionId, generalId });
   }
 
