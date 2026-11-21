@@ -13,6 +13,7 @@ export default function ActionTile({ id, title, description, outcome, badge, onC
       data-tone={tone}
       onClick={onClick}
       disabled={disabled}
+      aria-label={title}
       aria-description={outcome || description}
     >
       {(artwork || icon) && <span className="cd-action-visual" aria-hidden="true">

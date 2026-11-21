@@ -23,7 +23,9 @@ test('selecting an actual page component opens its presentation controls',async(
  const field=jest.fn(key=><p key={key}>{key}</p>);
  render(<WebsiteProseWorkshop {...props} field={field}/>);
  const preview=await player();
- fireEvent.click((await preview.findAllByRole('button',{name:'Basic vs AI',exact:true}))[0]);
+ await preview.findByRole('heading',{name:'Saved heading'});
+ const tile=frameDoc().querySelector('[data-layout-module="basic-ai"]');
+ fireEvent.click(within(tile).getByRole('button',{name:'Basic vs AI',exact:true}));
  expect(screen.getByLabelText('Edit element')).toHaveValue('basic-ai');
  expect(frameDoc().querySelector('[data-layout-module="basic-ai"]')).toHaveAttribute('data-studio-selected');
  fireEvent.change(screen.getByLabelText('Edit element'),{target:{value:'navigation'}});
