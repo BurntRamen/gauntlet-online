@@ -1,15 +1,9 @@
 const { navigatePlayer } = require("./player-navigation");
-const { searchCollection, area: adminArea, paraTab, identity, saveRecord, destination, workspaceSection, workspaceView, refreshAdmin, navigation } = require("./admin-navigation");
+const { searchCollection, area: adminArea, paraTab, identity, saveRecord, destination, workspaceSection, workspaceView, refreshAdmin, navigation, previewSavedDraft } = require("./admin-navigation");
 const { origin } = require("./admin-urls");
 const { fetchAdminResponse } = require("./buffered-admin-response");
-const { test: base, expect } = require("@playwright/test");
+const { test, expect } = require("./admin-release-test");
 const AxeBuilder = require("@axe-core/playwright").default;
-// API assertions pause while the browser edits. Avoid reusing an idle socket
-// exactly as Node closes it; browser traffic still exercises normal keep-alive.
-const test = base.extend({ request: async ({ playwright, baseURL }, use) => {
-  const request = await playwright.request.newContext({ baseURL, extraHTTPHeaders: { Connection: "close" } });
-  try { await use(request); } finally { await request.dispose(); }
-} });
 
 const loginSessions = new Map();
 async function encounterSection(page, id) { await workspaceSection(page, "Encounter Workshop", ({ story: "Identity / Story", setup: "Opponent / Setup", mechanics: "Mechanics", deck: "Deck / Cards", assets: "Presentation / Assets", validation: "Validation", preview: "Preview", test: "Playtest" })[id]); }
@@ -291,8 +285,7 @@ test("operator edits, validates, previews, publishes and restores a shared conte
   await require("./admin-navigation").area(page, "Publishing");
   await page.getByRole("button", { name: "Validate draft", exact: true }).click();
   await expect(page.getByRole("status").filter({ hasText: /^Draft validation completed\.$/ })).toBeVisible();
-  await require("./admin-navigation").area(page, "Publishing");
-  await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
+  await previewSavedDraft(page);
   const preview = page.getByRole("region", { name: "Isolated draft preview" });
   await encounterSection(page, "preview");
   await expect(preview.getByRole("heading", { name: "Brothers of Destiny · preview", exact: true })).toBeVisible();
@@ -338,8 +331,7 @@ test("typed mechanics can be edited, playtested in the real engine, published an
   await page.getByLabel("Boss Life", { exact: true }).fill("31");
   await saveRecord(page);
   await expect(page.getByText("1 saved change in the shared draft", { exact: true })).toBeVisible();
-  await require("./admin-navigation").area(page, "Publishing");
-  await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
+  await previewSavedDraft(page);
   await encounterSection(page, "test");
   await page.getByRole("combobox", { name: "Test content", exact: true }).selectOption("draft");
   await page.getByRole("button", { name: "Start Brothers of Destiny playtest", exact: true }).click();
@@ -388,11 +380,7 @@ test("manifest-picked faction and portrait artwork previews load immutable draft
       await page.getByLabel("Draft " + field, { exact: true }).fill(artwork.id);
       await saveRecord(page);
       await expect(page.getByText(/saved to the shared draft. Live content is unchanged./)).toBeVisible();
-      const previewSaved = page.waitForResponse(response => response.url().endsWith("/authoring/preview") && response.request().method() === "POST");
-      await require("./admin-navigation").area(page, "Publishing");
-      await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
-      expect((await previewSaved).ok()).toBeTruthy();
-      await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible();
+      await previewSavedDraft(page);
       await expect(page.locator(".admin-save-context")).not.toHaveText("Working…");
       await workspaceView(page, "Preview");
       const preview = page.getByRole("region", { name: "Isolated draft preview" });
@@ -532,13 +520,15 @@ test("a reported authoring outage keeps real live testing available without publ
   expect(after.draft).toEqual(before.draft);
 });
 
-test("Encounter Workshop keeps editing and engine evidence tied to the correct saved draft", async ({ page, request }) => {
-  test.setTimeout(180000);
+test("Encounter Workshop keeps editing and engine evidence tied to the correct saved draft", async ({ page, request, restoreRelease }) => {
+  // Several saved previews and a multi-turn engine session share this budget.
+  test.setTimeout(300000);
   await page.goto("/admin/gauntlet");
   const token = await signIn(page, request, "simply"); await page.reload();
   const headers = { Authorization: `Bearer ${token}` }, base = origin + "/api/admin/authoring";
   const saved = async () => (await request.get(base, { headers, maxRetries: 2 })).json();
   const initial = await saved();
+  restoreRelease(headers, initial, origin);
   await adminArea(page, "Content"); await destination(page, "Encounters");
   await searchCollection(page, "Search encounters", "Brothers");
   await page.getByRole("button", { name: "Inspect Brothers of Destiny", exact: true }).click();
@@ -580,8 +570,7 @@ test("Encounter Workshop keeps editing and engine evidence tied to the correct s
   await require("./admin-navigation").area(page, "Publishing");
   await page.getByRole("button", { name: "Validate draft", exact: true }).click();
   await expect(page.getByText("Draft validation completed.", { exact: true })).toBeVisible();
-  await require("./admin-navigation").area(page, "Publishing");
-  await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
+  await previewSavedDraft(page);
   await encounterSection(page, "preview");
   await expect(page.getByRole("region", { name: "Isolated draft preview" }).getByRole("heading", { name: "Brothers of Destiny", exact: true })).toBeVisible();
   await encounterSection(page, "preview");
@@ -641,9 +630,7 @@ test("Encounter Workshop keeps editing and engine evidence tied to the correct s
   await expect(page.getByLabel("Your next step",{exact:true})).toContainText("Test your saved changes");
   await require("./admin-navigation").area(page, "Publishing");
   await page.getByRole("button", { name: "Validate draft", exact: true }).click();
-  await require("./admin-navigation").area(page, "Publishing");
-  await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
-  await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible();
+  await previewSavedDraft(page);
   await encounterSection(page, "test");
   page.once("dialog", (dialog) => dialog.accept());
   pending = waitForJson(page, (response) => response.url().endsWith("/authoring/playtest"));
@@ -811,12 +798,13 @@ test("card workshop previews and executes a custom live scenario without creatin
   await page.screenshot({ path: "artifacts/admin-card-workshop-mobile.png", fullPage: true });
 });
 
-test("asset picker protects local selection, saves collector artwork, and shows release image differences", async ({ page, request }) => {
+test("asset picker protects local selection, saves collector artwork, and shows release image differences", async ({ page, request, restoreRelease }) => {
   test.setTimeout(90000);
   await page.goto("/admin/gauntlet");
   const token = await signIn(page, request, "simply"); await page.reload();
   const headers = { Authorization: "Bearer " + token }, base = origin + "/api/admin/authoring";
   const original = await (await request.get(base, { headers, maxRetries: 2 })).json();
+  restoreRelease(headers, original, origin);
   const asset = original.assetLibrary.find(entry => entry.source === "/assets/gauntlet/sheen-card.webp");
   await adminArea(page, "Content"); await destination(page, "Cards");
   await searchCollection(page, "Search cards", "Capital Investment Spear");
@@ -850,9 +838,7 @@ test("asset picker protects local selection, saves collector artwork, and shows 
   await page.getByRole("dialog", { name: "Unsaved local changes" }).getByRole("button", { name: "Keep editing", exact: true }).click();
   await saveRecord(page);
   await expect(page.getByText("1 saved change in the shared draft", { exact: true })).toBeVisible();
-  await require("./admin-navigation").area(page, "Publishing");
-  await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
-  await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible();
+  await previewSavedDraft(page);
   await expect(page.getByRole("heading", { name: "Presentation · 1", exact: true })).toBeVisible();
   await expect(page.getByRole("img", { name: "Saved draft artwork", exact: true })).toHaveAttribute("src", asset.path);
   const final = await (await request.get(base, { headers, maxRetries: 2 })).json();
@@ -1139,9 +1125,7 @@ test("Admin creates a set and new card, executes its mechanics, publishes and sa
     expect(response.body.playtest.game.handAttacks[0].effectiveValue).toBe(expectedValue);
   };
   const publish = async label => {
-    await require("./admin-navigation").area(page, "Publishing");
-    await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
-    await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible();
+    await previewSavedDraft(page);
     await page.getByLabel("Release name").fill(label);
     await page.getByRole("button", { name: "Publish release", exact: true }).click();
     await page.getByRole("button", { name: "Confirm publish", exact: true }).click();
@@ -1257,9 +1241,7 @@ test("Admin composes abilities through guided blocks and proves two releases wit
     await expect(playtest.getByRole("region", { name: "Executed command result", exact: true })).toContainText("Authoritative mechanics trace");
   };
   const publish = async label => {
-    await require("./admin-navigation").area(page, "Publishing");
-    await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
-    await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible();
+    await previewSavedDraft(page);
     await page.getByLabel("Release name").fill(label);
     await page.getByRole("button", { name: "Publish release", exact: true }).click();
     await page.getByRole("button", { name: "Confirm publish", exact: true }).click();
