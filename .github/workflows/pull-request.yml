@@ -109,9 +109,18 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-  admin-release:
-    name: Admin release journeys
+  admin-journeys:
+    name: Admin journeys · ${{ matrix.suite }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [core, assets, authoring, navigation, creative]
+    env:
+      GAUNTLET_ADMIN_USE_BUILD: 'true'
+      GAUNTLET_ADMIN_FIXTURE_PORT: '4117'
+      GAUNTLET_ADMIN_CLIENT_PORT: '3117'
+      GAUNTLET_ADMIN_EVIDENCE_DIR: '../artifacts/admin-refinement-regression'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -129,31 +138,38 @@ jobs:
           npm --prefix client ci
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
-      - name: Test private Admin and build its compiled client
-        run: npm run test:e2e:admin
+      - name: Build client for the isolated Admin service
+        env:
+          REACT_APP_SOCKET_URL: 'http://127.0.0.1:4117'
+        run: npm run build:client
+      - name: Test private Admin
+        if: matrix.suite == 'core'
+        run: npm run test:e2e:admin -- --reporter=line
       - name: Test immutable assets and printing releases
+        if: matrix.suite == 'assets'
         run: npx playwright test --config=playwright.printings.config.js
       - name: Test authored deck purchase and restart journey
+        if: matrix.suite == 'assets'
         run: npx playwright test --config=playwright.purpose.config.js
       - name: Test authored mechanics, campaigns, cosmetics and payment readiness
+        if: matrix.suite == 'authoring'
         run: npx playwright test --config=playwright.phase2.config.js
       - name: Test resumable production paths, website prose and audited player repairs
-        env:
-          GAUNTLET_ADMIN_USE_BUILD: 'true'
+        if: matrix.suite == 'authoring'
         run: npx playwright test --config=playwright.production.config.js
       - name: Test separate Gems and atomic split-price purchases
+        if: matrix.suite == 'assets'
         run: npx playwright test --config=playwright.gems.config.js
       - name: Test Admin refinement, accessibility and exact-revision review
-        env:
-          GAUNTLET_ADMIN_USE_BUILD: 'true'
-          GAUNTLET_ADMIN_FIXTURE_PORT: '4117'
-          GAUNTLET_ADMIN_CLIENT_PORT: '3117'
-          GAUNTLET_ADMIN_EVIDENCE_DIR: '../artifacts/admin-refinement-regression'
+        if: matrix.suite == 'navigation'
         run: |
           npx playwright test --config=playwright.admin-redesign.config.js
           npx playwright test --config=playwright.admin-refinement.config.js
           npx playwright test --config=playwright.admin-pipelines.config.js
           npx playwright test --config=playwright.admin-studio.config.js --grep "Home stays|website artwork|phone website|season eligibility"
+      - name: Test corrected editors, visual guidance and creative acceptance journeys
+        if: matrix.suite == 'creative'
+        run: |
           npx playwright test --config=playwright.admin-correction.config.js
           npx playwright test --config=playwright.admin-guidance.config.js
           npx playwright test --config=playwright.admin-creative.config.js
@@ -161,7 +177,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: admin-release-diagnostics
+          name: admin-release-diagnostics-${{ matrix.suite }}
           path: |
             test-results/
             artifacts/immutable-assets/
@@ -183,6 +199,17 @@ jobs:
             docs/reviews/admin-refinement/after/
           if-no-files-found: ignore
           retention-days: 7
+
+  admin-release:
+    name: Admin release journeys
+    needs: admin-journeys
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every isolated Admin journey group
+        env:
+          ADMIN_JOURNEYS_RESULT: ${{ needs.admin-journeys.result }}
+        run: test "$ADMIN_JOURNEYS_RESULT" = success
 
   dependency-audit:
     name: Release dependency audit
