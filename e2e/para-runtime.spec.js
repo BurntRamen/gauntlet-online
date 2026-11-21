@@ -11,8 +11,12 @@ test("Admin publication becomes a free human event with durable Prestige and ins
     // Real server-signed sessions from the isolated fixture; auth rate-limit
     // behavior is tested separately and remains enabled in this server.
     const token = JSON.parse(fs.readFileSync(path.resolve(__dirname, "../.playwright-data/admin/sessions.json"), "utf8"))[name];
+    await target.addInitScript(({token,origin}) => { if(location.origin===origin)localStorage.setItem("gauntlet_auth_token",token); }, {token,origin:clientOrigin});
+    // Load the published catalog once with the retained login. Its response
+    // body must finish before exercising the player's navigation controls.
+    const contentReady=admin?null:target.waitForResponse(response=>response.url()===origin+"/api/game-content",{timeout:45000});
     await target.goto(`${clientOrigin}${admin ? "/admin/gauntlet" : "/"}`);
-    await target.evaluate((token) => localStorage.setItem("gauntlet_auth_token", token), token); await target.reload();
+    if(contentReady){const response=await contentReady;expect(response.ok()).toBeTruthy();await response.finished();}
     return token;
   }
   const token = await login(page, "simply", true), headers = { Authorization: `Bearer ${token}` };
@@ -84,7 +88,12 @@ test("Admin publication becomes a free human event with durable Prestige and ins
     await page.getByRole("button", { name: /^Runtime Classic Trial runtime-qualifier/ }).click(); await page.getByLabel("Prestige for 0 wins", { exact: true }).fill("99"); await save();
     await preview(); await publish("Later scoring definition");
     expect((await get("/api/admin/para")).awards).toEqual(before);
-    await nav.getByRole("button", { name: "Events & Commerce", exact: true }).click(); await page.getByRole("navigation", { name: "Events & Commerce workspaces" }).getByRole("button", { name: "Results", exact: true }).click();
+    await nav.getByRole("button", { name: "Events & Commerce", exact: true }).click();
+    // Standings and player names come from separate authoritative responses.
+    // Finish both bodies before asserting the historical results on screen.
+    const resultsReady=Promise.all(["para","competition"].map(name=>page.waitForResponse(response=>response.url()===`${origin}/api/admin/${name}`,{timeout:45000}).then(async response=>{expect(response.ok()).toBeTruthy();await response.finished();})));
+    await page.getByRole("navigation", { name: "Events & Commerce workspaces" }).getByRole("button", { name: "Results", exact: true }).click();
+    await resultsReady;
     await expect(page.getByText(/^#1 · Visitor · 12 Prestige/)).toBeVisible();
     await expect(page.getByText("Published definition differs; pinned rules retained.")).toBeVisible();
     await page.getByText("Visitor · 12 Prestige", { exact: true }).click(); await expect(page.getByText(before[0].evidence[0].matchId, { exact: true })).toBeVisible();
