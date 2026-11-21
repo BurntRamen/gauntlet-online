@@ -3,8 +3,8 @@ import { DestinationIcon } from "./PlayerShell";
 import { resolveVisualAsset } from "../GauntletVisuals";
 import { ACTION_ART, ACTION_ART_POSITIONS } from "./menuArtwork";
 
-/** The whole illustration is one destination; extra action detail stays available to assistive technology. */
-export default function ActionTile({ id, title, description, outcome, onClick, disabled = false, icon, artwork = ACTION_ART[id], tone = typeof icon === "string" ? icon : "campaign", className = "" }) {
+/** The whole illustrated tile is one destination; its outcome remains available to assistive technology. */
+export default function ActionTile({ id, title, description, outcome, badge, onClick, disabled = false, icon, artwork = ACTION_ART[id], tone = typeof icon === "string" ? icon : "campaign", className = "" }) {
   return (
     <button
       type="button"
@@ -20,7 +20,9 @@ export default function ActionTile({ id, title, description, outcome, onClick, d
         {icon && <span className="cd-action-icon">{typeof icon === "string" ? <DestinationIcon name={icon} /> : icon}</span>}
       </span>}
       <span className="cd-action-copy">
+        {badge && <span className="cd-action-badge">{badge}</span>}
         <span className="cd-action-title">{title}</span>
+        {description && <span className="cd-action-description">{description}</span>}
       </span>
       <span className="cd-action-arrow" aria-hidden="true">↗</span>
     </button>

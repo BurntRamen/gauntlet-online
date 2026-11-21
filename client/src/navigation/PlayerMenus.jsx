@@ -124,16 +124,16 @@ export default function PlayerMenus({ serverUrl, route, onNavigate, account, own
   const factionDeckArt = getFactionAsset(deckFaction?.id, deckFaction?.cardImage);
   const deckArt = deckCards.length ? deckCards : factionDeckArt ? [factionDeckArt] : STANDARD_DECK_ART;
   const draftPresentation = getModePresentation("draft", content.modeMetadata, getDestination("draft"));
-  const action = (id, title, description, outcome, onClick, icon) => ({ id, title, description, outcome, onClick, icon });
+  const action = (id, title, description, outcome, onClick, icon, badge) => ({ id, title, description, outcome, onClick, icon, badge });
   const playItems = [
-    action("basic-ai", "Basic vs AI", "Start a solo core-rules match.", "Start game", actions.basicAi, "play"),
-    action("faction-ai", "Factions vs AI", "Practice with faction powers and a general.", "Open faction setup", actions.factionAi, "campaign"),
-    action("private-duel", "Private Duel", "Create a two-player private room.", "Create room", actions.createDuel, "community"),
-    action("join-table", "Join a Table", "Enter a code to join or spectate.", "Open room entry", () => nav("play", "tables"), "matches"),
-    action("ranked", "Ranked Match", "Choose a format and find an opponent.", state.ranked.inQueue ? "View current queue" : "Open ranked setup", () => nav("compete", "ranked"), "compete"),
-    action("draft", "Draft & Sealed", "Live Draft, Bot Draft, and limited formats.", "Choose format", () => nav("draft"), "draft"),
-    action("campaign", "Campaign", "Choose or continue a faction story.", "Open campaigns", () => nav("campaign"), "campaign"),
-    action("competition", "Official Competition", "Browse events and Para League.", "Open competition", () => nav("compete"), "compete"),
+    action("basic-ai", "Basic vs AI", "Learn the core rules in a quick solo match.", "Start game", actions.basicAi, "play", "Best place to start"),
+    action("faction-ai", "Factions vs AI", "Choose a faction and General, then practice its signature ability.", "Open faction setup", actions.factionAi, "campaign"),
+    action("private-duel", "Private Duel", "Challenge a friend in a private two-player room.", "Create room", actions.createDuel, "community"),
+    action("join-table", "Join a Table", "Use an invitation code to play or spectate.", "Open room entry", () => nav("play", "tables"), "matches"),
+    action("ranked", "Ranked Match", "Face another player and climb the seasonal standings.", state.ranked.inQueue ? "View current queue" : "Open ranked setup", () => nav("compete", "ranked"), "compete"),
+    action("draft", "Draft & Sealed", "Build a deck from fresh packs in Draft or Sealed.", "Choose format", () => nav("draft"), "draft"),
+    action("campaign", "Campaign", "Learn through story missions and earn chapter rewards.", "Open campaigns", () => nav("campaign"), "campaign"),
+    action("competition", "Official Competition", "Enter scheduled events and Para League play.", "Open competition", () => nav("compete"), "compete"),
   ];
   let body;
   if (workflow) body = workflow;
