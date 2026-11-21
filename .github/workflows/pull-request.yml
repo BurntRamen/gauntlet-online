@@ -58,42 +58,42 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Test paid support zones on desktop, phone and React fallback
-        if: matrix.suite == 'experience'
-        run: npm run test:e2e:support
+        if: ${{ !cancelled() && matrix.suite == 'experience' }}
+        run: npm run test:e2e:support -- --output=test-results/support
 
       - name: Test draft entry, picks, reconnects and deck saving
-        if: matrix.suite == 'experience'
-        run: npx playwright test --config=playwright.draft.config.js
+        if: ${{ !cancelled() && matrix.suite == 'experience' }}
+        run: npx playwright test --config=playwright.draft.config.js --output=test-results/draft
 
       - name: Test deck workshop and pack reveals
-        if: matrix.suite == 'experience'
-        run: npm run test:e2e:workshop
+        if: ${{ !cancelled() && matrix.suite == 'experience' }}
+        run: npm run test:e2e:workshop -- --output=test-results/workshop
 
       - name: Test collector version selection and table foil
-        if: matrix.suite == 'experience'
-        run: npx playwright test --config=playwright.collector.config.js
+        if: ${{ !cancelled() && matrix.suite == 'experience' }}
+        run: npx playwright test --config=playwright.collector.config.js --output=test-results/collector
 
       - name: Check browser usability
-        if: matrix.suite == 'experience'
-        run: npm run test:e2e:usability
+        if: ${{ !cancelled() && matrix.suite == 'experience' }}
+        run: npm run test:e2e:usability -- --output=test-results/usability
 
       - name: Test Command Deck navigation and account layouts
-        if: matrix.suite == 'experience'
-        run: npm run test:e2e:command-deck
+        if: ${{ !cancelled() && matrix.suite == 'experience' }}
+        run: npm run test:e2e:command-deck -- --output=test-results/command-deck
 
       - name: Test released menus with customization disabled
-        if: matrix.suite == 'experience'
-        run: npm run test:e2e:release-menus
+        if: ${{ !cancelled() && matrix.suite == 'experience' }}
+        run: npm run test:e2e:release-menus -- --output=test-results/release-menus
 
       - name: Test optional SuitFire presentation on desktop and phone
-        if: matrix.suite == 'experience'
+        if: ${{ !cancelled() && matrix.suite == 'experience' }}
         run: |
-          npx playwright test --config=playwright.suitfire.config.js
+          npx playwright test --config=playwright.suitfire.config.js --output=test-results/suitfire
           npm run check:bundle
 
       - name: Check compiled Babylon performance safeguards
-        if: matrix.suite == 'experience'
-        run: npm run test:e2e:performance
+        if: ${{ !cancelled() && matrix.suite == 'experience' }}
+        run: npm run test:e2e:performance -- --output=test-results/performance
 
       - name: Test live Babylon browser flows
         if: matrix.suite != 'experience'

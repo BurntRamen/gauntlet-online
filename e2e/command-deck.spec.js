@@ -71,7 +71,7 @@ test('all eight core actions fit above the fold at both target desktop sizes', a
       measurements.push({ viewport, id, bounds });
       expect(bounds.y, `${id} starts above viewport`).toBeGreaterThanOrEqual(0);
       expect(bounds.y + bounds.height, `${id} should fit at ${viewport.width}×${viewport.height}`).toBeLessThanOrEqual(viewport.height);
-      await expect(tile.locator('.cd-action-description')).toHaveCount(0);
+      await expect(tile.locator('.cd-action-description')).toBeVisible();
       const imageBounds = await tile.locator('.cd-action-art').boundingBox();
       expect(Math.abs(imageBounds.width - bounds.width)).toBeLessThanOrEqual(2);
       expect(Math.abs(imageBounds.height - bounds.height)).toBeLessThanOrEqual(2);
@@ -98,10 +98,15 @@ test('mobile, tablet and equivalent 200 percent zoom reflow retain visible contr
     await openPlay(page);
     await expectNoOverflow(page);
     if (viewport.width < 761) await expect(page.getByRole('navigation', { name: 'Mobile navigation' })).toBeVisible();
-    if (viewport.width === 390) {
+    if (viewport.width < 761) {
       const navigation = await page.getByRole('navigation', { name: 'Mobile navigation' }).boundingBox();
       for (const id of ACTION_IDS) {
-        const tile = await page.locator(`.cd-action-tile[data-action-id="${id}"]`).boundingBox();
+        const action = page.locator(`.cd-action-tile[data-action-id="${id}"]`);
+        // Purpose descriptions intentionally make the phone menu scrollable.
+        // Every action must still be fully reachable above the fixed tabs.
+        await action.evaluate(element => element.scrollIntoView({ block: 'center', behavior: 'instant' }));
+        const tile = await action.boundingBox();
+        expect(tile.y, `${id} is reachable in the viewport`).toBeGreaterThanOrEqual(0);
         expect(tile.y + tile.height, `${id} is above the mobile navigation`).toBeLessThanOrEqual(navigation.y);
       }
     }
