@@ -15,8 +15,8 @@ const api = (request, route, options = {}) => request.get(origin + route, { head
 async function state(request) { const response = await api(request, "/api/admin/authoring"); expect(response.ok()).toBeTruthy(); return response.json(); }
 async function discard(request) { const current = await state(request); if (current.draft) expect((await request.post(origin + "/api/admin/authoring/discard", { headers: headers(), data: { expectedRevision: current.revision } })).ok()).toBeTruthy(); }
 async function openCard(page, id = cardId) { await page.goto(`/admin/gauntlet?workshop=cards&object=${id}`); await expect(page.getByRole("region", { name: "Card Workshop", exact: true })).toBeVisible(); await expect(page.getByLabel("Draft name", { exact: true })).toBeVisible(); }
-async function section(page, name, workshop = "Card Workshop") { const select = page.getByRole("combobox", { name: `${workshop} section`, exact: true }); const nav = page.getByRole("navigation", { name: `${workshop} sections`, exact: true }); await expect(select.or(nav)).toBeVisible(); if (await select.isVisible()) await select.selectOption({ label: name }); else await nav.getByRole("button", { name, exact: true }).click(); }
-async function area(page, name) { await expect(page.locator(".admin-workspace")).toBeVisible(); const nav = page.getByRole("navigation", { name: "Administration sections" }); if (!await nav.isVisible()) await page.getByRole("button", { name: "Navigation", exact: true }).click(); await nav.getByRole("button", { name, exact: true }).click(); }
+async function section(page, name, workshop = "Card Workshop") { await require("./admin-navigation").workspaceSection(page, workshop, name); }
+const { area } = require("./admin-navigation");
 const saveRecord = page => page.getByRole("region", { name: "Save record changes" }).getByRole("button", { name: /^Save changes to/ });
 async function save(page) { const response = page.waitForResponse(r => r.url().endsWith("/authoring/record") && r.request().method() === "PATCH"); await saveRecord(page).click(); expect((await response).ok()).toBeTruthy(); }
 async function image(page, name) {
@@ -61,7 +61,10 @@ test("card fields stay local across sections and browser Back, then save togethe
   await expect(page.getByLabel("Draft displayed rules text", { exact: true })).toHaveValue(wording);
   await page.getByRole("button", { name: "Preview", exact: true }).click();
   await expect(page.getByRole("dialog", { name: "Unsaved local changes" })).toHaveCount(0);
-  await expect(page.getByRole("region", { name: "Card Workshop preview and test" })).toContainText(/Live content|Saved draft/);
+  const localPreview=page.getByRole("region", { name: "Card Workshop preview and test" });
+  await expect(localPreview).toContainText("Local presentation · unsaved");
+  await expect(localPreview.locator(".special-card-name")).toHaveText(name);
+  await expect(localPreview).toContainText(wording);
   await page.getByRole("button", { name: "Editor", exact: true }).click();
   await expect(page.getByLabel("Draft name", { exact: true })).toHaveValue(name);
   expect(writes).toHaveLength(0);
@@ -113,7 +116,7 @@ test("genuine departure offers keep, discard, and save-and-continue only after a
   await page.route("**/api/admin/authoring/record", route => route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: "Fixture departure save failed" }) }), { times: 1 });
   await dialog.getByRole("button", { name: "Save and continue", exact: true }).click();
   await expect(dialog).toBeVisible();
-  await expect(page.getByRole("navigation", { name: "Administration sections" }).getByRole("button", { name: "Content", exact: true })).toHaveAttribute("aria-current", "page");
+  await expect(page.getByRole("navigation", { name: "Administration sections" }).getByRole("button", { name: "Create & Edit", exact: true })).toHaveAttribute("aria-current", "page");
   await dialog.getByRole("button", { name: "Save and continue", exact: true }).click();
   await expect(dialog).toHaveCount(0);
   await expect(page.getByRole("navigation", { name: "Administration sections" }).getByRole("button", { name: "Home", exact: true })).toHaveAttribute("aria-current", "page");
@@ -140,7 +143,7 @@ test("creation selects the new record and printing comparison retains the select
   await section(page, "Composition", "Deck Workshop");
   await expect(page.getByRole("region", { name: "Deck Workshop", exact: true })).toContainText("52");
   await image(page, "deck-composition-1366");
-  await page.getByRole("button", { name: "Back to list", exact: true }).click();
+  if(await page.getByRole("button", { name: "Back to list", exact: true }).isVisible()) await page.getByRole("button", { name: "Back to list", exact: true }).click();
   await page.getByRole("button", { name: "Duplicate deck", exact: true }).click();
   await page.getByLabel("New content name", { exact: true }).fill("Redesign copied deck");
   await page.getByRole("button", { name: "Save new deck to draft", exact: true }).click();
@@ -174,22 +177,24 @@ test("keyboard search is a modal extension, restores focus and opens exact edita
   await expect(dialog.locator(".admin-search-results button").first()).toBeVisible();
   await page.keyboard.press("ArrowDown"); await expect(dialog.locator(".admin-search-results button").first()).toBeFocused();
   await page.keyboard.press("Enter"); await expect(dialog).toHaveCount(0); await expect(page).toHaveURL(new RegExp("object=" + cardId));
-  await expect(page.getByRole("navigation", { name: "Content destinations" }).getByRole("button", { name: "Cards", exact: true })).toHaveAttribute("aria-current", "page");
+  await expect(page.getByLabel("Content type",{exact:true})).toHaveValue("cards");
 });
 
 test("operator preferences are scoped and private recent work clears when accounts change", async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await openCard(page);
+  await page.getByRole("button", { name: "Back to list", exact: true }).click();
   const browser = page.locator(".admin-content-browser");
   await browser.evaluate(element => element.scrollTo(0, 400));
   await expect.poll(() => browser.evaluate(element => element.scrollTop)).toBe(400);
-  const destinations = page.getByRole("navigation", { name: "Content destinations" });
-  await destinations.getByRole("button", { name: "Decks", exact: true }).click();
+  const destinations = page.getByLabel("Content type",{exact:true});
+  await destinations.selectOption("decks");
   await expect(page.getByRole("region", { name: "Deck Workshop", exact: true })).toBeVisible();
-  await destinations.getByRole("button", { name: "Cards", exact: true }).click();
+  await destinations.selectOption("cards");
   await expect(page.getByRole("region", { name: "Card Workshop", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Back to list", exact: true }).click();
   await expect.poll(() => browser.evaluate(element => element.scrollTop)).toBe(400);
-  await page.getByRole("button", { name: "☆ Pin item", exact: true }).click();
+  await page.getByRole("button", { name: "Pin item", exact: true }).click();
   await page.getByLabel("Workspace options", { exact: true }).click();
   await page.getByRole("combobox", { name: "Density", exact: true }).selectOption("compact");
   await expect(page.locator(".admin-workspace")).toHaveAttribute("data-density", "compact");
@@ -203,7 +208,7 @@ test("operator preferences are scoped and private recent work clears when accoun
   await expect(page.locator(".admin-workspace")).toHaveAttribute("data-density", "comfortable");
   await expect.poll(() => browser.evaluate(element => element.scrollTop)).toBe(0);
   expect(await page.evaluate(scope => localStorage.getItem(`gauntlet-admin:${scope}`), firstScope)).toBeNull();
-  await expect(page.getByRole("button", { name: "☆ Pin item", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Pin item", exact: true })).toBeVisible();
   await page.getByLabel("Workspace options", { exact: true }).click();
   await page.getByRole("combobox", { name: "Density", exact: true }).selectOption("compact");
   await page.getByRole("button", { name: "Reset preferences", exact: true }).click();
@@ -270,13 +275,15 @@ test("saved-draft preview and fixture publication verify active without claiming
   const original = (await state(request)).live.domains.cards.find(row => row.id === cardId);
   const name = original.name + " · fixture publication";
   await page.getByLabel("Draft name", { exact: true }).fill(name); await save(page);
+  await require("./admin-navigation").area(page, "Publishing");
   await page.getByRole("button", { name: "Validate draft", exact: true }).click();
   await expect(page.getByText("Draft validation completed.", { exact: true })).toBeVisible();
+  await require("./admin-navigation").area(page, "Publishing");
   await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
   await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible();
   await area(page, "Publishing");
   const review = page.getByRole("region", { name: "Shared release review", exact: true });
-  await expect(review).toContainText("One release, across all workshops");
+  await expect(review.getByRole("heading", { name: "Review saved changes", exact: true })).toBeVisible();
   await expect(review).toContainText(name);
   await image(page, "publishing-1366");
   const publicationA11y = await new AxeBuilder({ page }).include(".gauntlet-admin").analyze();
@@ -285,7 +292,7 @@ test("saved-draft preview and fixture publication verify active without claiming
   await page.getByRole("button", { name: "Publish release", exact: true }).click();
   await expect(page.getByRole("region", { name: "Confirm content operation" })).toBeVisible();
   await page.getByRole("button", { name: "Confirm publish", exact: true }).click();
-  await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible();
+  await expect(page.getByText("No saved changes to review.", { exact: true })).toBeVisible();
   const active = await state(request); expect(active.draft).toBeNull();
   expect(active.live.domains.cards.find(row => row.id === cardId).name).toBe(name);
   const publicContent = await (await request.get(origin + "/api/game-content")).json();
@@ -326,7 +333,12 @@ test("encounter setup earns exact-draft engine evidence and a later change inval
   await page.getByLabel("Boss Life", { exact: true }).fill(String(encounter.setup.bossLife + 1));
   await save(page);
   let saved = await state(request); expect(saved.draft.playtestedHash).not.toBe(saved.draft.hash);
-  await section(page, "Playtest", "Encounter Workshop");
+  await area(page, "Publishing");
+  await require("./admin-navigation").previewSavedDraft(page);
+  const nextTest = page.getByRole("button", { name: `Open ${encounter.title} for testing`, exact: true });
+  await expect(nextTest).toHaveClass(/admin-primary/);
+  await nextTest.click();
+  await expect(page.getByLabel("Encounter Workshop section", { exact: true })).toHaveValue("test");
   const harness = page.getByRole("region", { name: "Real engine playtest" });
   await harness.getByRole("combobox", { name: "Test content", exact: true }).selectOption("draft");
   let response = waitForBufferedAdminResponse(page, r => r.url().endsWith("/authoring/playtest") && r.request().method() === "POST");

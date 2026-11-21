@@ -14,15 +14,17 @@ export function PrivateAssetProvider({ request, children }) {
   }, [request]);
   return <Assets.Provider value={context}>{children}</Assets.Provider>;
 }
-function useImage(path, enabled = true) {
-  const load = useContext(Assets), [result, setResult] = useState(null);
-  const privateImage = path?.startsWith("/api/admin/authoring/assets/");
-  useEffect(() => {
-    let active = true;
-    if (enabled && privateImage && load) load(path).then(src => { if (active) setResult({ path, src }); }).catch(() => { if (active) setResult({ path, error: true }); });
-    return () => { active = false; };
-  }, [path, privateImage, load, enabled]);
-  return privateImage ? result?.path === path ? result : {} : { src: path };
+function useImage(path, enabled = true) { return usePrivateImages([path],enabled)[path] || {}; }
+export {useImage as usePrivateImage};
+export function usePrivateImages(paths,enabled=true) {
+  const load=useContext(Assets), [results,setResults]=useState({});
+  const key=JSON.stringify([...new Set(paths.filter(path=>path?.startsWith('/api/admin/authoring/assets/')))].sort());
+  useEffect(()=>{
+    let active=true;
+    if(load && enabled) for(const path of JSON.parse(key)) load(path).then(src=>{if(active)setResults(previous=>({...previous,[path]:{src}}));}).catch(()=>{if(active)setResults(previous=>({...previous,[path]:{error:true}}));});
+    return ()=>{active=false;};
+  },[key,load,enabled]);
+  return Object.fromEntries(paths.filter(Boolean).map(path=>[path,path.startsWith('/api/admin/authoring/assets/')?results[path] || {}:{src:path}]));
 }
 export function PrivateAudio({ src, label }) {
   const [requested, setRequested] = useState(false), result = useImage(src, requested);

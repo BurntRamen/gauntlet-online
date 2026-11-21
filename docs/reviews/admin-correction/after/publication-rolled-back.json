@@ -1,0 +1,125 @@
+{
+  "id": "publication-rolled-back",
+  "events": [
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Create & Edit",
+      "url": "?area=Content",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Inspect Dividend Yield Blade",
+      "url": "?workshop=cards&object=rumin-coin-scale-spear&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "change",
+      "tag": "INPUT",
+      "control": "Draft name",
+      "url": "?workshop=cards&object=rumin-coin-scale-spear&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Saving… to Card · Dividend Yield Blade",
+      "url": "?workshop=cards&object=rumin-coin-scale-spear&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Website",
+      "url": "?workshop=modes&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "change",
+      "tag": "INPUT",
+      "control": "Draft play landing · heading",
+      "url": "?workshop=modes&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Saving… to Website prose · Practice privately",
+      "url": "?workshop=modes&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Publishing",
+      "url": "?workshop=modes&area=Publishing",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Publishing",
+      "url": "?workshop=modes&area=Publishing",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Validate draft",
+      "url": "?workshop=modes&area=Publishing",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Preview saved draft",
+      "url": "?workshop=modes&area=Publishing",
+      "forms": 0
+    },
+    {
+      "type": "change",
+      "tag": "INPUT",
+      "control": "Release name",
+      "url": "?workshop=modes&area=Publishing",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Publish release",
+      "url": "?workshop=modes&area=Publishing",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Confirm publish",
+      "url": "?workshop=modes&area=Publishing",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Restore Deployed source baseline",
+      "url": "?workshop=modes&area=Publishing",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Confirm rollback",
+      "url": "?workshop=modes&area=Publishing",
+      "forms": 0
+    }
+  ],
+  "clicks": 13,
+  "changes": 3,
+  "screens": [
+    "?area=Content",
+    "?workshop=cards&object=rumin-coin-scale-spear&area=Content",
+    "?workshop=modes&area=Content",
+    "?workshop=modes&area=Publishing"
+  ]
+}

@@ -124,7 +124,7 @@ test("public or unverified GitHub storage cannot receive drafts or drive publica
     assert.equal(state.publication.supported, false); assert.match(state.storage, /Live inspection and live playtests remain available/);
     assert.ok(store.active().manifest.cards.length);
     const before = clone(repo.refs.get("main"));
-    for (const method of ["patch", "patchRecord", "create", "discard", "preview", "saveNotes", "uploadAsset", "archiveAsset", "studioDraft", "competitionDraft", "paraDraft", "recordPlaytest", "publish", "rollback", "cancelPublication", "reconcile", "playtestContent"]) {
+    for (const method of ["patch", "patchRecord", "reorderEncounters", "create", "discard", "preview", "saveNotes", "uploadAsset", "archiveAsset", "studioDraft", "competitionDraft", "paraDraft", "recordPlaytest", "publish", "rollback", "cancelPublication", "reconcile", "playtestContent"]) {
       await assert.rejects(store[method]({}, "admin"), error => error.status === 503 && /private repository/.test(error.message), method);
     }
     assert.equal(repo.refs.size, 1); assert.equal(repo.refs.get("main"), before);

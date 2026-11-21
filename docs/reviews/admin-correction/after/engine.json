@@ -1,0 +1,160 @@
+{
+  "id": "engine",
+  "events": [
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Mechanic",
+      "url": "?area=Content",
+      "forms": 0
+    },
+    {
+      "type": "change",
+      "tag": "INPUT",
+      "control": "Mechanic name",
+      "url": "?workshop=mechanics&object=mechanic-a30984f4-2ea2-4e7c-bfc5-df2d55606e49&area=Content",
+      "forms": 1
+    },
+    {
+      "type": "click",
+      "tag": "INPUT",
+      "control": "armament",
+      "url": "?workshop=mechanics&object=mechanic-a30984f4-2ea2-4e7c-bfc5-df2d55606e49&area=Content",
+      "forms": 1
+    },
+    {
+      "type": "change",
+      "tag": "INPUT",
+      "control": "armament",
+      "url": "?workshop=mechanics&object=mechanic-a30984f4-2ea2-4e7c-bfc5-df2d55606e49&area=Content",
+      "forms": 1
+    },
+    {
+      "type": "change",
+      "tag": "SELECT",
+      "control": "Ability 1 effect 1",
+      "url": "?workshop=mechanics&object=mechanic-a30984f4-2ea2-4e7c-bfc5-df2d55606e49&area=Content",
+      "forms": 1
+    },
+    {
+      "type": "change",
+      "tag": "INPUT",
+      "control": "Effect 1.1 amount",
+      "url": "?workshop=mechanics&object=mechanic-a30984f4-2ea2-4e7c-bfc5-df2d55606e49&area=Content",
+      "forms": 1
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Save mechanic to draft",
+      "url": "?workshop=mechanics&object=mechanic-a30984f4-2ea2-4e7c-bfc5-df2d55606e49&area=Content",
+      "forms": 1
+    },
+    {
+      "type": "change",
+      "tag": "SELECT",
+      "control": "Use on card",
+      "url": "?workshop=mechanics&object=mechanic-a30984f4-2ea2-4e7c-bfc5-df2d55606e49&area=Content",
+      "forms": 1
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Use mechanic on card",
+      "url": "?workshop=cards&object=rumin-coin-scale-spear&section=mechanics&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Saving… to Card · Dividend Yield Blade",
+      "url": "?workshop=cards&object=rumin-coin-scale-spear&section=mechanics&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Editor",
+      "url": "?workshop=cards&object=rumin-coin-scale-spear&section=mechanics&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Test",
+      "url": "?workshop=cards&object=rumin-coin-scale-spear&section=test&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "change",
+      "tag": "SELECT",
+      "control": "LiveSaved draft",
+      "url": "?workshop=cards&object=rumin-coin-scale-spear&section=test&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Configure custom starting state",
+      "url": "?workshop=cards&object=rumin-coin-scale-spear&section=test&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Add to player 1 hand",
+      "url": "?workshop=cards&object=rumin-coin-scale-spear&section=test&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "change",
+      "tag": "INPUT",
+      "control": "Player 1 hand 2 value",
+      "url": "?workshop=cards&object=rumin-coin-scale-spear&section=test&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Start draft duel playtest",
+      "url": "?workshop=cards&object=rumin-coin-scale-spear&section=test&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "change",
+      "tag": "SELECT",
+      "control": "Select an available actionPlay Dividend Yield Blade in Support Zone 1Play Dividend Yield Blade in Su",
+      "url": "?workshop=cards&object=rumin-coin-scale-spear&section=test&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "INPUT",
+      "control": "A of ♠ · 14 ♠",
+      "url": "?workshop=cards&object=rumin-coin-scale-spear&section=test&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "change",
+      "tag": "INPUT",
+      "control": "A of ♠ · 14 ♠",
+      "url": "?workshop=cards&object=rumin-coin-scale-spear&section=test&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Execute selected action",
+      "url": "?workshop=cards&object=rumin-coin-scale-spear&section=test&area=Content",
+      "forms": 0
+    }
+  ],
+  "clicks": 12,
+  "changes": 9,
+  "screens": [
+    "?area=Content",
+    "?workshop=mechanics&object=mechanic-a30984f4-2ea2-4e7c-bfc5-df2d55606e49&area=Content",
+    "?workshop=cards&object=rumin-coin-scale-spear&section=mechanics&area=Content",
+    "?workshop=cards&object=rumin-coin-scale-spear&section=test&area=Content"
+  ]
+}

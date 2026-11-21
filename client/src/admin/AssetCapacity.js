@@ -16,7 +16,7 @@ export default function AssetCapacity({ value, provider, request, onMigrate, bus
   return <details className="admin-note"><summary>Upload capacity · {mib(usage.storedBytes)} / {mib(usage.maxBytes)} MiB · {value.versionCount} / {value.maxVersions} versions</summary>
     <p>{mib(usage.remainingBytes)} MiB and {value.remainingVersions}{helpCopy.capacityNote1}</p>
     {remote ? <><p>{usage.usageSource}. {usage.scope || helpCopy.capacityNote2}</p>{actual && <p>{mib(actual.reservedBytes)}{helpCopy.capacityNote3}</p>}<button type="button" disabled={pending || !request} onClick={refresh}>{pending ? "Reading storage…" : "Refresh storage usage"}</button>{error && <p role="alert">{error}</p>}</> : <><Help topic="AssetCapacity1" /><Help topic="AssetCapacity2" />{provider === "github" && <Help topic="AssetCapacity3" />}</>}
-    {remote && value.encodedBytes > 0 && onMigrate && <p><button type="button" disabled={busy || pending} onClick={onMigrate}>Move retained embedded media to private storage</button>{helpCopy.capacityNote4}</p>}
-    <p>Embedded media: {mib(value.encodedBytes)} MiB · Private metadata: {mib(value.metadataBytes)} MiB · Current state payload: {mib(value.statePayloadBytes)} MiB · {value.uniqueBlobCount} unique blobs.</p>
+    {remote && value.encodedBytes > 0 && onMigrate && <p><button type="button" disabled={busy || pending} onClick={onMigrate}>{helpCopy.creativeAssetCapacity1}</button>{helpCopy.capacityNote4}</p>}
+    <p>Embedded media: {mib(value.encodedBytes)}{helpCopy.creativeAssetCapacity2}{mib(value.metadataBytes)}{helpCopy.creativeAssetCapacity3}{mib(value.statePayloadBytes)} MiB · {value.uniqueBlobCount} unique blobs.</p>
   </details>;
 }

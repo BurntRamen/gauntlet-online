@@ -1,10 +1,10 @@
 import React, { useEffect, useId, useRef } from "react";
 
 /** Focused workflows share a clear return path without adding another menu level. */
-export default function SetupFrame({ title, description, eyebrow, detail, onBack, backLabel = "Back to Play", children, actions }) {
+export default function SetupFrame({ title, description, eyebrow, detail, onBack, backLabel = "Back to Play", children, actions, autoFocus = true }) {
   const titleId = useId();
   const titleRef = useRef(null);
-  useEffect(() => { titleRef.current?.focus({ preventScroll: true }); }, [title]);
+  useEffect(() => { if (autoFocus) titleRef.current?.focus({ preventScroll: true }); }, [title, autoFocus]);
   return (
     <section className="cd-setup-frame" aria-labelledby={titleId}>
       {onBack && <button type="button" className="cd-back-link" onClick={onBack}><span aria-hidden="true">←</span> {backLabel}</button>}

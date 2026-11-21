@@ -1,4 +1,5 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import {render} from "./testSupport";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import EngineActionPanel, { buildCommand } from "./EngineActionPanel";
 
 const group = (key, entities, extra = {}) => ({ key, role: key, entities, minimum: 1, maximum: 1, ordered: false, ...extra });

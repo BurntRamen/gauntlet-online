@@ -1,5 +1,6 @@
+import {render} from "./admin/testSupport";
 import { useState } from "react";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import GauntletContractFields from "./GauntletContractFields";
 const { cardEffectDefinitions, factionEffectDefinitions } = require("../../shared/duel-rules/effectRegistry");
 const options = cardEffectDefinitions();

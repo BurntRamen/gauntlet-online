@@ -1,18 +1,10 @@
 // Only optional landing-page modules belong here. Recovery, queue, invitations,
 // account controls and gameplay workflows must remain outside a LayoutGrid.
+import sections from '../../../shared/websiteSections.json';
 export const LAYOUT_VERSION = 1;
 export const MAX_LAYOUT_MODULES = 64;
 
-const staticModules = {
-  play: ['basic-ai', 'faction-ai', 'private-duel', 'join-table', 'ranked', 'draft', 'campaign', 'competition', 'active-deck', 'recent-matches'],
-  campaign: ['tutorial', 'lore', 'rulebook'],
-  decks: ['editor', 'collection', 'packs', 'draft-library'],
-  compete: ['ranked', 'events', 'para', 'standings'],
-  matches: ['recent', 'replays', 'record'],
-  community: ['friends', 'challenges', 'messages'],
-  learn: ['tutorial', 'rulebook', 'practice', 'formats', 'lore'],
-  profile: ['record', 'library'],
-};
+const staticModules = Object.fromEntries(Object.entries(sections).filter(([page])=>page!=="settings"));
 
 export const LAYOUT_PAGE_LABELS = {
   play: 'Play', campaign: 'Campaign', decks: 'Decks & Cards', compete: 'Compete',

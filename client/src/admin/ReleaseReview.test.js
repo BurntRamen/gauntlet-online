@@ -1,7 +1,8 @@
 import { HelpProvider } from "./AuthoringHelp";
 const render = element => renderWithoutHelp(element, { wrapper: ({ children }) => <HelpProvider value={require("../../../server/adminAuthoringGuide").help}>{children}</HelpProvider> });
-import { fireEvent, render as renderWithoutHelp, screen } from "@testing-library/react";
+import { fireEvent, render as renderWithoutHelp, screen, waitFor } from "@testing-library/react";
 import ReleaseReview from "./ReleaseReview";
+import { PrivateAssetProvider } from "./PrivateAsset";
 
 const state = { guide: require("../../../server/adminAuthoringGuide"), revision: 1, writable: true, draft: { hash: "draft-hash" } };
 const review = { revision: 1, hash: "draft-hash", readiness: { saved: true, validated: true, previewed: true, engineTestRequired: true, engineTested: true, ready: true }, groups: [{ id: "mechanics", label: "Mechanics", changes: [{ domain: "encounters", id: "first", label: "First battle", field: "setup", fieldLabel: "Boss life", before: 40, after: 44 }] }] };
@@ -40,6 +41,17 @@ test("asset comparisons use immutable resolved paths while keeping readable file
   expect(screen.getByText("before.webp")).toBeVisible();
 });
 
+test("release audio comparison retrieves private bytes through the authenticated asset provider on demand", async () => {
+  const path = "/api/admin/authoring/assets/voice-version";
+  const request = jest.fn().mockResolvedValue({ mediaType: "audio/wav", data: "YWJj" });
+  const audio = { ...review, groups: [{ id: "audio", label: "Voices", changes: [{ domain: "encounters", id: "first", field: "dialogueAudio", before: null, after: "voice-version", draftAsset: { path, mediaType: "audio/wav" } }] }] };
+  render(<PrivateAssetProvider request={request}><ReleaseReview state={state} review={audio} /></PrivateAssetProvider>);
+  expect(request).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button", { name: "Load private audio preview" }));
+  await waitFor(() => expect(screen.getByLabelText("Saved draft audio")).toHaveAttribute("src", "data:audio/wav;base64,YWJj"));
+  expect(request).toHaveBeenCalledWith(path);
+});
+
 
 test("validation issues lead to the exact record field and activation is never inferred from readiness", () => {
   const inspect = jest.fn(), validate = jest.fn(), preview = jest.fn();
@@ -53,4 +65,12 @@ test("validation issues lead to the exact record field and activation is never i
   expect(screen.getByLabelText("Release readiness")).toHaveTextContent("Unverified");
   rerender(<ReleaseReview state={{ ...invalid, draft: null, publication: { activeReleaseId: "live", deployment: "active-on-this-server" } }} review={{ ...review, groups: [] }} />);
   expect(screen.getByLabelText("Release readiness")).toHaveTextContent("Active on this server");
+});
+
+test('the next release action is highlighted and testing opens the Test section',()=>{
+ const inspect=jest.fn();const pending={...review,readiness:{...review.readiness,previewed:false,ready:false}};
+ const {rerender}=render(<ReleaseReview state={{...state,validation:{valid:true}}} review={pending}/>);
+ expect(screen.getByRole('button',{name:'Preview saved draft'})).toHaveClass('admin-primary');
+ rerender(<ReleaseReview state={state} onInspect={inspect} review={{...review,readiness:{...review.readiness,engineTested:false,ready:false}}}/>);
+ fireEvent.click(screen.getByRole('button',{name:'Open First battle for testing'}));expect(inspect).toHaveBeenCalledWith('encounters','first','test',null);
 });

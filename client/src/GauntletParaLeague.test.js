@@ -1,4 +1,5 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import {render} from "./admin/testSupport";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import GauntletParaLeague from "./GauntletParaLeague";
 
 function fixture() {
@@ -31,7 +32,7 @@ test("failed save preserves values; navigation cancellation protects unsaved wor
   fireEvent.click(screen.getByRole("button", { name: "Save definition to draft" }));
   await waitFor(() => expect(props.act).toHaveBeenCalled());
   const confirm = jest.spyOn(window, "confirm").mockReturnValue(false);
-  tab("Overview");
+  tab("Events");
   expect(screen.getByLabelText("Name")).toHaveValue("Keep this edit");
   expect(confirm).toHaveBeenCalled(); confirm.mockRestore();
 });
@@ -49,7 +50,7 @@ test("simulator sends outcomes and revision, then clears projections when config
   const props = fixture();
   props.state.live.paraLeague.events = [{ id: "first-run", seasonId: "season-one", name: "Faction Open", week: 1, status: "draft", winTarget: 7, lossLimit: 3 }, { id: "event-one", seasonId: "season-one", name: "Invitational", week: 7, status: "draft" }];
   props.request.mockResolvedValue({ qualifyingPrestige: 30, combinedPrestige: 30, countedEventIds: ["first-run"], targetEligibleByScore: true });
-  const view = render(<GauntletParaLeague {...props} />); tab("Prestige");
+  const view = render(<GauntletParaLeague {...props} />); tab("Events"); fireEvent.click(screen.getByText("Test event eligibility"));
   fireEvent.change(screen.getByLabelText("Target event"), { target: { value: "event-one" } });
   fireEvent.change(screen.getByLabelText("Week 1: Faction Open"), { target: { value: "7-0" } });
   fireEvent.click(screen.getByRole("button", { name: "Simulate saved rules" }));

@@ -1,0 +1,90 @@
+{
+  "id": "product-verified",
+  "events": [
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Events & Commerce",
+      "url": "?area=Competition",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Deck products",
+      "url": "?workshop=offers&area=Store+%26+Economy",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Create offer",
+      "url": "?workshop=offers&area=Store+%26+Economy",
+      "forms": 1
+    },
+    {
+      "type": "change",
+      "tag": "SELECT",
+      "control": "Recipe",
+      "url": "?workshop=offers&area=Store+%26+Economy",
+      "forms": 1
+    },
+    {
+      "type": "change",
+      "tag": "INPUT",
+      "control": "New content name",
+      "url": "?workshop=offers&area=Store+%26+Economy",
+      "forms": 1
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Save new offer to draft",
+      "url": "?workshop=offers&area=Store+%26+Economy",
+      "forms": 1
+    },
+    {
+      "type": "change",
+      "tag": "SELECT",
+      "control": "Draft store availability",
+      "url": "?workshop=offers&object=auth-offer-b7b8d288-1ea9-4792-94d9-0bb907e5cd14&area=Store+%26+Economy",
+      "forms": 0
+    },
+    {
+      "type": "change",
+      "tag": "INPUT",
+      "control": "Price in gold",
+      "url": "?workshop=offers&object=auth-offer-b7b8d288-1ea9-4792-94d9-0bb907e5cd14&area=Store+%26+Economy",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Saving… to Store · Journey product",
+      "url": "?workshop=offers&object=auth-offer-b7b8d288-1ea9-4792-94d9-0bb907e5cd14&area=Store+%26+Economy",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Publishing",
+      "url": "?workshop=offers&object=auth-offer-b7b8d288-1ea9-4792-94d9-0bb907e5cd14&area=Publishing",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Preview saved draft",
+      "url": "?workshop=offers&object=auth-offer-b7b8d288-1ea9-4792-94d9-0bb907e5cd14&area=Publishing",
+      "forms": 0
+    }
+  ],
+  "clicks": 7,
+  "changes": 4,
+  "screens": [
+    "?area=Competition",
+    "?workshop=offers&area=Store+%26+Economy",
+    "?workshop=offers&object=auth-offer-b7b8d288-1ea9-4792-94d9-0bb907e5cd14&area=Store+%26+Economy",
+    "?workshop=offers&object=auth-offer-b7b8d288-1ea9-4792-94d9-0bb907e5cd14&area=Publishing"
+  ]
+}

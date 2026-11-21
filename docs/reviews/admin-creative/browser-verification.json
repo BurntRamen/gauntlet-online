@@ -1,0 +1,72 @@
+{
+  "cases": [
+    {
+      "title": "uploaded card and menu artwork, device previews, navigation and shared publication roll back exactly",
+      "passed": true,
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 131579
+        }
+      ]
+    },
+    {
+      "title": "card catalog and phone navigation keep local work while the operator chooses the next step",
+      "passed": true,
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 28296
+        }
+      ]
+    },
+    {
+      "title": "campaign chapters retain their links across story, rules, cards, media, reordering and an actual engine test",
+      "passed": true,
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 147406
+        }
+      ]
+    },
+    {
+      "title": "supported format settings reach the real engine and publish for future games",
+      "passed": true,
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 84826
+        }
+      ]
+    },
+    {
+      "title": "an event keeps its format, entry terms, schedule and rewards together through eligibility testing",
+      "passed": true,
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 58549
+        }
+      ]
+    },
+    {
+      "title": "create a card with a set, mechanic and artwork, reload it, test it and publish it",
+      "passed": true,
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 148623
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "startTime": "2026-11-21T04:25:51.197Z",
+    "duration": 662986.309,
+    "expected": 6,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

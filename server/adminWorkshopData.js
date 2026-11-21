@@ -45,7 +45,7 @@ function registerAdminWorkshopRoutes(app, { publication }) {
     }],
     ["/search", async req => {
       validateSearchQuery(req.query);
-      return searchAdmin(req.query?.kind === "menus" || (!req.query?.q && req.query?.kind !== "prose") ? null : await readAuthoringStatus(publication), req.query);
+      return searchAdmin(req.query?.kind === "menus" || (!req.query?.q && !["prose", "records"].includes(req.query?.kind)) ? null : await readAuthoringStatus(publication, true), req.query);
     }],
     ["", async req => workshopMetadata(selectWorkshopSnapshot(await readWorkshopStatus(publication, req.query?.source), req.query))],
     ["/relationships", async req => {

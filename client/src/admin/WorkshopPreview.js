@@ -1,9 +1,14 @@
+import {useHelp as useCreativeCopy} from "./AuthoringHelp";
+import {resolveCard} from "./Presentation";
 import { encounterPresentation } from "@gauntlet/duel-rules/encounterContract";
+import PlayerPageHeader from "../navigation/PlayerPageHeader";
 import CampaignChapterBriefing from "../CampaignChapterBriefing";
 import { PrivateCard as SpecialCardFace, PrivateImage } from "./PrivateAsset";
 const title = row => row.name || row.title || row.commanderName || row.id;
 
-export default function WorkshopPreview({ preview, domain, row, onClose, guide, suit = "spades", variantId, source = "draft" }) {
+export default function WorkshopPreview({ preview, domain, row, onClose, guide, suit = "spades", variantId, source = "draft", surface }) {
+  const creativeCopy=useCreativeCopy();
+
   const manifest = preview.manifest;
   const metadata = domain === "factions" ? preview.factions?.[row.id] || row
     : domain === "game" ? manifest.modeMetadata?.[row.id] || row
@@ -17,21 +22,13 @@ export default function WorkshopPreview({ preview, domain, row, onClose, guide, 
     const match = Object.entries(manifest.campaigns).find(([, campaign]) => campaign.chapters.some((entry) => entry.deckTemplate?.id === row.id));
     if (match) { factionId = match[0]; chapter = match[1].chapters.find((entry) => entry.deckTemplate?.id === row.id); }
   }
-  let card = domain === "cards" ? manifest.cards.find((entry) => entry.id === row.id) : domain === "assets" ? manifest.cards.find((entry) => entry.id === row.gameplayCardId) : null;
-  if (domain === "assets" && card) {
-    const variant = manifest.collectorVariants.find((entry) => entry.variantId === row.id);
-    card = { ...card, collector: variant, presentation: variant?.presentation || card.presentation };
-  }
-  if (card) {
-    const selectedVariant = manifest.collectorVariants.find((entry) => entry.variantId === (variantId || card.defaultVariantId));
-    card = { ...card, suit, ...(selectedVariant ? { collector: selectedVariant, presentation: selectedVariant.presentation || card.presentation } : {}) };
-  }
+  const card = ['cards','assets'].includes(domain) ? resolveCard(manifest,domain==='cards'?row.id:row.gameplayCardId,variantId||(domain==='assets'?row.id:undefined),suit) : null;
   const art = domain === "assets" ? card?.presentation?.illustration || row.art : manifest.collectorVariants.find((entry) => entry.variantId === card?.defaultVariantId)?.art;
-  return <section className="admin-preview" aria-label="Isolated draft preview">
+  return <section className="admin-preview" aria-label={creativeCopy.creativeWorkshopPreview1}>
     <div className="admin-title-row"><h4>{source === "live" ? "Live presentation" : "Saved draft preview"}</h4><button onClick={onClose}>Close preview</button></div>
     <p className="admin-note">{guide.previewPurpose}</p>
-    {chapter ? <CampaignChapterBriefing campaign={manifest.campaigns[factionId]} factionId={factionId} chapter={chapter} chapterIndex={manifest.campaigns[factionId].chapters.indexOf(chapter)} theme={{ primary: "#efc06e", border: "#73613e" }} difficulty={encounterPresentation(chapter, manifest).difficulty} complexity={encounterPresentation(chapter, manifest).complexity} completed unlocked canPlayAsPlayer={false} previewOnly audioEnabled={false} musicEnabled={false} onBack={onClose} />
-      : card ? <><div className="admin-card-preview"><SpecialCardFace card={card} art={art} /></div><h4>{card.name}</h4><p>{card.text}</p><p className="admin-note">{guide.cardPreview}</p>{art && <PrivateImage className="admin-art-preview" src={art} alt="Selected draft illustration" />}</>
+    {domain === "game" && manifest.websiteProse?.[surface] ? <div className="admin-player-stage"><PlayerPageHeader {...manifest.websiteProse[surface]} Image={PrivateImage} /></div> : chapter ? <CampaignChapterBriefing campaign={manifest.campaigns[factionId]} factionId={factionId} chapter={chapter} chapterIndex={manifest.campaigns[factionId].chapters.indexOf(chapter)} theme={{ primary: "#efc06e", border: "#73613e" }} difficulty={encounterPresentation(chapter, manifest).difficulty} complexity={encounterPresentation(chapter, manifest).complexity} completed unlocked canPlayAsPlayer={false} previewOnly audioEnabled={false} musicEnabled={false} onBack={onClose} />
+      : card ? <><div className="admin-card-preview"><SpecialCardFace card={card} art={art} /></div><p className="admin-note">{guide.cardPreview}</p></>
       : <article>{metadata.heroTitle && <><small>{metadata.heroEyebrow}</small><h3>{metadata.heroTitle}</h3><p>{metadata.heroDescription}</p>{metadata.menuDetail && <p>Menu description: {metadata.menuDetail}</p>}</>}<h4>{title(metadata)}</h4>{(metadata.cardImage || metadata.image || metadata.art || metadata.coverImage) && <PrivateImage className="admin-art-preview" src={metadata.cardImage || metadata.image || metadata.art || metadata.coverImage} alt={title(metadata)} />}<p>{metadata.description || metadata.pitch || metadata.text}</p><p className="admin-note">{guide.metadataPreview}</p></article>}
   </section>;
 }

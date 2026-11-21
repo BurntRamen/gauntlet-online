@@ -27,7 +27,8 @@ test("environment precedence, references and test isolation preserve public conf
 });
 test("only explicitly public variables reach browser definitions and HTML", () => {
   const env = { REACT_APP_SOCKET_URL: "https://api.example.test", PUBLIC_URL: "/game/", SUPABASE_SERVICE_ROLE_KEY: "private-sentinel", GAUNTLET_GITHUB_TOKEN: "private-sentinel" };
-  assert.deepEqual(publicEnvironment("production", env), { REACT_APP_SOCKET_URL: env.REACT_APP_SOCKET_URL, NODE_ENV: "production", PUBLIC_URL: "/game" });
+  assert.deepEqual(publicEnvironment("production", env), { REACT_APP_MENU_LAYOUT_CUSTOMIZATION: "false", REACT_APP_SOCKET_URL: env.REACT_APP_SOCKET_URL, NODE_ENV: "production", PUBLIC_URL: "/game" });
+  assert.equal(publicEnvironment("production", { REACT_APP_MENU_LAYOUT_CUSTOMIZATION: "true" }).REACT_APP_MENU_LAYOUT_CUSTOMIZATION, "true");
   const config = require("../config/webpack.config")("production", env);
   assert.equal(JSON.stringify(config.plugins).includes("private-sentinel"), false);
 });

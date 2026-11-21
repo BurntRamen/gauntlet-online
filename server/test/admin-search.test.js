@@ -40,3 +40,17 @@ test("results identify the saved snapshot, page deterministically, and reject in
   assert.ok(second.results.every(row => !first.results.some(one => one.key === row.key)));
   for (const query of [{ q: [] }, { q: "x".repeat(161) }, { offset: "-1" }, { kind: "accounts" }]) assert.throws(() => searchAdmin(null, query), { status: 400 });
 });
+
+test("record search reaches reusable rules, events, rewards, products and immutable media without private properties", () => {
+  const live = clone(baseline);
+  live.studio = { mechanics: [{ id: "fixture-mechanic", name: "Aurora mechanic", privateNotes: "secret-index-value" }], modifiers: [{ id: "fixture-modifier", name: "Aurora modifier" }] };
+  live.paraLeague = { events: [{ id: "fixture-event", name: "Aurora event" }], products: [{ id: "fixture-product", name: "Aurora product" }], awards: [{ id: "fixture-award", name: "Aurora award" }] };
+  live.competition = { ranked: [{ id: "fixture-ranked", name: "Aurora ranked" }] };
+  live.assetVersions = [{ id: "image-version-fixture", mediaType: "image/webp", version: 2 }];
+  const found = searchAdmin({ live }, { q: "Aurora", kind: "records" });
+  assert.equal(found.total, 6);
+  for (const row of found.results) assert.equal(row.target.area, row.target.domain.includes(":") ? "Events & Commerce" : "Create & Edit");
+  assert.equal(searchAdmin({ live }, { q: "secret-index-value" }).total, 0);
+  assert.equal(searchAdmin({ live }, { q: "image-version-fixture", kind: "records" }).results[0].target.domain, "asset-library");
+  assert.ok(searchAdmin({ live }, { kind: "records" }).results.length);
+});

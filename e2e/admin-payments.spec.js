@@ -1,5 +1,5 @@
 const { navigatePlayer } = require("./player-navigation");
-const { test, expect } = require("./admin-release-test"), { area, paraTab, identity, saveDefinition } = require("./admin-navigation");
+const { test, expect } = require("./admin-release-test"), { area, paraTab, identity, saveDefinition, previewSavedDraft } = require("./admin-navigation");
 const fs = require("node:fs"), path = require("node:path"), AxeBuilder = require("@axe-core/playwright").default;
 test("cash product authoring publishes exact terms while provider readiness and player checkout remain disabled", async ({ page }) => {
   test.setTimeout(150000); const token = JSON.parse(fs.readFileSync(path.resolve(__dirname, "../.playwright-data/admin/sessions.json"))).simply;
@@ -9,9 +9,11 @@ test("cash product authoring publishes exact terms while provider readiness and 
   await fill("Name", "Future Gem credit"); await select("Category", "gem-credit"); await select("Pricing", "cash"); await fill("Cash price in minor units (100 = 1.00, tax included)", "499"); await select("Cash denomination", "usd"); await fill("Gems delivered (Gem credit products only)", "20"); await select("Availability", "active");
   await fill("Start", "2020-01-01T00:00"); await fill("End", "2099-01-01T00:00");
   await saveDefinition(page);
-  await page.getByRole("button", { name: "Validate draft", exact: true }).click(); await page.getByRole("button", { name: "Preview saved draft", exact: true }).click(); await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible();
+  await require("./admin-navigation").area(page, "Publishing");
+  await page.getByRole("button", { name: "Validate draft", exact: true }).click(); await previewSavedDraft(page);
+  await paraTab(page, "Marketplace");
   await expect(page.getByRole("region", { name: "Saved Para catalog preview" }).getByText("4.99 USD (tax included; provider required) · active", { exact: true })).toBeVisible();
-  await area(page, "Publishing"); await fill("Release name", "Cash terms without payment activation"); await page.getByRole("button", { name: "Publish release", exact: true }).click(); await page.getByRole("button", { name: "Confirm publish", exact: true }).click(); await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible();
+  await area(page, "Publishing"); await fill("Release name", "Cash terms without payment activation"); await page.getByRole("button", { name: "Publish release", exact: true }).click(); await page.getByRole("button", { name: "Confirm publish", exact: true }).click(); await expect(page.getByText("No saved changes to review.", { exact: true })).toBeVisible();
   await paraTab(page, "Marketplace"); const operations = page.getByRole("region", { name: "Economy operations", exact: true });
   await operations.getByRole("textbox", { name: "Search economy records" }).fill("No provider"); await expect(operations).toContainText("No provider, merchant account or live checkout is connected."); await expect(operations.getByRole("button", { name: "Recover or request refund of a payment", exact: true })).toHaveCount(0);
   expect((await new AxeBuilder({ page }).include(".economy-console").analyze()).violations).toEqual([]); await operations.screenshot({ path: "artifacts/phase2-payment-readiness.png", animations: "disabled" });

@@ -1,0 +1,75 @@
+{
+  "navigation": [
+    [
+      "play",
+      "Play"
+    ],
+    [
+      "campaign",
+      "Campaign"
+    ],
+    [
+      "decks",
+      "Decks & Cards"
+    ],
+    [
+      "draft",
+      "Draft"
+    ],
+    [
+      "compete",
+      "Compete"
+    ],
+    [
+      "matches",
+      "Matches"
+    ],
+    [
+      "community",
+      "Community"
+    ],
+    [
+      "learn",
+      "Learn & Rules"
+    ],
+    [
+      "profile",
+      "Profile"
+    ],
+    [
+      "settings",
+      "Settings"
+    ]
+  ],
+  "labels": {
+    "basic-ai": "Basic vs AI",
+    "faction-ai": "Factions vs AI",
+    "private-duel": "Private Duel",
+    "join-table": "Join a Table",
+    "ranked": "Ranked",
+    "draft": "Draft & Sealed",
+    "campaign": "Campaign",
+    "competition": "Official Competition",
+    "active-deck": "Active Deck",
+    "recent-matches": "Recent Matches",
+    "tutorial": "Tutorial",
+    "lore": "Faction Lore",
+    "rulebook": "Rulebook",
+    "editor": "Deck Editor",
+    "collection": "Collection",
+    "packs": "Earned Packs",
+    "draft-library": "Draft Deck Library",
+    "events": "Events",
+    "para": "Para League",
+    "standings": "Standings",
+    "recent": "Recent Matches",
+    "replays": "Replay Library",
+    "record": "Competitive Record",
+    "friends": "Friends",
+    "challenges": "Challenges",
+    "messages": "Messages",
+    "practice": "Practice",
+    "formats": "Format Guide",
+    "library": "Gold & Library"
+  }
+}

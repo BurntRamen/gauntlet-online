@@ -81,7 +81,7 @@ function jsSummary(rows) {
       const homeRequestPaths = [...records.values()].map(row => row.url.replace(clientOrigin, "").replace(serverOrigin, "[api]"));
       if (process.env.GAUNTLET_EXPECT_DEFERRED_CATALOG === "true" && homeRequestPaths.some(path => path.startsWith("[api]/api/admin/catalog"))) throw Error("Catalog was requested before first Content/Players use");
       let start = performance.now();
-      await page.getByRole('navigation', { name: 'Administration sections', exact: true }).getByRole('button', { name: 'Content', exact: true }).click();
+      await page.getByRole('navigation', { name: 'Administration sections', exact: true }).getByRole('button', { name: 'Create & Edit', exact: true }).click();
       const recordButton = page.locator('.admin-content-browser button[title="rumin-coin-scale-spear"]');
       await recordButton.waitFor({ state: 'visible' }); await painted(page);
       const contentReadyMs = performance.now() - start, contentResources = resources(records), contentScripts = jsSummary(contentResources);

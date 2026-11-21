@@ -35,9 +35,10 @@ const openMore = () => fireEvent.click(screen.getAllByRole("button", { name: "Mo
 beforeEach(() => localStorage.clear());
 
 test.each(["play", "decks", "compete", "matches", "community", "learn", "profile", "settings", "campaign"])("published %s landing prose changes the visible header and preserves navigation", page => {
-  const { props } = renderMenus({ route: { page, view: "" }, content: { factions: [], campaigns: {}, websiteProse: { [page]: { title: "Reviewed heading", description: "Published introduction." } } } });
+  const { props } = renderMenus({ route: { page, view: "" }, content: { factions: [], campaigns: {}, websiteProse: { [page]: { title: "Reviewed heading", description: "Published introduction.", image: "/assets/gauntlet/releases/captured-header.webp" } } } });
   expect(screen.getByRole("heading", { level: 1, name: "Reviewed heading" })).toBeInTheDocument();
   expect(screen.getByText("Published introduction.")).toBeInTheDocument();
+  expect(document.querySelector(".cd-page-header .cd-page-artwork")).toHaveAttribute("src", "/assets/gauntlet/releases/captured-header.webp");
   fireEvent.click(within(screen.getByRole("navigation", { name: "Main navigation" })).getByRole("button", { name: "Decks & Cards" }));
   expect(props.onNavigate).toHaveBeenCalledWith("decks", "");
 });
@@ -435,4 +436,15 @@ test("entering and leaving a focused workflow moves keyboard focus to the new he
   expect(screen.getByRole("heading", { name: "Ready to play?" })).toHaveFocus();
   rerenderRoute("compete", "ranked");
   expect(screen.getByRole("heading", { name: "Ranked Match" })).toHaveFocus();
+});
+
+test("embedded workflow previews leave focus in the editor when mounting and updating copy", () => {
+  const props = createProps({ embedded: true, route: { page: "play", view: "practice" } });
+  const view = title => <><input aria-label="Draft page heading" autoFocus /><PlayerLayoutProvider><PlayerMenus {...props} content={{ ...props.content, modeMetadata: { practice: { heroTitle: title } } }} /></PlayerLayoutProvider></>;
+  const { rerender } = render(view("First heading"));
+  expect(screen.getByRole("heading", { name: "First heading" })).toBeVisible();
+  expect(screen.getByLabelText("Draft page heading")).toHaveFocus();
+  rerender(view("Edited heading"));
+  expect(screen.getByRole("heading", { name: "Edited heading" })).toBeVisible();
+  expect(screen.getByLabelText("Draft page heading")).toHaveFocus();
 });

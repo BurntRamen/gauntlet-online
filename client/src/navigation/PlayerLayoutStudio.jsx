@@ -3,6 +3,7 @@ import { emptyLayoutPreferences, getPageLayout } from './layoutPreferences';
 import { getLayoutModuleIds, isCustomizablePage, LAYOUT_PAGE_LABELS, registerCampaignLayoutModules } from './layoutRegistry';
 import { useLayoutPreferences } from './useLayoutPreferences';
 import './PlayerLayoutStudio.css';
+import {useWebsitePresentation} from './WebsitePresentation';
 
 const LayoutContext = createContext(null);
 const staticLayout = {
@@ -99,6 +100,7 @@ export function PlayerLayoutProvider({ children, account, authToken, serverUrl, 
 
 export function LayoutGrid({ pageId, items = [], className = '' }) {
   const layout = usePlayerLayout();
+  const released = useWebsitePresentation()?.pages?.[pageId];
   const [dragged, setDragged] = useState(null);
   const [dropTarget, setDropTarget] = useState(null);
   const [announcement, setAnnouncement] = useState('');
@@ -107,7 +109,12 @@ export function LayoutGrid({ pageId, items = [], className = '' }) {
   const registeredItems = items.filter((item) => allowedIds.includes(item.id));
   const itemMap = new Map(registeredItems.map((item) => [item.id, item]));
   const page = getPageLayout(layout.preferences, pageId);
-  const ordered = page.order.filter((id) => itemMap.has(id));
+  const releasedIds = (released?.sections || []).map(x=>x.id).filter(id=>itemMap.has(id));
+  const releasedHidden = (released?.sections || []).filter(x=>!x.visible).map(x=>x.id);
+  // Explicit account arrangements take precedence over release order; globally
+  // hidden optional shortcuts stay hidden. Recovery and workflows are unmanaged.
+  const personal = layout.preferences?.pages?.[pageId];
+  const ordered = (personal ? page.order : [...releasedIds,...page.order.filter(id=>!releasedIds.includes(id))]).filter(id=>itemMap.has(id) && !releasedHidden.includes(id));
   const visible = layout.editing ? ordered : ordered.filter((id) => !page.hidden.includes(id));
   // Unknown modules remain visible and functional, but can never be customized.
   const unmanaged = items.filter((item) => !allowedIds.includes(item.id));

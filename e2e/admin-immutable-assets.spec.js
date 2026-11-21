@@ -79,13 +79,12 @@ test("Admin uploads A/B, publishes, renders pinned matches, rolls back, restarts
   await page.screenshot({ path: path.join(artifactRoot, "draft-match.png") });
   const publish = async label => {
     await previewSavedDraft(page);
-    await page.getByRole("button", { name: "Review release", exact: true }).click();
     await page.getByLabel("Release name").fill(label);
     await page.getByRole("button", { name: "Publish release", exact: true }).click();
     const publication = page.waitForResponse(r => r.url().endsWith("/authoring/publish"), { timeout: 30000 });
     await page.getByRole("button", { name: "Confirm publish", exact: true }).click();
     expect((await publication).ok()).toBeTruthy();
-    await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible();
+    await expect(page.getByText("No saved changes to review.", { exact: true })).toBeVisible();
   };
   const capture = async () => { const response = await request.post(serverUrl + "/api/admin/fixture/capture-image-match", { headers }); expect(response.ok()).toBeTruthy(); return response.json(); };
   const delivered = async version => { const response = await request.get(serverUrl + `/api/content-assets/${version.id}/${version.sha256}.webp`); expect(response.ok()).toBeTruthy(); expect(response.headers()["cache-control"]).toContain("immutable"); expect(hash(await response.body())).toBe(version.sha256); };

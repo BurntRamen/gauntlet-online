@@ -1,0 +1,24 @@
+{
+  "id": "create-card",
+  "events": [
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Card",
+      "url": "?area=Content",
+      "forms": 0
+    },
+    {
+      "type": "change",
+      "tag": "SELECT",
+      "control": "Set",
+      "url": "?area=Content",
+      "forms": 1
+    }
+  ],
+  "clicks": 1,
+  "changes": 1,
+  "screens": [
+    "?area=Content"
+  ]
+}

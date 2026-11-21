@@ -1,0 +1,68 @@
+{
+  "id": "website-phone",
+  "events": [
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Navigation",
+      "url": "",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Website",
+      "url": "?area=Content",
+      "forms": 0
+    },
+    {
+      "type": "change",
+      "tag": "INPUT",
+      "control": "Draft play landing · heading",
+      "url": "?workshop=modes&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "change",
+      "tag": "SELECT",
+      "control": "EverythingDestinationsRecordsEditable prose",
+      "url": "?workshop=modes&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "change",
+      "tag": "INPUT",
+      "control": "Find content or a destination",
+      "url": "?workshop=modes&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Create & Edit  / cards · CardsDividend Yield Blade",
+      "url": "?workshop=modes&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Keep editing",
+      "url": "?workshop=modes&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Close search",
+      "url": "?workshop=modes&area=Content",
+      "forms": 0
+    }
+  ],
+  "clicks": 5,
+  "changes": 3,
+  "screens": [
+    "",
+    "?area=Content",
+    "?workshop=modes&area=Content"
+  ]
+}

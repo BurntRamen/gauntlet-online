@@ -1,4 +1,5 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import {render} from "./testSupport";
+import { fireEvent, screen } from "@testing-library/react";
 import WorkshopField from "./WorkshopField";
 
 test("missing prose uses its default while an invalid null override remains visible and revertible", () => {

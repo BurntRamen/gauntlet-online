@@ -24,17 +24,15 @@ test("Home shares one fresh authoring revision across its panels and retries fai
   const first = await data.home();
   assert.equal(reads, 1, "Home must not rebuild the full authoring projection for modules and health");
   assert.equal(first.publication.activeReleaseId, "release-1");
-  assert.equal(first.storage.content.status, "read succeeded");
-  assert.equal(first.storage.content.writable, true);
+  assert.equal(Object.hasOwn(first, "storage"), false);
   assert.equal(first.tasks.some(task => task.title === "A data source could not be read"), false);
 
   unavailable = true;
   const failed = await data.home();
   assert.equal(reads, 2);
   assert.equal(failed.publication, null);
-  assert.equal(failed.storage, null);
-  assert.ok(failed.tasks.some(task => /Shared authoring is unavailable/.test(task.message)));
-  assert.ok(failed.tasks.some(task => /System health is unavailable/.test(task.message)));
+  assert.equal(Object.hasOwn(failed, "storage"), false);
+  assert.ok(failed.tasks.some(task => /Shared authoring is unavailable/.test(task.title)));
   assert.equal(JSON.stringify(failed).includes("private-provider-detail"), false);
 
   unavailable = false;

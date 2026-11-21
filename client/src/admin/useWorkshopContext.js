@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useOperatorPreferences } from "./OperatorPreferences";
+import { filterKeys, useOperatorPreferences } from "./OperatorPreferences";
 
 import { domains, workshopTarget, targetFromLocation } from "./workshopTargets";
 export { workshopTarget, targetFromLocation } from "./workshopTargets";
 
-const filterKeys = ["query", "campaign", "sort", "faction", "type"];
 const boundedFilters = values => Object.fromEntries(Object.entries(values || {}).filter(([name, value]) => filterKeys.includes(name) && typeof value === "string").map(([name, value]) => [name, value.slice(0, 240)]));
 
 // One editing buffer belongs to the active object. Navigation stores context,

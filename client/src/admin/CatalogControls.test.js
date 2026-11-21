@@ -1,5 +1,6 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import CatalogControls, { CatalogField } from "./CatalogControls";
+import {render} from "./testSupport";
+import { fireEvent, screen } from "@testing-library/react";
+import CatalogControlsImpl, { CatalogField } from "./CatalogControls";
 const state = { live: { domains: { cards: [], sets: [{ id: "set-one", name: "Example set", status: "active" }] } } };
 const effects = [{ id: "coin-scale-spear", factionId: "rumin", cardType: "armament", label: "Blade", description: "Adds value when armed." }];
 test("pack controls keep suit guarantees fixed and only change the chosen slot or wild chance", () => {
@@ -20,8 +21,9 @@ test("creation uses a guided effect contract and never sends a chosen identity o
 });
 test.each(["composed-rumin-armament", "mechanic-program"])("duplicating %s preserves the selected complete behavior", effectId => {
   const source = { id: "source", name: "Saved blade", factionId: "rumin", type: "armament", value: 4, suit: "spades", effect: { id: effectId, version: 1 } }, onCreate = jest.fn();
-  render(<CatalogControls creation={{ domain: "cards", sourceId: source.id }} state={{ ...state, live: { domains: { ...state.live.domains, cards: [source] } } }} effects={effects} onEdit={jest.fn()} onCreate={onCreate} />);
+  render(<CatalogControls creation={{ domain: "cards", sourceId: source.id }} state={{ ...state, previewContent:{cards:[{...source,id:"other",presentation:{illustration:"/wrong.webp"}},{...source,presentation:{illustration:"/selected.webp"}}]}, live: { domains: { ...state.live.domains, cards: [source] } } }} effects={effects} onEdit={jest.fn()} onCreate={onCreate} />);
   expect(screen.getByRole("combobox", { name: "Mechanical effect" })).toHaveValue(effectId);
+  expect(screen.getByAltText("Saved blade copy illustration")).toHaveAttribute("src","/selected.webp");
   const save = screen.getByRole("button", { name: "Save new card to draft" }); expect(save).toBeEnabled(); fireEvent.click(save);
   expect(onCreate).toHaveBeenCalledWith(expect.objectContaining({ sourceId: source.id, effectId, factionId: "rumin", type: "armament" }));
 });
@@ -54,3 +56,13 @@ test("faction creation uses only the backend-qualified rules families", () => {
   fireEvent.click(screen.getByRole("button", { name: "Save new faction to draft" }));
   expect(onCreate).toHaveBeenCalledWith({ domain: "factions", name: "Glass dynasty", family: "rumin" });
 });
+
+
+test("new card preview uses the runtime composed face instead of the source's baked lettering", () => {
+  render(<CatalogControls creation={{domain:"cards"}} value={{name:"New visible name",value:8}} state={{...state,previewContent:{cards:[{id:"source",name:"Old baked name",value:4,suit:"spades",effect:{id:"coin-scale-spear"},presentation:{face:"/old-face.webp",illustration:"/illustration.webp"}}]}}} effects={effects} onEdit={jest.fn()} onCreate={jest.fn()} />);
+  expect(screen.getByText("New visible name")).toBeVisible();
+  expect(document.querySelector('.custom-playing-card-face')).toBeNull();
+  expect(document.querySelector('.special-card-corner b')).toHaveTextContent('8');
+});
+
+function CatalogControls(props) {const {state,effects}=props;return <CatalogControlsImpl {...props} state={{...state,creationForms:require('../../../server/adminCreation').creationForms(state.draft?.snapshot||state.live,{families:state.factionFamilies,factions:state.deckFactions,editions:state.printingEditions,effects})}}/>;}

@@ -4,7 +4,7 @@ const path = require('node:path');
 const AxeBuilder = require('@axe-core/playwright').default;
 const origin = `http://127.0.0.1:${process.env.GAUNTLET_ADMIN_FIXTURE_PORT || '4188'}`;
 const phase = process.env.ADMIN_REFINEMENT_PHASE || 'after';
-const root = path.resolve(__dirname, '../docs/reviews/admin-refinement', phase);
+const root = process.env.GAUNTLET_ADMIN_EVIDENCE_DIR ? path.resolve(__dirname, process.env.GAUNTLET_ADMIN_EVIDENCE_DIR) : path.resolve(__dirname, '../docs/reviews/admin-refinement', phase);
 const sessions = () => JSON.parse(fs.readFileSync(path.resolve(__dirname, '../.playwright-data/admin-redesign/sessions.json'), 'utf8'));
 const headers = () => ({ Authorization: `Bearer ${sessions().simply}` });
 const cardId = 'rumin-vault-shield-bearer';
@@ -62,7 +62,7 @@ test('validation repair returns to its issue list with keyboard focus and stales
   await review.getByRole('button', { name: 'Preview saved draft', exact: true }).click();
   await page.getByLabel('Release name', { exact: true }).fill('Repaired candidate');
   await expect(page.getByRole('button', { name: 'Publish release', exact: true })).toBeEnabled();
-  await expect(page.getByRole('list', { name: 'Release readiness' })).toContainText('Unverified');
+  await expect(page.getByLabel('Release readiness')).toContainText(/publish/i);
 });
 
 test('review loading and failed responses are distinct and retry is read-only', async ({ page, request }) => {

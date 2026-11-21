@@ -1,0 +1,15 @@
+{
+  "budgets": {
+    "mainGzip": 184320,
+    "adminEntryGzip": 20480,
+    "adminGzip": 76800,
+    "largestAsyncGzip": 358400,
+    "totalJavaScriptGzip": 779264
+  },
+  "main": 183447,
+  "player": 777734,
+  "adminEntry": 9099,
+  "adminTotal": 76712,
+  "largestAsync": 275731,
+  "failures": []
+}

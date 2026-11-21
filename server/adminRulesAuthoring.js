@@ -18,7 +18,11 @@ function rulesAuthoringData(snapshot) {
     handSizeBounds: [3, 12], startingLife: config.STARTING_LIFE, deckSize: config.DECK_SIZE, laneCount: 3,
     suits: [...config.SUITS], values: [...config.VALUES], editableFields: ["handSize"], derivedFields: ["deckSize"],
     sourceControlled: ["startingLife", "laneCount", "suits", "values", "payment", "damage", "targeting", "priority", "multiplayer", "matchmaking", "timers", "progression", "rewards"] };
-  return { factionEffects, bossAbilities, encounterRules: encounters.rules,
+  const formats=snapshot.domains.game.filter(row=>row.id!=='shared-rules').map(row=>({id:row.id,label:row.name,description:row.description,
+    settings:row.id==='campaign'?['encounters']:['shared-rules'],
+    competition:['ranked','basic','factions'].includes(row.id),
+    packBased:['draft','draftLeague'].includes(row.id)}));
+  return { formats, factionEffects, bossAbilities, encounterRules: encounters.rules,
     encounterMechanics: { abilities: bossAbilities, rules: encounters.rules }, gameConfig };
 }
 

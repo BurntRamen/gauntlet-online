@@ -1,3 +1,4 @@
+import {Json} from './Presentation';
 import { brandText } from '../brand/brandPreview';
 import { useState } from "react";
 import { WorkshopFacts, WorkshopSection } from "./WorkshopShell";
@@ -8,7 +9,7 @@ function Definition({ guide, label, value }) {
 
 function Reference({ guide, reference, hasDraft, onInspect }) {
   const target = hasDraft ? reference.draft : reference.current;
-  return <article className="design-change"><div className="design-change-values"><Definition guide={guide} label={guide.matchNote13} value={reference.recorded} /><Definition guide={guide} label="Current live" value={reference.current} />{hasDraft && <Definition guide={guide} label="Shared draft" value={reference.draft} />}</div>{target?.available && onInspect && <button type="button" onClick={() => onInspect(reference.domain, reference.id)}>Open {hasDraft ? "saved draft" : "current live"} definition · {target.label}</button>}<details className="admin-json"><summary>{guide.matchNote2}</summary><pre>{JSON.stringify({ domain: reference.domain, id: reference.id, recorded: reference.recorded }, null, 2)}</pre></details></article>;
+  return <article className="design-change"><div className="design-change-values"><Definition guide={guide} label={guide.matchNote13} value={reference.recorded} /><Definition guide={guide} label="Current live" value={reference.current} />{hasDraft && <Definition guide={guide} label="Shared draft" value={reference.draft} />}</div>{target?.available && onInspect && <button type="button" onClick={() => onInspect(reference.domain, reference.id)}>Open {hasDraft ? "saved draft" : "current live"} definition · {target.label}</button>}<Json title={<>{guide.matchNote2}</>} value={{ domain: reference.domain, id: reference.id, recorded: reference.recorded }} className="admin-json" /></article>;
 }
 
 function recordedEvents(match, design) {
@@ -36,7 +37,7 @@ export default function MatchInspector({ guide = {}, match, provenance = {}, des
   const hasDraft = !!design?.draft;
   return <section aria-label={guide.matchNote15}><header className="design-header"><span className="admin-eyebrow">Match evidence</span><h3>{match.campaign?.title || `${match.mode || brandText("SuitFire", "Gauntlet")} match`}</h3><p className="admin-note">{guide.matchNote3}{hasDraft ? "saved draft" : "live content"}.</p><a href={`/?match=${encodeURIComponent(match.matchId)}&replay=1`} target="_blank" rel="noreferrer">{guide.matchNote16}</a></header>
     <WorkshopFacts values={{ Mode: match.mode, Result: match.completionReason, Integrity: provenance.integrity, "Evidence source": provenance.source }} />
-    <WorkshopSection title="Participants" id="match-participants">{(match.participants || []).map((player) => <article key={player.playerNum}><h5>{player.displayName || `Player ${player.playerNum}`}</h5><WorkshopFacts values={{ Faction: player.faction?.name, Result: player.result, "Final life": player.finalLife }} /><details className="admin-json"><summary>{guide.matchNote17}</summary><pre>{JSON.stringify(player.deck, null, 2)}</pre></details></article>)}</WorkshopSection>
+    <WorkshopSection title="Participants" id="match-participants">{(match.participants || []).map((player) => <article key={player.playerNum}><h5>{player.displayName || `Player ${player.playerNum}`}</h5><WorkshopFacts values={{ Faction: player.faction?.name, Result: player.result, "Final life": player.finalLife }} /><Json title={<>{guide.matchNote17}</>} value={player.deck} className="admin-json" /></article>)}</WorkshopSection>
     <WorkshopSection title={guide.matchNote4} id="match-definitions">{design ? <><p className="admin-note">{design.note}</p>{design.references?.length ? design.references.map((reference) => <Reference guide={guide} key={reference.key} reference={reference} hasDraft={hasDraft} onInspect={onInspect} />) : <p>{guide.matchNote5}</p>}</> : <p className="admin-note">{guide.matchNote6}</p>}</WorkshopSection>
     <WorkshopSection title={guide.matchNote7 + allEvents.length + " recorded events"} id="match-events"><label className="admin-search">{guide.matchNote18}<input value={view.query || ""} onChange={(event) => change({ query: event.target.value })} placeholder={guide.matchNote19} /></label><div className="design-match-events">{events.map((event) => {
       const open = view.event === event.key;
@@ -46,6 +47,6 @@ export default function MatchInspector({ guide = {}, match, provenance = {}, des
         <details className="admin-json"><summary>{guide.matchNote8}</summary>{event.raw ? <pre>{JSON.stringify(event.raw, null, 2)}</pre> : <p>{guide.matchNote9}</p>}</details>
       </details>;
     })}</div>{!events.length && <p>{allEvents.length ? guide.matchNote21 : guide.matchNote10}</p>}</WorkshopSection>
-    <details className="admin-json"><summary>{guide.matchNote11}</summary><pre>{JSON.stringify({ matchId: match.matchId, recordVersion: match.recordVersion, contentVersion: match.contentVersion, rulesVersion: match.rulesVersion, provenance, recordedBindings: design?.recorded, currentBindings: design?.current, draftBindings: design?.draft }, null, 2)}</pre></details><details className="admin-json"><summary>{guide.matchNote12}{match.leagueEvidence?.length || 0})</summary><pre>{JSON.stringify(match.leagueEvidence || [], null, 2)}</pre></details>
+    <Json title={<>{guide.matchNote11}</>} value={{ matchId: match.matchId, recordVersion: match.recordVersion, contentVersion: match.contentVersion, rulesVersion: match.rulesVersion, provenance, recordedBindings: design?.recorded, currentBindings: design?.current, draftBindings: design?.draft }} className="admin-json" /><Json title={<>{guide.matchNote12}{match.leagueEvidence?.length || 0})</>} value={match.leagueEvidence || []} className="admin-json" />
   </section>;
 }

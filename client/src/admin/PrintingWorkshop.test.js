@@ -4,7 +4,7 @@ const render = element => renderWithoutHelp(element, { wrapper: ({ children }) =
 import { fireEvent, render as renderWithoutHelp, screen, within } from "@testing-library/react";
 import PrintingWorkshop from "./PrintingWorkshop";
 import AssetCapacity from "./AssetCapacity";
-import CatalogControls from "./CatalogControls";
+import CatalogControlsImpl from "./CatalogControls";
 import { resolvePrinting, canUsePrinting } from "@gauntlet/duel-rules/printings";
 jest.mock("./PrivateAsset", () => ({ PrivateCard: ({ card }) => <p data-testid="printing-face">{card.variantId} · {card.presentation.printingRevision}</p> }));
 const card = { id: "card", name: "Example", defaultVariantId: "card:standard" };
@@ -41,3 +41,5 @@ test("one resolver preserves deterministic legacy defaults, rejects mismatch and
   expect(resolvePrinting("other", rows, "p2")).toBeNull(); expect(resolvePrinting("card", rows, "unknown")).toBeNull();
   expect(canUsePrinting(rows[1], {})).toBe(false); expect(canUsePrinting(rows[1], { p2: 1 })).toBe(true);
 });
+
+function CatalogControls(props) {const {state,effects}=props;return <CatalogControlsImpl {...props} state={{...state,creationForms:require('../../../server/adminCreation').creationForms(state.draft?.snapshot||state.live,{families:state.factionFamilies,factions:state.deckFactions,editions:state.printingEditions,effects})}}/>;}

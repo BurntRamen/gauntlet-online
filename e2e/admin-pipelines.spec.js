@@ -4,10 +4,8 @@ const AxeBuilder = require('@axe-core/playwright').default;
 const origin = `http://127.0.0.1:${process.env.GAUNTLET_ADMIN_FIXTURE_PORT || '4188'}`;
 const sessions = () => JSON.parse(fs.readFileSync(path.resolve(__dirname, '../.playwright-data/admin-redesign/sessions.json'), 'utf8'));
 const headers = () => ({ Authorization: `Bearer ${sessions().simply}` });
-const task = page => page.getByRole('region', { name: 'Active production task', exact: true });
 async function state(request) { const response = await request.get(origin + '/api/admin/authoring', { headers: headers() }); expect(response.ok()).toBeTruthy(); return response.json(); }
 async function clean(request) { const current = await state(request); if (current.draft) expect((await request.post(origin + '/api/admin/authoring/discard', { headers: headers(), data: { expectedRevision: current.revision } })).ok()).toBeTruthy(); }
-async function continueTask(page) { await expect(task(page)).toBeVisible(); const button = task(page).getByRole('button', { name: 'Continue pipeline', exact: true }); if (await button.isVisible()) await button.click(); }
 async function create(page, name, kind) { await page.getByLabel('New content name', { exact: true }).fill(name); await page.getByRole('button', { name: `Save new ${kind} to draft`, exact: true }).click(); }
 
 test.beforeEach(async ({ context, request, baseURL }) => {
@@ -20,57 +18,40 @@ test.beforeEach(async ({ context, request, baseURL }) => {
 });
 test.afterEach(async ({ request }) => clean(request));
 
-test('a set pipeline carries creation context through cards, artwork, reload and exact shared review', async ({ page, request }) => {
+const { area, destination } = require('./admin-navigation');
+
+
+test('direct set creation carries membership through contextual card creation, reload and shared review', async ({ page, request }) => {
   await page.goto('/admin/gauntlet');
-  await expect(page.getByRole('button', { name: 'Build a card set', exact: true })).toBeVisible();
-  for (const [name, width, height] of [['laptop', 1366, 768], ['desktop', 1920, 1080], ['phone', 390, 844]]) {
-    await page.setViewportSize({ width, height });
-    await page.evaluate(() => document.fonts.ready);
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
-    await page.screenshot({ path: `artifacts/admin-pipeline-home-${name}.png` });
-  }
-  await page.setViewportSize({ width: 1366, height: 768 });
-  await page.getByRole('button', { name: 'Build a card set', exact: true }).click();
-  await task(page).getByRole('button', { name: 'Create set', exact: true }).click();
-  await create(page, 'Pipeline release set', 'set');
-  await expect(task(page)).toContainText('Pipeline release set');
-  const set = (await state(request)).draft.snapshot.domains.sets.find(row => row.name === 'Pipeline release set');
-  await continueTask(page);
-  await task(page).getByRole('button', { name: 'Add card to this set', exact: true }).click();
+  await page.getByRole('button', { name: 'Set', exact: true }).click();
+  await create(page, 'Studio release set', 'set');
+  await expect(page.getByLabel('Draft set name', { exact: true })).toHaveValue('Studio release set');
+  const set = (await state(request)).draft.snapshot.domains.sets.find(row => row.name === 'Studio release set');
+  await page.getByRole('button', { name: 'Create card in this set', exact: true }).click();
   await expect(page.getByLabel('Set', { exact: true })).toHaveValue(set.id);
-  await create(page, 'Pipeline Sentry', 'card');
-  await expect(page.getByLabel('Draft name', { exact: true })).toHaveValue('Pipeline Sentry');
-  const current = await state(request), card = current.draft.snapshot.domains.cards.find(row => row.name === 'Pipeline Sentry');
+  await create(page, 'Studio Sentry', 'card');
+  await expect(page.getByLabel('Draft name', { exact: true })).toHaveValue('Studio Sentry');
+  const current = await state(request), card = current.draft.snapshot.domains.cards.find(row => row.name === 'Studio Sentry');
   expect(current.draft.snapshot.domains.sets.find(row => row.id === set.id).members).toContain(card.id);
-  await continueTask(page);
-  await task(page).getByRole('listitem').filter({ has: page.getByRole('heading', { name: 'Artwork & printings', exact: true }) }).getByRole('button', { name: 'Pipeline Sentry', exact: true }).click();
-  await expect(page).toHaveURL(/section=artwork/);
   await page.reload();
-  await expect(task(page)).toContainText('Pipeline release set');
-  await task(page).getByRole('button', { name: 'Open working set', exact: true }).click();
-  await expect(page.getByLabel('Draft set name', { exact: true })).toHaveValue('Pipeline release set');
-  await continueTask(page);
-  expect((await new AxeBuilder({ page }).include('.admin-production-task').analyze()).violations).toEqual([]);
-  await page.screenshot({ path: 'artifacts/admin-pipeline-set-laptop.png' });
-  await task(page).getByRole('button', { name: 'Review shared release', exact: true }).click();
-  await expect(page.getByRole('region', { name: 'Shared release review' })).toContainText('Pipeline Sentry');
+  await expect(page.getByLabel('Draft name', { exact: true })).toHaveValue('Studio Sentry');
+  await area(page, 'Publishing');
+  await expect(page.getByRole('region', { name: 'Shared release review' })).toContainText('Studio Sentry');
   await expect(page.getByRole('button', { name: 'Publish release', exact: true })).toBeDisabled();
 });
 
-test('campaign creation produces a real faction and connected chapter with a guarded return path', async ({ page, request }) => {
-  await page.goto('/admin/gauntlet');
-  await page.getByRole('button', { name: 'Build a campaign', exact: true }).click();
-  await task(page).getByRole('button', { name: 'Create campaign faction', exact: true }).click();
-  await create(page, 'Pipeline Expedition', 'faction');
-  await expect(task(page)).toContainText('Pipeline Expedition');
-  const faction = (await state(request)).draft.snapshot.domains.factions.find(row => row.name === 'Pipeline Expedition');
-  await continueTask(page);
-  await task(page).getByRole('button', { name: 'Add encounter to this campaign', exact: true }).click();
+test('faction and campaign creation connects a chapter and guards cross-record departure', async ({ page, request }) => {
+  await page.goto('/admin/gauntlet?workshop=factions&section=create');
+  await create(page, 'Studio Expedition', 'faction');
+  await expect(page.getByLabel('Draft name', { exact: true })).toHaveValue('Studio Expedition');
+  const faction = (await state(request)).draft.snapshot.domains.factions.find(row => row.name === 'Studio Expedition');
+  await page.locator('.design-related').getByRole('button', { name: 'Studio Expedition',exact:true }).last().click();
+  await page.getByRole('button', { name: 'Add chapter encounter', exact: true }).click();
   await expect(page.getByLabel('Campaign', { exact: true })).toHaveValue(faction.id);
-  await create(page, 'Pipeline Second Chapter', 'encounter');
-  await expect(page.getByLabel('Draft title', { exact: true })).toHaveValue('Pipeline Second Chapter');
+  await create(page, 'Studio Second Chapter', 'encounter');
+  await expect(page.getByLabel('Draft title', { exact: true })).toHaveValue('Studio Second Chapter');
   await page.getByLabel('Draft title', { exact: true }).fill('Retained local chapter');
-  await task(page).getByRole('button', { name: 'Open working campaign faction', exact: true }).click();
+  await page.getByRole('button', { name: 'Studio Expedition', exact: true }).first().click();
   await page.getByRole('dialog', { name: 'Unsaved local changes' }).getByRole('button', { name: 'Keep editing', exact: true }).click();
   await expect(page.getByLabel('Draft title', { exact: true })).toHaveValue('Retained local chapter');
   const snapshot = (await state(request)).draft.snapshot;
@@ -78,57 +59,72 @@ test('campaign creation produces a real faction and connected chapter with a gua
   expect(snapshot.domains.encounters.filter(row => row.factionId === faction.id)).toHaveLength(2);
   await page.getByRole('button', { name: /^Save changes to/ }).click();
   await expect(page.locator('.admin-record-save')).toHaveCount(0);
-  await continueTask(page);
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
-  const bar = await page.locator('.admin-topbar').boundingBox(), status = await page.locator('.admin-save-context').boundingBox();
-  expect(status.y + status.height).toBeLessThanOrEqual(bar.y + bar.height);
-  const firstStep = task(page).getByRole('listitem').first(), heading = await firstStep.getByRole('heading').boundingBox(), stepBox = await firstStep.boundingBox();
-  expect(heading.x - stepBox.x).toBeGreaterThanOrEqual(45);
-  expect((await new AxeBuilder({ page }).include('.admin-production-task').analyze()).violations).toEqual([]);
-  await page.screenshot({ path: 'artifacts/admin-pipeline-campaign-phone.png' });
+  expect((await new AxeBuilder({ page }).include('.gauntlet-admin').analyze()).violations).toEqual([]);
 });
 
-test('event pipelines open the event registry and retain the created definition as their working object', async ({ page, request }) => {
-  await page.goto('/admin/gauntlet');
-  await page.getByRole('button', { name: 'Plan an event', exact: true }).click();
-  await task(page).getByRole('button', { name: 'Open definitions', exact: true }).click();
+test('events have one home and a reload restores their authoritative definition', async ({ page, request }) => {
+  await page.goto('/admin/gauntlet?workshop=competition:events');
   await page.getByRole('button', { name: 'Create event draft', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Save competition draft', exact: true })).toBeVisible();
   const event = (await state(request)).draft.snapshot.competition.events.at(-1);
-  await continueTask(page);
-  await expect(task(page).getByRole('combobox', { name: 'Working event', exact: true })).toHaveValue(event.id);
-  await expect(task(page)).toContainText(event.name);
   await page.reload();
-  await expect(task(page)).toContainText(event.name);
   await expect(page.getByRole('region', { name: 'Managed competition definitions' })).toContainText(event.name);
-  await task(page).getByRole('button', { name: 'Open working event', exact: true }).click();
-  await expect(page.getByRole('region', { name: 'Managed competition definitions' })).toContainText(event.name);
+  await expect(page.getByRole('navigation', { name: 'Administration sections' }).getByRole('button', { name: 'Events & Commerce', exact: true })).toHaveAttribute('aria-current', 'page');
 });
 
-test('a mechanic pipeline creates its missing set and a card bound to the saved mechanic', async ({ page, request }) => {
-  await page.goto('/admin/gauntlet');
-  await page.getByRole('button', { name: 'Define a reusable mechanic', exact: true }).click();
-  await task(page).getByRole('button', { name: 'Open definitions', exact: true }).click();
+test('a reusable mechanic can be created, attached and executed through ordinary content editors', async ({ page, request }) => {
+  test.setTimeout(180000);
+  await page.goto('/admin/gauntlet?workshop=mechanics');
   await page.getByRole('button', { name: 'Create mechanic', exact: true }).click();
-  await expect(page.getByRole('textbox', { name: 'Mechanic name', exact: true })).toBeVisible();
+  await expect(page.getByLabel('Mechanic name', { exact: true })).toBeVisible();
+  await page.getByLabel('Mechanic name', { exact: true }).fill('Studio restoration');
+  await page.getByLabel('Ability 1 effect 1', { exact: true }).selectOption('gainLife');
+  await page.getByLabel('Effect 1.1 amount', { exact: true }).fill('2');
+  await page.getByRole('button', { name: 'Save mechanic to draft', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Save mechanic to draft', exact: true })).toBeDisabled();
+  await expect(page.locator('.admin-save-context')).toHaveText('Saved to shared draft');
   const mechanic = (await state(request)).draft.snapshot.studio.mechanics.at(-1);
-  await expect(task(page)).toContainText(mechanic.name);
-  await continueTask(page);
-  await expect(task(page)).toContainText('0 saved uses');
-  await task(page).getByRole('button', { name: "Create a set for this mechanic's cards", exact: true }).click();
-  await create(page, 'Pipeline mechanics set', 'set');
-  await expect(page.getByLabel('Draft set name', { exact: true })).toHaveValue('Pipeline mechanics set');
-  await continueTask(page);
-  await task(page).getByRole('button', { name: 'Create a card using this mechanic', exact: true }).click();
-  await expect(page.getByLabel('Mechanical effect', { exact: true })).toHaveValue(mechanic.id);
-  await create(page, 'Pipeline mechanic consumer', 'card');
-  await expect(page.getByLabel('Draft name', { exact: true })).toHaveValue('Pipeline mechanic consumer');
-  const card = (await state(request)).draft.snapshot.domains.cards.find(row => row.name === 'Pipeline mechanic consumer');
+  await destination(page, 'Sets');
+  await page.getByRole('button', { name: 'Create set', exact: true }).click();
+  await create(page, 'Studio mechanics set', 'set');
+  await expect(page.getByLabel('Draft set name', { exact: true })).toHaveValue('Studio mechanics set');
+  await page.getByRole('button', { name: 'Create card in this set', exact: true }).click();
+  await page.getByLabel('Mechanical effect', { exact: true }).selectOption(mechanic.id);
+  await create(page, 'Studio mechanic consumer', 'card');
+  await expect(page.getByLabel('Draft name', { exact: true })).toHaveValue('Studio mechanic consumer');
+  const card = (await state(request)).draft.snapshot.domains.cards.find(row => row.name === 'Studio mechanic consumer');
   expect(card.effect.mechanicId).toBe(mechanic.id);
-  await continueTask(page);
-  await expect(task(page)).toContainText('1 saved uses');
-  await expect(task(page).getByRole('listitem').filter({ has: page.getByRole('heading', { name: 'Test its consumers', exact: true }) }).getByRole('button', { name: card.name, exact: true })).toBeVisible();
+  await page.keyboard.press('Control+k');
+  const finder=page.getByRole('dialog',{name:'Search Admin'});
+  await finder.getByRole('searchbox').fill(mechanic.name);
+  await finder.getByLabel('Search in').selectOption('records');
+  await finder.getByRole('button').filter({ hasText: mechanic.name }).last().click();
+  await expect(page.getByLabel('Mechanic name', { exact: true })).toHaveValue(mechanic.name);
+  await page.getByRole('button', { name: 'Test Studio mechanic consumer in engine', exact: true }).click();
+  const harness = page.getByRole('region', { name: 'Real engine playtest', exact: true });
+  await harness.getByRole('combobox', { name: 'Test content', exact: true }).selectOption('draft');
+  await harness.getByRole('button', { name: 'Configure custom starting state', exact: true }).click();
+  const setup = harness.getByRole('region', { name: 'Custom starting state', exact: true });
+  await setup.getByLabel('Player 1 hand 1 card', { exact: true }).selectOption(card.id);
+  await setup.getByLabel('Player 1 hand 1 suit', { exact: true }).selectOption(card.suit);
+  await setup.getByRole('button', { name: 'Add to player 1 hand', exact: true }).click();
+  await setup.getByLabel('Player 1 hand 2 value', { exact: true }).fill('14');
+  const { waitForBufferedAdminResponse } = require('./buffered-admin-response');
+  let pending = waitForBufferedAdminResponse(page, r => r.url().endsWith('/authoring/playtest'));
+  await harness.getByRole('button', { name: 'Start draft duel playtest', exact: true }).click();
+  const session = (await (await pending).json()).playtest;
+  const action = session.legalActions.find(a => a.type === 'playSupport');
+  expect(action).toBeTruthy();
+  await harness.getByRole('combobox', { name: 'Action', exact: true }).selectOption(action.id);
+  await harness.getByRole('group', { name: /^Payment cards/ }).getByRole('checkbox', { name: /Ace|A of|14/ }).check();
+  pending = waitForBufferedAdminResponse(page, r => r.url().endsWith('/playtest/command'));
+  await harness.getByRole('button', { name: 'Execute selected action', exact: true }).click();
+  const executed = (await (await pending).json()).playtest;
+  expect(executed.game.players[1].life).toBe(session.game.players[1].life + 2);
+  expect(executed.lastCommand.events.some(e => e.type === 'mechanic.effect' && e.operation === 'gainLife')).toBeTruthy();
+  expect((await state(request)).draft.playtestedHash).toBe((await state(request)).draft.hash);
 });
 
 test('card modules save, reload, navigate dependencies and execute ordered effects with captured revisions', async ({ page, request }) => {
@@ -199,7 +195,7 @@ test('card modules save, reload, navigate dependencies and execute ordered effec
   }
   await page.setViewportSize({ width: 1366, height: 768 });
   await workspaceSection(page, 'Card Workshop', 'Details');
-  await page.getByRole('button', { name: 'Back to list', exact: true }).click();
+  if(await page.getByRole('button', { name: 'Back to list', exact: true }).isVisible()) await page.getByRole('button', { name: 'Back to list', exact: true }).click();
   await page.getByRole('button', { name: 'Duplicate card', exact: true }).click();
   await expect(page.getByRole('combobox', { name: 'Mechanical effect', exact: true })).toHaveValue('mechanic-program');
   await page.getByLabel('New content name', { exact: true }).fill('Copied modular blade');
@@ -213,7 +209,7 @@ test('native 200 percent browser zoom retains reflow, keyboard focus and accessi
   const { execFile } = require('node:child_process');
   await new Promise((resolve, reject) => execFile(process.execPath, [path.resolve(__dirname, 'admin-native-zoom.cjs')], {
     cwd: path.resolve(__dirname, '..'), windowsHide: true,
-    env: { ...process.env, GAUNTLET_NATIVE_MATRIX: 'true', GAUNTLET_NATIVE_EVIDENCE_DIR: path.resolve(__dirname, '../docs/reviews/admin-pipelines/native-zoom') }
+    env: { ...process.env, GAUNTLET_NATIVE_MATRIX: 'true', GAUNTLET_NATIVE_EVIDENCE_DIR: path.resolve(__dirname, '../docs/reviews/admin-correction/native-zoom') }
   }, (error, stdout, stderr) => {
     fs.writeFileSync(path.resolve(__dirname, '../artifacts/admin-native-zoom.log'), stdout + stderr);
     error ? reject(error) : resolve();

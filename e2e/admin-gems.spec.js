@@ -13,8 +13,9 @@ test("operator publishes alternative and split prices; player purchases exact te
     await paraTab(page, "Marketplace"); await page.getByRole("button", { name: "New product", exact: true }).click(); await identity(page, id); await fill("Name", name); await select("Category", "profile-title");
     await select("Pricing", { label: mode }); await fill("Gold price", gold); await fill("Gem price", gems); await select("Availability", "active"); await fill("Start", "2020-01-01T00:00"); await fill("End", "2099-01-01T00:00"); await page.getByLabel("Crystal Keeper", { exact: true }).check(); await save();
   }
+  await require("./admin-navigation").area(page, "Publishing");
   await page.getByRole("button", { name: "Validate draft", exact: true }).click(); await page.getByRole("button", { name: "Preview saved draft", exact: true }).click(); await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible();
-  await area(page, "Publishing"); await fill("Release name", "Qualified alternative and split currency terms"); await page.getByRole("button", { name: "Publish release", exact: true }).click(); await page.getByRole("button", { name: "Confirm publish", exact: true }).click(); await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible();
+  await area(page, "Publishing"); await fill("Release name", "Qualified alternative and split currency terms"); await page.getByRole("button", { name: "Publish release", exact: true }).click(); await page.getByRole("button", { name: "Confirm publish", exact: true }).click(); await expect(page.getByText("No saved changes to review.", { exact: true })).toBeVisible();
   await page.goto("/"); await navigatePlayer(page, "profile", "library");
   const library = page.locator(".cd-setup-content").getByRole("region", { name: "Gold & Library", exact: true });
   await expect(library.getByRole("button", { name: "Review Flexible title · 10 Gold", exact: true })).toBeVisible();

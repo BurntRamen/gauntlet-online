@@ -2,6 +2,7 @@ const { test, expect } = require("@playwright/test");
 const { navigatePlayer, openCollection, openCampaign } = require("./player-navigation");
 const artManifest = require("../client/public/brand/suitfire-art/manifest.json");
 const reviewedCards = require("../docs/branding/suitfire-art-audit-inventory.json").cards;
+const { COLLECTION_CARDS } = require("../server/gameContent");
 
 test("opt-in art stays legible on desktop and phone and GO stays public", async ({ page, request }, testInfo) => {
   const base = "http://127.0.0.1:4161";
@@ -39,7 +40,7 @@ test("opt-in art stays legible on desktop and phone and GO stays public", async 
     for (const factionId of ["sheen", "frumo", "bizi"]) {
       await page.locator(".collection-view-heading select").first().selectOption(factionId);
       const expected = reviewedCards.filter(card => card.factionId === factionId);
-      await expect(page.locator(".catalog-card-tile")).toHaveCount(expected.length);
+      await expect(page.locator(".catalog-card-tile")).toHaveCount(COLLECTION_CARDS.filter(card => card.factionId === factionId).length);
       for (const card of expected) {
         const tile = page.locator(".catalog-card-tile").filter({ has: page.getByText(card.currentName, { exact: true }) });
         await expect(tile).toHaveCount(1);

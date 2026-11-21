@@ -1,0 +1,521 @@
+{
+  "version": "correction working tree",
+  "method": "Captured browser click/change events; fixture seeding excluded. Screens are distinct route states. Form counts are observed visible form elements, not conceptual editor sections.",
+  "cases": [
+    {
+      "id": "create-card",
+      "events": [
+        {
+          "type": "click",
+          "tag": "BUTTON",
+          "control": "Card",
+          "url": "",
+          "forms": 0
+        },
+        {
+          "type": "change",
+          "tag": "INPUT",
+          "control": "New content name",
+          "url": "?area=Content",
+          "forms": 1
+        },
+        {
+          "type": "click",
+          "tag": "BUTTON",
+          "control": "Save new card to draft",
+          "url": "?area=Content",
+          "forms": 1
+        }
+      ],
+      "clicks": 2,
+      "changes": 1,
+      "screens": [
+        "",
+        "?area=Content"
+      ]
+    },
+    {
+      "id": "change-artwork",
+      "events": [
+        {
+          "type": "click",
+          "tag": "BUTTON",
+          "control": "Create & Edit",
+          "url": "",
+          "forms": 0
+        },
+        {
+          "type": "change",
+          "tag": "SELECT",
+          "control": "Content type",
+          "url": "?area=Content",
+          "forms": 0
+        },
+        {
+          "type": "click",
+          "tag": "BUTTON",
+          "control": "Inspect Dividend Yield Blade",
+          "url": "?workshop=cards&area=Content",
+          "forms": 0
+        },
+        {
+          "type": "click",
+          "tag": "BUTTON",
+          "control": "Editor",
+          "url": "?workshop=cards&object=rumin-coin-scale-spear&area=Content",
+          "forms": 0
+        },
+        {
+          "type": "click",
+          "tag": "BUTTON",
+          "control": "Artwork",
+          "url": "?workshop=cards&object=rumin-coin-scale-spear&area=Content",
+          "forms": 0
+        },
+        {
+          "type": "click",
+          "tag": "BUTTON",
+          "control": "Editor",
+          "url": "?workshop=cards&object=rumin-coin-scale-spear&section=artwork&area=Content",
+          "forms": 0
+        },
+        {
+          "type": "click",
+          "tag": "BUTTON",
+          "control": "Browse images",
+          "url": "?workshop=cards&object=rumin-coin-scale-spear&section=artwork&area=Content",
+          "forms": 0
+        },
+        {
+          "type": "click",
+          "tag": "BUTTON",
+          "control": "beli",
+          "url": "?workshop=cards&object=rumin-coin-scale-spear&section=artwork&area=Content",
+          "forms": 1
+        },
+        {
+          "type": "click",
+          "tag": "BUTTON",
+          "control": "Use selected artwork",
+          "url": "?workshop=cards&object=rumin-coin-scale-spear&section=artwork&area=Content",
+          "forms": 1
+        },
+        {
+          "type": "click",
+          "tag": "BUTTON",
+          "control": "Save changes to Printing · Dividend Yield Blade Standard",
+          "url": "?workshop=cards&object=rumin-coin-scale-spear&section=artwork&area=Content",
+          "forms": 0
+        }
+      ],
+      "clicks": 9,
+      "changes": 1,
+      "screens": [
+        "",
+        "?area=Content",
+        "?workshop=cards&area=Content",
+        "?workshop=cards&object=rumin-coin-scale-spear&area=Content",
+        "?workshop=cards&object=rumin-coin-scale-spear&section=artwork&area=Content"
+      ]
+    },
+    {
+      "id": "design-mechanic",
+      "events": [
+        {
+          "type": "click",
+          "tag": "BUTTON",
+          "control": "Mechanic",
+          "url": "",
+          "forms": 0
+        },
+        {
+          "type": "change",
+          "tag": "INPUT",
+          "control": "Mechanic name",
+          "url": "?workshop=mechanics&object=mechanic-a04f8ae4-c184-4a81-b527-d9aec9c83c6a&area=Content",
+          "forms": 1
+        },
+        {
+          "type": "click",
+          "tag": "BUTTON",
+          "control": "Save mechanic to draft",
+          "url": "?workshop=mechanics&object=mechanic-a04f8ae4-c184-4a81-b527-d9aec9c83c6a&area=Content",
+          "forms": 1
+        }
+      ],
+      "clicks": 2,
+      "changes": 1,
+      "screens": [
+        "",
+        "?workshop=mechanics&object=mechanic-a04f8ae4-c184-4a81-b527-d9aec9c83c6a&area=Content"
+      ]
+    },
+    {
+      "id": "build-set",
+      "events": [
+        {
+          "type": "click",
+          "tag": "BUTTON",
+          "control": "Create & Edit",
+          "url": "",
+          "forms": 0
+        },
+        {
+          "type": "change",
+          "tag": "SELECT",
+          "control": "Content type",
+          "url": "?area=Content",
+          "forms": 0
+        },
+        {
+          "type": "click",
+          "tag": "BUTTON",
+          "control": "Inspect Workflow audit set",
+          "url": "?workshop=sets&area=Content",
+          "forms": 0
+        },
+        {
+          "type": "click",
+          "tag": "BUTTON",
+          "control": "Create card in this set",
+          "url": "?workshop=sets&object=auth-set-55c4397c-c47d-490e-8407-5a09de80e8d4&area=Content",
+          "forms": 0
+        },
+        {
+          "type": "change",
+          "tag": "INPUT",
+          "control": "New content name",
+          "url": "?workshop=cards&area=Content",
+          "forms": 1
+        },
+        {
+          "type": "click",
+          "tag": "BUTTON",
+          "control": "Save new card to draft",
+          "url": "?workshop=cards&area=Content",
+          "forms": 1
+        }
+      ],
+      "clicks": 4,
+      "changes": 2,
+      "screens": [
+        "",
+        "?area=Content",
+        "?workshop=sets&area=Content",
+        "?workshop=sets&object=auth-set-55c4397c-c47d-490e-8407-5a09de80e8d4&area=Content",
+        "?workshop=cards&area=Content"
+      ]
+    },
+    {
+      "id": "website-content",
+      "events": [
+        {
+          "type": "click",
+          "tag": "BUTTON",
+          "control": "Website",
+          "url": "",
+          "forms": 0
+        },
+        {
+          "type": "change",
+          "tag": "INPUT",
+          "control": "Draft play landing · heading",
+          "url": "?workshop=modes&area=Content",
+          "forms": 0
+        },
+        {
+          "type": "click",
+          "tag": "BUTTON",
+          "control": "Save changes to Website prose · Practice privately",
+          "url": "?workshop=modes&area=Content",
+          "forms": 0
+        }
+      ],
+      "clicks": 2,
+      "changes": 1,
+      "screens": [
+        "",
+        "?workshop=modes&area=Content"
+      ]
+    },
+    {
+      "id": "website-navigation",
+      "events": [
+        {
+          "type": "click",
+          "tag": "BUTTON",
+          "control": "Website",
+          "url": "",
+          "forms": 0
+        },
+        {
+          "type": "change",
+          "tag": "SELECT",
+          "control": "Edit element",
+          "url": "?workshop=modes&area=Content",
+          "forms": 0
+        },
+        {
+          "type": "change",
+          "tag": "INPUT",
+          "control": "Play navigation label",
+          "url": "?workshop=modes&area=Content",
+          "forms": 0
+        },
+        {
+          "type": "click",
+          "tag": "BUTTON",
+          "control": "Save changes to Website prose · Practice privately",
+          "url": "?workshop=modes&area=Content",
+          "forms": 0
+        }
+      ],
+      "clicks": 2,
+      "changes": 2,
+      "screens": [
+        "",
+        "?workshop=modes&area=Content"
+      ]
+    },
+    {
+      "id": "write-campaign",
+      "events": [
+        {
+          "type": "click",
+          "tag": "BUTTON",
+          "control": "Create & Edit",
+          "url": "",
+          "forms": 0
+        },
+        {
+          "type": "change",
+          "tag": "SELECT",
+          "control": "Content type",
+          "url": "?area=Content",
+          "forms": 0
+        },
+        {
+          "type": "click",
+          "tag": "BUTTON",
+          "control": "Inspect The Jewel of Rumie",
+          "url": "?workshop=campaigns&area=Content",
+          "forms": 0
+        },
+        {
+          "type": "change",
+          "tag": "TEXTAREA",
+          "control": "Draft campaign introduction",
+          "url": "?workshop=campaigns&object=rumin&area=Content",
+          "forms": 0
+        },
+        {
+          "type": "click",
+          "tag": "BUTTON",
+          "control": "Save changes to Campaign · The Jewel of Rumie",
+          "url": "?workshop=campaigns&object=rumin&area=Content",
+          "forms": 0
+        }
+      ],
+      "clicks": 3,
+      "changes": 2,
+      "screens": [
+        "",
+        "?area=Content",
+        "?workshop=campaigns&area=Content",
+        "?workshop=campaigns&object=rumin&area=Content"
+      ]
+    },
+    {
+      "id": "create-encounter",
+      "events": [
+        {
+          "type": "click",
+          "tag": "BUTTON",
+          "control": "Create & Edit",
+          "url": "",
+          "forms": 0
+        },
+        {
+          "type": "change",
+          "tag": "SELECT",
+          "control": "Content type",
+          "url": "?area=Content",
+          "forms": 0
+        },
+        {
+          "type": "click",
+          "tag": "BUTTON",
+          "control": "Create encounter",
+          "url": "?workshop=encounters&area=Content",
+          "forms": 0
+        },
+        {
+          "type": "change",
+          "tag": "INPUT",
+          "control": "New content name",
+          "url": "?workshop=encounters&area=Content",
+          "forms": 1
+        },
+        {
+          "type": "click",
+          "tag": "BUTTON",
+          "control": "Save new encounter to draft",
+          "url": "?workshop=encounters&area=Content",
+          "forms": 1
+        }
+      ],
+      "clicks": 3,
+      "changes": 2,
+      "screens": [
+        "",
+        "?area=Content",
+        "?workshop=encounters&area=Content"
+      ]
+    },
+    {
+      "id": "configure-event",
+      "events": [
+        {
+          "type": "click",
+          "tag": "BUTTON",
+          "control": "Events & Commerce",
+          "url": "",
+          "forms": 0
+        },
+        {
+          "type": "click",
+          "tag": "BUTTON",
+          "control": "New event",
+          "url": "?area=Competition",
+          "forms": 0
+        },
+        {
+          "type": "change",
+          "tag": "INPUT",
+          "control": "Name",
+          "url": "?area=Competition",
+          "forms": 1
+        },
+        {
+          "type": "click",
+          "tag": "BUTTON",
+          "control": "Save definition to draft",
+          "url": "?area=Competition",
+          "forms": 1
+        },
+        {
+          "type": "click",
+          "tag": "BUTTON",
+          "control": "Close definition",
+          "url": "?workshop=para%3Aevents&object=para-10eef120-5d65-4078-83d8-2e7020b881a0&area=Competition",
+          "forms": 1
+        }
+      ],
+      "clicks": 4,
+      "changes": 1,
+      "screens": [
+        "",
+        "?area=Competition",
+        "?workshop=para%3Aevents&object=para-10eef120-5d65-4078-83d8-2e7020b881a0&area=Competition"
+      ]
+    },
+    {
+      "id": "product-price",
+      "events": [
+        {
+          "type": "click",
+          "tag": "BUTTON",
+          "control": "Events & Commerce",
+          "url": "",
+          "forms": 0
+        },
+        {
+          "type": "click",
+          "tag": "BUTTON",
+          "control": "Deck products",
+          "url": "?area=Competition",
+          "forms": 0
+        },
+        {
+          "type": "click",
+          "tag": "BUTTON",
+          "control": "Inspect Workflow audit product",
+          "url": "?workshop=offers&area=Store+%26+Economy",
+          "forms": 0
+        },
+        {
+          "type": "change",
+          "tag": "INPUT",
+          "control": "Price in gold",
+          "url": "?workshop=offers&object=auth-offer-98cbfe5c-7bc9-4aa8-8fa5-6d32249dce49&area=Store+%26+Economy",
+          "forms": 0
+        },
+        {
+          "type": "click",
+          "tag": "BUTTON",
+          "control": "Save changes to Store · Workflow audit product",
+          "url": "?workshop=offers&object=auth-offer-98cbfe5c-7bc9-4aa8-8fa5-6d32249dce49&area=Store+%26+Economy",
+          "forms": 0
+        }
+      ],
+      "clicks": 4,
+      "changes": 1,
+      "screens": [
+        "",
+        "?area=Competition",
+        "?workshop=offers&area=Store+%26+Economy",
+        "?workshop=offers&object=auth-offer-98cbfe5c-7bc9-4aa8-8fa5-6d32249dce49&area=Store+%26+Economy"
+      ]
+    },
+    {
+      "id": "inspect-player",
+      "events": [
+        {
+          "type": "click",
+          "tag": "BUTTON",
+          "control": "Operations",
+          "url": "",
+          "forms": 0
+        },
+        {
+          "type": "click",
+          "tag": "BUTTON",
+          "control": "View player simply",
+          "url": "?area=Players",
+          "forms": 1
+        }
+      ],
+      "clicks": 2,
+      "changes": 0,
+      "screens": [
+        "",
+        "?area=Players"
+      ]
+    },
+    {
+      "id": "review-publish",
+      "events": [
+        {
+          "type": "click",
+          "tag": "BUTTON",
+          "control": "Publishing",
+          "url": "",
+          "forms": 0
+        },
+        {
+          "type": "click",
+          "tag": "BUTTON",
+          "control": "Validate draft",
+          "url": "?area=Publishing",
+          "forms": 0
+        }
+      ],
+      "clicks": 2,
+      "changes": 0,
+      "screens": [
+        "",
+        "?area=Publishing"
+      ]
+    }
+  ]
+}

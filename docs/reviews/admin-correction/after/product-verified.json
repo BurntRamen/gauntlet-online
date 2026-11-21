@@ -1,0 +1,75 @@
+{
+  "id": "product-verified",
+  "events": [
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Product",
+      "url": "?area=Store+%26+Economy",
+      "forms": 0
+    },
+    {
+      "type": "change",
+      "tag": "SELECT",
+      "control": "Recipe",
+      "url": "?area=Store+%26+Economy",
+      "forms": 1
+    },
+    {
+      "type": "change",
+      "tag": "INPUT",
+      "control": "New content name",
+      "url": "?area=Store+%26+Economy",
+      "forms": 1
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Save new offer to draft",
+      "url": "?area=Store+%26+Economy",
+      "forms": 1
+    },
+    {
+      "type": "change",
+      "tag": "SELECT",
+      "control": "Draft store availability",
+      "url": "?workshop=offers&object=auth-offer-f603271c-61dc-4ba2-974f-494a9aaf987b&area=Store+%26+Economy",
+      "forms": 0
+    },
+    {
+      "type": "change",
+      "tag": "INPUT",
+      "control": "Price in gold",
+      "url": "?workshop=offers&object=auth-offer-f603271c-61dc-4ba2-974f-494a9aaf987b&area=Store+%26+Economy",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Saving… to Store · Journey product",
+      "url": "?workshop=offers&object=auth-offer-f603271c-61dc-4ba2-974f-494a9aaf987b&area=Store+%26+Economy",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Publishing",
+      "url": "?workshop=offers&object=auth-offer-f603271c-61dc-4ba2-974f-494a9aaf987b&area=Publishing",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Preview saved draft",
+      "url": "?workshop=offers&object=auth-offer-f603271c-61dc-4ba2-974f-494a9aaf987b&area=Publishing",
+      "forms": 0
+    }
+  ],
+  "clicks": 5,
+  "changes": 4,
+  "screens": [
+    "?area=Store+%26+Economy",
+    "?workshop=offers&object=auth-offer-f603271c-61dc-4ba2-974f-494a9aaf987b&area=Store+%26+Economy",
+    "?workshop=offers&object=auth-offer-f603271c-61dc-4ba2-974f-494a9aaf987b&area=Publishing"
+  ]
+}

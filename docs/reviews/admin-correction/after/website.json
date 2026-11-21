@@ -1,0 +1,123 @@
+{
+  "id": "website",
+  "events": [
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Website",
+      "url": "?area=Content",
+      "forms": 0
+    },
+    {
+      "type": "change",
+      "tag": "INPUT",
+      "control": "Draft play landing · heading",
+      "url": "?workshop=modes&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "change",
+      "tag": "TEXTAREA",
+      "control": "Draft play landing · introduction",
+      "url": "?workshop=modes&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Browse images",
+      "url": "?workshop=modes&area=Content",
+      "forms": 1
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "beli",
+      "url": "?workshop=modes&area=Content",
+      "forms": 1
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Use selected artwork",
+      "url": "?workshop=modes&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "change",
+      "tag": "SELECT",
+      "control": "Edit element",
+      "url": "?workshop=modes&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "change",
+      "tag": "SELECT",
+      "control": "Type style",
+      "url": "?workshop=modes&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "change",
+      "tag": "SELECT",
+      "control": "Section arrangement",
+      "url": "?workshop=modes&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "INPUT",
+      "control": "Basic vs AI",
+      "url": "?workshop=modes&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "change",
+      "tag": "INPUT",
+      "control": "Basic vs AI",
+      "url": "?workshop=modes&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Move Factions vs AI earlier",
+      "url": "?workshop=modes&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "change",
+      "tag": "SELECT",
+      "control": "Edit element",
+      "url": "?workshop=modes&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "change",
+      "tag": "INPUT",
+      "control": "Play navigation label",
+      "url": "?workshop=modes&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Move Campaign earlier",
+      "url": "?workshop=modes&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Saving… to Website prose · Practice privately",
+      "url": "?workshop=modes&area=Content",
+      "forms": 0
+    }
+  ],
+  "clicks": 8,
+  "changes": 8,
+  "screens": [
+    "?area=Content",
+    "?workshop=modes&area=Content"
+  ]
+}

@@ -1,9 +1,10 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import {render} from "./testSupport";
+import { fireEvent, screen } from "@testing-library/react";
 import EngineWorkshop from "./EngineWorkshop";
 
 const faction = { id: "rumin", name: "Rumin", mechanics: { id: "rhythm", version: 1, parameters: { bonus: 3 } } };
 const shared = { id: "shared-rules", handSize: 8 };
-const state = { live: { domains: { factions: [faction], cards: [{ id: "spear", name: "Spear", factionId: "rumin", type: "weapon", effect: { id: "spear-effect" } }], game: [shared] } }, workshopMetadata: { cardEffects: [{ id: "spear-effect", label: "Spear effect", factionId: "rumin", cardType: "weapon", parameters: {} }], factionEffects: [{ id: "rhythm", factionId: "rumin", label: "Rhythm", parameters: { bonus: { min: 0, max: 8, default: 3 } } }], gameConfig: { startingLife: 42, deckSize: 52, laneCount: 3, suits: ["spades"], values: [2, 3] } } };
+const state = { guide: require("../../../server/adminAuthoringGuide"), live: { domains: { factions: [faction], cards: [{ id: "spear", name: "Spear", factionId: "rumin", type: "weapon", effect: { id: "spear-effect" } }], game: [shared] } }, workshopMetadata: { cardEffects: [{ id: "spear-effect", label: "Spear effect", factionId: "rumin", cardType: "weapon", parameters: {} }], factionEffects: [{ id: "rhythm", factionId: "rumin", label: "Rhythm", parameters: { bonus: { min: 0, max: 8, default: 3 } } }], gameConfig: { startingLife: 42, deckSize: 52, laneCount: 3, suits: ["spades"], values: [2, 3] } } };
 
 test("effect contracts are read-only and direct editing to an authored card", () => {
   const inspect = jest.fn(), field = jest.fn(), target = jest.fn();
@@ -19,7 +20,7 @@ test("editable parameters bind to their faction and shared configuration stays b
   const field = jest.fn(() => <p>Owner field</p>);
   const { rerender } = render(<EngineWorkshop state={state} field={field} target={{ domain: "faction-effects", id: "rhythm" }} />);
   expect(field).toHaveBeenCalledWith("mechanics", { domain: "factions", row: faction });
-  expect(screen.getByText("0–8")).toBeVisible();
+  fireEvent.click(screen.getByText("Advanced · contract and setup limits"));expect(document.querySelector(".admin-json pre")).toHaveTextContent('"min": 0');expect(document.querySelector(".admin-json pre")).toHaveTextContent('"max": 8');
   field.mockClear();
   rerender(<EngineWorkshop state={state} field={field} target={{ domain: "game", id: "shared-rules" }} />);
   expect(field).toHaveBeenCalledTimes(2);

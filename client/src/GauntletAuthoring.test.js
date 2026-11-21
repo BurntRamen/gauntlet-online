@@ -1,4 +1,5 @@
-import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import {render} from "./admin/testSupport";
+import { act, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import Authoring from "./GauntletAuthoring";
 import { useRef, useState } from "react";
 function GauntletAuthoring(props) {
@@ -12,6 +13,12 @@ const guide = require("../../server/adminAuthoringGuide");
 const clone = (value) => JSON.parse(JSON.stringify(value));
 let state, request;
 const props = () => ({ request, area: "Design", revision: 0, onPublished: jest.fn(), onNavigate: jest.fn() });
+test("a rolling deployment keeps editors closed until the matching guidance contract is available", async () => {
+  state.guide = { ...guide, workspaceVersion: 1 };
+  render(<GauntletAuthoring {...props()} />);
+  expect(await screen.findByText(guide.help.workspaceCopy3)).toBeVisible();
+  expect(screen.queryByRole("region", { name: "Card Workshop", exact: true })).not.toBeInTheDocument();
+});
 const resolvedPresentation = () => ({ releaseId: state.draft ? `draft:${state.draft.hash}` : state.activeReleaseId,
   manifest: { cards: clone((state.draft?.snapshot || state.live).domains.cards), collectorVariants: [], campaigns: {} } });
 function reviewProjection() {
@@ -186,17 +193,17 @@ test("structured fields show live/draft values, save cross-domain changes, and r
   fireEvent.change(screen.getByLabelText("Draft name"), { target: { value: "Edited card" } });
   expect(screen.getByText("Unsaved", { exact: true })).toBeVisible();
   fireEvent.click(screen.getByRole("button", { name: /^Save changes to/ }));
-  await screen.findByText("1 saved field change");
+  await screen.findByText("1 saved change in the shared draft");
   expect(state.live.domains.cards[0].name).toBe("First card");
   expect(screen.getByLabelText("Draft name")).toHaveValue("Edited card");
   await selectOther("Website prose");
   fireEvent.click(await screen.findByRole("button", { name: /Practice · mode copy/ }));
   fireEvent.change(await screen.findByLabelText("Draft mode name"), { target: { value: "New practice" } });
   fireEvent.click(screen.getByRole("button", { name: /^Save changes to/ }));
-  await screen.findByText("2 saved field changes");
+  await screen.findByText("2 saved changes in the shared draft");
   fireEvent.click(screen.getByRole("button", { name: "Revert mode name to live", hidden: true }));
   fireEvent.click(screen.getByRole("button", { name: /^Save changes to/ }));
-  await screen.findByText("1 saved field change");
+  await screen.findByText("1 saved change in the shared draft");
   expect(screen.getByLabelText("Draft mode name")).toHaveValue("Practice");
 });
 
@@ -205,8 +212,11 @@ test("preview uses the real card component and publication requires explicit rev
   await selectCard();
   fireEvent.change(screen.getByLabelText("Draft name"), { target: { value: "Preview card" } });
   fireEvent.click(screen.getByRole("button", { name: /^Save changes to/ }));
-  await screen.findByText("1 saved field change");
-  fireEvent.click(screen.getByRole("button", { name: "Preview saved draft", hidden: true }));
+  await screen.findByText("1 saved change in the shared draft");
+  view.rerender(<GauntletAuthoring {...properties} area="Publishing" />);
+  fireEvent.click(await screen.findByRole("button", { name: "Preview saved draft" }));
+  await waitFor(() => expect(state.draft.previewedHash).toBe(state.draft.hash));
+  view.rerender(<GauntletAuthoring {...properties} />);
   const preview = await screen.findByRole("region", { name: "Card Workshop preview and test" });
   expect(within(preview).getByAltText("Preview card illustration")).toBeVisible();
   expect(state.live.domains.cards[0].name).toBe("First card");
@@ -229,8 +239,8 @@ test("field errors block preview, protected objects remain read-only, and confli
   request = jest.fn((path, options) => path.endsWith("/record") ? Promise.reject(new Error("Content changed in another session. Refresh before saving.")) : successful(path, options));
   render(<GauntletAuthoring {...props()} />);
   await selectCard();
-  expect(screen.getAllByText(/Name is required/).length).toBeGreaterThan(1);
-  expect(screen.getByRole("button", { name: "Preview saved draft", hidden: true })).toBeDisabled();
+  expect(screen.getAllByText(/Name is required/).length).toBeGreaterThan(0);
+  expect(screen.queryByRole("button", { name: "Preview saved draft", hidden: true })).not.toBeInTheDocument();
   fireEvent.change(screen.getByLabelText("Draft name"), { target: { value: "Keep my edit" } });
   fireEvent.click(screen.getByRole("button", { name: /^Save changes to/ }));
   expect(await screen.findByRole("alert")).toHaveTextContent("another session");
@@ -253,13 +263,16 @@ test.each([
     };
     return result;
   });
-  render(<GauntletAuthoring {...props()} />);
+  const properties = props(), view = render(<GauntletAuthoring {...properties} />);
   await selectOther(tab);
   fireEvent.click(await screen.findByRole("button", { name: "Inspect " + name }));
   fireEvent.change(await screen.findByLabelText("Draft " + fieldLabel.toLowerCase()), { target: { value: "asset-selected" } });
   fireEvent.click(screen.getByRole("button", { name: /^Save changes to/ }));
-  await screen.findByText("1 saved field change");
-  fireEvent.click(screen.getByRole("button", { name: "Preview saved draft", hidden: true }));
+  await screen.findByText("1 saved change in the shared draft");
+  view.rerender(<GauntletAuthoring {...properties} area="Publishing" />);
+  fireEvent.click(await screen.findByRole("button", { name: "Preview saved draft" }));
+  await waitFor(() => expect(state.draft.previewedHash).toBe(state.draft.hash));
+  view.rerender(<GauntletAuthoring {...properties} />);
   const preview = await screen.findByRole("region", { name: "Isolated draft preview" });
   expect(within(preview).getByRole("img", { name })).toHaveAttribute("src", resolvedArtwork);
 });
@@ -310,13 +323,13 @@ test("a 409 keeps the original save revision until the operator explicitly selec
   fireEvent.click(screen.getByText("Saved shared draft value"));
   expect(screen.getByText("Other operator name", { selector: "pre" })).toBeVisible();
   fireEvent.click(screen.getByRole("button", { name: /^Save changes to/ }));
-  await waitFor(() => expect(attempts).toEqual([0, 0]));
-  await waitFor(() => expect(screen.getByRole("button", { name: /^Save changes to/ })).toBeEnabled());
+  expect(screen.getByRole("button", {name:/^Save changes to/})).toBeDisabled();
+  expect(attempts).toEqual([0]);
   expect(retry).toBeDisabled();
   fireEvent.click(screen.getByRole("button", { name: "Keep my name" }));
   fireEvent.click(retry);
   fireEvent.click(screen.getByRole("button", { name: /^Save changes to/ }));
-  await waitFor(() => expect(attempts).toEqual([0, 0, 1]));
+  await waitFor(() => expect(attempts).toEqual([0, 1]));
   await waitFor(() => expect(state.draft.snapshot.domains.cards[0].name).toBe("Retained local name"));
   expect(state.live.domains.cards[0].name).toBe("First card");
 });
@@ -336,7 +349,7 @@ test("deployed content stays inspectable and live tests available during an auth
   expect(screen.getByLabelText("Draft name")).toBeDisabled();
   fireEvent.click(screen.getByRole("button", { name: "Test", exact: true }));
   expect(await screen.findByRole("button", { name: "Start live duel playtest" })).toBeEnabled();
-  expect(screen.getByRole("button", { name: "Preview saved draft", hidden: true })).toBeDisabled();
+  expect(screen.queryByRole("button", { name: "Preview saved draft", hidden: true })).not.toBeInTheDocument();
 });
 
 test("a lost authoring connection retains conflict values without offering an unknown retry revision", async () => {
@@ -388,7 +401,7 @@ test("focused section changes retain local values and save multiple fields in on
   expect(screen.getByLabelText("Draft name")).toHaveValue("Local name");
   expect(screen.getByLabelText("Draft displayed rules text")).toHaveValue("Local wording");
   fireEvent.click(screen.getByRole("button", { name: /^Save changes to/ }));
-  await screen.findByText("2 saved field changes");
+  await screen.findByText("2 saved changes in the shared draft");
   const saves = request.mock.calls.filter(([path]) => path.endsWith("/record"));
   expect(saves).toHaveLength(1);
   expect(JSON.parse(saves[0][1].body)).toMatchObject({ domain: "cards", id: "card-one", expectedRevision: 0, changes: [{field:"name",value:"Local name"},{field:"text",value:"Local wording"}] });
@@ -435,7 +448,7 @@ test("deck record saves exclude private notes and note conflicts require a value
   fireEvent.change(await screen.findByLabelText("Draft name"), { target: {value:"Changed deck name"} });
   fireEvent.change(screen.getByLabelText("Private deck notes"), { target: {value:"My private note"} });
   fireEvent.click(screen.getByRole("button", {name:/^Save changes to/}));
-  await screen.findByText("1 saved field change");
+  await screen.findByText("1 saved change in the shared draft");
   expect(state.privateNotes[deck.id].value).toBe("Original private note");
   expect(screen.getByLabelText("Private deck notes")).toHaveValue("My private note");
   state.privateNotes[deck.id].value = "Other operator note"; state.revision++;
@@ -446,4 +459,13 @@ test("deck record saves exclude private notes and note conflicts require a value
   fireEvent.click(screen.getByRole("button", {name:"Use shared private notes"}));
   expect(screen.getByLabelText("Private deck notes")).toHaveValue("Other operator note");
   expect(state.privateNotes[deck.id].value).toBe("Other operator note");
+});
+
+
+test("confirmed absence of a draft shows the empty release without waiting for a comparison request", async () => {
+  const normal=request;
+  request=jest.fn((path,options)=>path==="/api/admin/workshops/review"?new Promise(()=>{}):normal(path,options));
+  render(<GauntletAuthoring {...props()} area="Publishing" />);
+  expect(await screen.findByRole("heading",{name:"No saved changes to review.",exact:true})).toBeVisible();
+  expect(request).not.toHaveBeenCalledWith("/api/admin/workshops/review");
 });

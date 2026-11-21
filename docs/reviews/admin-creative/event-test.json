@@ -1,0 +1,52 @@
+{
+  "season": {
+    "id": "para-14cc4297-9b05-4c25-b51f-f02e14874bda",
+    "name": "Emberwatch season",
+    "description": "",
+    "status": "draft",
+    "startsAt": null,
+    "endsAt": null,
+    "formats": [
+      "faction-constructed"
+    ],
+    "publicRulesVersion": "emberwatch-v1",
+    "countedResults": 1,
+    "qualifyingEventCount": 1,
+    "invitationalThreshold": 75,
+    "championshipThreshold": 0,
+    "perfectQualifierQualifies": false,
+    "perfectInvitationalQualifies": false,
+    "tiebreak": "prestige-perfect-wins-earliest-account",
+    "goldBudget": 4000
+  },
+  "event": {
+    "id": "para-99c18f33-77ec-4325-aace-1693eefac025",
+    "name": "Emberwatch open",
+    "description": "",
+    "seasonId": "para-14cc4297-9b05-4c25-b51f-f02e14874bda",
+    "status": "draft",
+    "eventType": "qualifier",
+    "format": "faction-constructed",
+    "week": 1,
+    "startsAt": "2027-01-15T17:00:00.000Z",
+    "endsAt": "2027-01-17T17:00:00.000Z",
+    "registrationOpensAt": "2027-01-14T17:00:00.000Z",
+    "registrationClosesAt": "2027-01-16T17:00:00.000Z",
+    "winTarget": 7,
+    "lossLimit": 3,
+    "scoringAttempts": 2,
+    "prestige": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      35
+    ],
+    "rewards": [],
+    "finalizationPolicy": "completed-run-only"
+  },
+  "live": false
+}

@@ -3,6 +3,26 @@ const authored = require("../authoredContent"), encounters = require("../adminEn
 const old = require("./fixtures/content-v2/authored-baseline-v1.json");
 const baseline = () => authored.createAuthoredBaseline({ domains: { decks: old.domains.decks }, game: { modes: old.domains.game } });
 
+test('chapter reorder is atomic, revision checked and preserves identity, archived slots and player progression order',()=>{
+  const store=require('../contentPublication').createContentPublication({baseline:baseline(),memory:true});
+  const create=name=>store.create({expectedRevision:store.status().revision,domain:'encounters',campaignId:'rumin',name},'admin').draft.snapshot.domains.encounters.at(-1);
+  const one=create('First addition'), archived=create('Archived addition'), two=create('Second addition');
+  store.patch({expectedRevision:store.status().revision,domain:'encounters',id:archived.id,field:'status',value:'archived'},'admin');
+  const before=store.status(), ids=[two.id,one.id];
+  for(const bad of [[two.id,two.id],[two.id],['foreign',one.id],[archived.id,one.id]]){
+    assert.throws(()=>store.reorderEncounters({expectedRevision:before.revision,campaignId:'rumin',ids:bad},'admin'),{status:422});
+    assert.equal(store.status().draft.hash,before.draft.hash);
+  }
+  assert.throws(()=>store.reorderEncounters({expectedRevision:before.revision-1,campaignId:'rumin',ids},'admin'),{status:409});
+  const after=store.reorderEncounters({expectedRevision:before.revision,campaignId:'rumin',ids},'admin');
+  assert.equal(after.revision,before.revision+1);assert.equal(after.draft.playtestedHash,null);
+  assert.deepEqual(after.draft.snapshot.domains.encounters.find(row=>row.id===archived.id),before.draft.snapshot.domains.encounters.find(row=>row.id===archived.id));
+  for(const original of [one,two])assert.deepEqual({...after.draft.snapshot.domains.encounters.find(row=>row.id===original.id),order:original.order},original);
+  const campaign=after.draft.snapshot.domains.campaigns.find(row=>row.id==='rumin');
+  const projected=authored.resolveEngineContent(after.draft.snapshot,'reorder-fixture').manifest.campaigns.rumin.chapters.map(row=>row.id);
+  assert.deepEqual(projected,[...campaign.encounterIds,two.id,one.id]);
+});
+
 test("encounter AI profiles are bounded authored choices, captured in release and briefing, without custom objectives", () => {
   const snapshot = baseline(), live = structuredClone(snapshot), row = snapshot.domains.encounters[0];
   row.aiProfile = "support-first";

@@ -335,13 +335,13 @@ test("additional encounters publish into actual campaign unlock, AI, progression
   __test.prepareCampaignRoom(room, resolved, "rumin", encounter.id); __test.createGameFromLobby(room, { contentRelease: resolved, seed: "additional-campaign" });
   assert.equal(room.game.players[2].life, 19); const pinned = JSON.stringify(room.game);
   __test.applyProgressionForResult(stats, "win", { factionId: "rumin", campaign: room.game.campaign });
-  const credits = stats.collection.packCredits; __test.applyProgressionForResult(stats, "win", { factionId: "rumin", campaign: room.game.campaign }); assert.equal(stats.collection.packCredits, credits, "repeat clears do not duplicate the first-clear pack");
-  assert.ok(stats.progression.campaign.rumin.includes(encounter.id));
+  assert.equal(stats.collection.packCredits, 2); assert.equal(stats.collection.earnedPackCredits, 2); assert.equal(stats.collection.weeklyActivity.gamesPlayed, 1); __test.applyProgressionForResult(stats, "win", { factionId: "rumin", campaign: room.game.campaign }); assert.equal(stats.collection.packCredits, 3, "repeat clears earn a completion credit without a second first-clear bonus");
+  assert.ok(stats.progression.campaign.rumin.includes(encounter.id)); assert.equal(stats.collection.earnedPackCredits, 3); assert.equal(stats.collection.weeklyActivity.gamesPlayed, 2);
   await mutate("/draft", { domain: "encounters", id: encounter.id, field: "status", value: "archived" }, "PATCH");
   response = await call("/playtest", { source: "draft", expectedRevision: status.revision, subject: { kind: "game-config", id: "shared-rules" } }); assert.equal(response.status, 200, JSON.stringify(response.body)); session = response.body.playtest;
   response = await call("/playtest/command", { id: session.id, gameRevision: session.game.revision, command: { type: "passPriority", player: session.game.priority } }); assert.equal(response.status, 200); status = response.body.authoring;
   await mutate("/preview", {}); await mutate("/publish", { label: "Retired additional encounter" });
-  assert.equal(__test.isCampaignChapterUnlocked(stats, "rumin", encounter.id), false); assert.equal(JSON.stringify(room.game), pinned); assert.ok(stats.progression.campaign.rumin.includes(encounter.id));
+  assert.equal(__test.isCampaignChapterUnlocked(stats, "rumin", encounter.id), false); assert.equal(JSON.stringify(room.game), pinned); assert.ok(stats.progression.campaign.rumin.includes(encounter.id)); assert.equal(stats.collection.earnedPackCredits, 3); assert.equal(stats.collection.weeklyActivity.gamesPlayed, 2);
   assert.throws(() => __test.prepareCampaignRoom(structuredClone(room), __test.contentPublication.active(), "rumin", encounter.id), /Unknown encounter/);
   const incompatible = await call("/rollback", { expectedRevision: status.revision, releaseId: beforeRelease }); assert.ok(incompatible.status >= 400);
   await mutate("/rollback", { releaseId: published }); assert.equal(__test.isCampaignChapterUnlocked(stats, "rumin", encounter.id), true);

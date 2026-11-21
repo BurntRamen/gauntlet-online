@@ -165,6 +165,11 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
       groups.get(key).push(option);
       return groups;
     }, new Map()));
+    const creationOptions = {
+      factionFamilies: require("./adminFactions").FAMILIES.map(id => ({ id, name: require("./gameContent").factionsData[id].name })),
+      deckFactions: Object.values(require("./adminFactions").resolve(state.draft?.snapshot || live.snapshot)).map(({ id, name, origin, campaignOnly, general, generals, commander, city }) => ({ id, name, origin, campaignOnly, general, generals, commander, city })),
+      printingEditions: require("./adminPrintings").editions(state.draft?.snapshot || live.snapshot),
+    };
     return { ...overview,
       guide: require("./adminAuthoringGuide"),
       encounterSummaries: require("./encounterAuthoring").summaries(state.draft?.snapshot || live.snapshot),
@@ -175,9 +180,9 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
       competition: { fields: competition.FIELDS, sourceEvents: require("./events").EVENT_DEFINITIONS, sourceSeason: require("./seasons").ACTIVE_SEASON,
         preview: validation.valid ? Object.fromEntries(["ranked", "events"].map(domain => [domain, ((state.draft?.snapshot || live.snapshot).competition?.[domain] || []).map(row => domain === "ranked" ? competition.season(row, "preview") : { ...competition.event(row, "preview"), availability: { label: row.status } })])) : null },
       privateNotes: clone(state.privateNotes || {}),
-      factionFamilies: require("./adminFactions").FAMILIES.map(id => ({ id, name: require("./gameContent").factionsData[id].name })),
-      deckFactions: Object.values(require("./adminFactions").resolve(state.draft?.snapshot || live.snapshot)).map(({ id, name, origin, campaignOnly, general, generals, commander, city }) => ({ id, name, origin, campaignOnly, general, generals, commander, city })),
-      printingEditions: require("./adminPrintings").editions(state.draft?.snapshot || live.snapshot),
+      ...creationOptions,
+      cardSets: require("./adminCreation").cardSets(state.draft?.snapshot || live.snapshot),
+      creationForms: require("./adminCreation").creationForms(state.draft?.snapshot || live.snapshot, {families:creationOptions.factionFamilies,factions:creationOptions.deckFactions,editions:creationOptions.printingEditions,effects:require("./adminCardAuthoring").cardAuthoringDefinitions()}),
       cardEffectOptions,
       fields: Object.fromEntries(Object.entries((state.draft?.snapshot || live.snapshot).domains).map(([domain, rows]) => [domain, Object.fromEntries(rows.map((row) => [row.id, Object.fromEntries(Object.entries(fieldsFor(domain, row, state.draft?.snapshot || live.snapshot)).map(([key, spec]) => {
         // Card rows reference one shared faction/type option group. Repeating the
@@ -268,6 +273,19 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
       if (!validation.valid) fail(422, validation.errors.map(issue => issue.message).join(" "));
       contribution(state, actorId, input.domain, created.id);
       Object.assign(state.draft, { updatedBy: actorId, updatedAt: new Date().toISOString(), previewedHash: null, previewedRevision: null, playtestedHash: null });
+    });
+  }
+  function reorderEncounters({expectedRevision,campaignId,ids},actorId) {
+    return transaction(expectedRevision,state=>{
+      if(!state.draft)state.draft={baseReleaseId:state.activeReleaseId,snapshot:clone(state.releases[state.activeReleaseId].snapshot)};
+      const snapshot=state.draft.snapshot,campaign=snapshot.domains.campaigns.find(row=>row.id===campaignId);
+      const rows=campaign && require('../shared/admin/campaignSequence').additional(snapshot,campaign).filter(row=>row.status==='active');
+      if(!rows || !Array.isArray(ids) || ids.length!==rows.length || new Set(ids).size!==ids.length || ids.some(id=>!rows.some(row=>row.id===id)))fail(422,'Reorder each active additional chapter in this campaign exactly once. Original chapters keep their established progression.');
+      // Reuse the active slots, preserving archived chapter positions and all IDs.
+      const slots=rows.map(row=>row.order);
+      ids.forEach((id,index)=>applyField(state,{domain:'encounters',id,field:'order',value:slots[index]},actorId,true));
+      const validation=validateAuthoredContent(snapshot,baseline);
+      if(!validation.valid)fail(422,validation.errors.map(issue=>issue.message).join(' '));
     });
   }
   function discard({ expectedRevision }) { return transaction(expectedRevision, (state) => { state.draft = null; }); }
@@ -494,7 +512,7 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
     await mediaStore.verify(versions, state.assetBlobs || {});
     return action(...args); // The original transaction rechecks the reviewed revision.
   } : action;
-  return { published, paraDraft, paraSimulation, competitionDraft, studioDraft, saveNotes, uploadAsset, migrateAssets,
+  return { published, paraDraft, paraSimulation, competitionDraft, studioDraft, reorderEncounters, saveNotes, uploadAsset, migrateAssets,
     assetStorageUsage: () => mediaStore ? mediaStore.capacity() : imageAssets.capacity(read()),
     verifyMedia: async () => { if (mediaStore) { const state = read(); await mediaStore.ensurePrivate(); await mediaStore.verify(Object.values(state.releases).flatMap(release => release.snapshot.assetVersions || []), state.assetBlobs || {}); } },
     summary: () => project(read(), true),
@@ -524,6 +542,7 @@ function registerContentPublicationRoutes(app, publication) {
     ["post", "authoring/assets/archive", (req) => publication.archiveAsset(req.body)],
     ["get", "authoring/assets/:id", (req) => publication.privateAsset(req.params.id)],
     ["post", "authoring/create", (req) => publication.create(req.body, req.gauntletAdminAccount.id)],
+    ["post", "authoring/reorder-encounters", req=>publication.reorderEncounters(req.body,req.gauntletAdminAccount.id)],
     ["post", "authoring/para-draft", (req) => publication.paraDraft(req.body, req.gauntletAdminAccount.id)],
     ["post", "authoring/para-simulate", (req) => publication.paraSimulation(req.body)],
     ["post", "authoring/studio-draft", req => publication.studioDraft(req.body, req.gauntletAdminAccount.id)],

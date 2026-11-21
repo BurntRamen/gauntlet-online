@@ -6,34 +6,32 @@ async function navigation(page) {
   return nav;
 }
 async function area(page, name) {
-  const target = { Design: "Content", Overview: "Home", Matches: "Operations", System: "Operations", "Para League & Economy": "Competition" }[name] || name;
+  const target = { Design: "Create & Edit", Content: "Create & Edit", Overview: "Home", Players: "Operations", Matches: "Operations", System: "Operations", Competition: "Events & Commerce", "Store & Economy": "Events & Commerce", "Para League & Economy": "Events & Commerce" }[name] || name;
   await (await navigation(page)).getByRole("button", { name: target, exact: true }).click();
-  if (["Matches", "System"].includes(name)) {
-    const workspace = page.getByRole("navigation", { name: "Operations workspaces" });
-    if (await workspace.isVisible()) await workspace.getByRole("button", { name: name === "Matches" ? "Match evidence" : "Health", exact: true }).click();
-  }
+  if (await page.getByRole("dialog", { name: "Unsaved local changes" }).isVisible()) return;
+  const secondary = { Matches: "Match evidence", System: "Health & recovery", "Store & Economy": "Deck products", "Para League & Economy": "Events & seasons" }[name];
+  if (secondary) await page.getByRole("navigation", { name: target + " workspaces" }).getByRole("button", { name: secondary, exact: true }).click();
 }
 async function destination(page, name) {
-  if (name === "Store") { await area(page, "Store & Economy"); await page.getByRole("navigation", { name: "Store & Economy workspaces" }).getByRole("button", { name: "Products", exact: true }).click(); return; }
-  const targets = {
-    Cards: ["Cards"], Decks: ["Decks"], Encounters: ["Campaigns & Encounters", "encounters"], Campaigns: ["Campaigns & Encounters", "campaigns"], Factions: ["Factions & Characters", "factions"], Characters: ["Factions & Characters", "characters"], "Characters / opponents": ["Factions & Characters", "characters"],
-    "Engine / Rules": ["Mechanics & Rules", "card-effects"], "Website prose": ["Lore & Website Text"], "Collector artwork": ["Printings & Sets", "assets"], Sets: ["Printings & Sets", "sets"], "Other content": ["Campaigns & Encounters", "campaigns"]
-  };
-  const [group, type] = targets[name] || [name];
-  const nav = await navigation(page);
-  if (!await page.getByRole("navigation", { name: "Content destinations" }).isVisible()) {
-    await nav.getByRole("button", { name: "Content", exact: true }).click();
-    if (await page.getByRole("dialog", { name: "Unsaved local changes" }).isVisible()) return;
-    await navigation(page);
-  }
-  await page.getByRole("navigation", { name: "Content destinations" }).getByRole("button", { name: group, exact: true }).click();
+  if (name === "Store") { await area(page, "Store & Economy"); return; }
+  if (name === "Website prose") { await area(page, "Website"); if (await page.getByRole("dialog", { name: "Unsaved local changes" }).isVisible()) return; const back=page.getByRole("button", { name: "Back to list", exact: true }); if(await back.isVisible())await back.click(); return; }
+  const types={Cards:"cards",Decks:"decks",Encounters:"encounters",Campaigns:"campaigns",Factions:"factions",Characters:"characters","Characters / opponents":"characters","Engine / Rules":"card-effects","Collector artwork":"assets",Sets:"sets","Other content":"campaigns","Mechanics & Rules":"mechanics"};
+  if (!await page.getByLabel("Content type",{exact:true}).isVisible()) await area(page,"Content");
+  if (await page.getByRole("dialog",{name:"Unsaved local changes"}).isVisible()) return;
+  await page.getByLabel("Content type",{exact:true}).selectOption(types[name]||name);
   if (await page.getByRole("dialog", { name: "Unsaved local changes" }).isVisible()) return;
-  if (type) await page.getByRole("combobox", { name: "Content type", exact: true }).selectOption(type);
   await workspaceView(page, "Editor");
   const backToList = page.getByRole("button", { name: "Back to list", exact: true });
   if (await backToList.isVisible()) await backToList.click();
 }
+async function returnFromPublishing(page) {
+  if (await page.getByRole("region", { name: "Shared release review", exact: true }).isVisible()) {
+    await expect(page.locator(".admin-save-context")).not.toHaveText("Working…");
+    await page.getByRole("button", { name: "Back to previous view", exact: true }).click();
+  }
+}
 async function workspaceView(page, name) {
+  await returnFromPublishing(page);
   const controls = page.locator('[aria-label="Workspace view"]');
   if (name === "Preview") await controls.waitFor({ state: "visible" });
   if (await controls.isVisible()) await controls.getByRole("button", { name, exact: true }).click();
@@ -50,6 +48,14 @@ async function workspaceView(page, name) {
   }
 }
 async function workspaceSection(page, workshop, label) {
+  if(workshop === "Encounter Workshop") label=({"Identity / Story":"Story","Opponent / Setup":"Opponent",Mechanics:"Rules","Deck / Cards":"Cards","Presentation / Assets":"Media",Playtest:"Test"})[label] || label;
+  await returnFromPublishing(page);
+  if(workshop==='Encounter Workshop' && label==='Preview'){
+    // The Test section uses the full workspace for the engine session.
+    if(!await page.locator('[aria-label="Workspace view"]').isVisible()) await workspaceSection(page,workshop,'Story');
+    await workspaceView(page,'Preview');return;
+  }
+  if(workshop==='Encounter Workshop' && label==='Validation'){const summary=page.locator('.encounter-validation>summary');await summary.click();return;}
   await page.getByRole("region", { name: workshop, exact: true }).waitFor({ state: "visible" });
   await workspaceView(page, "Editor");
   const select = page.getByRole("combobox", { name: `${workshop} section`, exact: true });
@@ -65,8 +71,9 @@ async function searchCollection(page, label, value) {
 }
 async function saveRecord(page, recordName) {
   await page.getByRole("region", { name: "Save record changes", exact: true }).getByRole("button", { name: recordName ? `Save changes to ${recordName}` : /^Save changes/ }).click();
+  await expect(page.locator(".admin-save-context")).not.toHaveText("Working…", { timeout: 45000 });
 }
-async function saveDefinition(page) {
+async function saveDefinition(page, keepOpen = false) {
   const name = page.getByLabel("Name", { exact: true });
   const expectedName = await name.inputValue();
   const button = page.getByRole("button", { name: "Save definition to draft", exact: true });
@@ -82,16 +89,16 @@ async function saveDefinition(page) {
   await expect(page.getByRole("region", { name: "Para definition editor", exact: true }).getByRole("heading", { name: "Edit definition · Saved draft", exact: true })).toBeVisible();
   await expect(page.locator(".admin-save-context")).toHaveText("Saved to shared draft");
   await expect(button).toBeDisabled();
-  await page.getByRole("button", { name: "Close definition", exact: true }).click();
-  await expect(name).toHaveCount(0);
+  if (!keepOpen) { await page.getByRole("button", { name: "Close definition", exact: true }).click(); await expect(name).toHaveCount(0); }
 }
 async function previewSavedDraft(page) {
-  const pending = page.waitForResponse(response => response.url().endsWith("/authoring/preview") && response.request().method() === "POST");
+  if (!await page.getByRole("button", { name: "Preview saved draft", exact: true }).isVisible()) await area(page, "Publishing");
+  await expect(page.getByRole("button", { name: "Preview saved draft", exact: true })).toBeEnabled({timeout:45000});
+  const pending = require("./buffered-admin-response").waitForBufferedAdminResponse(page, response => response.url().endsWith("/authoring/preview") && response.request().method() === "POST");
   await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
   const response = await pending;
   expect(response.ok()).toBeTruthy();
-  await response.finished();
-  await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible();
+  await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible({timeout:45000});
 }
 async function refreshAdmin(page) {
   await page.getByRole("button", { name: "Refresh admin", exact: true }).isVisible() || await page.getByLabel("Workspace options", { exact: true }).click();
@@ -101,8 +108,8 @@ async function paraTab(page, name) {
   const store = ["Marketplace", "Entitlements", "Gold Awards"].includes(name);
   if (store) {
     await area(page, "Store & Economy");
-    await page.getByRole("navigation", { name: "Store & Economy workspaces" }).getByRole("button", { name: "Gold & Rewards", exact: true }).click();
-  } else if (["Events", "Prestige"].includes(name) || !await page.getByRole("navigation", { name: "Para workspaces" }).isVisible()) { await area(page, "Competition"); await page.getByRole("navigation", { name: "Competition workspaces" }).getByRole("button", { name: "Para definitions", exact: true }).click(); }
+    await page.getByRole("navigation", { name: "Events & Commerce workspaces" }).getByRole("button", { name: "Gold & rewards", exact: true }).click();
+  } else if (["Events", "Prestige"].includes(name) || !await page.getByRole("navigation", { name: "Para workspaces" }).isVisible()) { await area(page, "Competition"); await page.getByRole("navigation", { name: "Events & Commerce workspaces" }).getByRole("button", { name: "Events & seasons", exact: true }).click(); }
   await page.getByRole("navigation", { name: "Para workspaces" }).getByRole("button", { name, exact: true }).click();
 }
 async function identity(page, value) {

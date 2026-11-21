@@ -1,0 +1,15 @@
+{
+  "main": 183564,
+  "player": 777677,
+  "adminEntry": 10925,
+  "admin": 76435,
+  "largest": 275731,
+  "limits": {
+    "mainGzip": 184320,
+    "adminEntryGzip": 20480,
+    "adminGzip": 76800,
+    "largestAsyncGzip": 358400,
+    "totalJavaScriptGzip": 779264
+  },
+  "failures": []
+}

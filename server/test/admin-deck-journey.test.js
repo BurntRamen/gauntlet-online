@@ -95,12 +95,12 @@ test("Admin deck → exact shop purchase → player game and campaign → revisi
   assert.ok(executed > 1);
   const progress = {}, resultContext = { campaign: campaign.game.campaign, factionId: "rumin", life: 10 };
   // Completion eligibility remains the campaign system's responsibility. The
-  // existing reward operation is idempotent even for a second clear.
+  // repeat clear earns the completion credit, but never a second first-clear bonus.
   __test.applyProgressionForResult(progress, "win", resultContext);
-  const credits = progress.collection.packCredits;
+  assert.equal(progress.collection.packCredits, 2); assert.equal(progress.collection.earnedPackCredits, 2); assert.equal(progress.collection.weeklyActivity.gamesPlayed, 1);
   __test.applyProgressionForResult(progress, "win", resultContext);
-  assert.equal(progress.collection.packCredits, credits);
-  assert.deepEqual(progress.progression.campaign.rumin, [encounter.id]);
+  assert.equal(progress.collection.packCredits, 3);
+  assert.deepEqual(progress.progression.campaign.rumin, [encounter.id]); assert.equal(progress.collection.earnedPackCredits, 3); assert.equal(progress.collection.weeklyActivity.gamesPlayed, 2);
   assert.equal(Number(progress.collection.collectorVariants?.[printing.id] || 0), 0, "an opponent assignment is not a product grant");
   await patch("decks", deckId, "composition", { ...composition, cards: [] });
   await qualify({ kind: "deck", id: deckId }); await admin("/publish", { label: "Purpose release 2" });

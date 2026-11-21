@@ -1191,11 +1191,12 @@ test("signed-in campaign victory refreshes account state, continues, persists, a
   expect(completion.matchId).toBe(matchId);
   expect(completion.result.outcome).toBe("win");
   expect(completion.campaign.firstClear).toBe(true);
-  expect(completion.rewards.boosterCreditDelta).toBe(1);
+  // Every completed game grants one credit; the first campaign clear adds one.
+  expect(completion.rewards.boosterCreditDelta).toBe(2);
   expect(completion.rewards.campaignPack).toMatchObject({ count: 1 });
   expect(completion.campaign.nextMission?.chapterId).toBeTruthy();
   expect(refreshedAccount.progression.campaign.rumin).toContain(completion.campaign.chapterId);
-  expect(refreshedAccount.stats.collection.packCredits).toBe(1);
+  expect(refreshedAccount.stats.collection.packCredits).toBe(2);
 
   const matchesResponse = await request.get(`${SERVER_URL}/api/account/matches`, { headers: authHeaders });
   const matches = (await matchesResponse.json()).matches;
@@ -1238,7 +1239,7 @@ test("signed-in campaign victory refreshes account state, continues, persists, a
   const restored = await request.get(`${SERVER_URL}/api/auth/me`, { headers: authHeaders });
   const restoredAccount = (await restored.json()).account;
   expect(restoredAccount.stats.gamesWon).toBe(1);
-  expect(restoredAccount.stats.collection.packCredits).toBe(1);
+  expect(restoredAccount.stats.collection.packCredits).toBe(2);
   expect(restoredAccount.progression.campaign.rumin).toContain(completion.campaign.chapterId);
 
   await navigatePlayer(page, "campaign");
@@ -1261,8 +1262,9 @@ test("signed-in campaign victory refreshes account state, continues, persists, a
   const repeatAccount = (await (await repeatAccountRefreshPromise).json()).account;
   await expect(page.getByText("Repeat clear", { exact: true })).toBeVisible();
   expect(repeatCompletion.campaign.repeatClear).toBe(true);
-  expect(repeatCompletion.rewards.boosterCreditDelta).toBe(0);
-  expect(repeatAccount.stats.collection.packCredits).toBe(1);
+  // Replaying still earns the game credit, without repeating the clear bonus.
+  expect(repeatCompletion.rewards.boosterCreditDelta).toBe(1);
+  expect(repeatAccount.stats.collection.packCredits).toBe(3);
 });
 
 test("Mekan and a chosen General enter a ranked match from the queue picker", async ({ browser, request, baseURL }) => {

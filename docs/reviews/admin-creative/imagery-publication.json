@@ -1,0 +1,15 @@
+{
+  "cardVersion": "image-version-a77c1d0e-1672-435f-b3c9-e1d261b48d4f",
+  "menuVersion": "image-version-7a03fa34-e88d-411f-b67f-8b509fa16c60",
+  "published": "gauntlet-content-44b88f23a94ac55b278bc4131badc855ea1e086d076c6cceabdf84f1cde631f6",
+  "restored": "gauntlet-content-421be37ef51a83bdbe51fd2a054aef810a05e72b1c3b5d06cee8202362f08f85",
+  "visuals": {
+    "tiles": {
+      "basic-ai": {
+        "artwork": "http://127.0.0.1:4188/api/content-assets/image-version-7a03fa34-e88d-411f-b67f-8b509fa16c60/ef04fc78c6d74b1988d829cf96a45c8c582dccfeb6b988eac2a439777e2d3f2f.webp",
+        "icon": "learn"
+      }
+    },
+    "background": "http://127.0.0.1:4188/api/content-assets/image-version-7a03fa34-e88d-411f-b67f-8b509fa16c60/ef04fc78c6d74b1988d829cf96a45c8c582dccfeb6b988eac2a439777e2d3f2f.webp"
+  }
+}

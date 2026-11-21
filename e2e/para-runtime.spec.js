@@ -1,7 +1,7 @@
 const { navigatePlayer } = require("./player-navigation");
 const { area: adminArea, paraTab, identity, saveDefinition } = require("./admin-navigation");
 const { origin, clientOrigin } = require("./admin-urls");
-const { test, expect } = require("@playwright/test");
+const { test, expect } = require("./admin-release-test");
 const AxeBuilder = require("@axe-core/playwright").default;
 const fs = require("node:fs"), path = require("node:path");
 
@@ -11,8 +11,12 @@ test("Admin publication becomes a free human event with durable Prestige and ins
     // Real server-signed sessions from the isolated fixture; auth rate-limit
     // behavior is tested separately and remains enabled in this server.
     const token = JSON.parse(fs.readFileSync(path.resolve(__dirname, "../.playwright-data/admin/sessions.json"), "utf8"))[name];
+    await target.addInitScript(({token,origin}) => { if(location.origin===origin)localStorage.setItem("gauntlet_auth_token",token); }, {token,origin:clientOrigin});
+    // Load the published catalog once with the retained login. Its response
+    // body must finish before exercising the player's navigation controls.
+    const contentReady=admin?null:target.waitForResponse(response=>response.url()===origin+"/api/game-content",{timeout:45000});
     await target.goto(`${clientOrigin}${admin ? "/admin/gauntlet" : "/"}`);
-    await target.evaluate((token) => localStorage.setItem("gauntlet_auth_token", token), token); await target.reload();
+    if(contentReady){const response=await contentReady;expect(response.ok()).toBeTruthy();await response.finished();}
     return token;
   }
   const token = await login(page, "simply", true), headers = { Authorization: `Bearer ${token}` };
@@ -22,12 +26,7 @@ test("Admin publication becomes a free human event with durable Prestige and ins
   const tabs = page.getByRole("navigation", { name: "Para workspaces" });
   const choose = (name) => paraTab(page, name);
   const save = () => saveDefinition(page);
-  const preview = async () => {
-    const pending = page.waitForResponse(response => response.url().endsWith("/authoring/preview") && response.request().method() === "POST", { timeout: 15000 });
-    await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
-    const response = await pending; expect(response.ok()).toBeTruthy(); await response.finished();
-    await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible();
-  };
+  const preview = () => require("./admin-navigation").previewSavedDraft(page);
   const dates = async (registration = false) => {
     await page.getByLabel("Start", { exact: true }).fill("2026-01-01T00:00");
     await page.getByLabel("End", { exact: true }).fill("2099-01-01T00:00");
@@ -48,9 +47,10 @@ test("Admin publication becomes a free human event with durable Prestige and ins
   }
   await createEvent("runtime-qualifier", "Runtime Classic Trial", 1, "qualifier");
   await createEvent("runtime-invitational", "Runtime Invitational", 2, "invitational");
+  await require("./admin-navigation").area(page, "Publishing");
   await page.getByRole("button", { name: "Validate draft", exact: true }).click();
   await preview();
-  const publish = async (name) => { await adminArea(page, "Publishing"); await page.getByLabel("Release name").fill(name); await page.getByRole("button", { name: "Publish release", exact: true }).click(); await page.getByRole("button", { name: "Confirm publish", exact: true }).click(); await expect(page.getByText("Live content · no draft", { exact: true })).toBeVisible(); };
+  const publish = async (name) => { await adminArea(page, "Publishing"); await page.getByLabel("Release name").fill(name); await page.getByRole("button", { name: "Publish release", exact: true }).click(); await page.getByRole("button", { name: "Confirm publish", exact: true }).click(); await expect(page.getByText("No saved changes to review.", { exact: true })).toBeVisible(); };
   await publish("Browser official runtime event"); const release = (await get("/api/admin/authoring")).activeReleaseId;
   const contexts = await Promise.all([browser.newContext(), browser.newContext()]);
   try {
@@ -88,7 +88,12 @@ test("Admin publication becomes a free human event with durable Prestige and ins
     await page.getByRole("button", { name: /^Runtime Classic Trial runtime-qualifier/ }).click(); await page.getByLabel("Prestige for 0 wins", { exact: true }).fill("99"); await save();
     await preview(); await publish("Later scoring definition");
     expect((await get("/api/admin/para")).awards).toEqual(before);
-    await nav.getByRole("button", { name: "Competition", exact: true }).click(); await page.getByRole("navigation", { name: "Competition workspaces" }).getByRole("button", { name: "Results", exact: true }).click();
+    await nav.getByRole("button", { name: "Events & Commerce", exact: true }).click();
+    // Standings and player names come from separate authoritative responses.
+    // Finish both bodies before asserting the historical results on screen.
+    const resultsReady=Promise.all(["para","competition"].map(name=>page.waitForResponse(response=>response.url()===`${origin}/api/admin/${name}`,{timeout:45000}).then(async response=>{expect(response.ok()).toBeTruthy();await response.finished();})));
+    await page.getByRole("navigation", { name: "Events & Commerce workspaces" }).getByRole("button", { name: "Results", exact: true }).click();
+    await resultsReady;
     await expect(page.getByText(/^#1 · Visitor · 12 Prestige/)).toBeVisible();
     await expect(page.getByText("Published definition differs; pinned rules retained.")).toBeVisible();
     await page.getByText("Visitor · 12 Prestige", { exact: true }).click(); await expect(page.getByText(before[0].evidence[0].matchId, { exact: true })).toBeVisible();

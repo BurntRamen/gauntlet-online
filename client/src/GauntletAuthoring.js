@@ -1,9 +1,11 @@
+import {Json} from './admin/Presentation';
+import CampaignChapters from "./admin/CampaignChapters";
 import { HelpProvider } from "./admin/AuthoringHelp";
 import { PrivateAssetProvider, PrivateImage, PrivateAudio } from "./admin/PrivateAsset";
 import useWorkshopContext from "./admin/useWorkshopContext";
 import UnsavedChangesDialog from "./admin/UnsavedChangesDialog";
 import "./admin/TestHarness.css";
-import ContentBrowser, { BrowserControls, contentName } from "./admin/ContentBrowser";
+import ContentBrowser, { BrowserControls, contentName, filterContent } from "./admin/ContentBrowser";
 import WorkshopShell, { WorkshopSection, WorkshopFacts } from "./admin/WorkshopShell";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Validation from "./admin/WorkshopValidation";
@@ -26,9 +28,7 @@ import RelatedContent from "./admin/RelatedContent";
 import GauntletParaLeague from "./GauntletParaLeague";
 import CompetitionWorkshop from "./admin/CompetitionWorkshop";
 import WebsiteProseWorkshop from "./admin/WebsiteProseWorkshop";
-import ProductionGuide from "./admin/ProductionGuide";
-import ProductionPipeline from "./admin/ProductionPipeline";
-import { useOperatorPreferences } from "./admin/OperatorPreferences";
+
 const ENGINE_DOMAINS = ["rule-modifiers", "mechanics", "card-effects", "faction-effects", "encounter-mechanics", "game"];
 function domainRows(state, domain) {
   const snapshot = state?.draft?.snapshot || state?.live;
@@ -40,9 +40,6 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
   const [state, setState] = useState(null);
   const guide = state?.guide || {};
   const help = guide.help || {};
-  const operator = useOperatorPreferences();
-  const task = operator?.preferences.task;
-  const taskDefinition = guide.pipelines?.find(item => item.id === task?.id);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [session, setSession] = useState(null);
@@ -94,7 +91,7 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
     onNavigate: (target) => {
       if (target.domain !== domainChoice || target.id !== selected) { setCreation(null); setScenario(null); setScenarioDirty(false); }
       if (target.domain.includes(":")) {
-        const [kind, definitionDomain] = target.domain.split(":"), economy = kind === "para" && (["awards", "products", "entitlements"].includes(definitionDomain) || definitionDomain === "seasons" && (area === "Economy" || task?.id === "economy"));
+        const [kind, definitionDomain] = target.domain.split(":"), economy = kind === "para" && (["awards", "products", "entitlements"].includes(definitionDomain) || definitionDomain === "seasons" && area === "Economy");
         setDefinitionTarget({ kind, domain: definitionDomain, id: target.id, field: target.field });
         onNavigate?.(economy ? "Store & Economy" : "Competition", undefined, undefined, undefined, undefined, undefined, { internal: true, workspace: economy ? "Gold & Rewards" : kind === "competition" ? "Ranked & Gauntlet" : help.workspaceCopy1 });
         return;
@@ -109,15 +106,6 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
   // Restore a typed registry route after reload; ordinary moves already notify the parent.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [domainChoice]);
-  const requestedTask = context.target.section?.startsWith("pipeline-") ? context.target.section.slice(9) : null;
-  useEffect(() => {
-    if (!requestedTask || !guide.pipelines?.some(item => item.id === requestedTask)) return;
-    operator?.update({ task: { id: requestedTask, root: null } });
-    context.navigate({ ...context.target, section: null });
-  }, [requestedTask, guide.pipelines, operator, context]);
-  useEffect(() => {
-    if (taskDefinition && !task.root && taskDefinition.domain === domainChoice && selected) operator?.update({ task: { ...task, root: selected } });
-  }, [taskDefinition, task, domainChoice, selected, operator]);
   const domain = domainChoice === "modes" ? "game" : domainChoice;
   const query = context.context.query || "";
   const setQuery = value => context.remember({ query: value });
@@ -156,6 +144,7 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
   }, [request, source, state?.draft?.hash, state?.activeReleaseId]);
   useEffect(() => {
     if (area !== "Publishing" || !state) return undefined;
+    if (!state.draft && !state.pending) { setReview({ revision: state.revision, groups: [] }); setReviewError(""); return undefined; }
     let active = true; setReview(null); setReviewError("");
     request("/api/admin/workshops/review").then(value => { if (active && value.groups) setReview(value); }).catch(failure => { if (active) setReviewError(failure.message); });
     return () => { active = false; };
@@ -197,7 +186,7 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
     if (nextDomain.startsWith("competition:") || nextDomain.startsWith("para:")) return context.navigate({ domain: nextDomain, id, field }, accepted);
     nextDomain = ({ "studio:mechanics": "mechanics", "studio:modifiers": "rule-modifiers" })[nextDomain] || nextDomain;
     const saved = context.target.domain === nextDomain && context.target.id === id ? context.target : context.contexts[nextDomain]?.target;
-    const section = !field ? saved?.id === id ? saved.section : null : nextDomain === "cards" ? field === "effect" ? "mechanics" : "identity" : nextDomain === "encounters" ? field === "setup" || field === "opponentDeckId" || field === "ruleModifierId" ? "setup" : /audio|image|art/i.test(field) ? "assets" : "story" : nextDomain === "decks" ? field === "composition" ? "composition" : "details" : nextDomain === "offers" ? "details" : null;
+    const section = !field ? saved?.id === id ? saved.section : null : nextDomain === "cards" ? field === "effect" ? "mechanics" : "identity" : nextDomain === "encounters" ? field === "ruleModifierId" ? "mechanics" : field === "setup" || field === "opponentDeckId" || field === "aiProfile" ? "setup" : /audio|image|art/i.test(field) ? "assets" : "story" : nextDomain === "decks" ? field === "composition" ? "composition" : "details" : nextDomain === "offers" ? "details" : null;
     return context.navigate({ section: explicitSection || section, field, domain: nextDomain === "game" && id && id !== "shared-rules" ? "modes" : nextDomain, id }, accepted);
   }
   useEffect(() => {
@@ -225,21 +214,20 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
       if (action.startsWith("assets/")) setAssetPicker(current => current && ({ ...current, baseRevision: current.baseRevision === state.revision ? result.revision : current.baseRevision }));
       setPreview(result.preview || null); setConfirm(null);
       if (action === "publish" || action === "rollback") { setReleaseName(""); onPublished(); }
-      setNotice(result.pending ? guide.publicationPending : ["para-draft", "competition-draft", "studio-draft"].includes(action) ? result.notice || help.workspaceDefinitionSaved : action === "assets/upload" ? help.workspaceImageUploaded : action === "assets/archive" ? help.workspaceAssetArchived : action === "create" ? help.workspaceContentCreated : action === "notes" ? help.workspaceNotesSaved : action === "draft" ? guide.fieldSaved : action === "publish" ? guide.published : action === "rollback" ? help.workspaceReleaseRestored : action === "discard" ? help.workspaceDraftDiscarded : action === "validate" ? help.workspaceDraftValidated : help.workspacePreviewReady);
+      setNotice(result.pending ? guide.publicationPending : ["para-draft", "competition-draft", "studio-draft"].includes(action) ? result.notice || help.workspaceDefinitionSaved : action === "assets/upload" ? help.workspaceImageUploaded : action === "assets/archive" ? help.workspaceAssetArchived : action === "create" ? help.workspaceContentCreated : action === "notes" ? help.workspaceNotesSaved : ["draft","reorder-encounters"].includes(action) ? guide.fieldSaved : action === "publish" ? guide.published : action === "rollback" ? help.workspaceReleaseRestored : action === "discard" ? help.workspaceDraftDiscarded : action === "validate" ? help.workspaceDraftValidated : help.workspacePreviewReady);
       return result;
     } catch (failure) { setError(failure.message); if (failure.status === 409) await refresh(); if (action === "assets/upload") throw failure; return false; }
     finally { setBusy(false); }
   }
   if (!state) return <p role={error ? "alert" : "status"}>{error || help.workspaceCopy2}</p>;
-  if (guide.workspaceVersion !== 1) return <p role="status">{help.workspaceCopy3}</p>;
+  if (guide.workspaceVersion !== 2) return <p role="status">{help.workspaceCopy3}</p>;
   const DOMAINS = { ...guide.domains, game: "Website prose", sets: "Sets", decks: "Decks", offers: "Store", assets: "Collector artwork" };
   const snapshot = state.draft?.snapshot || state.live;
   const previewContent = preview || resolvedView;
   const rows = domainRows(state, domain).filter(entry => domainChoice !== "modes" || entry.id !== "shared-rules");
-  const visibleRows = rows.filter(entry => domain !== "encounters" || !context.context.campaign || entry.campaignId === context.context.campaign).filter(entry => !context.context.faction || (entry.factionId || entry.composition?.factionId) === context.context.faction).filter((entry) => `${contentName(entry)} ${entry.id} ${entry.factionId || entry.composition?.factionId || ""}`.toLowerCase().includes(query.toLowerCase()));
+  const visibleRows = filterContent(rows, domain, context.context, snapshot, state.cardSets);
   const row = rows.find((entry) => entry.id === selected);
   const fields = state.fields[domain]?.[row?.id] || {};
-  const changeCount = state.changes.length;
   const recordGroups = Object.entries(buffers).reduce((groups, [key, value]) => {
     const target = bufferTarget(key);
     if (!target) return groups;
@@ -294,40 +282,41 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
     const key = `${selectedDomain}:${selectedRow.id}:${field}`;
     return <WorkshopField key={key} onReset={() => clearBuffers([key])} field={field} state={{ ...state, workshopMetadata: metadata }} domain={selectedDomain} row={selectedRow} buffer={buffers[key]} busy={busy} onInspect={inspect} onAsset={picker => setAssetPicker({ ...picker, baseRevision: unsaved ? bufferRevision.current : state.revision })} renderContract={overrides.renderContract} onEdit={(value, saved) => edit(key, value, saved)} />;
   }
-  const creationControls = state.capabilities?.[({ encounters: "encounterCreation", factions: "factionCreation" })[domain] || "catalogCreation"] && ["cards", "sets", "decks", "offers", "encounters", "factions"].includes(domain) && <CatalogControls domain={domain} row={row} state={state} effects={metadata?.cardEffects} disabled={busy || !state.writable} creation={creation} value={buffers["catalog-create"] ? JSON.parse(buffers["catalog-create"]) : {}} onEdit={values => edit("catalog-create", JSON.stringify(values), "")} onOpen={nextDomain => leave(() => setCreation({ domain: nextDomain }))} onDuplicate={() => leave(() => setCreation({ domain, sourceId: row.id }))} onCancel={() => leave(() => setCreation(null))} onCreate={async values => {
+  const creationControls = state.capabilities?.[({ encounters: "encounterCreation", factions: "factionCreation" })[domain] || "catalogCreation"] && ["cards", "sets", "decks", "offers", "encounters", "factions"].includes(domain) && <CatalogControls onCreateSet={async name=>{const result=await act("create",{domain:"sets",name,expectedRevision:bufferRevision.current??state.revision});return result?.draft?.snapshot.domains.sets.at(-1)?.id;}} domain={domain} row={row} state={{...state,previewContent}} effects={metadata?.cardEffects} disabled={busy || !state.writable} creation={creation} value={buffers["catalog-create"] ? JSON.parse(buffers["catalog-create"]) : {}} onEdit={values => edit("catalog-create", JSON.stringify(values), "")} onOpen={nextDomain => leave(() => setCreation({ domain: nextDomain, ...(domain === "sets" && nextDomain === "cards" && row ? {defaults:{setId:row.id}} : {}) }))} onDuplicate={() => leave(() => setCreation({ domain, sourceId: row.id }))} onCancel={() => leave(() => setCreation(null))} onCreate={async values => {
         const result = await act("create", { ...values, expectedRevision: bufferRevision.current ?? state.revision });
         if (result) { setBuffers({}); setCreation(null); const added = result.draft.snapshot.domains[values.domain].at(-1); if (values.domain === "assets") { setVariantId(added.id); setCreatedTarget({ domain: "cards", id: added.gameplayCardId, section: "artwork" }); } else setCreatedTarget({ domain: values.domain, id: added.id }); }
       }} />;
-  const search = <><BrowserControls label={(DOMAINS[domain] || (domain === "asset-library" ? "media" : "rules")).toLowerCase()} rows={rows} snapshot={snapshot} query={query} onQuery={setQuery} filters={context.context} onFilters={context.remember} />{!creation && <div className="admin-browser-create">{creationControls}</div>}</>;
+  const search = <><BrowserControls sets={state.cardSets} domain={domain} label={(DOMAINS[domain] || (domain === "asset-library" ? "media" : "rules")).toLowerCase()} rows={rows} snapshot={snapshot} query={query} onQuery={setQuery} filters={context.context} onFilters={context.remember} />{!creation && <div className="admin-browser-create">{creationControls}</div>}</>;
   const list = <ContentBrowser rows={visibleRows} total={rows.length} domain={domain} selected={row?.id} busy={busy} onSelect={id => inspect(domainChoice, id)} snapshot={snapshot} changes={state.changes} preview={previewContent} sort={context.context.sort} position={context.context.browserScroll} onPosition={browserScroll => context.remember({ browserScroll })} />;
-  const presentation = previewContent && row && <Preview source={source} suit={suit} variantId={variantId} guide={guide} preview={previewContent} domain={domain} row={row} catalog={catalog} onClose={() => { setPreview(null); setResolvedView(null); }} />;
+  const presentation = previewContent && row && <Preview surface={context.target.section} source={source} suit={suit} variantId={variantId} guide={guide} preview={previewContent} domain={domain} row={row} catalog={catalog} onClose={() => { setPreview(null); setResolvedView(null); }} />;
   const playtest = <GauntletPlaytest printingId={domain === "cards" ? snapshot.domains.assets.find(item => item.id === variantId && item.gameplayCardId === row?.id)?.id || row?.defaultVariantId : undefined} request={request} state={state} row={row} domain={domain} disabled={busy || unsaved || !metadata?.capabilities?.liveTests} onAuthoring={setState} session={session} onSession={setSession} onInspect={inspect} onBusy={setBusy} onRefresh={refresh} subjectTarget={context.target} metadata={metadata} scenario={scenario} onScenario={value => { setScenario(value); setScenarioDirty(true); }} onScenarioStarted={() => setScenarioDirty(false)} />;
+  const operateEvent=(id,registry)=>onNavigate("Competition",undefined,undefined,undefined,undefined,undefined,{workspace:"Results",eventId:id,registry});
   const reviewRelease = () => onNavigate("Publishing");
   const Editor = domainChoice === "modes" ? WebsiteProseWorkshop : ({ decks: DeckWorkshop, offers: OfferWorkshop, cards: CardWorkshop, encounters: EncounterWorkshop })[domain] || (ENGINE_DOMAINS.includes(domainChoice) ? EngineWorkshop : null);
   const inspectIssue = (...target) => leave(() => { setReturnView({ area, target: context.target, scroll: window.scrollY }); inspect(...target); });
   const beginCreation = (next, accepted) => context.navigate({ domain: next.domain }, () => { setCreation(next); accepted?.(); });
-  const production = metadata?.capabilities?.productionGuide && <ProductionGuide request={request} domain={domain} id={row?.id} source={source} hash={state.draft?.hash || metadata?.hash} revision={state.revision} busy={busy} onInspect={inspect} onReview={reviewRelease} state={state} unsaved={unsaved} onCreate={beginCreation} />;
+
   const editorProps = {
     row, state: { ...state, localDirtyRecords, workshopMetadata: metadata, relationshipData: relationships, previewContent }, busy, unsaved, search, list, playtest,
-    field: renderField, onInspect: inspect, onReview: reviewRelease, preview: presentation,
+    field: renderField, onCreate: beginCreation, buffers, onInspect: inspect, onReview: reviewRelease, preview: presentation,
     section: context.target.section, onSection: section => context.navigate({ ...context.target, section }), context: context.context, onContext: context.remember
   };
-  if (domainChoice === "modes") Object.assign(editorProps, { target: context.target, onTarget: context.navigate });
+  if (domainChoice === "modes") Object.assign(editorProps, { target: context.target, onTarget: context.navigate, buffers });
   if (domain === "cards") Object.assign(editorProps, { suit, onSuit: setSuit, variantId, onVariantChange: setVariantId,
     onCreatePrinting: sourceId => leave(() => setCreation({ domain: "assets", gameplayCardId: row.id, ...(sourceId ? { sourceId } : {}) })) });
   if (["decks", "offers"].includes(domain)) editorProps.fields = Object.keys(fields).map(renderField);
   if (domain === "decks") Object.assign(editorProps, { notes: buffers["private-notes"] ?? state.privateNotes?.[row?.id]?.value ?? "", onNotes: value => edit("private-notes", value, state.privateNotes?.[row?.id]?.value || ""), onSaveNotes: saveNotes });
-  if (Editor === EngineWorkshop) Object.assign(editorProps, { act, onDirty: onParaDirty, onTest: (id, domain = "cards") => context.navigate({ domain, id, section: "test" }), target: context.target, onTarget: context.navigate });
+  if (Editor === EngineWorkshop) Object.assign(editorProps, { onAttach:(id,effect)=>context.navigate({domain:"cards",id,section:"mechanics"},()=>edit(`cards:${id}:effect`,JSON.stringify(effect),snapshot.domains.cards.find(c=>c.id===id).effect)), act, onDirty: onParaDirty, onTest: (id, domain = "cards") => context.navigate({ domain, id, section: "test" }), target: context.target, onTarget: context.navigate });
   if (domain === "encounters") Object.assign(editorProps, { session, search: <>{search}<label className="admin-search">Campaign<select aria-label={help.workspaceCopy4} value={context.context.campaign || ""} onChange={event => context.remember({ campaign: event.target.value })}><option value="">{help.workspaceCopy5}</option>{snapshot.domains.campaigns.map(campaign => <option key={campaign.id} value={campaign.id}>{campaign.commanderName}</option>)}</select></label></> });
-  return <HelpProvider value={guide.help}><PrivateAssetProvider request={request}><EditorSessionContext.Provider value={{ register: registerEditor, requestLeave: leave, target: context.target, focusRequest: initialDomain, production }}>
+  return <HelpProvider value={guide.help}><PrivateAssetProvider request={request}><EditorSessionContext.Provider value={{ register: registerEditor, requestLeave: leave, target: context.target, focusRequest: initialDomain, journey: { busy, dirty: unsaved, saveShown: groups.length>0, creating: !!creation, blocked: hasConflict || !state.writable || !!state.pending, draft: !!state.draft, tested: !!state.draft && state.draft.playtestedHash === state.draft.hash, issue: state.validation?.errors?.find(issue=>issue.domain===domain && issue.id===selected), fix: ()=>{const issue=state.validation.errors.find(issue=>issue.domain===domain && issue.id===selected);if(issue)inspect(issue.domain,issue.id,issue.field);}, review: reviewRelease } }}>
     <WorkshopNavigation target={context.target} focusRequest={initialDomain} ready={area !== "Publishing" && !domainChoice.includes(":")} />
     {context.pending && <UnsavedChangesDialog onKeep={context.cancel} onDiscard={context.discard} onSave={context.saveAndContinue} saving={context.saving || busy} saveLabel={saveScope} saveDisabledReason={saveDisabledReason} error={context.saveError}>{groups.length + Number(notesDirty) > 1 && <div className="admin-actions">{groups.map(group => <button disabled={busy || hasConflict} key={group.key} onClick={() => saveRecord(group)}>Save {group.label}</button>)}{notesDirty && <button disabled={busy || hasConflict} onClick={saveNotes}>{help.workspaceCopy6}</button>}</div>}</UnsavedChangesDialog>}
     {(area === "Publishing" || context.backCount > 0) && <button className="admin-context-back" onClick={area === "Publishing" ? () => context.navigate(context.target) : context.back}>{help.workspaceCopy7}</button>}
     {returnView && !returnView.returning && (area !== returnView.area || JSON.stringify(context.target) !== JSON.stringify(returnView.target)) && <button className="admin-context-back" onClick={() => leave(() => { setReturnView({ ...returnView, returning: true }); context.navigate(returnView.target); requestAnimationFrame(() => onNavigate(returnView.area)); })}>{returnView.area === "Publishing" ? help.workspaceCopy8 : help.workspaceCopy9}</button>}
     {assetPicker && <AssetPicker capacity={state.assetCapacity} provider={state.provider} request={request} busy={busy} onMigrate={state.writable && state.capabilities?.remoteMedia ? () => act("assets/migrate", {}) : null} onUpload={state.writable && state.capabilities?.[assetPicker.media === "audio" ? "audioUploads" : "imageUploads"] ? body => act("assets/upload", body) : null} onArchive={state.writable ? body => act("assets/archive", body) : null} library={state.assetLibrary || []} relationships={relationships} {...assetPicker} onSelect={value => { assetPicker.onSelect(value); bufferRevision.current = assetPicker.baseRevision; setAssetPicker(null); }} onClose={() => { if (!busy) setAssetPicker(null); }} />}
 
-    {groups.length > 0 && <section className="admin-record-save" aria-label={help.workspaceCopy10}>{groups.map(group => <div key={group.key}><div><strong>{group.label}</strong><p className="admin-note">{group.edits.length}{help.workspaceCopy11}{group.edits.length === 1 ? "" : "s"}: {group.edits.map(edit => edit.definition.label).join(", ")}. {help.workspaceRecordBoundary}</p></div><button className="admin-primary" disabled={busy || !state.writable} onClick={() => saveRecord(group)}>{busy ? "Saving…" : "Save changes"}<span className="sr-only"> to {group.label}</span></button></div>)}{notesDirty && <p className="admin-note">{help.workspacePrivateNotes}</p>}</section>}
-    {unavailableEdits.length > 0 && <div className="admin-alert"><p role="alert">{saveDisabledReason}</p><details><summary>{help.workspaceCopy12}</summary><pre>{JSON.stringify(Object.fromEntries(unavailableEdits), null, 2)}</pre></details></div>}
+    {groups.length > 0 && <section className="admin-record-save" aria-label={help.workspaceCopy10}>{groups.map(group => <div key={group.key}><div><small className="admin-save-next">{hasConflict?help.creativeGauntletAuthoring1:"Next: save your changes"}</small><strong>{group.label}</strong><p className="admin-note">{group.edits.length}{help.workspaceCopy11}{group.edits.length === 1 ? "" : "s"}: {group.edits.map(edit => edit.definition.label).join(", ")}. {help.workspaceRecordBoundary}</p></div><button className="admin-primary" disabled={busy || !state.writable || hasConflict} onClick={() => saveRecord(group)}>{busy ? "Saving…" : "Save changes"}<span className="sr-only"> to {group.label}</span></button></div>)}{notesDirty && <p className="admin-note">{help.workspacePrivateNotes}</p>}</section>}
+    {unavailableEdits.length > 0 && <div className="admin-alert"><p role="alert">{saveDisabledReason}</p><Json title={<>{help.workspaceCopy12}</>} value={Object.fromEntries(unavailableEdits)} className={undefined} /></div>}
     {hasConflict && <section className="admin-alert admin-conflict" aria-label={help.workspaceCopy13}><h4>{help.workspaceCopy14}</h4><p>{help.workspaceConflictReview}{state.revision}.</p>{conflicts.map(edit => <article key={edit.key}><h5>{edit.definition.label}</h5><dl className="admin-conflict-values"><div><dt>{help.workspaceCopy15}</dt><dd>{bufferBase.current[edit.key] || "Empty"}</dd></div><div><dt>{help.workspaceCopy16}</dt><dd>{display(edit.saved) || "Empty"}</dd></div><div><dt>{help.workspaceCopy17}</dt><dd>{edit.value || "Empty"}</dd></div></dl><div className="admin-actions"><button disabled={busy} aria-pressed={reviewedConflicts[edit.key] === display(edit.saved)} onClick={() => setReviewedConflicts(current => ({ ...current, [edit.key]: display(edit.saved) }))}>Keep my {edit.definition.label.toLowerCase()}</button><button disabled={busy} onClick={() => clearBuffers([edit.key])}>Use shared {edit.definition.label.toLowerCase()}</button></div></article>)}{definitionSession && <details><summary>{help.workspaceCopy18}</summary><p>{help.workspaceCopy19}</p><pre>{JSON.stringify(definitionSession.saved, null, 2)}</pre><p>{help.workspaceCopy20}</p><pre>{JSON.stringify(definitionSession.local, null, 2)}</pre>{definitionConflict && <button disabled={busy} aria-pressed={definitionReviewed} onClick={() => setReviewedConflicts(current => ({ ...current, definition: JSON.stringify(definitionSession.saved) }))}>{help.workspaceCopy21}</button>}</details>}<button disabled={busy || unresolved.length > 0 || !definitionReviewed} onClick={() => { bufferRevision.current = state.revision; setReviewedConflicts({}); for (const edit of reviewEdits) bufferBase.current[edit.key] = display(edit.saved); definitionBase.current = definitionSession ? JSON.stringify(definitionSession.saved) : null; setNotice(guide.retryReady); }}>{help.workspaceCopy22}</button></section>}
     {state.authoringError && <p role="alert" className="admin-alert">{state.authoringError}</p>}
     {state.connectionRequired && <div className="admin-alert"><p role="alert">{guide.connectionRequired}</p><details><summary>{help.workspaceCopy23}</summary><p>{guide.connectionSetup}</p></details></div>}
@@ -335,34 +324,29 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
     {state.pending && <section className="admin-preview" aria-label={help.workspaceCopy24}><h4>{help.workspaceCopy25}{state.pending.phase.replaceAll("-", " ")}</h4><p>{guide.deploymentPending}</p>{state.pending.url && <a href={state.pending.url} target="_blank" rel="noreferrer">{help.workspaceCopy26}</a>}<div className="admin-actions"><button disabled={busy} onClick={() => act("reconcile")}>{help.workspaceCopy27}</button>{state.pending.phase !== "deploying" && <button disabled={busy} onClick={() => setConfirm({ action: "cancel-publication" })}>{help.workspaceCopy28}</button>}</div></section>}
     {projectionError && <p className="admin-note" role="status">{help.workspaceCopy29}{projectionError}</p>}{error && <p role="alert" className="admin-alert">{error}</p>}{notice && <p role="status" className="admin-good">{notice}</p>}
 
-    {taskDefinition && <ProductionPipeline key={task.id} request={request} state={state} task={task} busy={busy} unsaved={unsaved}
-      onRoot={id => leave(() => { operator.update({ task: { ...task, root: id } }); inspect(taskDefinition.domain, id); })}
-      onClose={() => operator.update({ task: null })} onInspect={inspect} onCreate={beginCreation} onReview={reviewRelease} />}
-    {creation && creationControls}
-    {area === "Ranked & Gauntlet" ? <CompetitionWorkshop onSelect={(domain, id) => setCreatedTarget({ domain: "competition:" + domain, id })} initialTarget={definitionTarget?.kind === "competition" ? definitionTarget : null} key={paraEditor} state={state} act={act} busy={busy} onDirty={onParaDirty} /> : ["Para League & Economy", "Competition", "Economy"].includes(area) ? (state.para ? <GauntletParaLeague onSelect={(domain, id) => setCreatedTarget({ domain: "para:" + domain, id })} initialTarget={definitionTarget?.kind === "para" ? definitionTarget : null} key={`${paraEditor}-${area}`} scope={area} state={state} act={act} busy={busy} request={request} onDirty={onParaDirty} preview={preview} /> : <p role="status">{help.workspaceDefinitionsUnavailable}</p>) : area === "Publishing" ? <>
+    {area === "Ranked & Gauntlet" ? <CompetitionWorkshop onReview={reviewRelease} onOperate={operateEvent} onSelect={(domain, id) => setCreatedTarget({ domain: "competition:" + domain, id })} initialTarget={definitionTarget?.kind === "competition" ? definitionTarget : null} key={paraEditor} state={state} act={act} busy={busy} onDirty={onParaDirty} /> : ["Para League & Economy", "Competition", "Economy"].includes(area) ? (state.para ? <GauntletParaLeague onReview={reviewRelease} onInspect={inspect} onOperate={operateEvent} onSelect={(domain, id) => setCreatedTarget({ domain: "para:" + domain, id })} initialTarget={definitionTarget?.kind === "para" ? definitionTarget : null} key={`${paraEditor}-${area}`} scope={area} state={state} act={act} busy={busy} request={request} onDirty={onParaDirty} preview={preview} /> : <p role="status">{help.workspaceDefinitionsUnavailable}</p>) : area === "Publishing" ? <>
       <ReleaseReview onValidate={() => act("validate")} onPreview={() => act("preview")} state={state} review={review} error={reviewError} onRetry={refresh} busy={busy} unsaved={unsaved} onInspect={inspectIssue} releaseName={releaseName} onReleaseName={setReleaseName} onPublish={() => setConfirm({ action: "publish", label: releaseName })} onDiscard={() => setConfirm({ action: "discard" })} />
+      {preview && presentation}
       <details className="admin-json"><summary>{help.workspaceCopy30}</summary><p>{guide.publishingHelp}</p><p>{help.workspaceCopy31}<code>{state.activeReleaseId}</code><br />{help.workspaceCopy32}{state.revision}<br />{state.storage}</p></details>
       <section className="admin-recovery" aria-label={help.workspaceCopy33}><h4>{help.workspaceCopy34}</h4><div className="admin-releases">{[...state.releases].reverse().map((release) => <article className="admin-source" key={release.id}><h5>{release.label} {release.id === state.activeReleaseId && <span className="admin-badge">Active</span>}</h5><p className="admin-note">{new Date(release.createdAt).toLocaleString()} · {release.compatible ? "Compatible" : help.workspaceCopy35}</p>{release.rollbackBlocked && <p className="admin-note">{release.rollbackBlocked}</p>}<details className="admin-json"><summary>{help.workspaceCopy36}</summary><code>{release.id}</code><p className="admin-note">SHA-256 {release.sha256}</p></details><button disabled={busy} onClick={async () => { try { const value = await request(`/api/admin/workshops/releases/${encodeURIComponent(release.id)}/review`); setReview(current => ({ ...current, comparison: value })); } catch (failure) { setError(failure.message); } }}>{help.workspaceCopy37}</button><button disabled={busy || unsaved || !state.writable || !!state.draft || !release.compatible || !!release.rollbackBlocked || release.id === state.activeReleaseId} onClick={() => setConfirm({ action: "rollback", releaseId: release.id, label: release.label })}>Restore {release.label}</button></article>)}</div>
-      <details className="admin-json"><summary>{help.workspaceCopy38}</summary><pre>{JSON.stringify(state.activations, null, 2)}</pre></details></section>
+      <Json title={<>{help.workspaceCopy38}</>} value={state.activations} className="admin-json" /></section>
     </> : <>
 
-      {Editor ? <Editor key={Editor === EngineWorkshop ? paraEditor : undefined} {...editorProps} /> : <>
+      {creation ? <WorkshopShell name="Create content" title={"New " + creation.domain.replace(/s$/, "")} selectionId="new" busy={busy}>{creationControls}</WorkshopShell> : Editor ? <Editor key={Editor === EngineWorkshop ? paraEditor : undefined} {...editorProps} /> : <>
       <WorkshopShell name={domain === "asset-library" ? "Media Workshop" : (DOMAINS[domain] || "Content") + " Workshop"} title={row ? contentName(row) : "Choose an item"} selectionId={row?.id} busy={busy} search={search} list={list} status={<span>{unsaved ? help.workspaceCopy39 : state.draft ? "Saved draft" : "Live content"}</span>} actions={<>{domain === "asset-library" && <button onClick={() => setAssetPicker({ value: row?.id, media: row?.mediaType?.startsWith("audio/") ? "audio" : "image", clearLabel: null, baseRevision: state.revision, onSelect: id => inspect("asset-library", id) })}>{help.workspaceCopy40}</button>}<button onClick={reviewRelease}>{help.workspaceCopy41}</button></>} preview={presentation}>
         {row ? <><WorkshopSection id="workshop-details" title={domain === "asset-library" ? "Asset details" : "Record details"}><Validation guide={guide} validation={state.validation} domain={domain} id={row.id} />
           {domain === "asset-library" ? <><p>{row.description || row.source}</p>{row.mediaType?.startsWith("image/") ? <PrivateImage src={row.path} alt={contentName(row)} className="admin-art-preview" /> : <PrivateAudio src={row.path} label={contentName(row)} />}<WorkshopFacts values={{ "File type": row.mediaType, Version: row.version || help.workspaceCopy42, Dimensions: row.width ? row.width + " × " + row.height : "Not recorded", Availability: row.archived ? help.workspaceCopy43 : row.stage || "Available" }} /></> : !Object.keys(fields).length && <p>{guide.readOnly}</p>}
           {Object.keys(fields).map(renderField)}
-          {domain === "sets" && <EditionPrintings state={state} setId={row.id} onInspect={inspect} />}
+          {domain === "sets" && <><button disabled={busy || unsaved} onClick={()=>beginCreation({domain:"cards",defaults:{setId:row.id}})}>{help.creativeGauntletAuthoring2}</button><EditionPrintings state={state} setId={row.id} onInspect={inspect} /></>}
           </WorkshopSection><details className="admin-json"><summary>{help.workspaceCopy44}</summary><code>{row.id}</code><p className="admin-note">{help.workspaceCopy45}{catalog?.domains[domain]?.find(entry => entry.id === row.id)?.source || help.workspaceCopy46}{help.workspaceCopy47}{state.revision}</p><p className="admin-note">{guide.engineHelp}</p><pre>{JSON.stringify(Object.fromEntries(Object.entries(row).filter(([key]) => !Object.hasOwn(fields, key))), null, 2)}</pre></details>
         </> : <div className="admin-empty"><h4>{help.workspaceCopy48}</h4><p>{help.workspaceChooseContent}</p></div>}
-      {domain === "assets" && <details className="admin-json"><summary>{help.workspaceCopy49}{state.live.engine.assetManifestVersion}</summary><pre>{JSON.stringify((state.assetLibrary || []).filter((asset) => asset.source === row?.art || asset.id === row?.art || asset.path === row?.art), null, 2)}</pre></details>}
-      {row && !["sets", "assets", "asset-library"].includes(domain) && <details className="admin-editor-test"><summary>{help.workspaceCopy50}</summary>{playtest}</details>}{row && relationships && <WorkshopSection title="Related content" id="workshop-related"><RelatedContent data={relationships} domain={domain} id={row.id} onInspect={inspect} /></WorkshopSection>}
+      {domain === "assets" && <Json title={<>{help.workspaceCopy49}{state.live.engine.assetManifestVersion}</>} value={(state.assetLibrary || []).filter((asset) => asset.source === row?.art || asset.id === row?.art || asset.path === row?.art)} className="admin-json" />}
+      {row && domain === "campaigns" && <CampaignChapters campaign={row} snapshot={snapshot} assets={state.assetLibrary} busy={busy || unsaved} onInspect={inspect} onCreate={beginCreation} onReorder={ids=>act("reorder-encounters",{campaignId:row.id,ids})}/>}{row && !["sets", "assets", "asset-library"].includes(domain) && <details className="admin-editor-test"><summary>{help.workspaceCopy50}</summary>{playtest}</details>}{row && relationships && <WorkshopSection title="Related content" id="workshop-related"><RelatedContent data={relationships} domain={domain} id={row.id} onInspect={inspect} /></WorkshopSection>}
       {preview && !row && <p className="admin-good">{guide.previewSelection}</p>}
       </WorkshopShell>
       </>}
     </>}
-    {domain === "encounters" && row && relationships && area !== "Publishing" && <RelatedContent data={relationships} domain={domain} id={row.id} onInspect={inspect} />}
-    <div className="admin-shared-draft-tools">    <div className="admin-draft-bar"><div><strong>{state.draft ? `${changeCount} saved field change${changeCount === 1 ? "" : "s"}` : state.liveOnly ? help.workspaceCopy51 : help.workspaceCopy52}</strong><p className="admin-note">{unsaved ? help.workspaceUnsavedPreview : help.workspaceDraftBoundary}</p></div><div className="admin-actions" hidden={!state.draft}><button disabled={busy || unsaved || !state.draft || !state.writable} onClick={() => act("validate")}>{help.workspaceCopy53}</button><button disabled={busy || unsaved || !state.draft || !state.validation.valid || !state.writable} onClick={() => act("preview")}>{help.workspaceCopy54}</button></div></div>
-    <details id="admin-validation" tabIndex={-1} className="admin-json admin-global-validation" open={!state.validation.valid} hidden={area !== "Publishing" && !state.draft && state.validation.valid}><summary>{help.workspaceCopy55}{state.validation.errors.length} errors · {state.validation.warnings.length} warnings</summary><Validation guide={guide} validation={state.validation} onInspect={inspectIssue} /></details></div>
-    {confirm && <section ref={confirmationRef} tabIndex={-1} className="admin-confirm" aria-label={help.workspaceCopy56}><h4>{confirm.action === "publish" ? `Publish ${confirm.label}?` : confirm.action === "rollback" ? `Restore ${confirm.label}?` : confirm.action === "cancel-publication" ? "Cancel this publication?" : "Discard the shared draft?"}</h4><p>{confirm.action === "cancel-publication" ? guide.cancelHelp : confirm.action === "discard" ? guide.discardHelp : guide.publishHelp}</p><div className="admin-actions"><button disabled={busy} onClick={async () => { if (await act(confirm.action, confirm)) { if (confirm.action === "discard") setBuffers({}); } }}>Confirm {confirm.action}</button><button disabled={busy} onClick={() => setConfirm(null)}>Cancel</button></div></section>}
+    {area!=="Publishing" && <p className="admin-note">{state.draft?`${state.changes.length} saved change${state.changes.length===1?"":"s"} in the shared draft`:state.liveOnly?help.workspaceCopy51:"Published content"}</p>}
+    {confirm && <section ref={confirmationRef} tabIndex={-1} className="admin-confirm" aria-label={help.workspaceCopy56}><h4>{confirm.action === "publish" ? `Publish ${confirm.label}?` : confirm.action === "rollback" ? `Restore ${confirm.label}?` : confirm.action === "cancel-publication" ? "Cancel this publication?" : help.creativeGauntletAuthoring3}</h4><p>{confirm.action === "cancel-publication" ? guide.cancelHelp : confirm.action === "discard" ? guide.discardHelp : guide.publishHelp}</p><div className="admin-actions"><button disabled={busy} onClick={async () => { if (await act(confirm.action, confirm)) { if (confirm.action === "discard") setBuffers({}); } }}>Confirm {confirm.action}</button><button disabled={busy} onClick={() => setConfirm(null)}>Cancel</button></div></section>}
   </EditorSessionContext.Provider></PrivateAssetProvider></HelpProvider>;
 }

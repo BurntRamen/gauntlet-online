@@ -10,6 +10,7 @@ import { getFactionArtwork, getFactionCover, getFactionAsset, resolveVisualAsset
 import { getDeckFeaturedArt } from "../contentArt";
 import { MENU_SCENES, STANDARD_DECK_ART, TUTORIAL_ART } from "./menuArtwork";
 import "./PlayerMenus.css";
+import {WebsitePresentationContext, useWebsitePresentation} from "./WebsitePresentation";
 
 function ActionDirectory({ title, items }) {
   return <details className="cd-directory"><summary>All {title} actions</summary><div className="cd-row">
@@ -18,7 +19,8 @@ function ActionDirectory({ title, items }) {
 }
 
 function Tiles({ pageId, items, utilities = [] }) {
-  const modules = items.map((item) => ({ id: item.id, label: item.title, content: <ActionTile {...item} /> }));
+  const visuals=useWebsitePresentation()?.pages?.[pageId]?.visuals?.tiles;
+  const modules = items.map((item) => ({ id: item.id, label: item.title, content: <ActionTile {...item} {...visuals?.[item.id]} /> }));
   return <>
     <LayoutGrid pageId={pageId} items={[...modules, ...utilities]} className="cd-grid" />
     <ActionDirectory title={getDestination(pageId).label.toLowerCase()} items={items} />
@@ -73,7 +75,7 @@ function RankedSetup({ account, content, status, onJoin, onLeave, onProfile, onE
     {status.message && <p role="status">{status.message}</p>}
     <div className="cd-row">{status.inQueue ? <button type="button" onClick={onLeave}>Leave Queue</button> : <button type="button" className="cd-button-primary" disabled={!account || busy || (selections.format === "factions" && !selectedFaction)} onClick={findMatch}>{busy ? "Preparing deck…" : "Find Ranked Match"}</button>}
       {!account && <button type="button" onClick={onProfile}>Sign in / Create Account</button>}</div>
-  </section><aside className="cd-panel"><h3>{season?.displayName || "Ranked season"}</h3><p>{season ? `Status: ${season.status}` : "Season information is loading."}</p><p>Matchmaking waits for another signed-in player. It never substitutes a bot.</p><p>BO1 scores each match. BO3 scores the completed series.</p></aside></div>;
+  </section><section className="cd-panel" aria-label="Ranked season"><h3>{season?.displayName || "Ranked season"}</h3><p>{season ? `Status: ${season.status}` : "Season information is loading."}</p><p>Matchmaking waits for another signed-in player. It never substitutes a bot.</p><p>BO1 scores each match. BO3 scores the completed series.</p></section></div>;
 }
 
 function DraftSetup({ view, onNavigate, account, content, actions, status, savedDecks, draftSetId }) {
@@ -107,7 +109,7 @@ function DraftSetup({ view, onNavigate, account, content, actions, status, saved
   </>;
 }
 
-export default function PlayerMenus({ serverUrl, route, onNavigate, account, ownerAuthorized, content, actions, state, slots, workflow, audioMuted, onToggleAudio }) {
+export default function PlayerMenus({ embedded = false, serverUrl, route, onNavigate, account, ownerAuthorized, content, actions, state, slots, workflow, audioMuted, onToggleAudio }) {
   const { customizationEnabled, editing, setEditing } = usePlayerLayout();
   const { page, view } = route;
   const [rankedSelections, setRankedSelections] = useState({ format: "factions", bestOf: 1, factionId: "", generalId: "", deckId: "" });
@@ -137,11 +139,11 @@ export default function PlayerMenus({ serverUrl, route, onNavigate, account, own
   ];
   let body;
   if (workflow) body = workflow;
-  else if (page === "play" && view === "tables") body = <SetupFrame {...getModePresentation("freeForAll", content.modeMetadata, { title: "Private Tables", description: "Create a private room or enter an invitation code." })} onBack={() => nav("play")} backLabel="Back to Play">
+  else if (page === "play" && view === "tables") body = <SetupFrame autoFocus={!embedded} {...getModePresentation("freeForAll", content.modeMetadata, { title: "Private Tables", description: "Create a private room or enter an invitation code." })} onBack={() => nav("play")} backLabel="Back to Play">
     <div className="cd-grid"><ActionTile title="Create Duel" description="Two players. Choose Classic or Factions in the lobby." outcome="Create room" onClick={actions.createDuel} /><ActionTile title="Create Free-for-All" description="The existing multiplayer faction format, for two to four players." outcome="Create multiplayer room" onClick={actions.createFreeForAll} /></div>
     <JoinTable code={actions.roomCode} onCodeChange={actions.setRoomCode} onJoin={actions.joinRoom} pending={actions.pending} />
   </SetupFrame>;
-  else if (page === "play" && view === "practice") body = <SetupFrame {...getModePresentation("practice", content.modeMetadata, { title: "Practice", description: "Start with core rules, or choose a faction in the AI lobby." })} onBack={() => nav("play")}><div className="cd-grid">{playItems.slice(0, 2).map((item) => <ActionTile key={item.id} {...item} />)}</div></SetupFrame>;
+  else if (page === "play" && view === "practice") body = <SetupFrame autoFocus={!embedded} {...getModePresentation("practice", content.modeMetadata, { title: "Practice", description: "Start with core rules, or choose a faction in the AI lobby." })} onBack={() => nav("play")}><div className="cd-grid">{playItems.slice(0, 2).map((item) => <ActionTile key={item.id} {...item} />)}</div></SetupFrame>;
   else if (page === "play") body = <>
     <section className="cd-context has-context-art" aria-label="Suggested next action">{nextActionArt && <span className="cd-context-art" aria-hidden="true"><img src={resolveVisualAsset(nextActionArt)} alt="" decoding="async" draggable={false} /></span>}<div><span className="cd-eyebrow">{state.hasSavedRoom ? "Your table is waiting" : actions.roomCode ? "Table invitation" : state.completedChapters > 0 && state.nextCampaign ? "Continue your story" : "Ready when you are"}</span>
       <h2>{state.hasSavedRoom ? `Resume room ${state.savedRoomCode}` : actions.roomCode ? `Invitation to ${actions.roomCode}` : state.completedChapters > 0 && state.nextCampaign ? state.nextCampaign.chapter.title : "Your first match is one click away."}</h2>
@@ -154,7 +156,7 @@ export default function PlayerMenus({ serverUrl, route, onNavigate, account, own
       { id: "recent-matches", label: "Recent Matches", content: slots.recentMatch || <section className="cd-utility"><div><span>Match records</span><strong>Review your games</strong><small>Results and available replays, including device saves.</small></div><button onClick={() => nav("matches")}>Open Matches</button></section> },
     ]} />
   </>;
-  else if (page === "campaign" && view === "lore") body = slots.lore || <SetupFrame title="Faction Lore" description="Explore the published commanders and their stories." onBack={() => nav("campaign")} backLabel="Back to Campaign">{Object.entries(content.campaigns || {}).map(([id, campaign]) => <article className="cd-panel" key={id}><h3>{campaign.factionName}: {campaign.commanderName}</h3><p>{campaign.pitch}</p><button onClick={() => actions.campaign(id)}>Open {campaign.factionName} story</button></article>)}</SetupFrame>;
+  else if (page === "campaign" && view === "lore") body = slots.lore || <SetupFrame autoFocus={!embedded} title="Faction Lore" description="Explore the published commanders and their stories." onBack={() => nav("campaign")} backLabel="Back to Campaign">{Object.entries(content.campaigns || {}).map(([id, campaign]) => <article className="cd-panel" key={id}><h3>{campaign.factionName}: {campaign.commanderName}</h3><p>{campaign.pitch}</p><button onClick={() => actions.campaign(id)}>Open {campaign.factionName} story</button></article>)}</SetupFrame>;
   else if (page === "campaign") {
     const campaignPresentation = getModePresentation("campaign", content.modeMetadata, { title: state.completedChapters ? "Continue Campaign" : "Choose a Faction", description: "" });
     const items = Object.entries(content.campaigns || {}).map(([id, campaign]) => {
@@ -168,7 +170,7 @@ export default function PlayerMenus({ serverUrl, route, onNavigate, account, own
       <nav className="cd-campaign-references" aria-label="Campaign references"><button type="button" onClick={actions.tutorial}>Open Tutorial</button><button type="button" onClick={() => nav("campaign", "lore")}>Read Faction Lore</button><button type="button" onClick={() => nav("learn", "rulebook")}>Open Rulebook</button></nav>
       <Tiles pageId="campaign" items={items} /></>;
   }
-  else if (page === "decks" && view === "library") body = <SetupFrame title="Draft Deck Library" description="Saved decks, versions, activation, and format restrictions." onBack={() => nav("decks")} backLabel="Back to Decks & Cards">{slots.draftLibrary}</SetupFrame>;
+  else if (page === "decks" && view === "library") body = <SetupFrame autoFocus={!embedded} title="Draft Deck Library" description="Saved decks, versions, activation, and format restrictions." onBack={() => nav("decks")} backLabel="Back to Decks & Cards">{slots.draftLibrary}</SetupFrame>;
   else if (page === "decks") body = <><p className="cd-note">The standard 52-card deck is playable immediately. Faction-card replacements and collector presentation are optional.</p>
     <Tiles pageId="decks" items={[
       action("editor", state.deck ? "Edit Active Deck" : "Create Deck", state.deck?.name || "Build and save a constructed deck.", account ? "Open deck editor" : "Sign in to build", () => actions.collection("decks"), "decks"),
@@ -177,9 +179,9 @@ export default function PlayerMenus({ serverUrl, route, onNavigate, account, own
       action("draft-library", "Draft Deck Library", "Manage saved Live Draft, Bot Draft, and Sealed decks.", "Open saved decks", () => nav("decks", "library"), "draft"),
     ]} /><section className="cd-panel"><h2>Current deck</h2><p>{state.deck ? `${state.deck.name} · ${state.deck.factionName || state.deck.factionId}` : "Standard deck · no custom replacements required"}</p>{!account && <button onClick={profile}>Sign in to save decks and rewards</button>}</section></>;
   else if (page === "draft") body = <DraftSetup view={view} onNavigate={nav} account={account} content={content} actions={actions} status={state.draftQueue} savedDecks={state.savedDraftDecks} draftSetId={state.draftSetId} />;
-  else if (page === "compete" && view === "ranked") body = <SetupFrame {...getModePresentation("ranked", content.modeMetadata, { title: "Ranked Match", description: "Review your setup. Queue only when you choose Find Ranked Match." })} onBack={() => nav("compete")} backLabel="Back to Compete"><RankedSetup account={account} content={content} status={state.ranked} onJoin={actions.joinRanked} onLeave={actions.leaveRanked} onProfile={profile} onEditDeck={() => actions.collection("decks")} deck={state.deck} decks={state.constructedDecks} onActivateDeck={actions.activateDeck} selections={rankedSelections} onSelectionsChange={setRankedSelections} season={state.season} /></SetupFrame>;
-  else if (page === "compete" && ["events", "para"].includes(view)) body = <SetupFrame title={view === "events" ? "Official Events" : "Para League"} description="Published events, eligibility, official runs, and Prestige." onBack={() => nav("compete")} backLabel="Back to Compete">{!account && <button onClick={profile}>Sign in to view eligibility and enter</button>}{slots.events}</SetupFrame>;
-  else if (page === "compete" && view === "standings") body = <SetupFrame title="Standings" description="Actual season results and live ranked tables." onBack={() => nav("compete")} backLabel="Back to Compete">{slots.standings}{slots.liveMatches}</SetupFrame>;
+  else if (page === "compete" && view === "ranked") body = <SetupFrame autoFocus={!embedded} {...getModePresentation("ranked", content.modeMetadata, { title: "Ranked Match", description: "Review your setup. Queue only when you choose Find Ranked Match." })} onBack={() => nav("compete")} backLabel="Back to Compete"><RankedSetup account={account} content={content} status={state.ranked} onJoin={actions.joinRanked} onLeave={actions.leaveRanked} onProfile={profile} onEditDeck={() => actions.collection("decks")} deck={state.deck} decks={state.constructedDecks} onActivateDeck={actions.activateDeck} selections={rankedSelections} onSelectionsChange={setRankedSelections} season={state.season} /></SetupFrame>;
+  else if (page === "compete" && ["events", "para"].includes(view)) body = <SetupFrame autoFocus={!embedded} title={view === "events" ? "Official Events" : "Para League"} description="Published events, eligibility, official runs, and Prestige." onBack={() => nav("compete")} backLabel="Back to Compete">{!account && <button onClick={profile}>Sign in to view eligibility and enter</button>}{slots.events}</SetupFrame>;
+  else if (page === "compete" && view === "standings") body = <SetupFrame autoFocus={!embedded} title="Standings" description="Actual season results and live ranked tables." onBack={() => nav("compete")} backLabel="Back to Compete">{slots.standings}{slots.liveMatches}</SetupFrame>;
   else if (page === "compete") body = <><p className="cd-note">{account ? `Signed in as ${account.name}. Official event eligibility is checked by the server.` : "Sign in to enter ranked queues and official events. Standings are public."}</p><Tiles pageId="compete" items={[
     action("ranked", "Ranked", "Choose your setup and search for an opponent.", "Open ranked setup", () => nav("compete", "ranked"), "compete"),
     action("events", "Events", "See published events, schedules, and eligibility.", "Browse official events", () => nav("compete", "events"), "compete"),
@@ -201,8 +203,8 @@ export default function PlayerMenus({ serverUrl, route, onNavigate, account, own
     <nav className="cd-format-nav" aria-label="Community actions">{["friends", "challenges", "messages", "invitations"].map((name) => <button key={name} aria-current={view === name ? "page" : undefined} onClick={() => nav("community", name)}>{name[0].toUpperCase() + name.slice(1)}</button>)}</nav>
     {!account && <button onClick={profile}>Sign in to use Community</button>}{slots.community}
   </>;
-  else if (page === "learn" && view === "rulebook") body = <SetupFrame title="Rulebook" description="Complete rules reference." onBack={() => nav("learn")} backLabel="Back to Learn & Rules">{slots.rulebook}</SetupFrame>;
-  else if (page === "learn" && view === "formats") body = <SetupFrame title="Format Guide" description="Choose the kind of game you want to play." onBack={() => nav("learn")} backLabel="Back to Learn & Rules"><div className="cd-reference-grid">{playItems.map((item) => <article className="cd-panel" key={item.id}><h3>{item.title}</h3><p>{item.description}</p><button onClick={item.onClick}>{item.outcome}</button></article>)}</div></SetupFrame>;
+  else if (page === "learn" && view === "rulebook") body = <SetupFrame autoFocus={!embedded} title="Rulebook" description="Complete rules reference." onBack={() => nav("learn")} backLabel="Back to Learn & Rules">{slots.rulebook}</SetupFrame>;
+  else if (page === "learn" && view === "formats") body = <SetupFrame autoFocus={!embedded} title="Format Guide" description="Choose the kind of game you want to play." onBack={() => nav("learn")} backLabel="Back to Learn & Rules"><div className="cd-reference-grid">{playItems.map((item) => <article className="cd-panel" key={item.id}><h3>{item.title}</h3><p>{item.description}</p><button onClick={item.onClick}>{item.outcome}</button></article>)}</div></SetupFrame>;
   else if (page === "learn") body = <Tiles pageId="learn" items={[
     action("tutorial", "Tutorial", "Learn priority, attacking, defending, and lanes.", "Read the guided tutorial", actions.tutorial, "learn"),
     action("rulebook", "Rulebook", "The complete rules, ready to reference.", "Open rulebook", () => nav("learn", "rulebook"), "learn"),
@@ -210,15 +212,15 @@ export default function PlayerMenus({ serverUrl, route, onNavigate, account, own
     action("formats", "Format Guide", "Understand solo, multiplayer, and limited play.", "Compare game formats", () => nav("learn", "formats"), "learn"),
     action("lore", "Faction Lore", "Stories from every published campaign.", "Read faction stories", () => nav("campaign", "lore"), "campaign"),
   ]} />;
-  else if (page === "profile" && view === "record") body = <SetupFrame title="Competitive Record" description="Your public account record and completed matches." onBack={profile} backLabel="Back to Profile">{slots.record}</SetupFrame>;
-  else if (page === "profile" && view === "library") body = <SetupFrame title="Gold & Library" description="Your existing balances, entitlements, and library." onBack={profile} backLabel="Back to Profile">{slots.economy}</SetupFrame>;
+  else if (page === "profile" && view === "record") body = <SetupFrame autoFocus={!embedded} title="Competitive Record" description="Your public account record and completed matches." onBack={profile} backLabel="Back to Profile">{slots.record}</SetupFrame>;
+  else if (page === "profile" && view === "library") body = <SetupFrame autoFocus={!embedded} title="Gold & Library" description="Your existing balances, entitlements, and library." onBack={profile} backLabel="Back to Profile">{slots.economy}</SetupFrame>;
   else if (page === "profile") body = <>
     {slots.profileIdentity || <section className="cd-panel"><h2>{account?.name || "Guest player"}</h2><p>{account ? "Your progress and personal style." : "Play as a guest, or sign in to save your progress."}</p></section>}
     <div className={`cd-profile-dashboard${account ? "" : " is-guest"}`}><div className="cd-profile-shortcuts"><Tiles pageId="profile" items={[
       action("record", "Competitive Record", "Wins, losses, and match history.", "View player record", () => nav("profile", "record"), "matches"),
       action("library", "Gold & Library", "Balances and existing earned entitlements.", "Open account library", () => nav("profile", "library"), "decks"),
     ]} />{slots.profileExtras}</div>
-    <aside className="cd-profile-account" aria-label="Account and preferences">{slots.account}{customizationEnabled && <details className="cd-profile-layouts"><summary>Customize menu layouts</summary><PageLayoutSettings /></details>}</aside></div>
+    <aside role={embedded ? "presentation" : undefined} className="cd-profile-account" aria-label="Account and preferences">{slots.account}{customizationEnabled && <details className="cd-profile-layouts"><summary>Customize menu layouts</summary><PageLayoutSettings /></details>}</aside></div>
   </>;
   else if (page === "settings") body = <><BrandChoice />{slots.settings}</>;
 
@@ -229,11 +231,12 @@ export default function PlayerMenus({ serverUrl, route, onNavigate, account, own
     {state.hasSavedRoom && !(page === "play" && !view && !workflow) && <section className="cd-notice" aria-label="Saved match recovery"><span>Saved room {state.savedRoomCode}</span><button onClick={actions.resume}>Resume Match</button></section>}
     {actions.roomCode && !(page === "play" && view === "tables" && !workflow) && !(page === "play" && !view && !workflow && !state.hasSavedRoom) && <section className="cd-notice" aria-label="Room invitation"><span>Room invitation: {actions.roomCode}</span><button onClick={() => nav("play", "tables")}>Open Invitation</button></section>}
   </>;
-  return <PlayerShell serverUrl={serverUrl} destination={page} navigationKey={`${page}:${view}:${workflow ? "workflow" : "landing"}`} onNavigate={nav} account={account} ownerAuthorized={ownerAuthorized} onAdmin={() => nav("studio")}
+  return <WebsitePresentationContext.Provider value={content.websitePresentation}><PlayerShell embedded={embedded} serverUrl={serverUrl} destination={page} navigationKey={`${page}:${view}:${workflow ? "workflow" : "landing"}`} onNavigate={nav} account={account} ownerAuthorized={ownerAuthorized} onAdmin={() => nav("studio")}
     audioMuted={audioMuted} onToggleAudio={onToggleAudio}
     pageTitle={page === "draft" ? draftPresentation.title : content.websiteProse?.[page]?.title} pageDescription={page === "draft" ? draftPresentation.description : content.websiteProse?.[page]?.description}
+    pageImage={content.websiteProse?.[page]?.image}
     pageEyebrow={page === "draft" ? draftPresentation.eyebrow : undefined} pageDetail={page === "draft" ? draftPresentation.detail : undefined}
     onCustomize={() => setEditing(true)} customizable={customizable} editing={editing} onDoneEditing={() => setEditing(false)} notices={notices}>
     <div className={focused ? "cd-focused-workflow" : "cd-landing"}>{body}</div>
-  </PlayerShell>;
+  </PlayerShell></WebsitePresentationContext.Provider>;
 }

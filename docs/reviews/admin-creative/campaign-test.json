@@ -1,0 +1,103 @@
+{
+  "encounter": {
+    "id": "auth-encounter-79d3f4b3-2926-4f80-ac67-e2a1f218570b",
+    "origin": "admin-encounter-v1",
+    "campaignId": "rumin",
+    "factionId": "rumin",
+    "deckId": "standard",
+    "opponentId": "auth-encounter-79d3f4b3-2926-4f80-ac67-e2a1f218570b:opponent",
+    "nextEncounterId": null,
+    "branches": [],
+    "title": "The Emberwatch gate",
+    "story": "At the gate, a sentinel tests the commander’s resolve.",
+    "playableName": "Rolmus",
+    "beforeBattle": "",
+    "afterBattle": "",
+    "image": "image-version-16dfce2f-daeb-4aaf-9992-2a304c60fd00",
+    "dialogue": [
+      "Sentinel: Show me what you have learned."
+    ],
+    "endDialogue": [],
+    "dialogueAudio": [],
+    "endDialogueAudio": [],
+    "setup": {
+      "version": 1,
+      "bossLife": 28,
+      "attacksPerTurn": 1,
+      "minAttackValue": 2,
+      "maxAttackValue": 5,
+      "chapterNumber": 1,
+      "bossAbility": {
+        "id": "first-strike",
+        "title": "Fortified Claim",
+        "text": "The boss's first scripted attack each turn gets +1 value.",
+        "tier": 1,
+        "name": "Fortified Claim"
+      },
+      "playerAdditions": [
+        "rumin-gilded-scale-legionary"
+      ],
+      "bossAdditions": [],
+      "attackTiming": "clear-priority",
+      "winRoute": "first-uncompleted",
+      "lossRoute": "retry"
+    },
+    "opponentDeckId": "",
+    "ruleModifierId": "",
+    "aiProfile": "support-first",
+    "status": "active",
+    "order": 1
+  },
+  "duplicate": {
+    "id": "auth-encounter-946a8162-ac23-468b-9d1f-20d3d3359229",
+    "origin": "admin-encounter-v1",
+    "campaignId": "rumin",
+    "factionId": "rumin",
+    "deckId": "standard",
+    "opponentId": "auth-encounter-946a8162-ac23-468b-9d1f-20d3d3359229:opponent",
+    "nextEncounterId": null,
+    "branches": [],
+    "title": "The return to Emberwatch",
+    "story": "At the gate, a sentinel tests the commander’s resolve.",
+    "playableName": "Rolmus",
+    "beforeBattle": "",
+    "afterBattle": "",
+    "image": "image-version-16dfce2f-daeb-4aaf-9992-2a304c60fd00",
+    "dialogue": [
+      "Sentinel: Show me what you have learned."
+    ],
+    "endDialogue": [],
+    "dialogueAudio": [],
+    "endDialogueAudio": [],
+    "setup": {
+      "version": 1,
+      "bossLife": 28,
+      "attacksPerTurn": 1,
+      "minAttackValue": 2,
+      "maxAttackValue": 5,
+      "chapterNumber": 1,
+      "bossAbility": {
+        "id": "first-strike",
+        "title": "Fortified Claim",
+        "text": "The boss's first scripted attack each turn gets +1 value.",
+        "tier": 1,
+        "name": "Fortified Claim"
+      },
+      "playerAdditions": [
+        "rumin-gilded-scale-legionary"
+      ],
+      "bossAdditions": [],
+      "attackTiming": "clear-priority",
+      "winRoute": "first-uncompleted",
+      "lossRoute": "retry"
+    },
+    "opponentDeckId": "",
+    "ruleModifierId": "",
+    "aiProfile": "support-first",
+    "status": "active",
+    "order": 2
+  },
+  "hash": "adc5cf95f01a397a31f0c793659e38370976971a2702dc5dc24b41ae91349f8d",
+  "tested": "adc5cf95f01a397a31f0c793659e38370976971a2702dc5dc24b41ae91349f8d",
+  "gameLife": 28
+}

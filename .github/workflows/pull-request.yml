@@ -10,8 +10,18 @@ permissions:
   contents: read
 
 jobs:
-  check:
+  player-journeys:
+    name: Player release journeys · ${{ matrix.suite }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - suite: experience
+          - suite: matches-1
+            shard: 1
+          - suite: matches-2
+            shard: 2
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -35,18 +45,6 @@ jobs:
       - name: Install client dependencies
         run: npm --prefix client ci
 
-      - name: Check server syntax
-        run: npm run check:server
-
-      - name: Test server rules
-        run: npm run test:server
-
-      - name: Test client behavior
-        run: npm run test:client
-
-      - name: Test build configuration and development server boundaries
-        run: npm --prefix client run test:toolchain
-
       - name: Verify approved SuitFire art, exact mappings and retained originals
         run: npm run check:suitfire-art
 
@@ -60,39 +58,49 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Test paid support zones on desktop, phone and React fallback
-        run: npm run test:e2e:support
+        if: ${{ !cancelled() && matrix.suite == 'experience' }}
+        run: npm run test:e2e:support -- --output=test-results/support
 
       - name: Test draft entry, picks, reconnects and deck saving
-        run: npx playwright test --config=playwright.draft.config.js
+        if: ${{ !cancelled() && matrix.suite == 'experience' }}
+        run: npx playwright test --config=playwright.draft.config.js --output=test-results/draft
 
       - name: Test deck workshop and pack reveals
-        run: npm run test:e2e:workshop
+        if: ${{ !cancelled() && matrix.suite == 'experience' }}
+        run: npm run test:e2e:workshop -- --output=test-results/workshop
 
       - name: Test collector version selection and table foil
-        run: npx playwright test --config=playwright.collector.config.js
+        if: ${{ !cancelled() && matrix.suite == 'experience' }}
+        run: npx playwright test --config=playwright.collector.config.js --output=test-results/collector
 
       - name: Check browser usability
-        run: npm run test:e2e:usability
+        if: ${{ !cancelled() && matrix.suite == 'experience' }}
+        run: npm run test:e2e:usability -- --output=test-results/usability
 
       - name: Test Command Deck navigation and account layouts
-        run: npm run test:e2e:command-deck
+        if: ${{ !cancelled() && matrix.suite == 'experience' }}
+        run: npm run test:e2e:command-deck -- --output=test-results/command-deck
 
       - name: Test released menus with customization disabled
-        run: npm run test:e2e:release-menus
+        if: ${{ !cancelled() && matrix.suite == 'experience' }}
+        run: npm run test:e2e:release-menus -- --output=test-results/release-menus
 
       - name: Test optional SuitFire presentation on desktop and phone
+        if: ${{ !cancelled() && matrix.suite == 'experience' }}
         run: |
-          npx playwright test --config=playwright.suitfire.config.js
+          npx playwright test --config=playwright.suitfire.config.js --output=test-results/suitfire
           npm run check:bundle
 
       - name: Check compiled Babylon performance safeguards
-        run: npm run test:e2e:performance
+        if: ${{ !cancelled() && matrix.suite == 'experience' }}
+        run: npm run test:e2e:performance -- --output=test-results/performance
 
       - name: Test live Babylon browser flows
-        run: npm run test:e2e
+        if: matrix.suite != 'experience'
+        run: npm run test:e2e -- --shard=${{ matrix.shard }}/2
 
       - name: Upload Babylon performance report
-        if: always()
+        if: always() && matrix.suite == 'experience'
         uses: actions/upload-artifact@v4
         with:
           name: babylon-performance-report
@@ -104,14 +112,73 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: browser-failure-diagnostics
+          name: browser-failure-diagnostics-${{ matrix.suite }}
           path: test-results/
           if-no-files-found: ignore
           retention-days: 7
 
-  admin-release:
-    name: Admin release journeys
+  unit-checks:
+    name: Unit verification · ${{ matrix.suite }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [server, client]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            server/package-lock.json
+            client/package-lock.json
+      - name: Install locked dependencies
+        run: |
+          npm ci
+          npm --prefix server ci
+          npm --prefix client ci
+      - name: Check server syntax and rules
+        if: matrix.suite == 'server'
+        run: |
+          npm run check:server
+          npm run test:server
+      - name: Test client behavior and development boundaries
+        if: matrix.suite == 'client'
+        run: |
+          npm run test:client
+          npm --prefix client run test:toolchain
+      - name: Test engine tooling and qualification gates
+        if: matrix.suite == 'client'
+        run: npm run test:qualification
+
+  check:
+    name: check
+    needs: [unit-checks, player-journeys]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require all unit and player checks
+        env:
+          UNIT_RESULT: ${{ needs.unit-checks.result }}
+          PLAYER_RESULT: ${{ needs.player-journeys.result }}
+        run: |
+          test "$UNIT_RESULT" = success
+          test "$PLAYER_RESULT" = success
+
+  admin-journeys:
+    name: Admin journeys · ${{ matrix.suite }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [core, assets, authoring, navigation, creative]
+    env:
+      GAUNTLET_ADMIN_USE_BUILD: 'true'
+      GAUNTLET_ADMIN_FIXTURE_PORT: '4117'
+      GAUNTLET_ADMIN_CLIENT_PORT: '3117'
+      GAUNTLET_ADMIN_EVIDENCE_DIR: '../artifacts/admin-refinement-regression'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -129,35 +196,54 @@ jobs:
           npm --prefix client ci
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
-      - name: Test private Admin and build its compiled client
-        run: npm run test:e2e:admin
+      - name: Build client for the isolated Admin service
+        env:
+          REACT_APP_SOCKET_URL: 'http://127.0.0.1:4117'
+        run: npm run build:client
+      - name: Test private Admin
+        if: matrix.suite == 'core'
+        run: npm run test:e2e:admin -- --reporter=line
       - name: Test immutable assets and printing releases
+        if: matrix.suite == 'assets'
         run: npx playwright test --config=playwright.printings.config.js
       - name: Test authored deck purchase and restart journey
+        if: matrix.suite == 'assets'
         run: npx playwright test --config=playwright.purpose.config.js
       - name: Test authored mechanics, campaigns, cosmetics and payment readiness
+        if: matrix.suite == 'authoring'
         run: npx playwright test --config=playwright.phase2.config.js
       - name: Test resumable production paths, website prose and audited player repairs
-        env:
-          GAUNTLET_ADMIN_USE_BUILD: 'true'
-        run: npx playwright test --config=playwright.production.config.js
+        if: ${{ !cancelled() && matrix.suite == 'authoring' }}
+        run: npx playwright test --config=playwright.production.config.js --output=test-results/production
       - name: Test separate Gems and atomic split-price purchases
+        if: matrix.suite == 'assets'
         run: npx playwright test --config=playwright.gems.config.js
       - name: Test Admin refinement, accessibility and exact-revision review
-        env:
-          GAUNTLET_ADMIN_USE_BUILD: 'true'
-          GAUNTLET_ADMIN_FIXTURE_PORT: '4117'
-          GAUNTLET_ADMIN_CLIENT_PORT: '3117'
-          GAUNTLET_ADMIN_EVIDENCE_DIR: '../artifacts/admin-refinement-regression'
-        run: |
-          npx playwright test --config=playwright.admin-redesign.config.js
-          npx playwright test --config=playwright.admin-refinement.config.js
-          npx playwright test --config=playwright.admin-pipelines.config.js
+        if: matrix.suite == 'navigation'
+        run: npx playwright test --config=playwright.admin-redesign.config.js --output=test-results/redesign
+      - name: Test focused editor refinement
+        if: ${{ !cancelled() && matrix.suite == 'navigation' }}
+        run: npx playwright test --config=playwright.admin-refinement.config.js --output=test-results/refinement
+      - name: Test authoring pipelines
+        if: ${{ !cancelled() && matrix.suite == 'navigation' }}
+        run: npx playwright test --config=playwright.admin-pipelines.config.js --output=test-results/pipelines
+      - name: Test studio entry, website and season eligibility
+        if: ${{ !cancelled() && matrix.suite == 'navigation' }}
+        run: npx playwright test --config=playwright.admin-studio.config.js --grep "Home stays|website artwork|phone website|season eligibility" --output=test-results/studio
+      - name: Test corrected editors, visual guidance and creative acceptance journeys
+        if: matrix.suite == 'creative'
+        run: npx playwright test --config=playwright.admin-correction.config.js --output=test-results/correction
+      - name: Test visual operator guidance
+        if: ${{ !cancelled() && matrix.suite == 'creative' }}
+        run: npx playwright test --config=playwright.admin-guidance.config.js --output=test-results/guidance
+      - name: Test creative acceptance journeys
+        if: ${{ !cancelled() && matrix.suite == 'creative' }}
+        run: npx playwright test --config=playwright.admin-creative.config.js --output=test-results/creative
       - name: Upload failed Admin diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: admin-release-diagnostics
+          name: admin-release-diagnostics-${{ matrix.suite }}
           path: |
             test-results/
             artifacts/immutable-assets/
@@ -166,9 +252,30 @@ jobs:
             artifacts/admin-refinement-regression/
             artifacts/admin-pipeline-*.png
             artifacts/admin-pipelines-results.json
+            artifacts/admin-studio-results.json
+            artifacts/admin-correction-results.json
+            artifacts/admin-guidance-results.json
+            artifacts/admin-creative-results.json
+            docs/reviews/admin-creative/
+            artifacts/admin-guidance-zoom.log
+            docs/reviews/admin-guidance/
+            docs/reviews/admin-correction/after/
+            docs/reviews/admin-correction/after-activities/
+            docs/reviews/admin-correction/native-zoom/
             docs/reviews/admin-refinement/after/
           if-no-files-found: ignore
           retention-days: 7
+
+  admin-release:
+    name: Admin release journeys
+    needs: admin-journeys
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every isolated Admin journey group
+        env:
+          ADMIN_JOURNEYS_RESULT: ${{ needs.admin-journeys.result }}
+        run: test "$ADMIN_JOURNEYS_RESULT" = success
 
   dependency-audit:
     name: Release dependency audit

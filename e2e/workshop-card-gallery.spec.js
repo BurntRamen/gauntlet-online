@@ -126,7 +126,7 @@ test("neutral cards keep their own faction in every workshop view and keyword de
   const rank = ({ 11: "J", 12: "Q", 13: "K", 14: "A" })[card.value] || String(card.value);
   const slot = `${rank} of ${card.suit}`;
   await page.getByRole("button", { name: `${slot} — Standard playing card`, exact: true }).click();
-  const matching = page.locator(".deck-candidate");
+  const matching = page.locator(".deck-candidate").filter({ has: page.getByRole("button", { name: `Preview ${card.name}`, exact: true }) });
   await expect(matching.locator(".deck-card-faction")).toHaveText("Neutral");
   await matching.getByRole("button", { name: `Preview ${card.name}`, exact: true }).click();
   await expect(page.locator(".deck-preview-copy .deck-card-faction")).toHaveText("Neutral");
