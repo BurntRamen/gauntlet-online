@@ -428,3 +428,14 @@ test("entering and leaving a focused workflow moves keyboard focus to the new he
   rerenderRoute("compete", "ranked");
   expect(screen.getByRole("heading", { name: "Ranked Match" })).toHaveFocus();
 });
+
+test("embedded workflow previews leave focus in the editor when mounting and updating copy", () => {
+  const props = createProps({ embedded: true, route: { page: "play", view: "practice" } });
+  const view = title => <><input aria-label="Draft page heading" autoFocus /><PlayerLayoutProvider><PlayerMenus {...props} content={{ ...props.content, modeMetadata: { practice: { heroTitle: title } } }} /></PlayerLayoutProvider></>;
+  const { rerender } = render(view("First heading"));
+  expect(screen.getByRole("heading", { name: "First heading" })).toBeVisible();
+  expect(screen.getByLabelText("Draft page heading")).toHaveFocus();
+  rerender(view("Edited heading"));
+  expect(screen.getByRole("heading", { name: "Edited heading" })).toBeVisible();
+  expect(screen.getByLabelText("Draft page heading")).toHaveFocus();
+});

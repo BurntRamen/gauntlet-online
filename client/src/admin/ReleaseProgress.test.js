@@ -27,3 +27,9 @@ test("mechanical evidence is required independently of a saved presentation prev
   expect(result.reason).toContain("accepted engine action");
   expect(result.ready).toBe(false);
 });
+
+test('next action follows only the exact saved revision evidence',()=>{
+ for(const [patch,next] of [[{validated:false},'validate'],[{previewed:false},'preview'],[{engineTested:false},'test'],[{},'publish']]) expect(releaseProgress(state,{...receipt,readiness:{...receipt.readiness,...patch}}).next).toBe(next);
+ expect(releaseProgress(state,{...receipt,hash:'stale'}).next).toBeNull();
+ expect(releaseProgress({...state,pending:{phase:'deploying'}},receipt).next).toBeNull();
+});

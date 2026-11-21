@@ -3,6 +3,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
+const { pathToFileURL } = require("node:url");
 const {
   createPlayerLayoutStore,
   emptyLayoutPreferences,
@@ -41,7 +42,11 @@ const preferences = (order = ["ranked", "basic-ai"], hidden = ["recent-matches"]
 });
 
 test("client and server share the same optional module contract, including published campaign factions", async () => {
-  const source = fs.readFileSync(path.join(__dirname, "../../client/src/navigation/layoutRegistry.js"), "utf8");
+  // A data-URL module has no directory for the browser bundler's JSON import.
+  // Resolve that same authoritative file for Node; execute the actual client code.
+  const registry = pathToFileURL(path.join(__dirname, "../../shared/websiteSections.json"));
+  const source = fs.readFileSync(path.join(__dirname, "../../client/src/navigation/layoutRegistry.js"), "utf8")
+    .replace("from '../../../shared/websiteSections.json';", `from '${registry.href}' with { type: "json" };`);
   const client = await import(`data:text/javascript;base64,${Buffer.from(source).toString("base64")}`);
   const { layoutModuleAllowlist } = require("../playerLayouts");
   client.registerCampaignLayoutModules(["rumin", "new-faction", "rumin", "NOT-VALID", "unsafe/id"]);

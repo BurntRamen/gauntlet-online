@@ -236,5 +236,95 @@
   "playtestCopy20": "Chronological evidence · ",
   "playtestCopy21": " recorded events",
   "playtestCopy22": "Not recorded",
-  "playtestCopy23": "Show all recorded events"
+  "playtestCopy23": "Show all recorded events",
+  "journey": {
+    "label": "Your next step",
+    "next": "Continue to",
+    "preview": "Check the preview",
+    "review": "Review saved changes",
+    "saveAction": "Go to save controls",
+    "fixAction": "Fix this field",
+    "choose": [
+      "Choose a record",
+      "Search or select an item to edit it. Use Create to start something new."
+    ],
+    "create": [
+      "Start with the essentials",
+      "Complete the creation form and check the preview, then save. You can refine the details afterwards."
+    ],
+    "edit": [
+      "Make it yours",
+      "Make your changes here. Nothing reaches players until you save, review and publish."
+    ],
+    "saved": [
+      "Shared draft available",
+      "Continue editing or review the saved changes together. The shared draft is not live yet."
+    ],
+    "save": [
+      "Save your changes",
+      "Your edits are still in this browser. Finish the required fields, then save them to the shared draft."
+    ],
+    "blocked": [
+      "Resolve this before continuing",
+      "Follow the message above. Your local edits are kept while you resolve the conflict or connection."
+    ],
+    "fix": [
+      "This record needs attention",
+      "Open the highlighted field, correct it and save again."
+    ],
+    "sections": {
+      "identity": "Edit the name and printed wording. Artwork changes the look; Mechanics changes what the card does.",
+      "artwork": "Choose a printing or image and check the actual card preview. Save artwork changes before moving to another record.",
+      "mechanics": "Choose what happens in game, then save and use Test to check the behavior.",
+      "test": "Choose Live to inspect published behavior, or Saved draft to test saved changes. Start the test and perform a game action; only Saved draft evidence counts toward release.",
+      "composition": "Choose the cards and printings in this deck, then check its legality before testing.",
+      "story": "Write what the player sees before and after the encounter. Continue to the setup to define the battle.",
+      "setup": "Choose the opponent, deck and supported rules. Save before testing this encounter.",
+      "related": "Open a linked record to change it. When your work is ready, review all saved changes together."
+    },
+    "domains": {
+      "modes": "Select a page, then click an outlined heading or section in its preview. Use the inspector to edit it; save before release review.",
+      "sets": "Name this set, then use Create card in this set. Each new card keeps this set relationship.",
+      "campaigns": "Write the campaign introduction, then add a chapter encounter. Open a chapter to edit its story and battle setup.",
+      "offers": "Choose the deck recipe, price and availability. Save, then check the storefront preview before release review.",
+      "mechanics": "Use the preview to attach this mechanic to a compatible card. Save the card and test it before publishing."
+    }
+  },
+  "engine": {
+    "names": {
+      "rule-modifiers": "Rule modifiers",
+      "mechanics": "Mechanics Studio",
+      "card-effects": "Card effects",
+      "faction-effects": "Faction effects",
+      "encounter-mechanics": "Encounter rules",
+      "game": "Shared rules"
+    },
+    "heading": "Engine / Rules Workshop",
+    "choose": "Choose a rule",
+    "shared": "Shared rules",
+    "review": "Review release",
+    "search": "Search rules",
+    "loading": "Loading supported rules…",
+    "description": "Registered game behavior. Edit its supported parameters or open a record that uses it.",
+    "life": "Starting life · fixed",
+    "deck": "Deck size · derived",
+    "lanes": "Lanes · fixed",
+    "used": "Cards using this effect",
+    "compatible": "Compatible cards to edit",
+    "test": "Test using card",
+    "testChoice": "Choose a card using this effect",
+    "advanced": "Advanced · contract and setup limits"
+  },
+  "releaseBusy": "An operation is in progress.",
+  "releaseNameHint": "Name this release before publishing.",
+  "releaseStatusUnavailable": "Publication service status is not available.",
+  "releaseLoading": "Loading release comparison…",
+  "releaseOlderAuthors": " older changes have no recorded field author.",
+  "studioPreviewTitle": "What happens in game",
+  "studioLocalPreview": "Local changes · save before testing",
+  "studioSavedPreview": "Saved draft · ready to attach and test",
+  "studioAttachChoice": "Choose a compatible card",
+  "studioAttachHelp": "This replaces the card’s current ability in your local editor. Save the card and test before publishing.",
+  "studioAttachAction": "Use mechanic on card",
+  "studioNewAbility": "Add ability"
 }

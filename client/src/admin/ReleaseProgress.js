@@ -5,16 +5,16 @@ export function releaseProgress(state, receipt, unsaved = false) {
   const ready = current ? receipt.readiness : null;
   const pending = state.pending;
   const live = !state.draft && !pending && state.publication?.deployment === "active-on-this-server" && state.publication?.activeReleaseId === state.activeReleaseId;
-  const reason = unsaved ? help.releaseProgress1
-    : pending ? `Publication ${pending.phase.replaceAll("-", " ")}. Check its recorded outcome before retrying.`
-    : !state.writable ? help.releaseProgress2
-    : !state.draft ? help.releaseProgressEmpty
-    : !current ? help.releaseProgressChecking
-    : !ready.validated ? help.releaseProgress3
-    : !ready.previewed ? help.releaseProgressPreview
-    : ready.engineTestRequired && !ready.engineTested ? help.releaseProgress5
-    : !ready.ready ? help.releaseProgressNoChanges : help.releaseProgressReview;
+  const [next, reason] = unsaved ? [null, help.releaseProgress1]
+    : pending ? [null, `Publication ${pending.phase.replaceAll("-", " ")}. Check its recorded outcome before retrying.`]
+    : !state.writable ? [null, help.releaseProgress2]
+    : !state.draft ? [null, help.releaseProgressEmpty]
+    : !current ? [null, help.releaseProgressChecking]
+    : !ready.validated ? ["validate", help.releaseProgress3]
+    : !ready.previewed ? ["preview", help.releaseProgressPreview]
+    : ready.engineTestRequired && !ready.engineTested ? ["test", help.releaseProgress5]
+    : !ready.ready ? [null, help.releaseProgressNoChanges] : ["publish", help.releaseProgressReview];
   return { ready: !!ready?.ready && !unsaved && !pending && state.writable,
-    reason, current,
+    reason, current, next,
     deployment:live ? "Active on this server" : "Unverified" };
 }

@@ -53,7 +53,7 @@ test("Admin authors and publishes a usable Gold product; player earns, buys, rea
     await expect(library).toContainText("1 finalized matches"); await expect(library).toContainText("Faction comparison"); await expect(library).toContainText("dddddddd-dddd-4ddd-8ddd-dddddddddddd");
     expect((await new AxeBuilder({ page: player }).include(".economy-console").analyze()).violations).toEqual([]);
     await library.screenshot({ path: "artifacts/gold-analysis-desktop.png" });
-    await area(); await choose("Marketplace"); await page.getByRole("button", { name: /^Personal match analysis gold-browser-analysis/ }).click(); await page.getByRole("button", { name: "Archive definition", exact: true }).click(); await publish("Retire offer, preserve permanent library access");
+    await area(); await choose("Marketplace"); await page.getByRole("button", { name: /^Personal match analysis gold-browser-analysis/ }).click(); await page.getByRole("button", { name: "Archive definition", exact: true }).click(); await expect(page.getByRole("button", { name: "Archive definition", exact: true })).toBeDisabled(); await expect(page.locator(".admin-save-context")).toHaveText("Saved to shared draft"); await publish("Retire offer, preserve permanent library access");
     await player.reload(); await navigatePlayer(player, "profile", "library");
     // Publishing refreshes the full Admin catalog while the player session is
     // restored. Wait for the resulting wallet view, including on loaded runners.

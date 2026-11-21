@@ -9,7 +9,7 @@ async function area(page, name) {
   const target = { Design: "Create & Edit", Content: "Create & Edit", Overview: "Home", Players: "Operations", Matches: "Operations", System: "Operations", Competition: "Events & Commerce", "Store & Economy": "Events & Commerce", "Para League & Economy": "Events & Commerce" }[name] || name;
   await (await navigation(page)).getByRole("button", { name: target, exact: true }).click();
   if (await page.getByRole("dialog", { name: "Unsaved local changes" }).isVisible()) return;
-  const secondary = { Matches: "Match evidence", System: "Health & recovery", "Store & Economy": "Deck products" }[name];
+  const secondary = { Matches: "Match evidence", System: "Health & recovery", "Store & Economy": "Deck products", "Para League & Economy": "Events & seasons" }[name];
   if (secondary) await page.getByRole("navigation", { name: target + " workspaces" }).getByRole("button", { name: secondary, exact: true }).click();
 }
 async function destination(page, name) {
@@ -19,13 +19,13 @@ async function destination(page, name) {
   if (!await page.getByLabel("Content type",{exact:true}).isVisible()) await area(page,"Content");
   if (await page.getByRole("dialog",{name:"Unsaved local changes"}).isVisible()) return;
   await page.getByLabel("Content type",{exact:true}).selectOption(types[name]||name);
+  if (await page.getByRole("dialog", { name: "Unsaved local changes" }).isVisible()) return;
   await workspaceView(page, "Editor");
   const backToList = page.getByRole("button", { name: "Back to list", exact: true });
   if (await backToList.isVisible()) await backToList.click();
 }
 async function returnFromPublishing(page) {
-  const publishing = page.getByRole("navigation", { name: "Administration sections" }).getByRole("button", { name: "Publishing", exact: true });
-  if (await publishing.getAttribute("aria-current") === "page") {
+  if (await page.getByRole("region", { name: "Shared release review", exact: true }).isVisible()) {
     await expect(page.locator(".admin-save-context")).not.toHaveText("Working…");
     await page.getByRole("button", { name: "Back to previous view", exact: true }).click();
   }

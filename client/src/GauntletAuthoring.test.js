@@ -316,13 +316,13 @@ test("a 409 keeps the original save revision until the operator explicitly selec
   fireEvent.click(screen.getByText("Saved shared draft value"));
   expect(screen.getByText("Other operator name", { selector: "pre" })).toBeVisible();
   fireEvent.click(screen.getByRole("button", { name: /^Save changes to/ }));
-  await waitFor(() => expect(attempts).toEqual([0, 0]));
-  await waitFor(() => expect(screen.getByRole("button", { name: /^Save changes to/ })).toBeEnabled());
+  expect(screen.getByRole("button", {name:/^Save changes to/})).toBeDisabled();
+  expect(attempts).toEqual([0]);
   expect(retry).toBeDisabled();
   fireEvent.click(screen.getByRole("button", { name: "Keep my name" }));
   fireEvent.click(retry);
   fireEvent.click(screen.getByRole("button", { name: /^Save changes to/ }));
-  await waitFor(() => expect(attempts).toEqual([0, 0, 1]));
+  await waitFor(() => expect(attempts).toEqual([0, 1]));
   await waitFor(() => expect(state.draft.snapshot.domains.cards[0].name).toBe("Retained local name"));
   expect(state.live.domains.cards[0].name).toBe("First card");
 });

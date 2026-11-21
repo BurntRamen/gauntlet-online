@@ -54,3 +54,11 @@ test("validation issues lead to the exact record field and activation is never i
   rerender(<ReleaseReview state={{ ...invalid, draft: null, publication: { activeReleaseId: "live", deployment: "active-on-this-server" } }} review={{ ...review, groups: [] }} />);
   expect(screen.getByLabelText("Release readiness")).toHaveTextContent("Active on this server");
 });
+
+test('the next release action is highlighted and testing opens the Test section',()=>{
+ const inspect=jest.fn();const pending={...review,readiness:{...review.readiness,previewed:false,ready:false}};
+ const {rerender}=render(<ReleaseReview state={{...state,validation:{valid:true}}} review={pending}/>);
+ expect(screen.getByRole('button',{name:'Preview saved draft'})).toHaveClass('admin-primary');
+ rerender(<ReleaseReview state={state} onInspect={inspect} review={{...review,readiness:{...review.readiness,engineTested:false,ready:false}}}/>);
+ fireEvent.click(screen.getByRole('button',{name:'Open First battle for testing'}));expect(inspect).toHaveBeenCalledWith('encounters','first','test',null);
+});

@@ -6,7 +6,7 @@ import RelatedContent from "./RelatedContent";
 import WorkshopShell, { WorkshopFacts, WorkshopSection } from "./WorkshopShell";
 
 const sections = [["details", "Details"], ["composition", "Composition"], ["test", "Test"], ["related", "Related content"]];
-export default function DeckWorkshop({ row, state, fields, list, search, playtest, onReview, onInspect, notes, onNotes, onSaveNotes, busy, unsaved, section, onSection, onSelectList }) {
+export default function DeckWorkshop({ row, state, fields, list, search, playtest, onReview, onInspect, notes, onNotes, onSaveNotes, busy, unsaved, section, onSection }) {
   const helpCopy = useHelp();
   const [localSection, setSection] = useState("details");
   const active = sections.some(([id]) => id === section) ? section : localSection;
@@ -26,7 +26,7 @@ export default function DeckWorkshop({ row, state, fields, list, search, playtes
       const card = manifest?.cards?.find(item => item.id === selection.cardId), printing = manifest?.collectorVariants?.find(item => item.variantId === selection.printingId);
       return <article key={selection.cardId}>{card && printing ? <PrivateCard card={{ ...card, collector: printing, variantId: printing.variantId, presentation: printing.presentation }} /> : <Help topic="workspaceDeckWorkshop2" />}<strong>{card?.name || snapshot.domains.cards?.find(item => item.id === selection.cardId)?.name || selection.cardId}</strong><small>{snapshot.domains.assets?.find(item => item.id === selection.printingId)?.name || "Printing not resolved"}</small></article>;
     })}</div>{!row?.composition?.cards?.length && <Help topic="workspaceDeckWorkshop3" className="admin-note" />}</>;
-  return <WorkshopShell name="Deck Workshop" title={row?.name || "Choose a deck"} selectionId={row?.id} list={list} search={search} busy={busy} onSelectList={onSelectList}
+  return <WorkshopShell name="Deck Workshop" title={row?.name || "Choose a deck"} selectionId={row?.id} list={list} search={search} busy={busy}
     status={<span>{unsaved ? "Unsaved changes in this browser" : source}{row?.status ? ` · ${row.status}` : ""}</span>}
     sections={row && sections} section={active} onSection={onSection || setSection}
     actions={<button disabled={busy} onClick={onReview}>Review release</button>}

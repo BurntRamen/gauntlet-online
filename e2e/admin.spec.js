@@ -655,7 +655,7 @@ test("Encounter Workshop keeps editing and engine evidence tied to the correct s
   await playtest.getByRole("button", { name: "Pass priority", exact: true }).click();
   expect((await pending).ok()).toBeTruthy();
   await page.getByRole("button", { name: "Review release", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "One release, across all workshops", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Review saved changes", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Back to previous view", exact: true }).click();
   await page.setViewportSize({ width: 390, height: 844 });
   await page.locator("#workshop-context").evaluate((element) => element.scrollIntoView({ block: "start" }));
@@ -913,13 +913,14 @@ test("visual menu pass preserves review context and keeps phone editing focused"
   await signIn(page, request, "simply"); await page.reload();
   const nav = page.getByRole("navigation", { name: "Administration sections" });
   const capture = async name => page.screenshot({ path: `artifacts/admin-visual-pass/${name}.png`, fullPage: false });
-  await expect(page.getByRole("region", { name: "Service summary", exact: true })).toContainText(/\d+ season definitions/);
+  await expect(page.getByRole("heading", { name: "Create something", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Continue working", exact: true })).toBeVisible();
   await capture("overview-desktop");
   await adminArea(page, "Content"); await destination(page, "Encounters");
   await searchCollection(page, "Search encounters", "Brothers");
   await page.getByRole("button", { name: "Inspect Brothers of Destiny", exact: true }).click();
   await expect(page.getByLabel("Filter encounters by campaign", { exact: true })).toHaveCSS("background-color", "rgb(14, 23, 35)");
-  await expect(page.locator(".design-related ul").first()).toHaveCSS("list-style-type", "none");
+  await expect(page.getByRole("region", { name: "Encounter Workshop", exact: true }).getByRole("heading", { name: "Brothers of Destiny", exact: true, level: 3 })).toBeVisible();
   await capture("encounters-desktop");
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
@@ -1042,9 +1043,9 @@ test("Admin search opens exact prose editors, guards local edits, and publishes 
   await saveRecord(page);
   await expect(page.getByText("1 saved change in the shared draft", { exact: true })).toBeVisible();
   await require("./admin-navigation").area(page, "Publishing");
-  await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
-  await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible();
-  await expect(page.getByRole("region", { name: "Isolated draft preview", exact: true }).getByRole("heading", { name: "A browser-reviewed practice heading.", exact: true })).toBeVisible();
+  await require("./admin-navigation").previewSavedDraft(page);
+  await require("./admin-navigation").workspaceView(page, "Editor");
+  await expect(page.getByRole("region", { name: "Website presentation preview", exact: true }).getByRole("heading", { name: "A browser-reviewed practice heading.", exact: true })).toBeVisible();
   await page.getByRole("navigation", { name: "Administration sections" }).getByRole("button", { name: "Publishing", exact: true }).click();
   await page.getByLabel("Release name").fill("Browser prose search");
   await page.getByRole("button", { name: "Publish release", exact: true }).click();
@@ -1161,6 +1162,8 @@ test("Admin creates a set and new card, executes its mechanics, publishes and sa
   expect(publicContent.content.cards.find(c => c.id === card.id).effect.parameters.armBonus).toBe(2);
   await page.goto("/admin/gauntlet?workshop=cards&object=" + card.id);
   await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.getByRole("region", { name: "Card Workshop", exact: true })).toBeVisible();
+  await require("./admin-navigation").workspaceView(page, "Editor");
   if(await page.getByRole("button", { name: "Back to list", exact: true }).isVisible()) await page.getByRole("button", { name: "Back to list", exact: true }).click();
   await page.getByRole("button", { name: "Duplicate card", exact: true }).click();
   await expect(page.getByLabel("New content name")).toHaveValue("Browser lifecycle blade copy");

@@ -3,7 +3,7 @@ import EngineWorkshop from "./EngineWorkshop";
 
 const faction = { id: "rumin", name: "Rumin", mechanics: { id: "rhythm", version: 1, parameters: { bonus: 3 } } };
 const shared = { id: "shared-rules", handSize: 8 };
-const state = { live: { domains: { factions: [faction], cards: [{ id: "spear", name: "Spear", factionId: "rumin", type: "weapon", effect: { id: "spear-effect" } }], game: [shared] } }, workshopMetadata: { cardEffects: [{ id: "spear-effect", label: "Spear effect", factionId: "rumin", cardType: "weapon", parameters: {} }], factionEffects: [{ id: "rhythm", factionId: "rumin", label: "Rhythm", parameters: { bonus: { min: 0, max: 8, default: 3 } } }], gameConfig: { startingLife: 42, deckSize: 52, laneCount: 3, suits: ["spades"], values: [2, 3] } } };
+const state = { guide: require("../../../server/adminAuthoringGuide"), live: { domains: { factions: [faction], cards: [{ id: "spear", name: "Spear", factionId: "rumin", type: "weapon", effect: { id: "spear-effect" } }], game: [shared] } }, workshopMetadata: { cardEffects: [{ id: "spear-effect", label: "Spear effect", factionId: "rumin", cardType: "weapon", parameters: {} }], factionEffects: [{ id: "rhythm", factionId: "rumin", label: "Rhythm", parameters: { bonus: { min: 0, max: 8, default: 3 } } }], gameConfig: { startingLife: 42, deckSize: 52, laneCount: 3, suits: ["spades"], values: [2, 3] } } };
 
 test("effect contracts are read-only and direct editing to an authored card", () => {
   const inspect = jest.fn(), field = jest.fn(), target = jest.fn();

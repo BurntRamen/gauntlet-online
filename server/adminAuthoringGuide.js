@@ -7,6 +7,7 @@ module.exports = {
   "catalogField": "Save this configuration to the shared draft; publishing applies it to future games.",
   "identityLock": "Published identity and deck slot are retained. Duplicate this card to change them.",
   workspaceVersion: 1,
+  websiteSurfaces: require("../shared/admin/websiteSurfaces.json").map(({id,owner,name})=>({id,owner,name})),
   pipelines: require("./adminProductionPipelines").definitions,
   help: { ...require("./adminHelpTopics.json"), ...require("./adminWorkspaceGuide.json") },
   "validationPassed": "Validation passed. All values use supported content contracts.",

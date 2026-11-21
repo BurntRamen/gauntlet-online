@@ -26,6 +26,8 @@ function loadEnvironment(directory, mode, target = process.env) {
 }
 
 function publicEnvironment(mode, environment = process.env) {
-  return { ...Object.fromEntries(Object.entries(environment).filter(([key]) => /^REACT_APP_/i.test(key))), NODE_ENV: mode, PUBLIC_URL: (environment.PUBLIC_URL || "").replace(/\/$/, "") };
+  // Make the existing opt-in default explicit so Webpack can exclude disabled
+  // player customization dependencies before splitting the shared preview.
+  return { REACT_APP_MENU_LAYOUT_CUSTOMIZATION: "false", ...Object.fromEntries(Object.entries(environment).filter(([key]) => /^REACT_APP_/i.test(key))), NODE_ENV: mode, PUBLIC_URL: (environment.PUBLIC_URL || "").replace(/\/$/, "") };
 }
 module.exports = { loadEnvironment, publicEnvironment };

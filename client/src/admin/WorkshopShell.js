@@ -1,6 +1,7 @@
 import { useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import "./WorkshopPanels.css";
 import { useOperatorPreferences } from "./OperatorPreferences";
+import WorkshopJourney from "./WorkshopJourney";
 import { EditorSessionContext } from "./EditorSession";
 
 export function WorkshopSection({ id, title, children, description }) {
@@ -11,7 +12,7 @@ export function WorkshopFacts({ values }) {
   return <dl className="design-facts">{Object.entries(values).map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value ?? "Not recorded"}</dd></div>)}</dl>;
 }
 
-export default function WorkshopShell({ name, title, description, status, actions, search, list, children, preview, sections, section, onSection, selectionId, onSelectList, busy }) {
+export default function WorkshopShell({ name, title, description, status, actions, search, list, children, preview, sections, section, onSection, selectionId, busy }) {
   const [showList, setShowList] = useState(false);
   const operator = useOperatorPreferences();
   const session = useContext(EditorSessionContext);
@@ -29,13 +30,14 @@ export default function WorkshopShell({ name, title, description, status, action
   }, [target, focusRequest, selectionId, setPreview]);
   useEffect(() => { const resize = () => setWide(window.innerWidth >= 1200); window.addEventListener("resize", resize); return () => window.removeEventListener("resize", resize); }, []);
   const selection = useRef(null);
-  const header = useRef(null);
+  const header = useRef(null), root = useRef(null);
   useEffect(() => {
     setShowList(false);
     if (selectionId && window.innerWidth <= 750) header.current?.scrollIntoView?.({ block: "start" });
   }, [selectionId]);
-  return <section className={`design-workshop ${preview ? "has-preview" : ""} ${selectionId && !showList ? "has-selection" : ""} ${showPreview ? "preview-open" : ""} ${showList ? "browser-open" : ""}`} aria-label={name}>
+  return <section ref={root} className={`design-workshop ${preview ? "has-preview" : ""} ${selectionId && !showList ? "has-selection" : ""} ${showPreview ? "preview-open" : ""} ${showList ? "browser-open" : ""}`} aria-label={name}>
     <header ref={header} className="design-header design-workspace-header" id="workshop-context" tabIndex={-1}><div><span className="admin-eyebrow">{name}</span><h3>{title}</h3>{description && <p className="admin-note">{description}</p>}</div><div className="design-header-actions">{status && <div className="admin-tags">{status}</div>}{actions && <div className="admin-actions">{actions}</div>}</div></header>
+    <WorkshopJourney selection={selectionId} browsing={showList} sections={sections} section={section} onSection={onSection} preview={preview} showPreview={showPreview} onPreview={()=>{setShowList(false);setPreview(true);requestAnimationFrame(()=>{const target=root.current?.querySelector(".design-preview");if(target){target.tabIndex=-1;target.scrollIntoView({block:"center"});target.focus();}});}} container={root}/>
     <div className="design-view-controls">{selectionId && <button className="design-list-toggle" onClick={() => {
       const open = () => { setShowList(true); requestAnimationFrame(() => selection.current?.querySelector("input,button")?.focus()); };
       if (showList) { setShowList(false); header.current?.focus(); } else open();
@@ -43,7 +45,7 @@ export default function WorkshopShell({ name, title, description, status, action
     <div className={`design-layout ${preview ? "has-preview" : ""} ${!list && !search ? "editor-only" : ""}`}>
       {(search || list) && <section ref={selection} className="design-selection" aria-label={`${name} selection`}>{search}<div onClick={event => { if (event.target.closest("button[data-object],button[aria-pressed]")) { setShowList(false); if (window.innerWidth <= 750) requestAnimationFrame(() => { header.current?.focus(); header.current?.scrollIntoView?.({ block: "start" }); }); } }}>{list}</div></section>}
       <div className="design-main">
-        {sections && <><label className="design-section-select">Section<select aria-label={`${name} section`} value={section} disabled={busy} onChange={event => onSection(event.target.value)}>{sections.map(([id, label]) => <option key={id} value={id}>{label}</option>)}</select></label><nav className="design-section-nav" aria-label={`${name} sections`}>{sections.map(([id, label]) => <button key={id} disabled={busy} aria-pressed={section === id} onClick={() => onSection(id)}>{label}</button>)}</nav></>}
+        {sections && <><label className="design-section-select">Section<select aria-label={`${name} section`} value={section} disabled={busy} onChange={event => onSection(event.target.value)}>{sections.map(([id, label]) => <option key={id} value={id}>{label}</option>)}</select></label><nav className="design-section-nav" aria-label={`${name} sections`}>{sections.map(([id, label]) => <button key={id} disabled={busy} aria-pressed={section === id} aria-current={section === id ? "step" : undefined} onClick={() => onSection(id)}>{label}</button>)}</nav></>}
         <div className="design-content"><div className="design-editor" id="admin-selected" tabIndex={-1}>{children}</div>{preview && <section className="design-preview" aria-label={`${name} preview and test`}><div className="admin-panel-heading"><span className="admin-eyebrow">Player presentation</span><button aria-label="Close preview" onClick={() => setPreview(false)}>×</button></div>{preview}</section>}</div>
       </div>
     </div>

@@ -15,9 +15,10 @@ test("operators author Para definitions, simulate, publish and restore without t
   const before = { players: await get("/api/admin/players"), matches: await get("/api/admin/matches"), content: await get("/api/game-content"), authoring: await get("/api/admin/authoring") };
   const nav = page.getByRole("navigation", { name: "Administration sections" });
   await adminArea(page, "Para League & Economy");
+  await page.getByText("League rules & initial season", { exact: true }).click();
   await page.getByRole("button", { name: "Create Season Zero draft" }).click();
   await expect(page.getByRole("status")).toHaveText("Definition saved to the shared draft. Published rules are unchanged.");
-  await expect(page.getByText(/catalog 4000 · budget 4000 · maximum 4000/)).toBeVisible();
+  expect((await get("/api/admin/authoring")).para.summary).toContainEqual(expect.objectContaining({ catalogGold: 4000, budget: 4000, maximumGold: 4000 }));
   expect((await get("/api/admin/authoring")).live.paraLeague).toBeUndefined();
   const tabs = page.getByRole("navigation", { name: "Para workspaces" });
   const choose = (name) => paraTab(page, name);
@@ -52,7 +53,8 @@ test("operators author Para definitions, simulate, publish and restore without t
   await page.getByLabel("Profile music", { exact: true }).check();
   await page.getByLabel("Gold price").fill("600");
   await save();
-  await choose("Prestige");
+  await choose("Events");
+  await page.getByText("Test event eligibility", { exact: true }).click();
   await page.getByLabel("Target event").selectOption("para-season-zero-week-7");
   await page.getByLabel("Week 1: Faction Open", { exact: true }).selectOption("7-0");
   await page.getByRole("button", { name: "Simulate saved rules" }).click();
@@ -73,9 +75,10 @@ test("operators author Para definitions, simulate, publish and restore without t
   await page.getByRole("button", { name: "Close definition" }).click();
   await require("./admin-navigation").area(page, "Publishing");
   await page.getByRole("button", { name: "Validate draft", exact: true }).click();
-  await expect(page.getByRole("status")).toHaveText("Draft validation completed.");
+  await expect(page.getByText("Draft validation completed.", { exact: true })).toBeVisible();
   await require("./admin-navigation").area(page, "Publishing");
-  await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
+  await require("./admin-navigation").previewSavedDraft(page);
+  await choose("Marketplace");
   await expect(page.getByRole("region", { name: "Saved Para catalog preview" })).toContainText("600 Gold or 120 Gems");
   await adminArea(page, "Publishing");
   expect((await get("/api/admin/authoring")).publication.provider).toBe("local");

@@ -1,0 +1,121 @@
+{
+  "guidance": [
+    {
+      "name": "visual guidance follows editing, saving, sections and the next release action",
+      "status": "passed",
+      "durationMs": 103630
+    },
+    {
+      "name": "website sections give visual editing cues and keep the selected section outlined",
+      "status": "passed",
+      "durationMs": 9645
+    },
+    {
+      "name": "phone guidance finds the real form save and preview without submitting on behalf of the operator",
+      "status": "passed",
+      "durationMs": 28034
+    },
+    {
+      "name": "guided views retain native browser 200 percent zoom and keyboard access",
+      "status": "passed",
+      "durationMs": 86985
+    }
+  ],
+  "retainedSafeguards": [
+    {
+      "name": "failed saves preserve input and two operators deliberately reconcile a stale record",
+      "status": "passed",
+      "durationMs": 35472
+    },
+    {
+      "name": "genuine departure offers keep, discard, and save-and-continue only after acknowledgement",
+      "status": "passed",
+      "durationMs": 46308
+    },
+    {
+      "name": "operator preferences are scoped and private recent work clears when accounts change",
+      "status": "passed",
+      "durationMs": 27707
+    },
+    {
+      "name": "release blockers open the exact field and the corrected record returns to review",
+      "status": "passed",
+      "durationMs": 29036
+    },
+    {
+      "name": "encounter setup earns exact-draft engine evidence and a later change invalidates it",
+      "status": "passed",
+      "durationMs": 50952
+    }
+  ],
+  "home": [
+    {
+      "name": "Home stays compact and six destinations lead directly to the owning workspace",
+      "status": "passed",
+      "durationMs": 13504
+    }
+  ],
+  "legacyJourneys": [
+    {
+      "name": "Encounter Workshop keeps editing and engine evidence tied to the correct saved draft",
+      "status": "passed",
+      "durationMs": 138523
+    },
+    {
+      "name": "asset picker protects local selection, saves collector artwork, and shows release image differences",
+      "status": "passed",
+      "durationMs": 25007
+    },
+    {
+      "name": "visual menu pass preserves review context and keeps phone editing focused",
+      "status": "passed",
+      "durationMs": 51166
+    },
+    {
+      "name": "Admin search opens exact prose editors, guards local edits, and publishes page copy",
+      "status": "passed",
+      "durationMs": 52370
+    },
+    {
+      "name": "Admin creates a set and new card, executes its mechanics, publishes and safely rolls back",
+      "status": "passed",
+      "durationMs": 125322
+    },
+    {
+      "name": "Burnt Ramen can preview and pay for authored support at 390px",
+      "status": "passed",
+      "durationMs": 25426
+    },
+    {
+      "name": "Admin authors and publishes a usable Gold product; player earns, buys, reads, retains retired access and receives an audited refund",
+      "status": "passed",
+      "durationMs": 144436
+    },
+    {
+      "name": "operators author Para definitions, simulate, publish and restore without touching accounts",
+      "status": "passed",
+      "durationMs": 106076
+    }
+  ],
+  "client": {
+    "suitesPassed": 133,
+    "testsPassed": 1080,
+    "note": "Full run before the final preview-focus repair; the subsequent 66-test run covers the repair and adds an embedded-preview focus regression."
+  },
+  "focusedFinal": {
+    "playerNavigationWebsite": 66
+  },
+  "server": {
+    "testsPassed": 27,
+    "scope": "14 private authoring/Home/Website checks plus 13 player-layout contract checks"
+  },
+  "toolchain": {
+    "testsPassed": 4
+  },
+  "productionBuild": "passed",
+  "browserNote": "18 distinct passing cases across targeted runs. The final five-case legacy rerun uses the final rebuilt client. Earlier stale-screen assertions, focus and accessibility failures were repaired and rerun; no failed case is counted as passing without its own successful rerun.",
+  "knownBaselineFailures": [
+    "server/test/admin-deck-journey.test.js: repeat-clear reward expects 2 packs, receives 3; also fails on unchanged main 41d8801f",
+    "server/test/content-publication-routes.test.js: same baseline repeat-clear reward mismatch"
+  ]
+}

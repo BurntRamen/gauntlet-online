@@ -1,5 +1,7 @@
 # SuitFire Admin: functional redesign correction
 
+The subsequent [guided-journey refinement](../admin-guidance/README.md) adds contextual next actions, visual editing cues and current release readiness, with its own verification and screenshots.
+
 This continues draft PR #116 from the rejected first-pass commit `7d86cce0bff83b715a17a54aeae2250b424cad3f`. The established dark appearance is restored. The differences below are changes to workflows, components, authoring contracts and player consumers.
 
 ## What changed

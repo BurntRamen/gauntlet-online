@@ -35,7 +35,7 @@ export function encounterSessionStatus(session, state) {
   return session.stale || (session.contentHash || session.draftHash) !== state.draft?.hash ? "Stale saved draft playtest" : "Current saved draft playtest";
 }
 
-export default function EncounterWorkshop({ row, state, unsaved, session, list, search, field, preview, playtest, onInspect, onReview, onSelectList, context, onContext, section, onSection, busy }) {
+export default function EncounterWorkshop({ row, state, unsaved, session, list, search, field, preview, playtest, onInspect, onReview, context, onContext, section, onSection, busy }) {
   const guide = state.guide || {};
 
   const [localSection, setActiveSection] = useState(context?.section || "story");
@@ -72,7 +72,7 @@ export default function EncounterWorkshop({ row, state, unsaved, session, list, 
   };
   const sourceLabel = state.draft ? "Saved draft" : "Live content";
   const description = row ? [campaign?.commanderName || "Campaign not recorded", chapterIndex >= 0 ? "Chapter " + (chapterIndex + 1) : row.order ? "Additional encounter " + row.order : null, opponent?.name].filter(Boolean).join(" · ") : "Choose an encounter to shape its story, setup and player briefing.";
-  return <WorkshopShell name="Encounter Workshop" title={row?.title || "Choose an encounter"} description={description} selectionId={row?.id} search={search} list={list} busy={busy} onSelectList={onSelectList}
+  return <WorkshopShell name="Encounter Workshop" title={row?.title || "Choose an encounter"} description={description} selectionId={row?.id} search={search} list={list} busy={busy}
     sections={row && Object.entries(SECTIONS)} section={activeSection} onSection={jump}
     actions={<>{campaign && <button disabled={busy} onClick={()=>onInspect("campaigns",campaign.id)}>{campaign.commanderName}</button>}<button type="button" disabled={busy} onClick={onReview}>Review release</button></>}
     preview={row && !["preview", "test"].includes(group) && <WorkshopSection title="Briefing preview" id="encounter-briefing"><p className="admin-preview-source">{sourceLabel} · player briefing</p>{unsaved && <Help topic="workspaceEncounterWorkshop1" className="admin-note" />}{preview || <p className="admin-note">{guide.previewHelp || "Save a valid draft to preview the player briefing."}</p>}</WorkshopSection>}>

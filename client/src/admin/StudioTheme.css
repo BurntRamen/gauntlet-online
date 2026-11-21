@@ -33,3 +33,12 @@
 @media(max-width:1199px){.website-studio{grid-template-columns:1fr}.website-render{height:440px}.design-content .design-preview{position:static}}
 @media(max-width:750px){.admin-workspace .admin-record-save{top:88px}.admin-content-context{flex-wrap:wrap}.admin-home-panel{padding:16px}}
 @media(min-width:1001px){.admin-workspace .has-selection .design-layout:not(.editor-only){grid-template-columns:190px minmax(0,1fr)}.admin-workspace .has-selection .design-selection{display:block}.admin-workspace .design-workshop.has-selection .design-list-toggle{display:none}}
+
+.admin-journey{display:flex;align-items:center;gap:14px;padding:14px 16px;margin:0 0 16px;border:1px solid var(--admin-line);border-left:4px solid var(--admin-accent);background:var(--admin-surface)}
+.admin-journey>div{flex:1;min-width:0}.admin-journey strong,.admin-journey small{display:block}.admin-journey small,.admin-save-next{font-size:.875rem;color:var(--admin-muted)}.admin-journey p{margin:6px 0 0;line-height:1.5}.admin-journey-symbol{font-size:1.5rem;align-self:flex-start}.admin-journey[data-state=saved]{border-left-color:#91d7b0}.admin-journey[data-state=fix],.admin-journey[data-state=blocked]{border-left-color:#f5b876}.admin-save-next{display:block;margin-bottom:4px}.admin-record-save{border-left:4px solid var(--admin-accent)}
+.design-section-nav button[aria-current=step]::before{content:"";display:inline-block;width:.45em;height:.45em;border-radius:50%;background:currentColor;margin-right:7px;vertical-align:middle}.design-preview:focus,.design-editor form:focus{outline:3px solid var(--admin-accent);outline-offset:3px}
+.website-render :is([data-layout-module],.cd-page-header,nav){cursor:pointer;outline:1px dashed #98c8d6;outline-offset:3px}.website-render :is([data-layout-module],.cd-page-header,nav):is(:hover,:focus-within,[data-studio-selected]){outline:3px solid #f1cf91;outline-offset:3px}
+.admin-release-actions .admin-primary::before,.admin-release-actions [data-complete=true]::before{content:"";display:inline-block;width:.5em;height:.5em;border:1px solid currentColor;transform:rotate(45deg);margin-right:10px}.admin-release-actions [data-complete=true]::before{width:.35em;height:.65em;border-width:0 2px 2px 0}
+@media(max-width:750px){.admin-journey{flex-wrap:wrap;gap:10px}.admin-journey>div{flex-basis:calc(100% - 44px)}.admin-journey>button{margin-left:34px;max-width:calc(100% - 34px)}}
+
+.admin-release-summary input[data-next=true]{border:2px solid var(--admin-accent)}

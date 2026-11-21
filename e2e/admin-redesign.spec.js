@@ -331,7 +331,12 @@ test("encounter setup earns exact-draft engine evidence and a later change inval
   await page.getByLabel("Boss Life", { exact: true }).fill(String(encounter.setup.bossLife + 1));
   await save(page);
   let saved = await state(request); expect(saved.draft.playtestedHash).not.toBe(saved.draft.hash);
-  await section(page, "Playtest", "Encounter Workshop");
+  await area(page, "Publishing");
+  await require("./admin-navigation").previewSavedDraft(page);
+  const nextTest = page.getByRole("button", { name: `Open ${encounter.title} for testing`, exact: true });
+  await expect(nextTest).toHaveClass(/admin-primary/);
+  await nextTest.click();
+  await expect(page.getByLabel("Encounter Workshop section", { exact: true })).toHaveValue("test");
   const harness = page.getByRole("region", { name: "Real engine playtest" });
   await harness.getByRole("combobox", { name: "Test content", exact: true }).selectOption("draft");
   let response = waitForBufferedAdminResponse(page, r => r.url().endsWith("/authoring/playtest") && r.request().method() === "POST");

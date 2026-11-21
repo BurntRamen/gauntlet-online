@@ -1,7 +1,7 @@
 import {fireEvent,render,screen,within} from '@testing-library/react';
 import WebsiteProseWorkshop from './WebsiteProseWorkshop';
 import presentation from '../../../shared/websitePresentation';
-const state={live:{domains:{game:[{id:'practice',name:'Practice',playPageTitle:'Saved heading'}],campaigns:[],factions:[]}},fields:{game:{practice:{name:{},description:{},playPageTitle:{defaultValue:'Play'},playPageDescription:{defaultValue:'Pick a match.'},playPageLayout:{type:'website-layout',defaultValue:presentation.defaultLayout('play')},websiteNavigation:{type:'website-navigation',defaultValue:presentation.defaultNavigation()}}}}};
+const state={guide:require("../../../server/adminAuthoringGuide"),live:{domains:{game:[{id:'practice',name:'Practice',playPageTitle:'Saved heading'}],campaigns:[],factions:[]}},fields:{game:{practice:{name:{},description:{},heroTitle:{},playPageTitle:{defaultValue:'Play'},playPageDescription:{defaultValue:'Pick a match.'},playPageLayout:{type:'website-layout',defaultValue:presentation.defaultLayout('play')},websiteNavigation:{type:'website-navigation',defaultValue:presentation.defaultNavigation()}}}}};
 const props={state,field:()=>null,target:{id:'practice',section:'play'},onTarget:jest.fn(),context:{},onContext:jest.fn()};
 test('page selection renders the actual player page and follows the guarded target callback',async()=>{
  const field=jest.fn(key=><p key={key}>Edit {key}</p>),onTarget=jest.fn();
@@ -18,6 +18,11 @@ test('selecting an actual page component opens its presentation controls',async(
  const preview=await screen.findByRole('region',{name:'Website presentation preview'});
  fireEvent.click((await within(preview).findAllByRole('button',{name:'Basic vs AI',exact:true}))[0]);
  expect(screen.getByLabelText('Edit element')).toHaveValue('basic-ai');
+ expect(document.querySelector('[data-layout-module="basic-ai"]')).toHaveAttribute('data-studio-selected');
+ fireEvent.change(screen.getByLabelText('Edit element'),{target:{value:'navigation'}});
+ expect(document.querySelector('.website-render .cd-rail nav')).toHaveAttribute('data-studio-selected');
+ expect(document.querySelector('[data-layout-module="basic-ai"]')).not.toHaveAttribute('data-studio-selected');
+ fireEvent.change(screen.getByLabelText('Edit element'),{target:{value:'basic-ai'}});
  expect(field).toHaveBeenLastCalledWith('playPageLayout',{domain:'game',row:state.live.domains.game[0]});
 });
 test('local heading, immutable imagery and composition render together without mutating the saved snapshot',async()=>{
@@ -42,4 +47,10 @@ test('search links open the exact surface and mode copy remains accessible',()=>
  view.rerender(<WebsiteProseWorkshop {...props} target={{id:'practice',section:'mode-practice'}} field={key=><p key={key}>{key}</p>}/>);
  expect(screen.getByText('name')).toBeInTheDocument();
  expect(screen.queryByText('websiteNavigation')).toBeNull();
+});
+
+test("mode prose search targets reveal their exact editable field",()=>{
+ render(<WebsiteProseWorkshop {...props} target={{id:"practice",field:"heroTitle"}} field={key=><p key={key}>{key}</p>}/>);
+ expect(screen.getByText("heroTitle")).toBeInTheDocument();
+ expect(screen.queryByText("playPageTitle")).not.toBeInTheDocument();
 });
