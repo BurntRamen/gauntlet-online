@@ -11,8 +11,17 @@ permissions:
 
 jobs:
   player-journeys:
-    name: Player release journeys
+    name: Player release journeys · ${{ matrix.suite }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - suite: experience
+          - suite: matches-1
+            shard: 1
+          - suite: matches-2
+            shard: 2
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -49,39 +58,49 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Test paid support zones on desktop, phone and React fallback
+        if: matrix.suite == 'experience'
         run: npm run test:e2e:support
 
       - name: Test draft entry, picks, reconnects and deck saving
+        if: matrix.suite == 'experience'
         run: npx playwright test --config=playwright.draft.config.js
 
       - name: Test deck workshop and pack reveals
+        if: matrix.suite == 'experience'
         run: npm run test:e2e:workshop
 
       - name: Test collector version selection and table foil
+        if: matrix.suite == 'experience'
         run: npx playwright test --config=playwright.collector.config.js
 
       - name: Check browser usability
+        if: matrix.suite == 'experience'
         run: npm run test:e2e:usability
 
       - name: Test Command Deck navigation and account layouts
+        if: matrix.suite == 'experience'
         run: npm run test:e2e:command-deck
 
       - name: Test released menus with customization disabled
+        if: matrix.suite == 'experience'
         run: npm run test:e2e:release-menus
 
       - name: Test optional SuitFire presentation on desktop and phone
+        if: matrix.suite == 'experience'
         run: |
           npx playwright test --config=playwright.suitfire.config.js
           npm run check:bundle
 
       - name: Check compiled Babylon performance safeguards
+        if: matrix.suite == 'experience'
         run: npm run test:e2e:performance
 
       - name: Test live Babylon browser flows
-        run: npm run test:e2e
+        if: matrix.suite != 'experience'
+        run: npm run test:e2e -- --shard=${{ matrix.shard }}/2
 
       - name: Upload Babylon performance report
-        if: always()
+        if: always() && matrix.suite == 'experience'
         uses: actions/upload-artifact@v4
         with:
           name: babylon-performance-report
@@ -93,7 +112,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: browser-failure-diagnostics
+          name: browser-failure-diagnostics-${{ matrix.suite }}
           path: test-results/
           if-no-files-found: ignore
           retention-days: 7

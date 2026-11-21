@@ -335,8 +335,13 @@ test("responsive, keyboard, focus, CSS-scale smoke checks, target-size, and high
   }
 
   await page.setViewportSize({ width: 1366, height: 768 });
+  // ResizeObserver replaces the phone hand with desktop keyboard controls.
+  // Wait for that consumer to settle before focusing it; otherwise a focused
+  // phone card can disappear between the keyboard and pointer assertions.
+  await expect(page.getByTestId("production-babylon-match")).toHaveAttribute("data-hand-presentation", "canvas");
+  await expect(page.locator(".phone-hand-card")).toHaveCount(0);
   await page.evaluate(() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "h" })));
-  const handButtons = page.locator('[data-match-zone="hand"]:not(:disabled)');
+  const handButtons = page.getByRole("region", { name: "Keyboard match controls" }).locator('[data-match-zone="hand"]:not(:disabled)');
   await expect(handButtons.first()).toBeVisible();
   await handButtons.first().focus();
   await page.keyboard.press("ArrowRight");
