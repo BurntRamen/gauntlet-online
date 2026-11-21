@@ -13,6 +13,7 @@ import "./BoardBackgrounds.css";
 import "./FocusedMatchScreen.css";
 import browserStorage from "./navigation/browserStorage";
 import usePlayerNavigation from "./navigation/usePlayerNavigation";
+import { usesPlayModeMusic } from "./navigation/playModeMusic";
 import SetupFrame from "./navigation/SetupFrame";
 import { getModePresentation } from "./navigation/modePresentation";
 import { MENU_LAYOUT_CUSTOMIZATION_ENABLED } from "./navigation/menuFeatures";
@@ -3307,7 +3308,7 @@ export default function App() {
 
   const idleMusicTrack = showCampaign && MUSIC_TRACKS[campaignMusicFaction]
     ? campaignMusicFaction
-    : playerRoute.page === "play"
+    : usesPlayModeMusic(playerRoute)
       ? "play"
       : menuMusicTrack;
   const activeMusicTrack = !game || role === "spectator" || !player
