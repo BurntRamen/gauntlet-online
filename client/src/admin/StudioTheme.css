@@ -8,6 +8,7 @@
 .admin-content-context {display:flex;align-items:center;gap:16px;margin-bottom:16px}
 .admin-content-context select {min-height:44px}
 .website-studio {display:grid;grid-template-columns:minmax(0,1.5fr) minmax(260px,1fr);gap:16px;align-items:start}
+.website-studio>* {min-width:0}
 .website-inspector {min-width:0}.website-inspector>label {display:grid;gap:8px}
 .website-controls {min-width:0}.website-controls ol {padding:0;list-style:none}.website-controls li {padding:10px 0;border-bottom:1px solid var(--admin-line)}
 .website-controls label {display:block}.website-controls input:not([type=checkbox]) {width:100%;box-sizing:border-box}
@@ -23,7 +24,7 @@
 .catalog-creation-layout.has-preview {display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:20px;align-items:start}
 .catalog-creation-layout .creation-preview {position:sticky;top:120px;width:100%;margin:0}
 @media(max-width:900px){.catalog-creation-layout.has-preview{grid-template-columns:1fr}.catalog-creation-layout .creation-preview{position:static;max-width:250px;margin:auto}}
-@media(max-width:1199px){.website-studio{grid-template-columns:1fr}.website-render{height:440px}.design-content .design-preview{position:static}}
+@media(max-width:1199px){.website-studio{grid-template-columns:minmax(0,1fr)}.website-render{height:440px}.design-content .design-preview{position:static}}
 @media(max-width:750px){.admin-workspace .admin-record-save{top:88px}.admin-content-context{flex-wrap:wrap}.admin-home-panel{padding:16px}}
 .admin-workspace .design-workshop.has-selection > .design-layout{grid-template-columns:minmax(0,1fr)}
 .admin-workspace .design-workshop.has-selection > .design-layout > .design-selection{display:none}
@@ -43,7 +44,7 @@
 .admin-workspace .catalog-open .design-list-toggle{display:block}
 .admin-workspace .catalog-open .design-selection{display:block}
 .catalog-open .admin-browser-tools{display:flex;flex-wrap:wrap;gap:12px}.catalog-open .admin-browser-tools label{min-width:140px;flex:1}
-.catalog-open .admin-content-browser{max-height:none;overflow:visible}
+.catalog-open .admin-content-browser{max-height:70vh;overflow:auto}
 .catalog-open .admin-content-browser[data-visual] ul{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:18px}
 .catalog-open .admin-content-browser[data-visual] li{min-width:0}
 .admin-workspace .catalog-open .admin-content-browser[data-visual] button{height:100%;display:flex;flex-direction:column;align-items:stretch;padding:0;overflow:hidden;background:var(--admin-surface);border:1px solid transparent;border-radius:12px}

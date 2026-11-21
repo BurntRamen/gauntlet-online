@@ -15,7 +15,7 @@ const api = (request, route, options = {}) => request.get(origin + route, { head
 async function state(request) { const response = await api(request, "/api/admin/authoring"); expect(response.ok()).toBeTruthy(); return response.json(); }
 async function discard(request) { const current = await state(request); if (current.draft) expect((await request.post(origin + "/api/admin/authoring/discard", { headers: headers(), data: { expectedRevision: current.revision } })).ok()).toBeTruthy(); }
 async function openCard(page, id = cardId) { await page.goto(`/admin/gauntlet?workshop=cards&object=${id}`); await expect(page.getByRole("region", { name: "Card Workshop", exact: true })).toBeVisible(); await expect(page.getByLabel("Draft name", { exact: true })).toBeVisible(); }
-async function section(page, name, workshop = "Card Workshop") { const select = page.getByRole("combobox", { name: `${workshop} section`, exact: true }); const nav = page.getByRole("navigation", { name: `${workshop} sections`, exact: true }); await expect(select.or(nav)).toBeVisible(); if (await select.isVisible()) await select.selectOption({ label: name }); else await nav.getByRole("button", { name, exact: true }).click(); }
+async function section(page, name, workshop = "Card Workshop") { await require("./admin-navigation").workspaceSection(page, workshop, name); }
 const { area } = require("./admin-navigation");
 const saveRecord = page => page.getByRole("region", { name: "Save record changes" }).getByRole("button", { name: /^Save changes to/ });
 async function save(page) { const response = page.waitForResponse(r => r.url().endsWith("/authoring/record") && r.request().method() === "PATCH"); await saveRecord(page).click(); expect((await response).ok()).toBeTruthy(); }
@@ -183,6 +183,7 @@ test("keyboard search is a modal extension, restores focus and opens exact edita
 test("operator preferences are scoped and private recent work clears when accounts change", async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await openCard(page);
+  await page.getByRole("button", { name: "Back to list", exact: true }).click();
   const browser = page.locator(".admin-content-browser");
   await browser.evaluate(element => element.scrollTo(0, 400));
   await expect.poll(() => browser.evaluate(element => element.scrollTop)).toBe(400);
@@ -191,6 +192,7 @@ test("operator preferences are scoped and private recent work clears when accoun
   await expect(page.getByRole("region", { name: "Deck Workshop", exact: true })).toBeVisible();
   await destinations.selectOption("cards");
   await expect(page.getByRole("region", { name: "Card Workshop", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Back to list", exact: true }).click();
   await expect.poll(() => browser.evaluate(element => element.scrollTop)).toBe(400);
   await page.getByRole("button", { name: "Pin item", exact: true }).click();
   await page.getByLabel("Workspace options", { exact: true }).click();

@@ -10,7 +10,10 @@ const props={state,field:()=>null,target:{id:'practice',section:'play'},onTarget
 test('page selection renders the actual player page and follows the guarded target callback',async()=>{
  const field=jest.fn(key=><p key={key}>Edit {key}</p>),onTarget=jest.fn();
  render(<WebsiteProseWorkshop {...props} field={field} onTarget={onTarget}/>);
- expect(await (await player()).findByRole('heading',{name:'Saved heading'},{timeout:10000})).toBeInTheDocument();
+ const preview=await player();
+ const main=preview.getByRole('main',{name:'Representative player page'});
+ expect(await within(main).findByRole('heading',{name:'Saved heading'},{timeout:10000})).toBeInTheDocument();
+ expect(preview.getAllByRole('main')).toHaveLength(1);
  expect(frameDoc().querySelector('[data-layout-module="basic-ai"]')).toBeInTheDocument();
  expect(field.mock.calls.slice(0,3).map(c=>c[0])).toEqual(['playPageTitle','playPageDescription','playPageImage']);
  fireEvent.click(screen.getByRole('button',{name:/Learn & Rules landing/}));

@@ -4,7 +4,9 @@ async function fetchAdminResponse(route) {
   // route.fetch shares Playwright's Node HTTP pool with other API contexts.
   // Do not lend its idle socket to a later assertion after browser editing.
   const headers = await route.request().allHeaders();
-  return route.fetch({ headers: { ...headers, connection: "close" }, maxRetries: 0 });
+  // Buffer the complete catalog/preview body within the same bounded budget
+  // used by previewSavedDraft, rather than the shorter click timeout.
+  return route.fetch({ headers: { ...headers, connection: "close" }, maxRetries: 0, timeout: 45000 });
 }
 
 function waitForBufferedAdminResponse(page, predicate) {

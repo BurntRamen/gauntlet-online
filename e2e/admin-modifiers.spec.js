@@ -8,14 +8,14 @@ test("operator creates, tests, assigns and publishes a reusable campaign modifie
   await page.goto("/admin/gauntlet"); await page.evaluate(token => localStorage.setItem("gauntlet_auth_token", token), token);
   await page.goto("/admin/gauntlet?workshop=rule-modifiers");
   await page.getByRole("button", { name: "Create modifier", exact: true }).click();
-  await page.getByRole("button", { name: /New modifier.*active/ }).click();
+  await expect(page.getByLabel("Modifier name", { exact: true })).toHaveValue("New modifier");
   await page.getByLabel("Modifier name", { exact: true }).fill("Browser campaign challenge");
   await page.getByLabel("Player starting life", { exact: true }).fill("25"); await page.getByLabel("Opponent starting life", { exact: true }).fill("61");
   await page.getByLabel("Starting and refill hand size", { exact: true }).fill("5");
   let pending = waitForBufferedAdminResponse(page, r => r.url().endsWith("/studio-draft")); await page.getByRole("button", { name: "Save modifier to draft", exact: true }).click();
   const saved = await (await pending).json(), modifier = saved.draft.snapshot.studio.modifiers.find(m => m.name === "Browser campaign challenge"); expect(modifier).toBeTruthy();
   const encounter = saved.draft.snapshot.domains.encounters.find(e => e.factionId === "rumin");
-  await page.goto("/admin/gauntlet?workshop=encounters&object=" + encounter.id + "&section=setup");
+  await page.goto("/admin/gauntlet?workshop=encounters&object=" + encounter.id + "&section=mechanics");
   await page.getByRole("combobox", { name: "Draft starting-state rule modifier", exact: true }).selectOption(modifier.id);
   pending = waitForBufferedAdminResponse(page, r => r.url().endsWith("/authoring/record") && r.request().method() === "PATCH");
   await saveRecord(page);

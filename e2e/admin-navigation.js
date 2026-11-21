@@ -50,7 +50,11 @@ async function workspaceView(page, name) {
 async function workspaceSection(page, workshop, label) {
   if(workshop === "Encounter Workshop") label=({"Identity / Story":"Story","Opponent / Setup":"Opponent",Mechanics:"Rules","Deck / Cards":"Cards","Presentation / Assets":"Media",Playtest:"Test"})[label] || label;
   await returnFromPublishing(page);
-  if(workshop==='Encounter Workshop' && label==='Preview'){await workspaceView(page,'Preview');return;}
+  if(workshop==='Encounter Workshop' && label==='Preview'){
+    // The Test section uses the full workspace for the engine session.
+    if(!await page.locator('[aria-label="Workspace view"]').isVisible()) await workspaceSection(page,workshop,'Story');
+    await workspaceView(page,'Preview');return;
+  }
   if(workshop==='Encounter Workshop' && label==='Validation'){const summary=page.locator('.encounter-validation>summary');await summary.click();return;}
   await page.getByRole("region", { name: workshop, exact: true }).waitFor({ state: "visible" });
   await workspaceView(page, "Editor");

@@ -1100,6 +1100,7 @@ test("Admin creates a set and new card, executes its mechanics, publishes and sa
     await cardSection(page, "Test");
     const playtest = page.getByRole("region", { name: "Real engine playtest" });
     await playtest.getByRole("combobox", { name: "Test content", exact: true }).selectOption("draft");
+    await expect(playtest.getByRole("button", { name: "Configure custom starting state" })).toBeEnabled({ timeout: 45000 });
     await playtest.getByRole("button", { name: "Configure custom starting state" }).click();
     const setup = playtest.getByRole("region", { name: "Custom starting state", exact: true });
     await setup.getByLabel("Player 1 hand 1 card", { exact: true }).selectOption("");

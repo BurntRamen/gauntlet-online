@@ -1,5 +1,5 @@
 const { navigatePlayer } = require("./player-navigation");
-const { area: adminArea, paraTab, identity, saveDefinition } = require("./admin-navigation");
+const { area: adminArea, paraTab, identity, saveDefinition, previewSavedDraft } = require("./admin-navigation");
 const { origin, clientOrigin } = require("./admin-urls");
 const { test, expect } = require("./admin-release-test"), AxeBuilder = require("@axe-core/playwright").default;
 const fs = require("node:fs"), path = require("node:path");
@@ -19,7 +19,7 @@ test("Admin authors and publishes a usable Gold product; player earns, buys, rea
   const save = () => saveDefinition(page);
   const publish = async (name) => {
     await require("./admin-navigation").area(page, "Publishing");
-    await page.getByRole("button", { name: "Validate draft", exact: true }).click(); await page.getByRole("button", { name: "Preview saved draft", exact: true }).click(); await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "Validate draft", exact: true }).click(); await previewSavedDraft(page);
     await adminArea(page, "Publishing"); await fill("Release name", name);
     await page.getByRole("button", { name: "Publish release", exact: true }).click(); await page.getByRole("button", { name: "Confirm publish", exact: true }).click();
     await expect(page.getByText("No saved changes to review.", { exact: true })).toBeVisible();
@@ -54,7 +54,10 @@ test("Admin authors and publishes a usable Gold product; player earns, buys, rea
     expect((await new AxeBuilder({ page: player }).include(".economy-console").analyze()).violations).toEqual([]);
     await library.screenshot({ path: "artifacts/gold-analysis-desktop.png" });
     await area(); await choose("Marketplace"); await page.getByRole("button", { name: /^Personal match analysis gold-browser-analysis/ }).click(); await page.getByRole("button", { name: "Archive definition", exact: true }).click(); await expect(page.getByRole("button", { name: "Archive definition", exact: true })).toBeDisabled(); await expect(page.locator(".admin-save-context")).toHaveText("Saved to shared draft"); await publish("Retire offer, preserve permanent library access");
-    await player.reload(); await navigatePlayer(player, "profile", "library");
+    const manifestReady = player.waitForResponse(response => response.url() === origin + "/api/game-content", { timeout: 45000 });
+    await player.reload();
+    const manifest = await manifestReady; expect(manifest.ok()).toBeTruthy(); await manifest.finished();
+    await navigatePlayer(player, "profile", "library");
     // Publishing refreshes the full Admin catalog while the player session is
     // restored. Wait for the resulting wallet view, including on loaded runners.
     await expect(library).toContainText("800 Gold · Published", { timeout: 15000 }); await expect(library.getByRole("button", { name: /^Review Personal/ })).toHaveCount(0);

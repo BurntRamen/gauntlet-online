@@ -117,6 +117,7 @@ test('phone editing preserves unsaved work, keyboard focus and accessible contro
 
 test('measure the twelve operator activities using visible controls',async()=>{
  test.setTimeout(600000);
+ fs.mkdirSync(path.resolve(__dirname,'../artifacts'),{recursive:true});
  const {execFile}=require('node:child_process');
  await new Promise((resolve,reject)=>execFile(process.execPath,[path.resolve(__dirname,'../scripts/measure-admin-workflows.cjs')],{cwd:path.resolve(__dirname,'..'),windowsHide:true,env:{...process.env,AUDIT_STAGE:'after'}},(error,stdout,stderr)=>{fs.writeFileSync(path.resolve(__dirname,'../artifacts/admin-correction-activities.log'),stdout+stderr);error?reject(error):resolve();}));
  const report=JSON.parse(fs.readFileSync(path.join(output,'../after-activities/measurements.json')));
@@ -126,6 +127,7 @@ test('measure the twelve operator activities using visible controls',async()=>{
 
 test('native 200 percent browser zoom preserves website and authoring workflows',async()=>{
  test.setTimeout(240000);
+ fs.mkdirSync(path.resolve(__dirname,'../artifacts'),{recursive:true});
  const {execFile}=require('node:child_process');
  await new Promise((resolve,reject)=>execFile(process.execPath,[path.resolve(__dirname,'admin-native-zoom.cjs')],{cwd:path.resolve(__dirname,'..'),windowsHide:true,env:{...process.env,GAUNTLET_NATIVE_MATRIX:'true',GAUNTLET_NATIVE_EVIDENCE_DIR:path.resolve(__dirname,'../docs/reviews/admin-correction/native-zoom')}},(error,stdout,stderr)=>{fs.writeFileSync(path.resolve(__dirname,'../artifacts/admin-correction-zoom.log'),stdout+stderr);error?reject(error):resolve();}));
 });
