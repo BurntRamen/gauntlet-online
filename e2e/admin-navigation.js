@@ -14,7 +14,7 @@ async function area(page, name) {
 }
 async function destination(page, name) {
   if (name === "Store") { await area(page, "Store & Economy"); return; }
-  if (name === "Website prose") { await area(page, "Website"); return; }
+  if (name === "Website prose") { await area(page, "Website"); if (await page.getByRole("dialog", { name: "Unsaved local changes" }).isVisible()) return; const back=page.getByRole("button", { name: "Back to list", exact: true }); if(await back.isVisible())await back.click(); return; }
   const types={Cards:"cards",Decks:"decks",Encounters:"encounters",Campaigns:"campaigns",Factions:"factions",Characters:"characters","Characters / opponents":"characters","Engine / Rules":"card-effects","Collector artwork":"assets",Sets:"sets","Other content":"campaigns","Mechanics & Rules":"mechanics"};
   if (!await page.getByLabel("Content type",{exact:true}).isVisible()) await area(page,"Content");
   if (await page.getByRole("dialog",{name:"Unsaved local changes"}).isVisible()) return;

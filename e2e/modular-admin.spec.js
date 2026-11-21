@@ -21,7 +21,7 @@ test("six destinations connect a named future Ranked season, shared player previ
   await area(page, "Competition");
   await page.getByRole("navigation", { name: "Events & Commerce workspaces" }).getByRole("button", { name: "Ranked rules", exact: true }).click();
   await page.getByRole("button", { name: "Create season draft", exact: true }).click();
-  await page.getByRole("button", { name: /New season draft/ }).click();
+  await expect(page.getByLabel("Name", {exact:true})).toHaveValue("New season");
   await page.getByLabel("Name", { exact: true }).fill("Browser future Ranked");
   await page.getByLabel("Starts", { exact: true }).fill("2038-01-01T12:00");
   await page.getByLabel("Ends", { exact: true }).fill("2038-02-01T12:00");
@@ -47,7 +47,7 @@ test("six destinations connect a named future Ranked season, shared player previ
   await expect(page.getByText("No saved changes to review.", { exact: true })).toBeVisible();
   const after = await (await request.get(origin + "/api/admin/competition", { headers })).json();
   expect(after.seasons.find(s => s.definition.displayName === "Browser future Ranked").definition.scoring.win).toBe(6);
-  await area(page, "Competition"); await page.getByRole("button", { name: /Browser future Ranked scheduled/ }).click();
+  await area(page, "Competition"); const back=page.getByRole("button", { name: "Back to list", exact: true }); if(await back.isVisible())await back.click(); await page.getByRole("button", { name: /Browser future Ranked scheduled/ }).click();
   await expect(page.getByLabel("Win points", { exact: true })).toBeDisabled(); await expect(page.getByLabel("Starts", { exact: true })).toBeDisabled();
   await page.screenshot({ path: "artifacts/modular-competition-desktop.png", fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });

@@ -638,7 +638,7 @@ test("Encounter Workshop keeps editing and engine evidence tied to the correct s
   await saveRecord(page);
   await encounterSection(page, "test");
   await expect(playtest.getByText("Stale playtest · saved draft changed", { exact: true })).toBeVisible();
-  await expect(page.getByText(/Saved draft preview still needed/)).toBeVisible();
+  await expect(page.getByLabel("Your next step",{exact:true})).toContainText("Test your saved changes");
   await require("./admin-navigation").area(page, "Publishing");
   await page.getByRole("button", { name: "Validate draft", exact: true }).click();
   await require("./admin-navigation").area(page, "Publishing");
@@ -1046,7 +1046,7 @@ test("Admin search opens exact prose editors, guards local edits, and publishes 
   await require("./admin-navigation").area(page, "Publishing");
   await require("./admin-navigation").previewSavedDraft(page);
   await require("./admin-navigation").workspaceView(page, "Editor");
-  await expect(page.getByRole("region", { name: "Website presentation preview", exact: true }).getByRole("heading", { name: "A browser-reviewed practice heading.", exact: true })).toBeVisible();
+  await expect(page.frameLocator(".website-render iframe").getByRole("heading", { name: "A browser-reviewed practice heading.", exact: true })).toBeVisible();
   await page.getByRole("navigation", { name: "Administration sections" }).getByRole("button", { name: "Publishing", exact: true }).click();
   await page.getByLabel("Release name").fill("Browser prose search");
   await page.getByRole("button", { name: "Publish release", exact: true }).click();

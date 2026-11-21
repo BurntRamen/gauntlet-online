@@ -460,3 +460,12 @@ test("deck record saves exclude private notes and note conflicts require a value
   expect(screen.getByLabelText("Private deck notes")).toHaveValue("Other operator note");
   expect(state.privateNotes[deck.id].value).toBe("Other operator note");
 });
+
+
+test("confirmed absence of a draft shows the empty release without waiting for a comparison request", async () => {
+  const normal=request;
+  request=jest.fn((path,options)=>path==="/api/admin/workshops/review"?new Promise(()=>{}):normal(path,options));
+  render(<GauntletAuthoring {...props()} area="Publishing" />);
+  expect(await screen.findByRole("heading",{name:"No saved changes to review.",exact:true})).toBeVisible();
+  expect(request).not.toHaveBeenCalledWith("/api/admin/workshops/review");
+});

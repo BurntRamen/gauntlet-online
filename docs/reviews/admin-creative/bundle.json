@@ -6,10 +6,10 @@
     "largestAsyncGzip": 358400,
     "totalJavaScriptGzip": 779264
   },
-  "main": 183448,
-  "player": 777735,
+  "main": 183441,
+  "player": 777728,
   "adminEntry": 9099,
-  "adminTotal": 76556,
+  "adminTotal": 76590,
   "largestAsync": 275731,
   "failures": []
 }

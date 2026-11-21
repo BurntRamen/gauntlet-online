@@ -1,10 +1,10 @@
 const { area: adminArea, paraTab, identity, saveDefinition } = require("./admin-navigation");
 const { origin } = require("./admin-urls");
-const { test, expect } = require("@playwright/test");
+const { test, expect } = require("./admin-release-test");
 const AxeBuilder = require("@axe-core/playwright").default;
 
-test("operators author Para definitions, simulate, publish and restore without touching accounts", async ({ page, request }) => {
-  test.setTimeout(120000);
+test("operators author Para definitions, simulate, publish and restore without touching accounts", async ({ page, request, restoreRelease }) => {
+  test.setTimeout(240000);
   await page.goto("/admin/gauntlet");
   const response = await request.post(`${origin}/api/auth/login`, { data: { name: "simply", password: "test-password" } });
   expect(response.ok()).toBeTruthy();
@@ -13,6 +13,7 @@ test("operators author Para definitions, simulate, publish and restore without t
   await page.reload();
   const get = async (route) => (await (await request.get(`${origin}${route}`, { headers, maxRetries: 2 })).json());
   const before = { players: await get("/api/admin/players"), matches: await get("/api/admin/matches"), content: await get("/api/game-content"), authoring: await get("/api/admin/authoring") };
+  restoreRelease(headers,before.authoring,origin);
   const nav = page.getByRole("navigation", { name: "Administration sections" });
   await adminArea(page, "Para League & Economy");
   await page.getByText("League rules & initial season", { exact: true }).click();

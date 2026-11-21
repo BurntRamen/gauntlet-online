@@ -144,6 +144,7 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
   }, [request, source, state?.draft?.hash, state?.activeReleaseId]);
   useEffect(() => {
     if (area !== "Publishing" || !state) return undefined;
+    if (!state.draft && !state.pending) { setReview({ revision: state.revision, groups: [] }); setReviewError(""); return undefined; }
     let active = true; setReview(null); setReviewError("");
     request("/api/admin/workshops/review").then(value => { if (active && value.groups) setReview(value); }).catch(failure => { if (active) setReviewError(failure.message); });
     return () => { active = false; };

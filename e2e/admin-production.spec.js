@@ -47,7 +47,7 @@ test("a registered website header is previewed, published to the player menu and
   await page.goto("/admin/gauntlet?workshop=modes&object=practice&section=play");
   await page.getByLabel("Draft play landing · heading", { exact: true }).fill("Isolated production heading");
   await saveRecord(page);
-  await expect(page.getByRole("region", { name: "Website presentation preview" })).toContainText("Isolated production heading");
+  await expect(page.frameLocator(".website-render iframe").getByRole("heading", {name:"Isolated production heading",exact:true})).toBeVisible();
   await area(page, "Publishing");
   await require("./admin-navigation").area(page, "Publishing");
   await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
