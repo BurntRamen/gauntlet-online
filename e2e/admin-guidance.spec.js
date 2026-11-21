@@ -37,13 +37,13 @@ test('visual guidance follows editing, saving, sections and the next release act
 
 test('website sections give visual editing cues and keep the selected section outlined',async({page})=>{
  await page.goto('/admin/gauntlet?area=Website&workshop=modes&object=practice&section=play');
- await expect(page.locator('.website-render h1')).toBeVisible();
- const module=page.locator('.website-render [data-layout-module="basic-ai"]');await module.hover();
+ await expect(page.frameLocator('.website-render iframe').locator('h1')).toBeVisible();
+ const module=page.frameLocator('.website-render iframe').locator('[data-layout-module="basic-ai"]');await module.hover();
  expect(await module.evaluate(e=>getComputedStyle(e).outlineStyle)).toBe('solid');await module.click();
  await expect(page.getByLabel('Edit element',{exact:true})).toHaveValue('basic-ai');await expect(page.getByLabel('Edit element',{exact:true})).toBeFocused();
  await expect(module).toHaveAttribute('data-studio-selected','');await page.locator('.design-header').scrollIntoViewIfNeeded();await capture(page,'website-selection');
  await page.getByLabel('Edit element',{exact:true}).selectOption('navigation');
- await expect(page.locator('.website-render .cd-rail nav')).toHaveAttribute('data-studio-selected','');
+ await expect(page.frameLocator('.website-render iframe').locator('.cd-rail nav')).toHaveAttribute('data-studio-selected','');
 });
 
 test('phone guidance finds the real form save and preview without submitting on behalf of the operator',async({page,request})=>{

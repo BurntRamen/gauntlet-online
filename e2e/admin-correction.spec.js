@@ -71,7 +71,7 @@ test('Website Studio changes actual page content, imagery, navigation, section o
  await page.getByLabel('Draft play landing · heading',{exact:true}).fill('An authored welcome');
  await page.getByLabel('Draft play landing · introduction',{exact:true}).fill('A real player page, reviewed in the studio.');
  await page.getByRole('button',{name:'Browse images',exact:true}).click();const picker=page.getByRole('dialog',{name:'Choose artwork'});await picker.locator('.asset-picker-tile').first().click();await picker.getByRole('button',{name:'Use selected artwork',exact:true}).click();
- const preview=page.locator('.website-render');await expect(preview.locator('h1')).toHaveText('An authored welcome');await expect(preview.locator('.cd-page-artwork')).toBeVisible();
+ const preview=page.frameLocator('.website-render iframe');await expect(preview.locator('h1')).toHaveText('An authored welcome');await expect(preview.locator('.cd-page-artwork')).toBeVisible();
  await page.getByLabel('Edit element',{exact:true}).selectOption('presentation');
  await page.getByLabel('Type style',{exact:true}).selectOption('editorial');await page.getByLabel('Section arrangement',{exact:true}).selectOption('list');
  await page.getByLabel('Basic vs AI',{exact:true}).uncheck();await page.getByRole('button',{name:'Move Factions vs AI earlier',exact:true}).click();

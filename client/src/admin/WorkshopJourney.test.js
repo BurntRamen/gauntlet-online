@@ -13,6 +13,15 @@ test('next section opens the actual editor without implying completed work',()=>
 test('the record save bar owns guidance while local record edits exist',()=>{
  renderJourney({dirty:true,saveShown:true});expect(screen.queryByLabelText('Your next step')).not.toBeInTheDocument();
 });
+test('an untested saved revision stays on Test and qualified evidence leads to review',()=>{
+ const review=jest.fn();HTMLElement.prototype.scrollIntoView=jest.fn();
+ const props={section:'test',sections:[['test','Test'],['related','Related content']],children:<section id="workshop-test"><select aria-label="Test source"><option>Saved draft</option></select></section>};
+ const view=renderJourney({draft:true,tested:false,review},props);
+ expect(screen.queryByRole('button',{name:'Continue to Related content'})).not.toBeInTheDocument();
+ fireEvent.click(screen.getByRole('button',{name:'Go to test controls'}));expect(screen.getByLabelText('Test source')).toHaveFocus();
+ view.unmount();renderJourney({draft:true,tested:true,review},props);
+ fireEvent.click(screen.getByRole('button',{name:'Review saved changes'}));expect(review).toHaveBeenCalledTimes(1);
+});
 test('conflicts never suggest continuing or reviewing',()=>{
  renderJourney({blocked:true,dirty:true});expect(screen.getByLabelText('Your next step')).toHaveTextContent('Resolve this before continuing');
  expect(screen.queryByRole('button',{name:/Continue to|Review saved/})).not.toBeInTheDocument();

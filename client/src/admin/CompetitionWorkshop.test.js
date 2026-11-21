@@ -1,4 +1,5 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {render} from "./testSupport";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import CompetitionWorkshop from "./CompetitionWorkshop";
 
 const row = { id: "event-one", name: "Original event", status: "draft", maxWins: 5, rewards: [{ wins: 1, gold: 10, boosterCredits: 0, cardStyleId: "" }] };

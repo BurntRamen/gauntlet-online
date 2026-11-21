@@ -1,3 +1,4 @@
+import {useHelp as useCreativeCopy} from "./AuthoringHelp";
 import ValueControl, { toggleValue } from "./ValueControl";
 import { useState } from "react";
 import PlaytestEvidence from "./PlaytestEvidence";
@@ -26,6 +27,8 @@ export function buildCommand(action, selections, options) {
   return command;
 }
 export default function EngineActionPanel({ session, disabled, onPreview, onExecute }) {
+  const creativeCopy=useCreativeCopy();
+
   const [selected, setSelected] = useState(""), [selections, setSelections] = useState({}), [options, setOptions] = useState({}), [preview, setPreview] = useState(null);
   const actions = session.legalActions || [];
   const action = actions.find(entry => entry.id === selected);
@@ -37,12 +40,12 @@ export default function EngineActionPanel({ session, disabled, onPreview, onExec
   const toggle = (key, id, checked) => change(key, toggleValue(selections[key], id, checked));
   const command = action && buildCommand(action, selections, options);
   const excluded = excludedPayments(action, command);
-  return <section className="engine-actions" aria-label="Engine action selection"><h5>Choose an engine action</h5><ValueControl label="Action" disabled={disabled} value={selected} options={[["", "Select an available action"], ...actions.map(entry => [entry.id, entry.label])]} onChange={id => { setSelected(id); setSelections({}); setOptions({}); setPreview(null); }} />
+  return <section className="engine-actions" aria-label={creativeCopy.creativeEngineActionPanel1}><h5>{creativeCopy.creativeEngineActionPanel2}</h5><ValueControl label="Action" disabled={disabled} value={selected} options={[["", creativeCopy.creativeEngineActionPanel3], ...actions.map(entry => [entry.id, entry.label])]} onChange={id => { setSelected(id); setSelections({}); setOptions({}); setPreview(null); }} />
     {action && <>
       {groups(action).map(group => <fieldset key={group.key}><legend>{readable(group.role)} · choose {group.minimum}{group.maximum !== group.minimum && "–" + group.maximum}{group.ordered ? " in order" : ""}</legend>{group.entities.map(entity => <label className="engine-choice" key={entity.id}><ValueControl type="checkbox" disabled={disabled || Object.hasOwn(action.confirmationPayload?.fixed || {}, group.key) || group.entities.length === 1 || (group.maximum > 1 && (selections[group.key] || []).length >= group.maximum && !(selections[group.key] || []).includes(entity.id))} checked={(selections[group.key] || (group.entities.length === 1 ? [entity.id] : [])).includes(entity.id)} onChange={checked => group.maximum === 1 ? change(group.key, checked ? [entity.id] : []) : toggle(group.key, entity.id, checked)} />{labelEntity(entity)}{group.ordered && selections[group.key]?.includes(entity.id) && " · " + (selections[group.key].indexOf(entity.id) + 1)}</label>)}</fieldset>)}
-      {action.payment && <fieldset><legend>Payment cards · {action.payment.requiredValue ?? "selected blocker value"} required before modifiers</legend>{action.payment.eligibleCardIds.map(id => <label key={id} className="engine-choice"><ValueControl type="checkbox" disabled={disabled || excluded.includes(id)} checked={(command.paymentCardIds || []).includes(id)} onChange={checked => toggle("payment", id, checked)} />{labelCard(id)}</label>)}</fieldset>}
+      {action.payment && <fieldset><legend>Payment cards · {action.payment.requiredValue ?? "selected blocker value"}{creativeCopy.creativeEngineActionPanel4}</legend>{action.payment.eligibleCardIds.map(id => <label key={id} className="engine-choice"><ValueControl type="checkbox" disabled={disabled || excluded.includes(id)} checked={(command.paymentCardIds || []).includes(id)} onChange={checked => toggle("payment", id, checked)} />{labelCard(id)}</label>)}</fieldset>}
       {[...(action.optionalEffects || []), ...(action.optionalPaymentModifiers || [])].filter(entry => entry.commandField).map(entry => <fieldset key={entry.id}><legend>{entry.label || readable(entry.id)}</legend>{entry.kind === "amount" ? <ValueControl aria-label={entry.label} type="number" empty={0} min={entry.minimum || 0} max={entry.maximum} disabled={disabled} value={options[entry.commandField] || 0} onChange={amount => option(entry.commandField, amount)} /> : ["choice", "payment-card"].includes(entry.kind) ? <ValueControl aria-label={entry.label} disabled={disabled} value={options[entry.commandField] || ""} options={[["", "None"], ...(entry.choices || selections.payment || []).map(value => [value, entry.kind === "payment-card" ? labelCard(value) : value])]} onChange={value => option(entry.commandField, value)} /> : entry.kind === "card-list" ? entry.cardIds.map(id => <label key={id} className="engine-choice"><ValueControl type="checkbox" disabled={disabled} checked={(options[entry.commandField] || []).includes(id)} onChange={checked => option(entry.commandField, toggleValue(options[entry.commandField], id, checked))} />{labelCard(id)}</label>) : <label className="engine-choice"><ValueControl type="checkbox" disabled={disabled} checked={!!options[entry.commandField]} onChange={checked => option(entry.commandField, checked)} />Use this option</label>}</fieldset>)}
-      <div className="admin-actions"><button disabled={disabled} onClick={async () => { const result = await onPreview(command); if (result) setPreview(result); }}>Calculate command preview</button><button disabled={disabled} onClick={() => onExecute(command)}>Execute selected action</button></div>
+      <div className="admin-actions"><button disabled={disabled} onClick={async () => { const result = await onPreview(command); if (result) setPreview(result); }}>{creativeCopy.creativeEngineActionPanel5}</button><button disabled={disabled} onClick={() => onExecute(command)}>{creativeCopy.creativeEngineActionPanel6}</button></div>
       {preview && <PlaytestEvidence game={session.game} result={preview} />}
     </>}
   </section>;

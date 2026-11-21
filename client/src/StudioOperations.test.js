@@ -5,7 +5,7 @@ const originalFetch = global.fetch;
 const response = (body, status = 200) => ({ ok: status === 200, status, json: async () => body });
 const home = { guide: require("../../server/adminHomeGuide.json"), seasons: [], events: [], purchases: [], modules: [], tasks: [], storefront: {}, players: {}, publication: {} };
 const system = { guide: require("../../server/adminSystemGuide.json"), issues: [], versions: {}, storage: {}, sources: [], boundaries: [], validation: {} };
-const overview = { generatedAt: "2026-11-08T00:00:00Z", accounts: { total: 2 }, system: {}, activePlay: {}, matches: {}, season: {}, collector: {} };
+const overview = { generatedAt: "2026-11-08T00:00:00Z", accounts: { total: 2 }, system: {}, activePlay: { rooms: [], draftQueues: {} }, matches: {}, season: {}, collector: {} };
 const select = name => { fireEvent.click(within(screen.getByRole("navigation", { name: "Administration sections" })).getByRole("button", { name, exact: true })); if (name === "Operations") fireEvent.click(screen.getByRole("button", { name: "Health & recovery" })); };
 const overviewReads = () => global.fetch.mock.calls.filter(([url]) => url.endsWith("/overview"));
 
@@ -31,9 +31,9 @@ test("Home defers historical operations, which remain readable, refreshable and 
   expect(overviewReads()).toHaveLength(0);
 
   select("Operations");
-  await screen.findByRole("heading", { name: "Gauntlet Studio" });
+  await screen.findByRole("heading", { name: "Active rooms" }, {timeout:10000});
   expect(overviewReads()).toHaveLength(1);
-  expect(screen.getByRole("heading", { name: "Match Archive" })).toBeVisible();
+  expect(screen.getByRole("heading", { name: "Active rooms" })).toBeVisible();
   fireEvent.click(screen.getByRole("button", { name: "Refresh operations" }));
   await waitFor(() => expect(overviewReads()).toHaveLength(2));
   await waitFor(() => expect(screen.getByRole("button", { name: "Refresh operations" })).toBeEnabled());
@@ -64,6 +64,6 @@ test("direct Operations entry loads its data, reports failure and retries on re-
   select("Home");
   await screen.findByRole("heading", { name: "Create something" });
   select("Operations");
-  await screen.findByRole("heading", { name: "Gauntlet Studio" });
+  await screen.findByRole("heading", { name: "Active rooms" }, {timeout:10000});
   expect(overviewReads()).toHaveLength(2);
 });

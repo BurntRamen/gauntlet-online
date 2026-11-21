@@ -1,4 +1,5 @@
-import { render, screen } from "@testing-library/react";
+import {render} from "./testSupport";
+import { screen } from "@testing-library/react";
 import PlaytestEvidence from "./PlaytestEvidence";
 
 test("calculated results distinguish engine events from snapshot differences and absent evidence", () => {

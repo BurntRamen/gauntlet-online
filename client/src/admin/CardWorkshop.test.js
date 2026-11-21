@@ -1,4 +1,5 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import {render} from "./testSupport";
+import { fireEvent, screen } from "@testing-library/react";
 import CardWorkshop from "./CardWorkshop";
 import { HelpProvider } from "./AuthoringHelp";
 const wrapper = ({ children }) => <HelpProvider value={require("../../../server/adminAuthoringGuide").help}>{children}</HelpProvider>;

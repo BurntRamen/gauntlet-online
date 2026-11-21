@@ -1,3 +1,5 @@
+import {PrivateImage} from "./PrivateAsset";
+import {DestinationIcon} from "../navigation/DestinationIcon";
 import { useHelp } from "./AuthoringHelp";
 import GauntletContractFields from "../GauntletContractFields";
 import Validation from "./WorkshopValidation";
@@ -33,7 +35,9 @@ export default function WorkshopField({ state, domain, row, field, buffer, busy,
   const controlProps = { "aria-label": `Draft ${definition.label.toLowerCase()}`, value, disabled, "aria-invalid": invalid || undefined, "aria-describedby": [noteId, invalid && errorId].filter(Boolean).join(" "), onChange: event => update(event.target.value) };
   const structuredProps = { definition, row, guide: state.guide, value: contract, cards: (state.draft?.snapshot || state.live).domains.cards, disabled, onInspect, onChange: next => update(JSON.stringify(next, null, 2)) };
   let control;
-  if (definition.type.startsWith('website-')) {
+  if (definition.visual?.part==='icon') {
+    control=<div className="website-icon-choices" role="group" aria-label={definition.label}>{definition.options.map(icon=><button type="button" key={icon} disabled={disabled} aria-pressed={value===icon} onClick={()=>update(icon)}>{icon?<DestinationIcon name={icon}/>:<span aria-hidden="true">↺</span>}<span>{icon || 'Original'}</span></button>)}</div>;
+  } else if (definition.type.startsWith('website-')) {
     control=<WebsiteControls {...structuredProps} state={state} />;
   } else if (catalogType) {
     const Field = ["deck-reference", "deck-composition", "offer-prices", "offer-sale"].includes(definition.type) ? DeckField : CatalogField;
@@ -41,7 +45,7 @@ export default function WorkshopField({ state, domain, row, field, buffer, busy,
   } else if (definition.type === "object") {
     control = field === "effect" ? <MechanicsEditor {...structuredProps} studio={state.studio} onChange={next => update(JSON.stringify(next))} /> : renderContract ? renderContract(structuredProps) : <GauntletContractFields {...structuredProps} />;
   } else if (definition.type === "asset") {
-    control = <><p className="admin-note">{state.assetLibrary?.find(asset => [asset.id, asset.source, asset.path].includes(value))?.source?.split("/").pop() || (value ? "Existing asset reference" : domain === "assets" && field === "art" ? "Default artwork" : "No asset selected")}</p><details><summary>Advanced · manual reference</summary><input {...controlProps} type="text" /></details></>;
+    control = <>{definition.media==='image' && state.assetLibrary?.find(asset=>[asset.id,asset.source,asset.path].includes(value))?.path && <PrivateImage className="admin-field-artwork" alt="Selected artwork" src={state.assetLibrary.find(asset=>[asset.id,asset.source,asset.path].includes(value)).path}/>}<p className="admin-note">{state.assetLibrary?.find(asset => [asset.id, asset.source, asset.path].includes(value))?.source?.split("/").pop() || (value ? "Existing asset reference" : domain === "assets" && field === "art" ? "Default artwork" : "No asset selected")}</p><details><summary>{helpCopy.creativeWorkshopField1}</summary><input {...controlProps} type="text" /></details></>;
   } else if (definition.type === "integer") {
     control = <input {...controlProps} type="number" min={definition.min} max={definition.max} step={1} required />;
   } else if (definition.type === "text" && definition.maxLength <= 180) {
@@ -55,12 +59,12 @@ export default function WorkshopField({ state, domain, row, field, buffer, busy,
     <div className="admin-field-columns">
       <div role="group" aria-label={definition.label} aria-describedby={controlProps["aria-describedby"]}>{!catalogType && <span className="sr-only">Draft {definition.label.toLowerCase()}</span>}{control}
       {domain === "cards" && field === "text" && ["composed-rumin-armament", "authored-mechanic"].includes(row.effect?.id) && <GeneratedWording studio={state.studio} row={row} disabled={disabled} onChange={update} />}
-      {definition.type === "asset" && <button type="button" disabled={disabled} onClick={event => onAsset({ returnFocus: event.currentTarget, value, liveValue: live, media: definition.media, clearLabel: definition.required ? null : domain === "assets" && field === "art" ? "Use default artwork" : undefined, onSelect: update })}>Browse {definition.media === "audio" ? "audio" : "images"}</button>}
+      {definition.type === "asset" && <button type="button" disabled={disabled} onClick={event => onAsset({ title: `${definition.label} · ${row.name || row.title || row.id}`, returnFocus: event.currentTarget, value, liveValue: live, media: definition.media, clearLabel: definition.required ? null : domain === "assets" && field === "art" ? "Use default artwork" : undefined, onSelect: update })}>Browse {definition.media === "audio" ? "audio" : "images"}</button>}
       {definition.type === "assets" && <div className="admin-actions">{(value || row[field]?.length ? value.split("\n") : []).map((entry, index) => <button key={index} type="button" disabled={disabled} onClick={event => onAsset({ returnFocus: event.currentTarget, value: entry, liveValue: live?.[index], media: definition.media, onSelect: next => { const lines = value.split("\n"); lines[index] = next; update(lines.join("\n")); } })}>Choose voice {index + 1}</button>)}<button type="button" disabled={disabled} onClick={event => onAsset({ returnFocus: event.currentTarget, value: "", media: definition.media, onSelect: next => update(value ? `${value}\n${next}` : next) })}>Add voice reference</button></div>}
       </div></div>
-    {selectedEffect && dirty && <p className="admin-note">Selected effect: {selectedEffect.label} · {selectedEffect.description} Review the displayed wording before saving.</p>}
+    {selectedEffect && dirty && <p className="admin-note">Selected effect: {selectedEffect.label} · {selectedEffect.description}{helpCopy.creativeWorkshopField2}</p>}
     <p id={noteId} className="admin-note">{structuralLock ? state.guide.identityLock : definition.note || (["lines", "assets"].includes(definition.type) ? state.guide.linesHelp : catalogType ? state.guide.catalogField : definition.type === "integer" ? `Whole number from ${definition.min} to ${definition.max}.` : definition.type === "asset" ? state.guide.immutableAsset : `Up to ${definition.maxLength} characters.`)}</p>
     <Validation errorId={errorId} guide={state.guide} validation={state.validation} domain={domain} id={row.id} field={field} />
-    <details className="admin-field-tools"><summary>Compare & revert</summary><div className="admin-comparison"><div><strong>Current live value</strong><div className="admin-live-value" tabIndex={0} aria-label={`Current live ${definition.label.toLowerCase()}`}>{displayValue(live) || "—"}</div></div>{dirty && <details><summary>Saved shared draft value</summary><pre className="admin-protected">{displayValue(saved)}</pre></details>}</div><div className="admin-actions">{dirty && <button type="button" disabled={disabled} onClick={onReset}>Reset local {definition.label.toLowerCase()}</button>}<button type="button" disabled={disabled || !state.live.domains[domain]?.some(entry => entry.id === row.id) || (!dirty && !changed)} onClick={() => update(definition.type === "card-list" ? JSON.stringify(live) : displayValue(live))}>Revert {definition.label.toLowerCase()} to live</button><p className="admin-note">{helpCopy.fieldNote1}</p></div></details>
+    <details className="admin-field-tools"><summary>Compare & revert</summary><div className="admin-comparison"><div><strong>Current live value</strong><div className="admin-live-value" tabIndex={0} aria-label={`Current live ${definition.label.toLowerCase()}`}>{displayValue(live) || "—"}</div></div>{dirty && <details><summary>{helpCopy.creativeWorkshopField3}</summary><pre className="admin-protected">{displayValue(saved)}</pre></details>}</div><div className="admin-actions">{dirty && <button type="button" disabled={disabled} onClick={onReset}>Reset local {definition.label.toLowerCase()}</button>}<button type="button" disabled={disabled || !state.live.domains[domain]?.some(entry => entry.id === row.id) || (!dirty && !changed)} onClick={() => update(definition.type === "card-list" ? JSON.stringify(live) : displayValue(live))}>Revert {definition.label.toLowerCase()} to live</button><p className="admin-note">{helpCopy.fieldNote1}</p></div></details>
   </section>;
 }

@@ -1,3 +1,4 @@
+import {Json, Facts, label} from './admin/Presentation';
 import { brandText } from './brand/brandPreview';
 import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
 import "./GauntletAdmin.css";
@@ -16,7 +17,6 @@ import AdminSearch from "./admin/AdminSearch";
 import useAdminData from "./admin/useAdminData";
 const Players = lazy(() => import(/* webpackChunkName: "gauntlet-admin-workshops" */ "./admin/Players"));
 function clearAdminLocation() { if (window.location.pathname.startsWith("/admin/gauntlet")) window.history.replaceState({}, "", "/"); }
-const label = (value) => String(value).replace(/([a-z])([A-Z])/g, "$1 $2").replace(/[_-]/g, " ").replace(/^./, (char) => char.toUpperCase());
 const date = (value) => value ? new Date(value).toLocaleString() : "Not recorded";
 const CONTENT_DESTINATIONS = [
   ["cards", "Cards"], ["sets", "Sets"], ["assets", "Printings"], ["decks", "Decks"],
@@ -32,14 +32,6 @@ function State({ state, children }) {
   return children(state.data);
 }
 
-function Json({ value, title = "Inspect source projection" }) {
-  return <details className="admin-json"><summary>{title}</summary><pre>{JSON.stringify(value, null, 2)}</pre></details>;
-}
-
-function Facts({ values }) {
-  return <dl className="admin-facts">{Object.entries(values).map(([key, value]) => <div key={key}><dt>{label(key)}</dt><dd>{value == null ? "Not recorded" : typeof value === "boolean" ? (value ? "Yes" : "No") : String(value)}</dd></div>)}</dl>;
-}
-
 function Overview({ request, revision, onSelect }) {
   const state = useAdminData(request, "/api/admin/home", revision);
   return <State state={state}>{data => <ModuleHome data={data} onSelect={onSelect} />}</State>;
@@ -48,7 +40,7 @@ function Overview({ request, revision, onSelect }) {
 export default function GauntletAdmin(props) {
   return <OperatorPreferences key={props.operatorScope || "session"} scope={props.operatorScope}><AdminWorkspace {...props} /></OperatorPreferences>;
 }
-function AdminWorkspace({ request, onClose, operations, exitGuard, environment }) {
+function AdminWorkspace({ request, onClose, exitGuard, environment }) {
   const operator = useOperatorPreferences();
   const [area, setArea] = useState(() => { const params = new URLSearchParams(window.location.search), name = params.get("area"), domain = targetFromLocation({ domain: "cards" }).domain; return [...AREAS, "Content", "Competition", "Store & Economy", "Players"].includes(name) ? editorArea(name, domain) : params.has("workshop") ? domain === "offers" ? "Store & Economy" : "Content" : "Home"; });
   const [drawer, setDrawer] = useState(false), [editing, setEditing] = useState(null);
@@ -94,12 +86,14 @@ function AdminWorkspace({ request, onClose, operations, exitGuard, environment }
     return () => window.removeEventListener("popstate", pop, true);
   }, [authoringArea]);
   useEffect(() => { if (exitGuard) exitGuard.current = action => playerGuard.current(() => guard.current(() => { if (action) clearAdminLocation(); action?.(); })); return () => { if (exitGuard) exitGuard.current = action => { action?.(); return true; }; }; }, [exitGuard]);
+  const [operationTarget,setOperationTarget]=useState(null);
   const [contentDomain, setContentDomain] = useState(() => new URLSearchParams(window.location.search).get("area") === "Website" ? { name: "modes" } : null);
   const authoring = ["Content", "Publishing", "Store & Economy"].includes(area) || area === "Competition" && workspace.Competition !== "Results";
   const selectArea = (name, domain, id, section, field, accepted, options) => (options?.internal ? action => action() : canLeave)(() => {
     if (name === "Website") domain ||= "modes";
     if (name === "Create & Edit" && (!editing || !CONTENT_DESTINATIONS.some(([id]) => id === editing.domain))) domain ||= "cards";
     const next = editorArea(name, domain);
+    if(options?.eventId)setOperationTarget({id:options.eventId,registry:options.registry});
     const nextWorkspace = options?.workspace || workspace[next];
     if (options?.workspace) setWorkspace(current => ({ ...current, [next]: options.workspace }));
     if (next !== area) areaScroll.current[area] = window.scrollY;
@@ -152,8 +146,8 @@ function AdminWorkspace({ request, onClose, operations, exitGuard, environment }
       {authoringArea && <div hidden={!authoring}><Suspense fallback={<p role="status">Opening your workspace…</p>}><GauntletAuthoring request={request} area={authoringArea} initialDomain={contentDomain} revision={revision} catalog={catalog.data} onStatus={setEditing} onPublished={() => setRevision((value) => value + 1)} guard={guard} onNavigate={selectArea} beforeNavigate={action => { dismissMenus(); return playerGuard.current(action); }} onExit={onClose} /></Suspense></div>}
       {area === "Players" && <Suspense fallback={<p>Loading players…</p>}><Players request={request} revision={revision} catalog={catalog.data} guard={playerGuard} useData={useAdminData} State={State} Facts={Facts} Json={Json} date={date} label={label} /></Suspense>}
 
-      {area === "Competition" && workspace.Competition === "Results" && <Suspense fallback={<p role="status">Loading competition…</p>}><Competition request={request} revision={revision} useData={useAdminData} State={State} Json={Json} label={label} /></Suspense>}
-      {(matchesOpened || area === "Operations") && <Suspense fallback={<p role="status">Loading operations…</p>}><Operations active={area === "Operations"} workspace={workspace.Operations} matchesOpened={matchesOpened} request={request} revision={revision} operations={operations} onInspectContent={inspectContent} State={State} Facts={Facts} Json={Json} date={date} label={label} /></Suspense>}
+      {area === "Competition" && workspace.Competition === "Results" && <Suspense fallback={<p role="status">Loading competition…</p>}><Competition target={operationTarget} onDefinition={(registry,id)=>selectArea("Competition",registry+":events",id,undefined,undefined,undefined,{workspace:registry==="para"?"Para definitions":"Ranked & Gauntlet"})} request={request} revision={revision} useData={useAdminData} State={State} Json={Json} label={label} /></Suspense>}
+      {(matchesOpened || area === "Operations") && <Suspense fallback={<p role="status">Loading operations…</p>}><Operations active={area === "Operations"} workspace={workspace.Operations} matchesOpened={matchesOpened} request={request} revision={revision} environment={environment} onInspectContent={inspectContent} State={State} Facts={Facts} Json={Json} date={date} label={label} /></Suspense>}
     </div></div>
   </section>;
 }

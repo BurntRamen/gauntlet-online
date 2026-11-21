@@ -8,6 +8,26 @@ const presentation = require('../../shared/websitePresentation');
 const fixture = require("./fixtures/content-v2/authored-baseline-v1.json");
 const baseline = createAuthoredBaseline({ domains: { decks: fixture.domains.decks }, game: { modes: fixture.domains.game } });
 
+test('menu artwork, approved icons and backgrounds reach the real projection with retained asset dependencies',()=>{
+  const store=createContentPublication({baseline,memory:true}), original=store.status().activeReleaseId;
+  const asset=require('../contentAssets').assetManifest.entries.find(row=>row.mediaType==='image/webp');
+  const changes=[{field:'playPageTile-basic-ai-Image',value:asset.id},{field:'playPageTile-basic-ai-Icon',value:'learn'},{field:'playPageBackground',value:asset.id}];
+  const saved=store.patchRecord({expectedRevision:0,domain:'game',id:'practice',changes},'admin');
+  assert.equal(store.active().manifest.websitePresentation.pages.play.visuals,undefined);
+  assert.equal(releaseReview(saved).readiness.engineTestRequired,false);
+  assert.ok(require('../adminContentRelationships').contentRelationships(saved.draft.snapshot).edges.some(edge=>edge.from==='game:practice'&&edge.to===`asset-library:${asset.id}`));
+  const preview=store.preview({expectedRevision:saved.revision}).preview.manifest.websitePresentation.pages.play.visuals;
+  assert.deepEqual(preview,{background:asset.path,tiles:{'basic-ai':{artwork:asset.path,icon:'learn'}}});
+  store.publish({expectedRevision:store.status().revision,label:'Reviewed menu imagery'},'admin');
+  assert.deepEqual(store.active().manifest.websitePresentation.pages.play.visuals,preview);
+  store.rollback({expectedRevision:store.status().revision,releaseId:original},'admin');
+  assert.equal(store.active().manifest.websitePresentation.pages.play.visuals,undefined);
+  for(const [field,value] of [['playPageTile-basic-ai-Image','https://outside.invalid/image'],['playPageTile-basic-ai-Icon','<svg/>'],['playPageBackground','unknown-version']]) {
+    const before=store.status();assert.throws(()=>store.patchRecord({expectedRevision:before.revision,domain:'game',id:'practice',changes:[{field,value}]},'admin'));
+    assert.equal(store.status().revision,before.revision);assert.equal(store.status().draft,null);
+  }
+});
+
 test('registered navigation and page composition publish together, invalidate previews and roll back exactly',()=>{
   const store=createContentPublication({baseline,memory:true}), before=store.status();
   assert.equal(store.active().manifest.websitePresentation.navigation,undefined,"Unedited releases retain registered mobile shortcuts and compact labels");

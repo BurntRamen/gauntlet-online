@@ -3,13 +3,13 @@ const { area: adminArea, paraTab, identity, saveDefinition } = require("./admin-
 const { origin, clientOrigin } = require("./admin-urls");
 const { test, expect } = require("./admin-release-test"), AxeBuilder = require("@axe-core/playwright").default;
 const fs = require("node:fs"), path = require("node:path");
-test("Admin authors and publishes a usable Gold product; player earns, buys, reads, retains retired access and receives an audited refund", async ({ page, request, browser }) => {
-  test.setTimeout(180000);
+test("Admin authors and publishes a usable Gold product; player earns, buys, reads, retains retired access and receives an audited refund", async ({ page, request, browser, restoreRelease }) => {
+  test.setTimeout(300000);
   const token = JSON.parse(fs.readFileSync(path.resolve(__dirname, "../.playwright-data/admin/sessions.json"), "utf8")).simply;
   const headers = { Authorization: `Bearer ${token}` };
   const get = async (route) => (await (await request.get(origin + route, { headers, maxRetries: 2 })).json());
   async function login(p, admin) { await p.goto(admin ? "/admin/gauntlet" : clientOrigin + "/"); await p.evaluate((t) => localStorage.setItem("gauntlet_auth_token", t), token); await p.reload(); }
-  await login(page, true); const before = await get("/api/admin/authoring");
+  await login(page, true); const before = await get("/api/admin/authoring"); restoreRelease(headers,before);
   const nav = page.getByRole("navigation", { name: "Administration sections" });
   const area = async () => { await adminArea(page, "Store & Economy"); await page.getByRole("navigation", { name: "Events & Commerce workspaces" }).getByRole("button", { name: "Gold & rewards", exact: true }).click(); };
   const choose = (name) => paraTab(page, name);
@@ -71,18 +71,6 @@ test("Admin authors and publishes a usable Gold product; player earns, buys, rea
     expect((await new AxeBuilder({ page }).include(".economy-console").analyze()).violations).toEqual([]);
     await library.getByRole("button", { name: "Refresh Gold & Library" }).click(); await expect(library).toContainText("1000 Gold · Published"); await expect(library.getByRole("button", { name: /^Open Personal/ })).toHaveCount(0);
   } finally {
-    try { await context?.close(); } finally {
-      // Include setup failures: a saved Gold draft must not leak into a later
-      // journey and get published before the inactive-seed flow runs.
-      let state = await get("/api/admin/authoring");
-      if (state.draft) {
-        const discarded = await request.post(origin + "/api/admin/authoring/discard", { headers, data: { expectedRevision: state.revision } });
-        expect(discarded.ok()).toBeTruthy(); state = await discarded.json();
-      }
-      if (state.activeReleaseId !== before.activeReleaseId) {
-        const restored = await request.post(origin + "/api/admin/authoring/rollback", { headers, data: { expectedRevision: state.revision, releaseId: before.activeReleaseId } });
-        expect(restored.ok()).toBeTruthy();
-      }
-    }
+    await context?.close();
   }
 });

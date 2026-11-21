@@ -48,7 +48,10 @@ async function workspaceView(page, name) {
   }
 }
 async function workspaceSection(page, workshop, label) {
+  if(workshop === "Encounter Workshop") label=({"Identity / Story":"Story","Opponent / Setup":"Opponent",Mechanics:"Rules","Deck / Cards":"Cards","Presentation / Assets":"Media",Playtest:"Test"})[label] || label;
   await returnFromPublishing(page);
+  if(workshop==='Encounter Workshop' && label==='Preview'){await workspaceView(page,'Preview');return;}
+  if(workshop==='Encounter Workshop' && label==='Validation'){const summary=page.locator('.encounter-validation>summary');await summary.click();return;}
   await page.getByRole("region", { name: workshop, exact: true }).waitFor({ state: "visible" });
   await workspaceView(page, "Editor");
   const select = page.getByRole("combobox", { name: `${workshop} section`, exact: true });
@@ -66,7 +69,7 @@ async function saveRecord(page, recordName) {
   await page.getByRole("region", { name: "Save record changes", exact: true }).getByRole("button", { name: recordName ? `Save changes to ${recordName}` : /^Save changes/ }).click();
   await expect(page.locator(".admin-save-context")).not.toHaveText("Working…", { timeout: 45000 });
 }
-async function saveDefinition(page) {
+async function saveDefinition(page, keepOpen = false) {
   const name = page.getByLabel("Name", { exact: true });
   const expectedName = await name.inputValue();
   const button = page.getByRole("button", { name: "Save definition to draft", exact: true });
@@ -82,11 +85,11 @@ async function saveDefinition(page) {
   await expect(page.getByRole("region", { name: "Para definition editor", exact: true }).getByRole("heading", { name: "Edit definition · Saved draft", exact: true })).toBeVisible();
   await expect(page.locator(".admin-save-context")).toHaveText("Saved to shared draft");
   await expect(button).toBeDisabled();
-  await page.getByRole("button", { name: "Close definition", exact: true }).click();
-  await expect(name).toHaveCount(0);
+  if (!keepOpen) { await page.getByRole("button", { name: "Close definition", exact: true }).click(); await expect(name).toHaveCount(0); }
 }
 async function previewSavedDraft(page) {
   if (!await page.getByRole("button", { name: "Preview saved draft", exact: true }).isVisible()) await area(page, "Publishing");
+  await expect(page.getByRole("button", { name: "Preview saved draft", exact: true })).toBeEnabled({timeout:45000});
   const pending = require("./buffered-admin-response").waitForBufferedAdminResponse(page, response => response.url().endsWith("/authoring/preview") && response.request().method() === "POST");
   await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
   const response = await pending;

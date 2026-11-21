@@ -1,5 +1,6 @@
+import {render} from "./testSupport";
 import { useState } from "react";
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, screen, within } from "@testing-library/react";
 import ScenarioBuilder, { initialScenario } from "./ScenarioBuilder";
 
 const spec = { version: 1, suits: ["clubs", "spades"], values: [2, 4, 7], life: { min: 1, max: 77 }, turn: { min: 1, max: 200 }, counter: { min: 0, max: 20 }, laneCount: 3 };

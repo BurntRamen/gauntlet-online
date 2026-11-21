@@ -10,7 +10,7 @@ import { getFactionArtwork, getFactionCover, getFactionAsset, resolveVisualAsset
 import { getDeckFeaturedArt } from "../contentArt";
 import { MENU_SCENES, STANDARD_DECK_ART, TUTORIAL_ART } from "./menuArtwork";
 import "./PlayerMenus.css";
-import {WebsitePresentationContext} from "./WebsitePresentation";
+import {WebsitePresentationContext, useWebsitePresentation} from "./WebsitePresentation";
 
 function ActionDirectory({ title, items }) {
   return <details className="cd-directory"><summary>All {title} actions</summary><div className="cd-row">
@@ -19,7 +19,8 @@ function ActionDirectory({ title, items }) {
 }
 
 function Tiles({ pageId, items, utilities = [] }) {
-  const modules = items.map((item) => ({ id: item.id, label: item.title, content: <ActionTile {...item} /> }));
+  const visuals=useWebsitePresentation()?.pages?.[pageId]?.visuals?.tiles;
+  const modules = items.map((item) => ({ id: item.id, label: item.title, content: <ActionTile {...item} {...visuals?.[item.id]} /> }));
   return <>
     <LayoutGrid pageId={pageId} items={[...modules, ...utilities]} className="cd-grid" />
     <ActionDirectory title={getDestination(pageId).label.toLowerCase()} items={items} />

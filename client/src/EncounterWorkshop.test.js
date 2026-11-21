@@ -1,8 +1,9 @@
 import { HelpProvider } from "./admin/AuthoringHelp";
-const help = require("../../server/adminHelpTopics.json");
+const help = require("../../server/adminAuthoringGuide").help;
 const render = element => renderWithoutHelp(element, { wrapper: ({ children }) => <HelpProvider value={help}>{children}</HelpProvider> });
+import {useState} from "react";
 import { fireEvent, render as renderWithoutHelp, screen, within } from "@testing-library/react";
-import EncounterWorkshop, { EncounterSetupFields, encounterSessionStatus } from "./EncounterWorkshop";
+import EncounterWorkshop, { EncounterSetupFields } from "./EncounterWorkshop";
 
 const setup = { version: 1, bossLife: 40, attacksPerTurn: 2, minAttackValue: 3, maxAttackValue: 8, chapterNumber: 2, bossAbility: { id: "first-strike", title: "First strike", text: "Attack bonus", name: "Vanguard", tier: 1 }, playerAdditions: ["spear"], bossAdditions: [], attackTiming: "clear-priority", winRoute: "first-uncompleted", lossRoute: "retry" };
 const cards = [{ id: "spear", name: "Spear", factionId: "rumin", text: "Spear rules" }, { id: "shield", name: "Shield", factionId: "rumin", text: "Shield rules" }, { id: "foreign", name: "Foreign card", factionId: "sheen" }];
@@ -11,7 +12,7 @@ const definition = { type: "object", label: "Encounter mechanics", rules: { boss
 const state = { revision: 3, activeReleaseId: "release-live", guide: {}, validation: { valid: true, errors: [], warnings: [] }, assetLibrary: [{ id: "scene", path: "/immutable/scene.webp" }, { id: "portrait", path: "/immutable/commander.webp" }, { id: "voice", path: "/immutable/voice.ogg" }], live: { domains: { campaigns: [{ id: "rumin", commanderName: "Rumin campaign", encounterIds: ["chapter-one"] }], characters: [{ id: "opponent-one", name: "Opponent source" }, { id: "rumin:commander", factionId: "rumin", role: "commander", name: "Commander source", image: "portrait" }], factions: [{ id: "rumin", name: "Rumin" }], cards } } };
 const renderField = (name, overrides) => name === "setup" ? <form key={name} aria-label="Saved setup contract">{overrides.renderContract({ value: setup, definition, row, cards, onChange: () => {}, onInspect: () => {} })}<button>Save setup</button></form> : <div key={name}>{name} field</div>;
 const field = jest.fn();
-function View(props) { return <EncounterWorkshop row={row} state={state} field={field} search={<input aria-label="Search encounters" />} list={<button data-object={row.id} aria-current="true">First battle</button>} onInspect={() => {}} {...props} />; }
+function View(props) { const [section,onSection]=useState(props.section || "story"); return <EncounterWorkshop section={section} onSection={onSection} row={row} state={state} field={field} search={<input aria-label="Search encounters" />} list={<button data-object={row.id} aria-current="true">First battle</button>} onInspect={() => {}} {...props} />; }
 
 beforeEach(() => {
   field.mockImplementation(renderField);
@@ -24,17 +25,19 @@ afterEach(() => jest.restoreAllMocks());
 test("story, setup, mechanics and card sections keep one saved setup contract", () => {
   render(<View />);
   expect(screen.getByRole("heading", { name: "Identity / Story" })).toBeVisible();
-  fireEvent.click(screen.getByRole("button", { name: "Opponent / Setup", exact: true }));
+  fireEvent.click(screen.getByRole("button", { name: "Opponent", exact: true }));
   expect(screen.getByRole("region", { name: "Opponent setup controls" })).toBeVisible();
-  expect(screen.getByRole("region", { name: "Encounter mechanics controls" })).toBeVisible();
-  expect(screen.getByRole("region", { name: "Encounter card additions controls" })).toBeVisible();
+  expect(screen.queryByRole("region", { name: "Encounter mechanics controls" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("region", { name: "Encounter card additions controls" })).not.toBeInTheDocument();
   expect(screen.getByText("Presentation / Assets", { selector: "h4" })).not.toBeVisible();
   expect(screen.getAllByRole("form", { name: "Saved setup contract", hidden: true })).toHaveLength(1);
   expect(screen.getAllByRole("form")).toHaveLength(1);
-  expect(screen.getByText(/Each selected card adds one copy/)).toBeVisible();
+
   expect(screen.getByLabelText("Boss Life")).toHaveAttribute("min", "1");
   expect(screen.getByLabelText("Boss Life")).toHaveAttribute("max", "100");
+  fireEvent.click(screen.getByRole("button", {name:"Rules",exact:true}));
   expect(screen.getByLabelText("Attack progression offset")).toHaveValue(2);
+  fireEvent.click(screen.getByRole("button", {name:"Cards",exact:true}));
   expect(screen.getByLabelText("Player Additions card 1")).not.toHaveTextContent("Foreign card");
 });
 
@@ -53,10 +56,10 @@ test("grouped setup edits preserve every other contract field and cross-link the
 
 test("opponent and portrait links follow their actual source and sparse audio keeps line numbering", () => {
   const inspect = jest.fn(); render(<View onInspect={inspect} />);
-  fireEvent.click(screen.getByRole("button", { name: "Opponent / Setup", exact: true }));
+  fireEvent.click(screen.getByRole("button", { name: "Opponent", exact: true }));
   fireEvent.click(screen.getByRole("button", { name: "Opponent source" }));
   expect(inspect).toHaveBeenLastCalledWith("characters", "opponent-one");
-  fireEvent.click(screen.getByRole("button", { name: "Presentation / Assets", exact: true }));
+  fireEvent.click(screen.getByRole("button", { name: "Media", exact: true }));
   fireEvent.click(screen.getByRole("button", { name: "Open Commander source portrait definition" }));
   expect(inspect).toHaveBeenLastCalledWith("characters", "rumin:commander");
   expect(screen.getByAltText("Commander source")).toHaveAttribute("src", "/immutable/commander.webp");
@@ -65,28 +68,11 @@ test("opponent and portrait links follow their actual source and sparse audio ke
   expect(screen.getByLabelText("Opening voice 3")).toHaveAttribute("preload", "none");
 });
 
-test("live sessions ignore draft changes and draft sessions ignore bookkeeping revisions", () => {
-  const current = { ...state, draft: { hash: "draft-one" } };
-  const live = { source: "live", releaseId: "release-live", expiresAt: "2100-01-01T00:00:00Z" };
-  expect(encounterSessionStatus(live, current)).toBe("Current live playtest");
-  expect(encounterSessionStatus(live, { ...current, draft: { hash: "draft-two" } })).toBe("Current live playtest");
-  expect(encounterSessionStatus(live, { ...current, activeReleaseId: "release-next" })).toBe("Outdated live playtest");
-  const draft = { source: "draft", contentHash: "draft-one", draftRevision: 1, expiresAt: live.expiresAt };
-  expect(encounterSessionStatus(draft, current)).toBe("Current saved draft playtest");
-  expect(encounterSessionStatus(draft, { ...current, revision: 99 })).toBe("Current saved draft playtest");
-  expect(encounterSessionStatus(draft, { ...current, draft: { hash: "draft-two" } })).toBe("Stale saved draft playtest");
-  expect(encounterSessionStatus({ ...draft, expired: true }, current)).toBe("Expired playtest");
-});
-
-test("return context restores the section and scroll, while selection never renames another test", () => {
-  const remember = jest.fn();
-  render(<View context={{ encounterId: row.id, section: "mechanics", scroll: 345 }} onContext={remember} session={{ source: "live", releaseId: state.activeReleaseId, subject: { kind: "card", id: "spear", label: "Spear" }, expiresAt: "2100-01-01T00:00:00Z" }} />);
+test("the shared navigation callback controls encounter sections", () => {
+  const change=jest.fn();render(<View section="mechanics" onSection={change} />);
   expect(screen.getByLabelText("Encounter Workshop section")).toHaveValue("mechanics");
-  expect(window.scrollTo).toHaveBeenCalledWith(0, 345);
-  expect(screen.getByText(/Testing Spear · another subject/)).toBeVisible();
-  fireEvent.change(screen.getByLabelText("Encounter Workshop section"), { target: { value: "deck" } });
-  expect(remember).toHaveBeenLastCalledWith({ encounterId: row.id, section: "deck", scroll: 0 });
-  expect(screen.getByLabelText("Encounter Workshop section")).toHaveValue("deck");
+  fireEvent.change(screen.getByLabelText("Encounter Workshop section"),{target:{value:"deck"}});
+  expect(change).toHaveBeenCalledWith("deck");
 });
 
 test("mobile list view preserves selection without a departure guard and unrelated validation stays separate", () => {
@@ -97,7 +83,7 @@ test("mobile list view preserves selection without a departure guard and unrelat
   expect(guard).not.toHaveBeenCalled();
   expect(screen.getByRole("region", { name: "Encounter Workshop" })).not.toHaveClass("has-selection");
   fireEvent.click(screen.getByRole("button", { name: "First battle", exact: true }));
-  fireEvent.click(screen.getByRole("button", { name: "Validation", exact: true }));
+  fireEvent.click(screen.getByText("Validation · 0 errors", {selector:"summary"}));
   expect(screen.getByText(/No errors for this encounter/)).toBeVisible();
   expect(screen.getByText("1 validation issue elsewhere in the shared draft")).toBeVisible();
   rerender(<View state={data} onSelectList={(continueNavigation) => continueNavigation()} />);

@@ -1,4 +1,5 @@
-import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import {render} from "./admin/testSupport";
+import { act, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import Authoring from "./GauntletAuthoring";
 import { useRef, useState } from "react";
 function GauntletAuthoring(props) {
@@ -12,6 +13,12 @@ const guide = require("../../server/adminAuthoringGuide");
 const clone = (value) => JSON.parse(JSON.stringify(value));
 let state, request;
 const props = () => ({ request, area: "Design", revision: 0, onPublished: jest.fn(), onNavigate: jest.fn() });
+test("a rolling deployment keeps editors closed until the matching guidance contract is available", async () => {
+  state.guide = { ...guide, workspaceVersion: 1 };
+  render(<GauntletAuthoring {...props()} />);
+  expect(await screen.findByText(guide.help.workspaceCopy3)).toBeVisible();
+  expect(screen.queryByRole("region", { name: "Card Workshop", exact: true })).not.toBeInTheDocument();
+});
 const resolvedPresentation = () => ({ releaseId: state.draft ? `draft:${state.draft.hash}` : state.activeReleaseId,
   manifest: { cards: clone((state.draft?.snapshot || state.live).domains.cards), collectorVariants: [], campaigns: {} } });
 function reviewProjection() {

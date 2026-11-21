@@ -156,6 +156,7 @@ jobs:
           npx playwright test --config=playwright.admin-studio.config.js --grep "Home stays|website artwork|phone website|season eligibility"
           npx playwright test --config=playwright.admin-correction.config.js
           npx playwright test --config=playwright.admin-guidance.config.js
+          npx playwright test --config=playwright.admin-creative.config.js
       - name: Upload failed Admin diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
@@ -172,6 +173,8 @@ jobs:
             artifacts/admin-studio-results.json
             artifacts/admin-correction-results.json
             artifacts/admin-guidance-results.json
+            artifacts/admin-creative-results.json
+            docs/reviews/admin-creative/
             artifacts/admin-guidance-zoom.log
             docs/reviews/admin-guidance/
             docs/reviews/admin-correction/after/

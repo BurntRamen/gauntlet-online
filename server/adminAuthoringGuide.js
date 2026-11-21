@@ -6,7 +6,7 @@ module.exports = {
   "immutableAsset": "Choose an existing immutable asset.",
   "catalogField": "Save this configuration to the shared draft; publishing applies it to future games.",
   "identityLock": "Published identity and deck slot are retained. Duplicate this card to change them.",
-  workspaceVersion: 1,
+  workspaceVersion: 2,
   websiteSurfaces: require("../shared/admin/websiteSurfaces.json").map(({id,owner,name})=>({id,owner,name})),
   pipelines: require("./adminProductionPipelines").definitions,
   help: { ...require("./adminHelpTopics.json"), ...require("./adminWorkspaceGuide.json") },

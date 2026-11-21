@@ -41,3 +41,10 @@ export function moveUp(items, index) {
   return next;
 }
 export const toggleValue = (items = [], value, checked) => checked ? [...items, value] : items.filter(item => item !== value);
+
+// The caller supplies its engine contract and defaults; only list editing is shared.
+export function CollectionActions({path,index,name,min=0,max=Infinity,move=true,duplicate=false,create,addLabel,disabled}) {
+  const editor=useContext(Values), items=path.reduce((value,key)=>value[key],editor.value);
+  const change=value=>editor.onChange(updateAt(editor.value,path,value));
+  return <>{index!=null&&<>{move&&<button type="button" disabled={disabled||!index} onClick={()=>change(moveUp(items,index))}>Move {name} {index+1} up</button>}<button type="button" disabled={disabled||items.length<=min} onClick={()=>change(removeAt(items,index))}>Remove {name} {index+1}</button>{duplicate&&<button type="button" disabled={disabled||items.length>=max} onClick={()=>change([...items,JSON.parse(JSON.stringify(items[index]))])}>Duplicate {name} {index+1}</button>}</>}{create&&<button type="button" disabled={disabled||items.length>=max} onClick={()=>change([...items,create()])}>{addLabel||`Add ${name}`}</button>}</>;
+}

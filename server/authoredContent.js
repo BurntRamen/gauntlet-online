@@ -281,7 +281,7 @@ function resolveEngineContent(snapshot, releaseId) {
   manifest.gameConfig = { version: 1, startingLife: config.STARTING_LIFE, handSize: domains.game.find((row) => row.id === "shared-rules").handSize };
   manifest.packComposition = clone(domains.game.find(row => row.id === "shared-rules").packComposition || require("../shared/duel-rules/packComposition").defaults);
   manifest.websiteProse = require("./websiteProse").projectProse(domains, versions, releaseId);
-  manifest.websitePresentation = require("./websiteProse").projectPresentation(domains);
+  manifest.websitePresentation = require("./websiteProse").projectPresentation(domains, versions, releaseId);
   manifest.trainingOpponent = { name: characters.get("training-ai").name, opponentKind: "training-ai" };
   manifest.assetManifest = { version: assets.assetManifest.version, entries: clone([...assets.assetManifest.entries, ...versions.map(row => assets.assetEntry(row.id, versions, releaseId))]) };
   manifest.contentBinding = { authoredRelease: releaseId, rulesVersion: duel.RULES_VERSION, cardEffectContractVersion: effects.CARD_EFFECT_CONTRACT_VERSION, factionEffectContractVersion: effects.FACTION_EFFECT_CONTRACT_VERSION, encounterContractVersion: encounterContract.ENCOUNTER_CONTRACT_VERSION, assetManifestVersion: assets.assetManifest.version, gameConfigVersion: config.GAME_CONFIG_VERSION };

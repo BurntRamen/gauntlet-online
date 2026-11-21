@@ -1,4 +1,5 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import {render} from "./admin/testSupport";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import GauntletParaLeague from "./GauntletParaLeague";
 
 function fixture() {

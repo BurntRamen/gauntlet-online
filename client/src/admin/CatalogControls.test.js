@@ -1,5 +1,6 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import CatalogControls, { CatalogField } from "./CatalogControls";
+import {render} from "./testSupport";
+import { fireEvent, screen } from "@testing-library/react";
+import CatalogControlsImpl, { CatalogField } from "./CatalogControls";
 const state = { live: { domains: { cards: [], sets: [{ id: "set-one", name: "Example set", status: "active" }] } } };
 const effects = [{ id: "coin-scale-spear", factionId: "rumin", cardType: "armament", label: "Blade", description: "Adds value when armed." }];
 test("pack controls keep suit guarantees fixed and only change the chosen slot or wild chance", () => {
@@ -63,3 +64,5 @@ test("new card preview uses the runtime composed face instead of the source's ba
   expect(document.querySelector('.custom-playing-card-face')).toBeNull();
   expect(document.querySelector('.special-card-corner b')).toHaveTextContent('8');
 });
+
+function CatalogControls(props) {const {state,effects}=props;return <CatalogControlsImpl {...props} state={{...state,creationForms:require('../../../server/adminCreation').creationForms(state.draft?.snapshot||state.live,{families:state.factionFamilies,factions:state.deckFactions,editions:state.printingEditions,effects})}}/>;}

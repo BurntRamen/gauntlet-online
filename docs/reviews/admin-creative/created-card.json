@@ -1,0 +1,26 @@
+{
+  "id": "auth-card-6d1ed71f-295d-4213-926a-b1d168c5a6e6",
+  "effect": {
+    "id": "coin-scale-spear",
+    "version": 1,
+    "parameters": {
+      "armBonus": 2
+    }
+  },
+  "set": {
+    "id": "auth-set-4981c210-2535-4d58-89da-09d4fed7a5ff",
+    "name": "Emberwatch collection",
+    "description": "",
+    "number": 7,
+    "members": [
+      "auth-card-6d1ed71f-295d-4213-926a-b1d168c5a6e6"
+    ],
+    "limited": {
+      "draft": false,
+      "sealed": false
+    },
+    "status": "active"
+  },
+  "artwork": "image-version-989a3197-8d38-45b5-8b6d-a8677e65d1cd",
+  "testedHash": "c20215e93129a8f747c12c049bb2f54b3c933435aca987287c08d312664a5391"
+}

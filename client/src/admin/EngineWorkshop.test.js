@@ -1,4 +1,5 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import {render} from "./testSupport";
+import { fireEvent, screen } from "@testing-library/react";
 import EngineWorkshop from "./EngineWorkshop";
 
 const faction = { id: "rumin", name: "Rumin", mechanics: { id: "rhythm", version: 1, parameters: { bonus: 3 } } };

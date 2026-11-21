@@ -5,7 +5,8 @@ import {useHelp} from "./AuthoringHelp";
 export default function WorkshopJourney({selection, browsing, sections, section, onSection, preview, showPreview, onPreview, container}) {
   const session=useContext(EditorSessionContext), copy=useHelp().journey, journey=session?.journey;
   if(!copy || !journey || journey.saveShown) return null;
-  const mode=!selection || browsing?'choose':journey.blocked?'blocked':journey.creating?'create':journey.dirty?'save':journey.issue?'fix':journey.draft?'saved':'edit';
+  const testing=section==='test';
+  const mode=!selection || browsing?'choose':journey.blocked?'blocked':journey.creating?'create':journey.dirty?'save':journey.issue?'fix':testing && journey.draft && !journey.tested?'test':journey.draft?'saved':'edit';
   const next=sections?.[sections.findIndex(([id])=>id===section)+1];
   const describe=['edit','saved'].includes(mode);
   const detail=describe ? copy.domains[session.target.domain] || copy.sections[section] || copy[mode][1] : copy[mode][1];
@@ -16,7 +17,8 @@ export default function WorkshopJourney({selection, browsing, sections, section,
     const target=invalid || (submit?.disabled?submit.closest('form'):submit) || root.querySelector('form');
     if(target){if(target.tagName==='FORM')target.tabIndex=-1;target.scrollIntoView({block:'center'});target.focus();}
   };
-  const action=mode==='save'?[copy.saveAction,goToSave]:mode==='fix'?[copy.fixAction,journey.fix]:describe && preview && !showPreview?[copy.preview,onPreview]:describe && next?[copy.next+' '+next[1],()=>onSection(next[0])]:describe && journey.draft?[copy.review,journey.review]:null;
+  const goToTest=()=>{const target=container.current.querySelector('#workshop-test select');target?.scrollIntoView({block:'center'});target?.focus();};
+  const action=mode==='test'?[copy.testAction,goToTest]:testing && describe && journey.tested?[copy.review,journey.review]:mode==='save'?[copy.saveAction,goToSave]:mode==='fix'?[copy.fixAction,journey.fix]:describe && preview && !showPreview?[copy.preview,onPreview]:describe && next?[copy.next+' '+next[1],()=>onSection(next[0])]:describe && journey.draft?[copy.review,journey.review]:null;
   return <section className="admin-journey" data-state={mode} aria-label={copy.label}>
     <span className="admin-journey-symbol" aria-hidden="true">{mode==='saved'?'✓':['blocked','fix'].includes(mode)?'!':'◇'}</span>
     <div><small>{copy.label}</small><strong>{copy[mode][0]}</strong><p>{mode==='fix'?journey.issue.message:detail}</p></div>

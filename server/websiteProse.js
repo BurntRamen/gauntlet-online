@@ -13,11 +13,13 @@ const fields = [["heroEyebrow", "Page overline", 80], ["heroTitle", "Page headin
 const locations = { practice: "Learn & Rules → Practice", freeForAll: "Play → Join a Table", ranked: "Compete → Ranked", draft: "Draft", campaign: "Campaign" };
 const surfaces = require("../shared/admin/websiteSurfaces.json");
 const presentation = require("../shared/websitePresentation");
+const {icons,visualFields} = require('../shared/admin/websiteVisuals');
 function proseFields(id) {
   return Object.fromEntries([...(id === 'practice' ? [['websiteNavigation', { label:'Website navigation', type:'website-navigation', defaultValue:presentation.defaultNavigation(), note:'Labels and ordering only. Destinations and access stay registered.' }]] : []), ...(defaults[id] || []).map((defaultValue, index) => {
     const [key, label, maxLength] = fields[index];
     return [key, { label, type: "text", maxLength, required: true, defaultValue, note: `Shown in ${locations[id]}. Presentation only; save to the shared draft, preview, then publish.` }];
   }), ...surfaces.filter(surface => surface.owner === id).flatMap(surface => [
+    ...visualFields(surface.id).map(({key,element,part,type})=>[key,{label:`${surface.name} · ${element==='background'?'background':(presentation.labels[element] || element)+' '+(part==='artwork'?'artwork':'icon')}`,type,visual:{element,part},...(type==='asset'?{media:'image',maxLength:600,required:false}:{options:['',...icons]}),defaultValue:'',note:type==='asset'?'Choose an immutable image. Clear it to restore the original artwork.':'Choose an approved SuitFire icon. The empty option keeps the original icon.'}]),
     ...["title", "description"].map(part => [`${surface.id}Page${part === "title" ? "Title" : "Description"}`, { label: `${surface.name} · ${part === "title" ? "heading" : "introduction"}`, type: "text", maxLength: part === "title" ? 160 : 600, required: true, defaultValue: surface[part], note: `Shown in ${surface.name}. Save to the shared draft; publish from Publishing.` }]),
     [`${surface.id}PageImage`, { label: `${surface.name} · header image`, type: "asset", media: "image", maxLength: 600, required: false, defaultValue: "", note: "Optional decorative header artwork. Choose a versioned image; clearing it restores the standard header. Existing releases keep their original image." }],
     [`${surface.id}PageLayout`, {label:`${surface.name} · presentation`, type:'website-layout', page:surface.id, labels:Object.fromEntries(presentation.sectionIds(surface.id).map(id=>[id,presentation.labels[id] || id])), defaultValue:presentation.defaultLayout(surface.id), note:'Arrange registered shortcuts. Recovery, invitations, account and gameplay controls stay available.'}]
@@ -30,8 +32,16 @@ function projectProse(domains, versions = [], releaseId = "") {
     return [surface.id, { ...Object.fromEntries(["title", "description"].map(part => [part, row?.[`${surface.id}Page${part === "title" ? "Title" : "Description"}`] ?? surface[part]])), ...(image ? { image: require("./contentAssets").resolveAsset(image, versions, releaseId) } : {}) }];
   }));
 }
-function projectPresentation(domains) {
+function projectPresentation(domains, versions = [], releaseId = '') {
   const factionIds=domains.factions.filter(f=>domains.campaigns.some(c=>c.id===f.id)).map(f=>f.id);
-  return {version:1, navigation:domains.game.find(row=>row.id==='practice')?.websiteNavigation, pages:Object.fromEntries(surfaces.map(surface=>[surface.id,presentation.layoutFor(surface.id, domains.game.find(row=>row.id===surface.owner)?.[`${surface.id}PageLayout`],factionIds)]))};
+  return {version:1, navigation:domains.game.find(row=>row.id==='practice')?.websiteNavigation, pages:Object.fromEntries(surfaces.map(surface=>{
+    const row=domains.game.find(row=>row.id===surface.owner), visuals={tiles:{}};
+    for(const field of visualFields(surface.id)) if(row?.[field.key]) {
+      const value=field.type==='asset'?require('./contentAssets').resolveAsset(row[field.key],versions,releaseId):row[field.key];
+      if(field.element==='background') visuals.background=value;
+      else (visuals.tiles[field.element] ||= {})[field.part]=value;
+    }
+    return [surface.id,{...presentation.layoutFor(surface.id,row?.[`${surface.id}PageLayout`],factionIds),...(visuals.background || Object.keys(visuals.tiles).length?{visuals}: {})}];
+  }))};
 }
 module.exports = { proseFields, projectProse, projectPresentation, surfaces };

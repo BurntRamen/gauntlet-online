@@ -14,13 +14,13 @@ const old = require("./fixtures/content-v2/authored-baseline-v1.json");
 const baseline = createAuthoredBaseline({ domains: { decks: old.domains.decks }, game: { modes: old.domains.game } });
 
 function assertWorkspaceGuide(status) {
-  assert.equal(status.guide.workspaceVersion, 1, "A matching guide version must permit the deployed editor to open");
+  assert.equal(status.guide.workspaceVersion, 2, "A matching guide version must permit the deployed editor to open");
   // Check what the client consumes rather than merely echoing the guide JSON:
   // a new client topic must also be present in both provider projections.
   const root = path.resolve(__dirname, "../../client/src"), topics = new Set();
   for (const name of fs.readdirSync(root, { recursive: true })) {
-    if (!name.endsWith(".js") || name.endsWith(".test.js")) continue;
-    for (const match of fs.readFileSync(path.join(root, name), "utf8").matchAll(/\bhelp\.(workspace\w+)|\btopic="(workspace\w+)"/g)) topics.add(match[1] || match[2]);
+    if (!/\.jsx?$/.test(name) || /\.test\.jsx?$/.test(name)) continue;
+    for (const match of fs.readFileSync(path.join(root, name), "utf8").matchAll(/\b(?:help|helpCopy|creativeCopy)\.((?:workspace|creative)\w+)|\btopic="((?:workspace|creative)\w+)"/g)) topics.add(match[1] || match[2]);
   }
   assert.ok(topics.size > 0, "Exercise the actual client's workspace guidance references");
   for (const topic of topics) assert.equal(typeof status.guide.help[topic] === "string" && status.guide.help[topic].trim().length > 0, true, `Missing deployed guidance: ${topic}`);

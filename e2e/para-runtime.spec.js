@@ -22,13 +22,7 @@ test("Admin publication becomes a free human event with durable Prestige and ins
   const tabs = page.getByRole("navigation", { name: "Para workspaces" });
   const choose = (name) => paraTab(page, name);
   const save = () => saveDefinition(page);
-  const preview = async () => {
-    const pending = page.waitForResponse(response => response.url().endsWith("/authoring/preview") && response.request().method() === "POST", { timeout: 15000 });
-    await require("./admin-navigation").area(page, "Publishing");
-    await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
-    const response = await pending; expect(response.ok()).toBeTruthy(); await response.finished();
-    await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible();
-  };
+  const preview = () => require("./admin-navigation").previewSavedDraft(page);
   const dates = async (registration = false) => {
     await page.getByLabel("Start", { exact: true }).fill("2026-01-01T00:00");
     await page.getByLabel("End", { exact: true }).fill("2099-01-01T00:00");

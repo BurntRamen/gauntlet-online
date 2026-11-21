@@ -55,7 +55,5 @@ function errors(snapshot, editable) {
   }
   return problems;
 }
-function ordered(snapshot, campaign) {
-  return [...campaign.encounterIds, ...snapshot.domains.encounters.filter(row => row.origin === ORIGIN && row.campaignId === campaign.id && row.status === "active").sort((a, b) => a.order - b.order).map(row => row.id)];
-}
+const {ordered}=require('../shared/admin/campaignSequence');
 module.exports = { ORIGIN, fields, create, errors, ordered };

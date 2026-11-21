@@ -14,7 +14,7 @@ test("an operator creates a playable encounter and a player starts it from the p
   await page.getByLabel("Draft story", { exact: true }).fill("Face a Rumin challenger in a battle of careful timing.");
   pending = page.waitForResponse(r => r.url().endsWith("/authoring/record") && r.request().method() === "PATCH"); await saveRecord(page); expect((await pending).status()).toBe(200);
   await page.goto("/admin/gauntlet?workshop=encounters&object=" + encounter.id + "&section=setup");
-  await page.getByLabel("Boss Life", { exact: true }).fill("23"); await page.getByLabel("Attacks Per Turn", { exact: true }).fill("1");
+  await page.getByLabel("Boss Life", { exact: true }).fill("23"); await require("./admin-navigation").workspaceSection(page,"Encounter Workshop","Rules"); await page.getByLabel("Attacks Per Turn", { exact: true }).fill("1");
   pending = waitForBufferedAdminResponse(page, r => r.url().endsWith("/authoring/record") && r.request().method() === "PATCH"); await saveRecord(page);
   const configured = await (await pending).json(); Object.assign(encounter, configured.draft.snapshot.domains.encounters.find(e => e.id === encounter.id));
   await page.goto("/admin/gauntlet?workshop=encounters&object=" + encounter.id + "&section=test");

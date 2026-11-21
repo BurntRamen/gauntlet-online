@@ -1,4 +1,5 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import {render} from "./testSupport";
+import { fireEvent, screen } from "@testing-library/react";
 import RelatedContent from "./RelatedContent";
 
 test("shows named authored references and keeps missing references explicit", () => {

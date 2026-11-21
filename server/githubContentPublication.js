@@ -372,6 +372,7 @@ function createGitHubContentPublication({ baseline, draftStore = null, mediaStor
     paraDraft: (args, actor) => operate("paraDraft", args, actor),
     competitionDraft: (args, actor) => operate("competitionDraft", args, actor),
     studioDraft: (args, actor) => operate("studioDraft", args, actor),
+    reorderEncounters: (args, actor) => operate("reorderEncounters", args, actor),
     paraSimulation: async args => core((await load()).state).paraSimulation(args),
     deployedSnapshot: () => ({ id: deployed.id, snapshot: clone(deployed.snapshot) }),
     releaseSnapshot: async id => core((await load()).state).releaseSnapshot(id),

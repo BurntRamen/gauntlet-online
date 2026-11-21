@@ -566,6 +566,7 @@ test("Encounter Workshop keeps editing and engine evidence tied to the correct s
   expect(await page.getByLabel("Boss Life", { exact: true }).evaluate((input) => input.validity.rangeOverflow)).toBeTruthy();
   expect((await saved()).changes.length).toBe(1);
   await page.getByLabel("Boss Life", { exact: true }).fill("30");
+  await encounterSection(page,"mechanics");
   await page.getByLabel("Boss Ability Id", { exact: true }).selectOption("even-feint");
   await page.getByLabel("Boss Ability Even Bonus", { exact: true }).fill("2");
   await saveRecord(page);

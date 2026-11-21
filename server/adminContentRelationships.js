@@ -43,7 +43,7 @@ function deriveRelationships(snapshot) {
     const from = keyOf(domain, row.id);
     if (row.factionId && !(domain === "cards" && row.factionId === "neutral")) link(from, "factions", row.factionId, "faction");
     for (const field of ["image", "cardImage", "coverImage", "art"]) asset(from, row[field]);
-    if (domain === "game") for (const surface of require("./websiteProse").surfaces.filter(surface => surface.owner === row.id)) asset(from, row[`${surface.id}PageImage`]);
+    if (domain === "game") for (const [field, definition] of Object.entries(require('./websiteProse').proseFields(row.id))) if(definition.type==='asset') asset(from,row[field]);
     for (const field of ["dialogueAudio", "endDialogueAudio"]) for (const reference of list(row[field])) asset(from, reference);
     if (domain === "campaigns") for (const id of [...row.encounterIds, ...snapshot.domains.encounters.filter(e => e.origin === "admin-encounter-v1" && e.campaignId === row.id).map(e => e.id)]) link(from, "encounters", id, "contains-encounter");
     if (domain === "sets") for (const id of list(row.members)) link(from, "cards", id, "set-member");

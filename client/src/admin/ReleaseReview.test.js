@@ -1,7 +1,8 @@
 import { HelpProvider } from "./AuthoringHelp";
 const render = element => renderWithoutHelp(element, { wrapper: ({ children }) => <HelpProvider value={require("../../../server/adminAuthoringGuide").help}>{children}</HelpProvider> });
-import { fireEvent, render as renderWithoutHelp, screen } from "@testing-library/react";
+import { fireEvent, render as renderWithoutHelp, screen, waitFor } from "@testing-library/react";
 import ReleaseReview from "./ReleaseReview";
+import { PrivateAssetProvider } from "./PrivateAsset";
 
 const state = { guide: require("../../../server/adminAuthoringGuide"), revision: 1, writable: true, draft: { hash: "draft-hash" } };
 const review = { revision: 1, hash: "draft-hash", readiness: { saved: true, validated: true, previewed: true, engineTestRequired: true, engineTested: true, ready: true }, groups: [{ id: "mechanics", label: "Mechanics", changes: [{ domain: "encounters", id: "first", label: "First battle", field: "setup", fieldLabel: "Boss life", before: 40, after: 44 }] }] };
@@ -38,6 +39,17 @@ test("asset comparisons use immutable resolved paths while keeping readable file
   expect(screen.getByAltText("Live artwork")).toHaveAttribute("src", "/immutable/before.webp");
   expect(screen.getByAltText("Saved draft artwork")).toHaveAttribute("src", "/immutable/after.webp");
   expect(screen.getByText("before.webp")).toBeVisible();
+});
+
+test("release audio comparison retrieves private bytes through the authenticated asset provider on demand", async () => {
+  const path = "/api/admin/authoring/assets/voice-version";
+  const request = jest.fn().mockResolvedValue({ mediaType: "audio/wav", data: "YWJj" });
+  const audio = { ...review, groups: [{ id: "audio", label: "Voices", changes: [{ domain: "encounters", id: "first", field: "dialogueAudio", before: null, after: "voice-version", draftAsset: { path, mediaType: "audio/wav" } }] }] };
+  render(<PrivateAssetProvider request={request}><ReleaseReview state={state} review={audio} /></PrivateAssetProvider>);
+  expect(request).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button", { name: "Load private audio preview" }));
+  await waitFor(() => expect(screen.getByLabelText("Saved draft audio")).toHaveAttribute("src", "data:audio/wav;base64,YWJj"));
+  expect(request).toHaveBeenCalledWith(path);
 });
 
 

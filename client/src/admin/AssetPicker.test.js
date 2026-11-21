@@ -1,4 +1,5 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import {render} from "./testSupport";
+import { fireEvent, screen, within } from "@testing-library/react";
 import AssetPicker from "./AssetPicker";
 
 const library = [...Array.from({ length: 27 }, (_, index) => ({ id: `image-${index}`, source: `/art/picture-${index}.webp`, path: `/immutable/${index}.webp`, mediaType: "image/webp", sha256: `digest-${index}` })), { id: "voice", source: "/voice/greeting.ogg", path: "/immutable/audio.ogg", mediaType: "audio/ogg" }];

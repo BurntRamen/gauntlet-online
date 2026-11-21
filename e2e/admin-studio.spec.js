@@ -44,14 +44,14 @@ test('website artwork and card edits share a release, reach the actual player an
   await expect(page.locator('.admin-record-save')).toHaveCount(0);
   await area(page, 'Website');
   await page.getByLabel('Draft play landing · heading', { exact: true }).fill('Welcome to the studio fixture');
-  await expect(page.locator('.website-render h1')).toHaveText('Welcome to the studio fixture');
+  await expect(page.frameLocator('.website-render iframe').locator('h1')).toHaveText('Welcome to the studio fixture');
   await expect(page.getByText('Local preview · unsaved changes')).toBeVisible();
   await page.getByRole('button', { name: 'Browse images', exact: true }).click();
   const picker = page.getByRole('dialog', { name: 'Choose artwork' });
   await picker.getByLabel('Search assets').fill('rumin');
   await picker.locator('.asset-picker-tile').first().click();
   await picker.getByRole('button', { name: 'Use selected artwork', exact: true }).click();
-  await expect(page.locator('.website-render .cd-page-artwork')).toBeVisible();
+  await expect(page.frameLocator('.website-render iframe').locator('.cd-page-artwork')).toBeVisible();
   await saveRecord(page);
   await expect(page.locator('.admin-record-save')).toHaveCount(0);
   expect((await (await request.get(origin + '/api/game-content')).json()).content.websiteProse.play.title).not.toBe('Welcome to the studio fixture');
