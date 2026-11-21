@@ -1,0 +1,67 @@
+{
+  "id": "mechanic",
+  "events": [
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Mechanic",
+      "url": "?area=Content",
+      "forms": 0
+    },
+    {
+      "type": "change",
+      "tag": "INPUT",
+      "control": "Mechanic name",
+      "url": "?workshop=mechanics&object=mechanic-a30984f4-2ea2-4e7c-bfc5-df2d55606e49&area=Content",
+      "forms": 1
+    },
+    {
+      "type": "click",
+      "tag": "INPUT",
+      "control": "armament",
+      "url": "?workshop=mechanics&object=mechanic-a30984f4-2ea2-4e7c-bfc5-df2d55606e49&area=Content",
+      "forms": 1
+    },
+    {
+      "type": "change",
+      "tag": "INPUT",
+      "control": "armament",
+      "url": "?workshop=mechanics&object=mechanic-a30984f4-2ea2-4e7c-bfc5-df2d55606e49&area=Content",
+      "forms": 1
+    },
+    {
+      "type": "change",
+      "tag": "SELECT",
+      "control": "Ability 1 effect 1",
+      "url": "?workshop=mechanics&object=mechanic-a30984f4-2ea2-4e7c-bfc5-df2d55606e49&area=Content",
+      "forms": 1
+    },
+    {
+      "type": "change",
+      "tag": "INPUT",
+      "control": "Effect 1.1 amount",
+      "url": "?workshop=mechanics&object=mechanic-a30984f4-2ea2-4e7c-bfc5-df2d55606e49&area=Content",
+      "forms": 1
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Save mechanic to draft",
+      "url": "?workshop=mechanics&object=mechanic-a30984f4-2ea2-4e7c-bfc5-df2d55606e49&area=Content",
+      "forms": 1
+    },
+    {
+      "type": "change",
+      "tag": "SELECT",
+      "control": "Use on card",
+      "url": "?workshop=mechanics&object=mechanic-a30984f4-2ea2-4e7c-bfc5-df2d55606e49&area=Content",
+      "forms": 1
+    }
+  ],
+  "clicks": 3,
+  "changes": 5,
+  "screens": [
+    "?area=Content",
+    "?workshop=mechanics&object=mechanic-a30984f4-2ea2-4e7c-bfc5-df2d55606e49&area=Content"
+  ]
+}

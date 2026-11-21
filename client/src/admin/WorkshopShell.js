@@ -40,13 +40,12 @@ export default function WorkshopShell({ name, title, description, status, action
       const open = () => { setShowList(true); requestAnimationFrame(() => selection.current?.querySelector("input,button")?.focus()); };
       if (showList) { setShowList(false); header.current?.focus(); } else open();
     }}>{showList ? "Return to editor" : "Back to list"}</button>}{selectionId && preview && <div className="design-preview-toggle" aria-label="Workspace view"><button aria-pressed={!showPreview} onClick={() => setPreview(false)}>Editor</button><button aria-pressed={showPreview} onClick={() => { setShowList(false); setPreview(true); }}>Preview</button></div>}</div>
-    <div className={`design-layout ${preview ? "has-preview" : ""}`}>
+    <div className={`design-layout ${preview ? "has-preview" : ""} ${!list && !search ? "editor-only" : ""}`}>
       {(search || list) && <section ref={selection} className="design-selection" aria-label={`${name} selection`}>{search}<div onClick={event => { if (event.target.closest("button[data-object],button[aria-pressed]")) { setShowList(false); if (window.innerWidth <= 750) requestAnimationFrame(() => { header.current?.focus(); header.current?.scrollIntoView?.({ block: "start" }); }); } }}>{list}</div></section>}
       <div className="design-main">
         {sections && <><label className="design-section-select">Section<select aria-label={`${name} section`} value={section} disabled={busy} onChange={event => onSection(event.target.value)}>{sections.map(([id, label]) => <option key={id} value={id}>{label}</option>)}</select></label><nav className="design-section-nav" aria-label={`${name} sections`}>{sections.map(([id, label]) => <button key={id} disabled={busy} aria-pressed={section === id} onClick={() => onSection(id)}>{label}</button>)}</nav></>}
         <div className="design-content"><div className="design-editor" id="admin-selected" tabIndex={-1}>{children}</div>{preview && <section className="design-preview" aria-label={`${name} preview and test`}><div className="admin-panel-heading"><span className="admin-eyebrow">Player presentation</span><button aria-label="Close preview" onClick={() => setPreview(false)}>×</button></div>{preview}</section>}</div>
       </div>
     </div>
-    {selectionId && session?.production}
   </section>;
 }

@@ -10,7 +10,7 @@ const profileDirectory = path.resolve(__dirname, '../artifacts');
 fs.mkdirSync(profileDirectory, { recursive: true });
 fs.mkdirSync(evidence, { recursive: true });
 const profile = fs.mkdtempSync(path.join(profileDirectory, 'native-zoom-profile-'));
-const fixtureRoot = process.env.GAUNTLET_NATIVE_FIXTURE_ROOT || path.resolve(__dirname, '../.playwright-data/admin-redesign');
+const fixtureRoot = process.env.GAUNTLET_NATIVE_FIXTURE_ROOT || process.env.GAUNTLET_CORRECTION_ROOT || path.resolve(__dirname, '../.playwright-data/admin-redesign');
 const sessions = JSON.parse(fs.readFileSync(path.join(fixtureRoot, 'sessions.json'), 'utf8'));
 const metrics = page => page.evaluate(() => ({ innerWidth, innerHeight, outerWidth, outerHeight, devicePixelRatio, visualScale: visualViewport.scale, documentWidth: document.documentElement.scrollWidth }));
 (async () => {
@@ -71,9 +71,9 @@ const metrics = page => page.evaluate(() => ({ innerWidth, innerHeight, outerWid
     expect(result.capture.height).toBe(initial.innerHeight);
     expect(a11y.violations).toEqual([]);
     if (process.env.GAUNTLET_NATIVE_MATRIX === 'true') {
-      const headers = { Authorization: `Bearer ${sessions.simply}` };
+      const headers = { Authorization: `Bearer ${sessions.simply}`, connection: "close" };
       const api = async (method, route, data) => {
-        const response = await context.request[method](backend + '/api/admin/authoring' + route, { headers, ...(data ? { data } : {}) });
+        const response = await context.request[method](backend + '/api/admin/authoring' + route, { headers, maxRetries: method === "get" ? 2 : 0, ...(data ? { data } : {}) });
         expect(response.ok()).toBe(true); return response.json();
       };
       const before = await api('get', '');
@@ -92,7 +92,8 @@ const metrics = page => page.evaluate(() => ({ innerWidth, innerHeight, outerWid
         result.views[name] = { ...measure, axeViolations: axe.violations };
       };
       try {
-        await page.goto(base + '/admin/gauntlet'); const task = page.getByRole('button', { name: 'Create a card', exact: true }); await expect(task).toBeVisible(); await task.scrollIntoViewIfNeeded(); await captureView('home');
+        await page.goto(base + '/admin/gauntlet'); const task = page.getByRole('button', { name: 'Card', exact: true }); await expect(task).toBeVisible(); await task.scrollIntoViewIfNeeded(); await captureView('home');
+        await page.goto(base+'/admin/gauntlet?workshop=modes&object=practice&section=play');await expect(page.getByLabel('Draft play landing · heading',{exact:true})).toBeVisible();await expect(page.locator('.website-render h1')).toBeVisible();await page.getByLabel('Draft play landing · heading',{exact:true}).scrollIntoViewIfNeeded();await captureView('website');
         await page.goto(base + '/admin/gauntlet?workshop=cards'); const search = page.getByLabel('Search cards', { exact: true }); await expect(search).toBeVisible(); await search.scrollIntoViewIfNeeded(); await captureView('collection');
         await page.goto(base + '/admin/gauntlet?workshop=cards&object=rumin-coin-scale-spear'); await expect(page.getByLabel('Draft name', { exact: true })).toBeVisible();
         await page.getByRole('button', { name: 'Preview', exact: true }).click(); const preview = page.getByRole('region', { name: 'Card Workshop preview and test', exact: true }); const card = preview.getByRole('img', { name: /Dividend Yield Blade/ }).first(); await expect(card).toBeVisible(); await card.scrollIntoViewIfNeeded(); await captureView('editor-preview');

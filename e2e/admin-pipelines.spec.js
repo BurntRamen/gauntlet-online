@@ -19,15 +19,15 @@ test.beforeEach(async ({ context, request, baseURL }) => {
 test.afterEach(async ({ request }) => clean(request));
 
 const { area, destination } = require('./admin-navigation');
-async function related(page) { const guide = page.locator('.admin-production-guide'); if (await guide.getAttribute('open') === null) await guide.locator('summary').click(); await expect(guide).toContainText('Player destination'); return guide; }
+
 
 test('direct set creation carries membership through contextual card creation, reload and shared review', async ({ page, request }) => {
   await page.goto('/admin/gauntlet');
-  await page.getByRole('button', { name: 'Set Bring your cards together', exact: true }).click();
+  await page.getByRole('button', { name: 'Set', exact: true }).click();
   await create(page, 'Studio release set', 'set');
   await expect(page.getByLabel('Draft set name', { exact: true })).toHaveValue('Studio release set');
   const set = (await state(request)).draft.snapshot.domains.sets.find(row => row.name === 'Studio release set');
-  await (await related(page)).getByRole('button', { name: 'Create card', exact: true }).click();
+  await page.getByRole('button', { name: 'Create card in this set', exact: true }).click();
   await expect(page.getByLabel('Set', { exact: true })).toHaveValue(set.id);
   await create(page, 'Studio Sentry', 'card');
   await expect(page.getByLabel('Draft name', { exact: true })).toHaveValue('Studio Sentry');
@@ -45,12 +45,13 @@ test('faction and campaign creation connects a chapter and guards cross-record d
   await create(page, 'Studio Expedition', 'faction');
   await expect(page.getByLabel('Draft name', { exact: true })).toHaveValue('Studio Expedition');
   const faction = (await state(request)).draft.snapshot.domains.factions.find(row => row.name === 'Studio Expedition');
-  await (await related(page)).getByRole('button', { name: 'Create encounter', exact: true }).click();
+  await page.locator('.design-related').getByRole('button', { name: 'Studio Expedition',exact:true }).last().click();
+  await page.getByRole('button', { name: 'Add chapter encounter', exact: true }).click();
   await expect(page.getByLabel('Campaign', { exact: true })).toHaveValue(faction.id);
   await create(page, 'Studio Second Chapter', 'encounter');
   await expect(page.getByLabel('Draft title', { exact: true })).toHaveValue('Studio Second Chapter');
   await page.getByLabel('Draft title', { exact: true }).fill('Retained local chapter');
-  await (await related(page)).getByRole('button', { name: 'Studio Expedition', exact: true }).first().click();
+  await page.getByRole('button', { name: 'Studio Expedition', exact: true }).first().click();
   await page.getByRole('dialog', { name: 'Unsaved local changes' }).getByRole('button', { name: 'Keep editing', exact: true }).click();
   await expect(page.getByLabel('Draft title', { exact: true })).toHaveValue('Retained local chapter');
   const snapshot = (await state(request)).draft.snapshot;
@@ -89,16 +90,17 @@ test('a reusable mechanic can be created, attached and executed through ordinary
   await page.getByRole('button', { name: 'Create set', exact: true }).click();
   await create(page, 'Studio mechanics set', 'set');
   await expect(page.getByLabel('Draft set name', { exact: true })).toHaveValue('Studio mechanics set');
-  await (await related(page)).getByRole('button', { name: 'Create card', exact: true }).click();
+  await page.getByRole('button', { name: 'Create card in this set', exact: true }).click();
   await page.getByLabel('Mechanical effect', { exact: true }).selectOption(mechanic.id);
   await create(page, 'Studio mechanic consumer', 'card');
   await expect(page.getByLabel('Draft name', { exact: true })).toHaveValue('Studio mechanic consumer');
   const card = (await state(request)).draft.snapshot.domains.cards.find(row => row.name === 'Studio mechanic consumer');
   expect(card.effect.mechanicId).toBe(mechanic.id);
   await page.keyboard.press('Control+k');
-  await page.getByRole('searchbox').fill(mechanic.name);
-  await page.getByLabel('Search in').selectOption('records');
-  await page.getByRole('button').filter({ hasText: mechanic.name }).last().click();
+  const finder=page.getByRole('dialog',{name:'Search Admin'});
+  await finder.getByRole('searchbox').fill(mechanic.name);
+  await finder.getByLabel('Search in').selectOption('records');
+  await finder.getByRole('button').filter({ hasText: mechanic.name }).last().click();
   await expect(page.getByLabel('Mechanic name', { exact: true })).toHaveValue(mechanic.name);
   await page.getByRole('button', { name: 'Test Studio mechanic consumer in engine', exact: true }).click();
   const harness = page.getByRole('region', { name: 'Real engine playtest', exact: true });
@@ -193,7 +195,7 @@ test('card modules save, reload, navigate dependencies and execute ordered effec
   }
   await page.setViewportSize({ width: 1366, height: 768 });
   await workspaceSection(page, 'Card Workshop', 'Details');
-  await page.getByRole('button', { name: 'Back to list', exact: true }).click();
+  if(await page.getByRole('button', { name: 'Back to list', exact: true }).isVisible()) await page.getByRole('button', { name: 'Back to list', exact: true }).click();
   await page.getByRole('button', { name: 'Duplicate card', exact: true }).click();
   await expect(page.getByRole('combobox', { name: 'Mechanical effect', exact: true })).toHaveValue('mechanic-program');
   await page.getByLabel('New content name', { exact: true }).fill('Copied modular blade');
@@ -207,7 +209,7 @@ test('native 200 percent browser zoom retains reflow, keyboard focus and accessi
   const { execFile } = require('node:child_process');
   await new Promise((resolve, reject) => execFile(process.execPath, [path.resolve(__dirname, 'admin-native-zoom.cjs')], {
     cwd: path.resolve(__dirname, '..'), windowsHide: true,
-    env: { ...process.env, GAUNTLET_NATIVE_MATRIX: 'true', GAUNTLET_NATIVE_EVIDENCE_DIR: path.resolve(__dirname, '../docs/reviews/admin-studio/native-zoom') }
+    env: { ...process.env, GAUNTLET_NATIVE_MATRIX: 'true', GAUNTLET_NATIVE_EVIDENCE_DIR: path.resolve(__dirname, '../docs/reviews/admin-correction/native-zoom') }
   }, (error, stdout, stderr) => {
     fs.writeFileSync(path.resolve(__dirname, '../artifacts/admin-native-zoom.log'), stdout + stderr);
     error ? reject(error) : resolve();

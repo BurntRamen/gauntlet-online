@@ -1,5 +1,7 @@
 # Rendered comparisons
 
+Historical first-pass evidence. See the [correction review](../admin-correction/README.md) for the current implementation and its expanded Website capabilities.
+
 Baseline UI: `41d8801f`. After: this branch. Captures use Chromium, reduced motion, the same isolated fixture store and a 1440×1000 viewport (phone drawer: 390×844). The card is Dividend Yield Blade; custom mechanic, recipe/product and competition records are fixture-only. No publication occurs in the capture script. The new Website image capability is separately exercised through the browser release/rollback journey.
 
 The baseline was compiled from the original UI and shared navigation sources, then current source files were restored. The same current fixture backend serves both capture sets; these are UI comparisons, not a claim of historical production state. Representative records are seeded through existing local authoring APIs by `scripts/capture-admin-studio.cjs`. Script readiness waits for editors and actual card presentation rather than an arbitrary page-load delay.

@@ -12,8 +12,8 @@ test("a changed revision or hash never presents earlier evidence as current", ()
 });
 
 test("an active older release is not proof that the candidate is live", () => {
-  expect(releaseProgress(state, receipt).steps.at(-1)).toEqual(["Deployment / live", "Unverified"]);
-  expect(releaseProgress({ ...state, draft: null }, null).steps.at(-1)).toEqual(["Deployment / live", "Active on this server"]);
+  expect(releaseProgress(state, receipt).deployment).toBe("Unverified");
+  expect(releaseProgress({ ...state, draft: null }, null).deployment).toBe("Active on this server");
 });
 
 test("unsaved edits, a pending publication, or unavailable storage withhold publishing", () => {
@@ -25,5 +25,5 @@ test("unsaved edits, a pending publication, or unavailable storage withhold publ
 test("mechanical evidence is required independently of a saved presentation preview", () => {
   const result = releaseProgress(state, { ...receipt, readiness: { ...receipt.readiness, engineTested: false, ready: false } });
   expect(result.reason).toContain("accepted engine action");
-  expect(result.steps[2][1]).toBe("Required");
+  expect(result.ready).toBe(false);
 });

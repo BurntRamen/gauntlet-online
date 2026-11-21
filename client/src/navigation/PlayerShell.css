@@ -253,3 +253,12 @@
 
 
 .cd-shell.is-suitfire.is-editing .cd-brand > .suitfire-brand { display: inline-flex; }
+/* Approved release-owned presentation presets, shared with Website Studio. */
+.cd-shell[data-typography=editorial] :is(h1,h2,h3) {font-family:Georgia,"Times New Roman",serif}
+.cd-shell[data-typography=plain] :is(h1,h2,h3,p,button) {font-family:Arial,sans-serif;letter-spacing:normal}
+.cd-shell[data-arrangement=list] .player-layout-grid.cd-grid {grid-template-columns:1fr}
+.cd-shell[data-arrangement=compact] .player-layout-grid.cd-grid {grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:10px}
+.cd-shell[data-arrangement=compact] .cd-action-tile {padding:14px}
+
+/* Presets must not inherit wide-tile spans that create implicit columns. */
+.cd-shell:is([data-arrangement=list],[data-arrangement=compact]) .player-layout-grid > [data-layout-module] {grid-column:auto}

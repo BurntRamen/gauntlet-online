@@ -37,7 +37,7 @@ test("the private workspace uses SuitFire while return navigation follows the se
   setAccountBrand({ id: "admin-brand-preview", brandPreview: "suitfire" });
   chooseBrand("suitfire");
   const view = render(<GauntletAdmin request={request} onClose={() => {}} />);
-  await screen.findByRole("heading", { name: "Back to making great games." });
+  await screen.findByRole("heading", { name: "Create something" });
   expect(screen.getByRole("region", { name: "SuitFire Admin" })).toBeVisible();
   expect(screen.getByText("SUITFIRE")).toBeVisible();
   expect(screen.getAllByRole("button", { name: /Back to SuitFire/ })).toHaveLength(2);
@@ -53,16 +53,16 @@ test.each(["Content", "Players"])("Home defers the catalog until %s needs it, th
   const catalogReads = () => request.mock.calls.filter(([path]) => path === "/api/admin/catalog").length;
   const ready = () => screen.findByText(area === "Content" ? "Catalog ready" : "Player A");
   render(<GauntletAdmin request={request} onClose={() => {}} />);
-  await screen.findByRole("heading", { name: "Back to making great games." });
+  await screen.findByRole("heading", { name: "Create something" });
   expect(catalogReads()).toBe(0);
   fireEvent.click(screen.getByText("Refresh admin"));
-  await screen.findByRole("heading", { name: "Back to making great games." });
+  await screen.findByRole("heading", { name: "Create something" });
   expect(catalogReads()).toBe(0);
   select(area);
   await waitFor(() => expect(catalogReads()).toBe(1));
   await ready();
   select("Home");
-  await screen.findByRole("heading", { name: "Back to making great games." });
+  await screen.findByRole("heading", { name: "Create something" });
   select(area);
   await ready();
   expect(catalogReads()).toBe(1);
@@ -81,7 +81,7 @@ test.each(["Content", "Players"])("a direct %s entry requests its catalog withou
 
 test("provides six task destinations with content, player state and original match evidence", async () => {
   render(<GauntletAdmin request={request} onClose={() => {}} />);
-  await screen.findByRole("heading", { name: "Back to making great games." });
+  await screen.findByRole("heading", { name: "Create something" });
   const navigation = within(screen.getByRole("navigation", { name: "Administration sections" }));
   for (const area of ["Home", "Create & Edit", "Website", "Events & Commerce", "Publishing", "Operations"]) expect(navigation.getByText(area)).toBeVisible();
   expect(navigation.getAllByRole("button")).toHaveLength(6);
@@ -116,7 +116,7 @@ test("data failure is visible and can be retried without claiming zero counts", 
   failing = false;
   fireEvent.click(screen.getByText("Refresh admin"));
   await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
-  await screen.findByRole("heading", { name: "Back to making great games." });
+  await screen.findByRole("heading", { name: "Create something" });
 });
 
 test("player edits retain typed metadata on failure and protect section navigation and Admin exit", async () => {

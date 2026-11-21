@@ -1,5 +1,6 @@
 import { useHelp } from "./AuthoringHelp";
 import Help from "./AuthoringHelp";
+import {PrivateCard} from "./PrivateAsset";
 import { useEffect, useRef, useState } from "react";
 import ValueControl, { EditorValues, replaceAt } from "./ValueControl";
 
@@ -20,14 +21,15 @@ export function CatalogField({ definition, value, onChange, cards, editions = []
   return <fieldset disabled={disabled}><legend>Set membership · {selected.length} cards</legend><label>Find a member card<input type="search" value={query} onChange={event => setQuery(event.target.value)} /></label><div className="admin-catalog-members">{cards.filter(card => `${card.name} ${card.factionId}`.toLowerCase().includes(query.toLowerCase())).map(card => <label className="admin-catalog-check" key={card.id}><input type="checkbox" checked={selected.includes(card.id)} onChange={event => onChange(event.target.checked ? [...selected, card.id] : selected.filter(id => id !== card.id))} />{card.name} · {card.factionId} · {card.rarity}</label>)}</div><Help className="admin-note" topic="CatalogControls2" /></fieldset>;
 }
 
-export default function CatalogControls({ creation, value, onEdit, onCancel, onCreate, onOpen, onDuplicate, domain, row, state, effects, disabled }) {
+export default function CatalogControls({ creation, value, onEdit, onCancel, onCreate, onCreateSet, onOpen, onDuplicate, domain, row, state, effects, disabled }) {
   const form = useRef(null);
+  const [newSet,setNewSet]=useState('');
   useEffect(() => { if (creation) form.current?.querySelector("input")?.focus(); }, [creation]);
   const snapshot = state.draft?.snapshot || state.live;
   const sets = (snapshot.domains.sets || []).filter(set => set.status === "active");
   const nameOf = domain => domain === "assets" ? "printing" : domain?.slice(0, -1);
   const deckDomain = ["decks", "offers", "encounters", "factions"].includes(domain);
-  if (!creation) return <div className="admin-actions">{(deckDomain ? [domain] : ["sets", "cards"]).map(d => <button key={d} disabled={disabled || (d === "cards" && !sets.length)} onClick={() => onOpen(d)}>Create {nameOf(d)}</button>)}{row && (deckDomain || ["cards", "sets"].includes(domain)) && <button disabled={disabled || (domain === "cards" && !sets.length)} onClick={onDuplicate}>Duplicate {nameOf(domain)}</button>}{!deckDomain && !sets.length && <span className="admin-note">Create an authored set to begin adding cards.</span>}</div>;
+  if (!creation) return <div className="admin-actions">{(domain === "sets" ? ["sets","cards"] : [domain]).map(d => <button key={d} disabled={disabled || (d === "cards" && !sets.length)} onClick={() => onOpen(d)}>Create {nameOf(d)}</button>)}{row && (deckDomain || ["cards", "sets"].includes(domain)) && <button disabled={disabled || (domain === "cards" && !sets.length)} onClick={onDuplicate}>Duplicate {nameOf(domain)}</button>}{!deckDomain && !sets.length && <span className="admin-note">Create an authored set to begin adding cards.</span>}</div>;
   const d = creation.domain, card = d === "cards", printing = d === "assets", deck = d === "decks", offer = d === "offers", encounter = d === "encounters", faction = d === "factions", name = nameOf(d);
   const source = creation.sourceId && snapshot.domains[d]?.find(item => item.id === creation.sourceId);
   const composedSource = ["composed-rumin-armament", "mechanic-program"].includes(source?.effect?.id);
@@ -35,6 +37,8 @@ export default function CatalogControls({ creation, value, onEdit, onCancel, onC
   const mechanic = state.studio?.definitions.find(m => m.id === values.effectId);
   const effect = mechanic ? { factionId: values.factionId, cardType: values.cardType || source?.type || mechanic.cardTypes[0], description: mechanic.explanation } : effects?.find(item => item.id === values.effectId) || (composedSource && values.effectId === source.effect.id ? { factionId: source.factionId, cardType: source.type, description: "Preserve this structured ability on the new identity." } : null);
   const choose = (label, key, rows) => <ValueControl label={label} aria-label={label} path={[key]} value={values[key] ?? (key === "cardType" ? effect?.cardType : "")} options={rows.map(item => [item.id ?? item, item.name ?? item])} />;
+  const previewCards=(state.previewContent?.manifest || state.previewContent)?.cards || [];
+  const previewCard=card && (previewCards.find(c=>c.id===source?.id) || previewCards.find(c=>c.effect?.id===values.effectId)) || card && previewCards.find(c=>c.factionId===effect?.factionId&&c.type===effect?.cardType);
   const submit = event => {
     event.preventDefault();
     onCreate({ domain: d, name: values.name, ...(creation.sourceId ? { sourceId: creation.sourceId } : {}),
@@ -44,18 +48,19 @@ export default function CatalogControls({ creation, value, onEdit, onCancel, onC
       ...(printing ? { gameplayCardId: creation.gameplayCardId, edition: values.edition, collectorNumber: values.collectorNumber } : {}),
       ...(card ? { setId: values.setId, effectId: values.effectId, factionId: effect?.factionId, type: effect?.cardType, value: Number(values.value), suit: values.suit, rarity: values.rarity } : {}) });
   };
-  return <EditorValues value={values} onChange={onEdit} disabled={disabled}><form ref={form} className="admin-preview admin-catalog-create" aria-label={deck || offer ? "Create deck content" : "Create " + name} onSubmit={submit}>
-    <h4>{source ? "Duplicate" : "Create"} {name}</h4><Help className="admin-note" topic={faction ? "factionCreation" : encounter ? "encounterCreation" : deck || offer ? "CatalogControls3" : "CatalogControls4"} />
+  return <EditorValues value={values} onChange={onEdit} disabled={disabled}><div className={`catalog-creation-layout${card ? " has-preview" : ""}`}><form ref={form} className="admin-preview admin-catalog-create" aria-label={deck || offer ? "Create deck content" : "Create " + name} onSubmit={submit}>
+    <Help className="admin-note" topic={faction ? "factionCreation" : encounter ? "encounterCreation" : deck || offer ? "CatalogControls3" : "CatalogControls4"} />
     <ValueControl label="Name" aria-label="New content name" maxLength={deck || offer ? 80 : 160} required path={["name"]} />
     {faction && !source && choose("Rules family", "family", state.factionFamilies || [])}
     {encounter && !source && choose("Campaign", "campaignId", snapshot.domains.campaigns.map(c => ({ id: c.id, name: c.commanderName })))}
     {deck && !source && choose("Faction", "factionId", state.deckFactions || [])}
     {offer && !source && choose("Recipe", "templateId", [{ id: "", name: "Choose a player template" }, ...snapshot.domains.decks.filter(item => item.destinations?.player)])}
     {printing && <><Help topic="CatalogControls5" />{choose("New printing edition", "edition", state.printingEditions?.filter(set => set.status !== "archived") || [])}<ValueControl label="Collector identifier" aria-label="New collector identifier" maxLength={32} required path={["collectorNumber"]} /></>}
-    {card && <>{choose("Set", "setId", sets)}{choose("Mechanical effect", "effectId", [...(composedSource ? [{ id: source.effect.id, name: "Copy structured composition" }] : []), ...(state.studio?.definitions || []).filter(m => m.status === "active").map(m => ({ id: m.id, name: "Authored · " + m.name })), ...(effects || []).map(e => ({ id: e.id, name: e.factionId + " · " + e.cardType + " · " + e.label }))])}
+    {card && <>{choose("Set", "setId", sets)}{onCreateSet && <details open={!sets.length || undefined}><summary>Create a set here</summary><label>New set name<input value={newSet} onChange={e=>setNewSet(e.target.value)} maxLength={160}/></label><button type="button" disabled={disabled || !newSet.trim()} onClick={async()=>{const id=await onCreateSet(newSet);if(id){onEdit({...values,setId:id});setNewSet('');}}}>Save set and use it</button></details>}{choose("Mechanical effect", "effectId", [...(composedSource ? [{ id: source.effect.id, name: "Copy structured composition" }] : []), ...(state.studio?.definitions || []).filter(m => m.status === "active").map(m => ({ id: m.id, name: "Authored · " + m.name })), ...(effects || []).map(e => ({ id: e.id, name: e.factionId + " · " + e.cardType + " · " + e.label }))])}
       {mechanic && <>{choose("New card faction", "factionId", state.deckFactions?.filter(f => !f.campaignOnly || f.origin === "admin-faction-v1") || [])}{choose("New card type", "cardType", mechanic.cardTypes.map(type => ({ id: type, name: type })))}</>}<p>{effect?.description}</p><Help className="admin-note" topic="CatalogControls6" />
       <ValueControl label="Printed value" type="number" min={2} max={14} required path={["value"]} />
       {choose("Fixed suit", "suit", ["spades", "hearts", "diamonds", "clubs"])}{choose("Rarity", "rarity", ["common", "uncommon", "rare", "mythic"])}</>}
+
     <div className="admin-actions"><button disabled={disabled || (card && !effect)} type="submit">Save new {name} to draft</button><button disabled={disabled} type="button" onClick={onCancel}>Cancel creation</button></div>
-  </form></EditorValues>;
+  </form>{previewCard && <section aria-label="New card preview" className="creation-preview"><PrivateCard card={{...previewCard,name:values.name||"New card",rank:Number(values.value),value:Number(values.value),suit:values.suit,rarity:values.rarity,displayText:mechanic?.explanation || source?.text || previewCard.displayText || previewCard.text,presentation:{...previewCard.presentation,composed:true}}}/><p>Local card preview · saves into the selected set.</p></section>}</div></EditorValues>;
 }

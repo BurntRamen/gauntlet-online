@@ -19,7 +19,7 @@ test("editable parameters bind to their faction and shared configuration stays b
   const field = jest.fn(() => <p>Owner field</p>);
   const { rerender } = render(<EngineWorkshop state={state} field={field} target={{ domain: "faction-effects", id: "rhythm" }} />);
   expect(field).toHaveBeenCalledWith("mechanics", { domain: "factions", row: faction });
-  expect(screen.getByText("0–8")).toBeVisible();
+  fireEvent.click(screen.getByText("Advanced · contract and setup limits"));expect(document.querySelector(".admin-json pre")).toHaveTextContent('"min": 0');expect(document.querySelector(".admin-json pre")).toHaveTextContent('"max": 8');
   field.mockClear();
   rerender(<EngineWorkshop state={state} field={field} target={{ domain: "game", id: "shared-rules" }} />);
   expect(field).toHaveBeenCalledTimes(2);

@@ -1,0 +1,90 @@
+{
+  "id": "mechanic",
+  "events": [
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Create & Edit",
+      "url": "?area=Content",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Mechanics & Rules",
+      "url": "?workshop=mechanics&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "change",
+      "tag": "SELECT",
+      "control": "Content type",
+      "url": "?workshop=card-effects&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "change",
+      "tag": "SELECT",
+      "control": "Content type",
+      "url": "?workshop=mechanics&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Create mechanic",
+      "url": "?workshop=mechanics&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "change",
+      "tag": "INPUT",
+      "control": "Mechanic name",
+      "url": "?workshop=mechanics&object=mechanic-0e8eace8-3ae5-45a6-afb1-43ed8074f123&area=Content",
+      "forms": 1
+    },
+    {
+      "type": "click",
+      "tag": "INPUT",
+      "control": "armament",
+      "url": "?workshop=mechanics&object=mechanic-0e8eace8-3ae5-45a6-afb1-43ed8074f123&area=Content",
+      "forms": 1
+    },
+    {
+      "type": "change",
+      "tag": "INPUT",
+      "control": "armament",
+      "url": "?workshop=mechanics&object=mechanic-0e8eace8-3ae5-45a6-afb1-43ed8074f123&area=Content",
+      "forms": 1
+    },
+    {
+      "type": "change",
+      "tag": "SELECT",
+      "control": "Ability 1 effect 1",
+      "url": "?workshop=mechanics&object=mechanic-0e8eace8-3ae5-45a6-afb1-43ed8074f123&area=Content",
+      "forms": 1
+    },
+    {
+      "type": "change",
+      "tag": "INPUT",
+      "control": "Effect 1.1 amount",
+      "url": "?workshop=mechanics&object=mechanic-0e8eace8-3ae5-45a6-afb1-43ed8074f123&area=Content",
+      "forms": 1
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Save mechanic to draft",
+      "url": "?workshop=mechanics&object=mechanic-0e8eace8-3ae5-45a6-afb1-43ed8074f123&area=Content",
+      "forms": 1
+    }
+  ],
+  "clicks": 5,
+  "changes": 6,
+  "screens": [
+    "?area=Content",
+    "?workshop=mechanics&area=Content",
+    "?workshop=card-effects&area=Content",
+    "?workshop=mechanics&object=mechanic-0e8eace8-3ae5-45a6-afb1-43ed8074f123&area=Content"
+  ]
+}

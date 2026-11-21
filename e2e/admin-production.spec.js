@@ -1,6 +1,6 @@
 const { test, expect } = require("./admin-release-test");
 const { origin } = require("./admin-urls");
-const { saveRecord, area, searchCollection } = require("./admin-navigation");
+const { saveRecord, area, searchCollection, workspaceSection } = require("./admin-navigation");
 const { navigatePlayer } = require("./player-navigation");
 const AxeBuilder = require("@axe-core/playwright").default;
 const fs = require("node:fs"), path = require("node:path");
@@ -17,10 +17,10 @@ test("production links guard edits and resume the selected card, filter and sect
   const name = page.getByLabel("Draft name", { exact: true });
   const original = await name.inputValue();
   await name.fill("Unsubmitted fixture name");
-  const guide = page.locator(".admin-production-guide");
-  await guide.locator("summary").first().click();
-  await expect(guide).toContainText("Player destination");
-  const printing = guide.locator("li").filter({ has: page.getByRole("heading", { name: /Artwork and printings/ }) }).getByRole("button").first();
+  await workspaceSection(page,"Card Workshop","Related content");
+  const references=page.locator("#card-related .design-related");
+  await references.locator("summary").filter({hasText:"Show all references"}).click();
+  const printing=references.getByRole("button",{name:/Standard/}).first();
   await printing.click();
   await page.getByRole("dialog", { name: "Unsaved local changes" }).getByRole("button", { name: "Keep editing", exact: true }).click();
   await expect(name).toHaveValue("Unsubmitted fixture name");
@@ -28,17 +28,18 @@ test("production links guard edits and resume the selected card, filter and sect
   await page.getByRole("dialog", { name: "Unsaved local changes" }).getByRole("button", { name: "Discard local edits and continue", exact: true }).click();
   await expect(page).toHaveURL(/workshop=assets/);
   await page.getByRole("button", { name: "Back to previous view", exact: true }).click();
+  await workspaceSection(page,"Card Workshop","Details");
   await expect(name).toHaveValue(original);
   await expect(page.getByLabel("Search cards")).toHaveValue("Sentry");
   await page.reload();
   await expect(name).toHaveValue(original);
   await expect(page.getByLabel("Search cards")).toHaveValue("Sentry");
   await expect(page).toHaveURL(/section=identity/);
-  await guide.locator("summary").first().click();
+  await workspaceSection(page,"Card Workshop","Related content");
   await page.screenshot({ path: "artifacts/admin-production-desktop.png", fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
-  expect((await new AxeBuilder({ page }).include(".admin-production-guide").analyze()).violations).toEqual([]);
+  expect((await new AxeBuilder({ page }).include("#card-related").analyze()).violations).toEqual([]);
   await page.screenshot({ path: "artifacts/admin-production-phone.png", fullPage: true });
 });
 

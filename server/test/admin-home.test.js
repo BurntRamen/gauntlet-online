@@ -1,25 +1,20 @@
 const test = require("node:test"), assert = require("node:assert/strict");
 const { createAdminData } = require("../adminData");
-test("Home reports pinned Para operation state, digital purchases and unreadable sources explicitly", async () => {
+test("Home reports real failures without account, purchase or module inventories", async () => {
   let unavailable = false;
-  const data = createAdminData({ useSupabase: () => true, request: async () => [{ id: "player", name: "Buyer", stats: {} }],
-    persistence: { getMode: async () => { throw new Error("Unavailable health fixture"); }, status: () => ({}) }, archive: { probe: async () => false, status: () => ({}) },
-    runtime: { season: () => ({ seasonId: "ranked" }), progression: () => ({}), collection: () => ({}), decks: () => ({ decks: [] }) },
-    publication: { status: () => ({ live: { domains: { offers: [] }, paraLeague: { events: [{ id: "event", name: "Changed draft name", status: "scheduled" }] } } }) },
-    gold: { enabled: true, status: () => ({ enabled: true }), inspectAccount: () => ({ purchases: [{ id: "receipt", product: { name: "Publication" }, gold: 25, at: "2030-01-01T00:00:00.000Z" }] }) },
-    para: { enabled: true, status: () => ({ enabled: true }), inspect: () => { if (unavailable) throw new Error("private-storage-detail"); return { events: [{ id: "event", definition: { id: "event", name: "Pinned event" }, status: "paused" }], failures: [{}] }; } }
+  const forbidden = () => assert.fail("Home must not read dashboard data");
+  const data = createAdminData({ useSupabase: () => true, request: forbidden,
+    archive: {probe: forbidden}, persistence: {getMode: forbidden}, deckCapability: forbidden,
+    publication: { summary: () => ({activeReleaseId:"live", draft:null}) },
+    gold: {inspectAccount: forbidden},
+    para: {inspect: () => { if(unavailable) throw new Error("private-storage-detail");return {failures:[{}]}; }},
+    runtimeStorage: () => ({checkpoint:{blocked:true},backups:{enabled:false}})
   });
   let home = await data.home();
-  assert.equal(home.events.find(e => e.id === "event").name, "Pinned event");
-  assert.match(home.events.find(e => e.id === "event").availability.label, /paused.*pinned/);
-  assert.equal(home.purchases[0].price, 25); assert.equal(home.purchases[0].productName, "Publication");
   assert.ok(home.tasks.some(t => /settlement/.test(t.title)));
-  assert.equal(home.tasks.find(t => t.title === "Payments and premium currency").kind, "capability");
-  assert.equal(home.tasks.find(t => /settlement/.test(t.title)).kind, undefined, "Operational failures remain in attention, not disabled capabilities.");
-  assert.ok(home.guide.releaseUnavailable);
-  assert.ok(home.events.filter(e => e.id !== "event").every(e => /cutover/.test(e.availability.label)));
+  assert.ok(home.tasks.some(t => t.title === "Check operations"));
+  for(const key of ["events","purchases","players","modules","storage"])assert.equal(Object.hasOwn(home,key),false);
   unavailable = true; home = await data.home();
-  assert.match(home.events.find(e => e.id === "event").availability.label, /unavailable/);
-  assert.ok(home.tasks.some(t => /Para runtime is unavailable/.test(t.message)));
-  assert.equal(JSON.stringify(home).includes("private-storage-detail"), false);
+  assert.equal(home.tasks.find(t=>t.title==="Check operations").message,"2 storage or recovery problems need attention.");
+  assert.equal(JSON.stringify(home).includes("private-storage-detail"),false);
 });

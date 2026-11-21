@@ -170,6 +170,7 @@ function validateAuthoredFields(snapshot, baseline, catalogCards) {
           if (canonicalJson(value ?? null) !== canonicalJson(original[key] ?? null) || Object.hasOwn(row, key) !== Object.hasOwn(original, key)) issue(domain, row.id, key, "Engine-controlled identity, reference or derived value cannot be changed.");
           continue;
         }
+        if (field.type.startsWith('website-')) { for(const message of require('../shared/websitePresentation').errors(value,field.type,field.page,snapshot.domains.campaigns.map(c=>c.id))) issue(domain,row.id,key,message); continue; }
         if (field.type === "pack-composition") { if (!require("../shared/duel-rules/packComposition").valid(value)) issue(domain, row.id, key, "Use 13 supported slots, four fixed suit guarantees and a 0–100% wild mythic roll."); continue; }
         if (field.type === "choice") { if (!field.options.some(option => (option.id ?? option) === value)) issue(domain, row.id, key, "Choose a supported value from this field's options."); continue; }
         if (field.type === "object" || field.type === "integer") {
@@ -269,7 +270,7 @@ function resolveEngineContent(snapshot, releaseId) {
   manifest.cards = clone(domains.cards).map(card => require("./mechanicAuthoring").resolve(card, snapshot, hash));
   if (snapshot.domains.sets) manifest.draftSets = [...manifest.draftSets, ...authoredCatalog.projectSets(snapshot)];
   manifest.collectorVariants = domains.assets.map(({ id, ...variant }) => clone(variant));
-  manifest.modeMetadata = Object.fromEntries(domains.game.map(mode => [mode.id, { name: mode.name, description: mode.description, ...Object.fromEntries(Object.entries(proseFields(mode.id)).map(([key, spec]) => [key, fieldValue(mode, key, spec)])) }]));
+  manifest.modeMetadata = Object.fromEntries(domains.game.map(mode => [mode.id, { name: mode.name, description: mode.description, ...Object.fromEntries(Object.entries(proseFields(mode.id)).filter(([,spec])=>!spec.type.startsWith("website-")).map(([key, spec]) => [key, fieldValue(mode, key, spec)])) }]));
   manifest.deckTemplates = domains.decks.map(row => row.origin === require("./adminDecks").ORIGIN ? require("./adminDecks").project(row) : { id: row.id, name: row.name, description: row.description, legacy: true });
   manifest.deckOffers = (domains.offers || []).map(row => require("./adminDeckOffers").project(row, manifest.deckTemplates, releaseId));
   if (snapshot.studio?.modifiers) manifest.ruleModifiers = snapshot.studio.modifiers.map(definition => ({ definition: clone(definition), revision: hash(definition) }));
@@ -280,6 +281,7 @@ function resolveEngineContent(snapshot, releaseId) {
   manifest.gameConfig = { version: 1, startingLife: config.STARTING_LIFE, handSize: domains.game.find((row) => row.id === "shared-rules").handSize };
   manifest.packComposition = clone(domains.game.find(row => row.id === "shared-rules").packComposition || require("../shared/duel-rules/packComposition").defaults);
   manifest.websiteProse = require("./websiteProse").projectProse(domains, versions, releaseId);
+  manifest.websitePresentation = require("./websiteProse").projectPresentation(domains);
   manifest.trainingOpponent = { name: characters.get("training-ai").name, opponentKind: "training-ai" };
   manifest.assetManifest = { version: assets.assetManifest.version, entries: clone([...assets.assetManifest.entries, ...versions.map(row => assets.assetEntry(row.id, versions, releaseId))]) };
   manifest.contentBinding = { authoredRelease: releaseId, rulesVersion: duel.RULES_VERSION, cardEffectContractVersion: effects.CARD_EFFECT_CONTRACT_VERSION, factionEffectContractVersion: effects.FACTION_EFFECT_CONTRACT_VERSION, encounterContractVersion: encounterContract.ENCOUNTER_CONTRACT_VERSION, assetManifestVersion: assets.assetManifest.version, gameConfigVersion: config.GAME_CONFIG_VERSION };

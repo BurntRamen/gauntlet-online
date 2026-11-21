@@ -12,7 +12,6 @@ const test = base.extend({ request: async ({ playwright, baseURL }, use) => {
 } });
 
 const loginSessions = new Map();
-const workshops = page => page.getByRole("navigation", { name: "Content destinations" });
 async function encounterSection(page, id) { await workspaceSection(page, "Encounter Workshop", ({ story: "Identity / Story", setup: "Opponent / Setup", mechanics: "Mechanics", deck: "Deck / Cards", assets: "Presentation / Assets", validation: "Validation", preview: "Preview", test: "Playtest" })[id]); }
 async function cardSection(page, name) { await workspaceSection(page, "Card Workshop", name); }
 async function otherContent(page, name) { await destination(page, name || "Campaigns"); }
@@ -127,7 +126,7 @@ test("both authorized accounts can inspect every section; other accounts and gue
   await signIn(page, request, "simply");
   await page.reload();
   await expect(page.getByRole("region", { name: "Gauntlet Admin", exact: true })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Back to making great games." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Create something" })).toBeVisible();
   await page.screenshot({ path: "artifacts/admin-overview-desktop.png", fullPage: true });
   const nav = page.getByRole("navigation", { name: "Administration sections" });
   await adminArea(page, "Content");
@@ -425,7 +424,7 @@ test("Admin is discoverable only after access approval and review controls retai
   await expect(adminLink).toBeVisible();
   await adminLink.click();
   await adminArea(page, "Content"); await destination(page, "Encounters");
-  await expect(workshops(page).getByRole("button", { name: "Campaigns & Encounters", exact: true })).toHaveAttribute("aria-current", "page");
+  await expect(page.getByLabel("Content type",{exact:true})).toHaveValue("encounters");
   await expect(page.getByRole("button", { name: "Validate draft", exact: true })).toBeHidden();
   await searchCollection(page, "Search encounters", "nothing matches this encounter");
   await expect(page.getByRole("status").filter({ hasText: "No matches in this catalog. Clear the filters or try another name." })).toBeVisible();
@@ -959,13 +958,13 @@ test("visual menu pass preserves review context and keeps phone editing focused"
   await expect(page.getByRole("dialog", { name: "Unsaved local changes" })).toHaveCount(0);
   await cardSection(page, "Details");
   await expect(page.getByLabel("Draft name", { exact: true })).toHaveValue("Local unsaved name");
-  await page.getByRole("button", { name: "Back to list", exact: true }).click();
+  if(await page.getByRole("button", { name: "Back to list", exact: true }).isVisible()) await page.getByRole("button", { name: "Back to list", exact: true }).click();
   await expect(page.getByRole("dialog", { name: "Unsaved local changes" })).toHaveCount(0);
   await expect(page.getByLabel("Search cards")).toBeFocused();
   await searchCollection(page, "Search cards", "Soldier");
   await page.getByRole("button", { name: "Inspect Soldier", exact: true }).click();
   await page.getByRole("dialog", { name: "Unsaved local changes" }).getByRole("button", { name: "Discard local edits and continue", exact: true }).click();
-  await page.getByRole("button", { name: "Back to list", exact: true }).click();
+  if(await page.getByRole("button", { name: "Back to list", exact: true }).isVisible()) await page.getByRole("button", { name: "Back to list", exact: true }).click();
   await searchCollection(page, "Search cards", "Sergeant");
   await page.getByRole("button", { name: "Inspect Sergeant", exact: true }).click();
   await cardSection(page, "Details");
@@ -978,7 +977,7 @@ test("visual menu pass preserves review context and keeps phone editing focused"
   expect((await new AxeBuilder({ page }).include(".gauntlet-admin").analyze()).violations).toEqual([]);
   await page.setViewportSize({ width: 1440, height: 1000 });
   await otherContent(page, "Collector artwork");
-  await expect(workshops(page).getByRole("button", { name: "Printings & Sets", exact: true })).toHaveAttribute("aria-current", "page");
+  await expect(page.getByLabel("Content type",{exact:true})).toHaveValue("assets");
   await capture("other-content-desktop");
   for (const area of ["Players", "Matches", "System"]) {
     await adminArea(page, area);
@@ -1089,7 +1088,7 @@ test("Admin creates a set and new card, executes its mechanics, publishes and sa
   await expect(page.getByLabel("New content name")).toHaveValue("Browser lifecycle set");
   await page.getByRole("button", { name: "Save new set to draft", exact: true }).click();
   await expect(page.locator(".design-workshop").getByRole("heading", { name: "Browser lifecycle set", exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Back to list", exact: true }).click();
+  if(await page.getByRole("button", { name: "Back to list", exact: true }).isVisible()) await page.getByRole("button", { name: "Back to list", exact: true }).click();
   await page.getByRole("button", { name: "Create card", exact: true }).click();
   await page.getByLabel("New content name").fill("Browser lifecycle blade");
   await page.getByLabel("Mechanical effect", { exact: true }).selectOption("coin-scale-spear");
@@ -1162,7 +1161,7 @@ test("Admin creates a set and new card, executes its mechanics, publishes and sa
   expect(publicContent.content.cards.find(c => c.id === card.id).effect.parameters.armBonus).toBe(2);
   await page.goto("/admin/gauntlet?workshop=cards&object=" + card.id);
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.getByRole("button", { name: "Back to list", exact: true }).click();
+  if(await page.getByRole("button", { name: "Back to list", exact: true }).isVisible()) await page.getByRole("button", { name: "Back to list", exact: true }).click();
   await page.getByRole("button", { name: "Duplicate card", exact: true }).click();
   await expect(page.getByLabel("New content name")).toHaveValue("Browser lifecycle blade copy");
   await page.getByLabel("New content name").fill("Unpublished mobile copy");
@@ -1185,7 +1184,7 @@ test("Admin composes abilities through guided blocks and proves two releases wit
   await page.getByLabel("New content name").fill("Browser composition set");
   await page.getByRole("button", { name: "Save new set to draft", exact: true }).click();
   await expect(page.locator(".design-workshop").getByRole("heading", { name: "Browser composition set", exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Back to list", exact: true }).click();
+  if(await page.getByRole("button", { name: "Back to list", exact: true }).isVisible()) await page.getByRole("button", { name: "Back to list", exact: true }).click();
   await page.getByRole("button", { name: "Create card", exact: true }).click();
   await page.getByLabel("New content name").fill("Browser composed blade");
   await page.getByLabel("Mechanical effect", { exact: true }).selectOption("coin-scale-spear");

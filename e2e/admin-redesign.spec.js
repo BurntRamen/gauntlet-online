@@ -61,7 +61,10 @@ test("card fields stay local across sections and browser Back, then save togethe
   await expect(page.getByLabel("Draft displayed rules text", { exact: true })).toHaveValue(wording);
   await page.getByRole("button", { name: "Preview", exact: true }).click();
   await expect(page.getByRole("dialog", { name: "Unsaved local changes" })).toHaveCount(0);
-  await expect(page.getByRole("region", { name: "Card Workshop preview and test" })).toContainText(/Live content|Saved draft/);
+  const localPreview=page.getByRole("region", { name: "Card Workshop preview and test" });
+  await expect(localPreview).toContainText("Local presentation · unsaved");
+  await expect(localPreview.locator(".special-card-name")).toHaveText(name);
+  await expect(localPreview).toContainText(wording);
   await page.getByRole("button", { name: "Editor", exact: true }).click();
   await expect(page.getByLabel("Draft name", { exact: true })).toHaveValue(name);
   expect(writes).toHaveLength(0);
@@ -140,7 +143,7 @@ test("creation selects the new record and printing comparison retains the select
   await section(page, "Composition", "Deck Workshop");
   await expect(page.getByRole("region", { name: "Deck Workshop", exact: true })).toContainText("52");
   await image(page, "deck-composition-1366");
-  await page.getByRole("button", { name: "Back to list", exact: true }).click();
+  if(await page.getByRole("button", { name: "Back to list", exact: true }).isVisible()) await page.getByRole("button", { name: "Back to list", exact: true }).click();
   await page.getByRole("button", { name: "Duplicate deck", exact: true }).click();
   await page.getByLabel("New content name", { exact: true }).fill("Redesign copied deck");
   await page.getByRole("button", { name: "Save new deck to draft", exact: true }).click();
@@ -174,7 +177,7 @@ test("keyboard search is a modal extension, restores focus and opens exact edita
   await expect(dialog.locator(".admin-search-results button").first()).toBeVisible();
   await page.keyboard.press("ArrowDown"); await expect(dialog.locator(".admin-search-results button").first()).toBeFocused();
   await page.keyboard.press("Enter"); await expect(dialog).toHaveCount(0); await expect(page).toHaveURL(new RegExp("object=" + cardId));
-  await expect(page.getByRole("navigation", { name: "Content destinations" }).getByRole("button", { name: "Cards", exact: true })).toHaveAttribute("aria-current", "page");
+  await expect(page.getByLabel("Content type",{exact:true})).toHaveValue("cards");
 });
 
 test("operator preferences are scoped and private recent work clears when accounts change", async ({ page }) => {
@@ -183,13 +186,13 @@ test("operator preferences are scoped and private recent work clears when accoun
   const browser = page.locator(".admin-content-browser");
   await browser.evaluate(element => element.scrollTo(0, 400));
   await expect.poll(() => browser.evaluate(element => element.scrollTop)).toBe(400);
-  const destinations = page.getByRole("navigation", { name: "Content destinations" });
-  await destinations.getByRole("button", { name: "Decks", exact: true }).click();
+  const destinations = page.getByLabel("Content type",{exact:true});
+  await destinations.selectOption("decks");
   await expect(page.getByRole("region", { name: "Deck Workshop", exact: true })).toBeVisible();
-  await destinations.getByRole("button", { name: "Cards", exact: true }).click();
+  await destinations.selectOption("cards");
   await expect(page.getByRole("region", { name: "Card Workshop", exact: true })).toBeVisible();
   await expect.poll(() => browser.evaluate(element => element.scrollTop)).toBe(400);
-  await page.getByRole("button", { name: "☆ Pin item", exact: true }).click();
+  await page.getByRole("button", { name: "Pin item", exact: true }).click();
   await page.getByLabel("Workspace options", { exact: true }).click();
   await page.getByRole("combobox", { name: "Density", exact: true }).selectOption("compact");
   await expect(page.locator(".admin-workspace")).toHaveAttribute("data-density", "compact");
@@ -203,7 +206,7 @@ test("operator preferences are scoped and private recent work clears when accoun
   await expect(page.locator(".admin-workspace")).toHaveAttribute("data-density", "comfortable");
   await expect.poll(() => browser.evaluate(element => element.scrollTop)).toBe(0);
   expect(await page.evaluate(scope => localStorage.getItem(`gauntlet-admin:${scope}`), firstScope)).toBeNull();
-  await expect(page.getByRole("button", { name: "☆ Pin item", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Pin item", exact: true })).toBeVisible();
   await page.getByLabel("Workspace options", { exact: true }).click();
   await page.getByRole("combobox", { name: "Density", exact: true }).selectOption("compact");
   await page.getByRole("button", { name: "Reset preferences", exact: true }).click();
@@ -278,7 +281,7 @@ test("saved-draft preview and fixture publication verify active without claiming
   await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible();
   await area(page, "Publishing");
   const review = page.getByRole("region", { name: "Shared release review", exact: true });
-  await expect(review).toContainText("One release, across all workshops");
+  await expect(review.getByRole("heading", { name: "Review saved changes", exact: true })).toBeVisible();
   await expect(review).toContainText(name);
   await image(page, "publishing-1366");
   const publicationA11y = await new AxeBuilder({ page }).include(".gauntlet-admin").analyze();

@@ -1,4 +1,6 @@
-# SuitFire operator studio
+# SuitFire operator studio — historical first pass
+
+Superseded by the [functional redesign correction](../admin-correction/README.md). The light theme, grouped navigation, header-only Website scope, and deferred presentation features described below are historical, not the current PR implementation.
 
 Implementation review for `codex/suitfire-admin-studio`, based on main `41d8801f`. Development and browser writes use isolated local fixtures. No production content, authorization identities, activation flags, payment configuration or engine rules are changed.
 

@@ -24,10 +24,10 @@ test("Home defers historical operations, which remain readable, refreshable and 
     throw new Error(`Unexpected read: ${url}`);
   });
   render(<Studio serverUrl="http://localhost:4000" authToken="test-session" />);
-  await screen.findByRole("heading", { name: "Back to making great games." });
+  await screen.findByRole("heading", { name: "Create something" });
   expect(overviewReads()).toHaveLength(0);
   fireEvent.click(screen.getByText("Refresh admin"));
-  await screen.findByRole("heading", { name: "Back to making great games." });
+  await screen.findByRole("heading", { name: "Create something" });
   expect(overviewReads()).toHaveLength(0);
 
   select("Operations");
@@ -39,7 +39,7 @@ test("Home defers historical operations, which remain readable, refreshable and 
   await waitFor(() => expect(screen.getByRole("button", { name: "Refresh operations" })).toBeEnabled());
 
   select("Home");
-  await screen.findByRole("heading", { name: "Back to making great games." });
+  await screen.findByRole("heading", { name: "Create something" });
   expect(overviewReads()).toHaveLength(2);
   select("Operations");
   await waitFor(() => expect(overviewReads()).toHaveLength(3));
@@ -62,7 +62,7 @@ test("direct Operations entry loads its data, reports failure and retries on re-
   expect(global.fetch.mock.calls.some(([url]) => url.endsWith("/home"))).toBe(false);
   unavailable = false;
   select("Home");
-  await screen.findByRole("heading", { name: "Back to making great games." });
+  await screen.findByRole("heading", { name: "Create something" });
   select("Operations");
   await screen.findByRole("heading", { name: "Gauntlet Studio" });
   expect(overviewReads()).toHaveLength(2);

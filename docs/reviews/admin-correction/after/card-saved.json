@@ -1,0 +1,38 @@
+{
+  "id": "card-saved",
+  "events": [
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Card",
+      "url": "?area=Content",
+      "forms": 0
+    },
+    {
+      "type": "change",
+      "tag": "SELECT",
+      "control": "Set",
+      "url": "?area=Content",
+      "forms": 1
+    },
+    {
+      "type": "change",
+      "tag": "INPUT",
+      "control": "New content name",
+      "url": "?area=Content",
+      "forms": 1
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Save new card to draft",
+      "url": "?area=Content",
+      "forms": 1
+    }
+  ],
+  "clicks": 2,
+  "changes": 2,
+  "screens": [
+    "?area=Content"
+  ]
+}

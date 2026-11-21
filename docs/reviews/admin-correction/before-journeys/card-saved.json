@@ -1,0 +1,46 @@
+{
+  "id": "card-saved",
+  "events": [
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Create a card",
+      "url": "?area=Content",
+      "forms": 0
+    },
+    {
+      "type": "change",
+      "tag": "SELECT",
+      "control": "Set",
+      "url": "?area=Content",
+      "forms": 1
+    },
+    {
+      "type": "change",
+      "tag": "INPUT",
+      "control": "New content name",
+      "url": "?area=Content",
+      "forms": 1
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Save new card to draft",
+      "url": "?area=Content",
+      "forms": 1
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Preview",
+      "url": "?workshop=cards&object=auth-card-68e110ef-f0e2-47ee-8fd2-8628b1bf70a8&area=Content",
+      "forms": 0
+    }
+  ],
+  "clicks": 3,
+  "changes": 2,
+  "screens": [
+    "?area=Content",
+    "?workshop=cards&object=auth-card-68e110ef-f0e2-47ee-8fd2-8628b1bf70a8&area=Content"
+  ]
+}

@@ -154,6 +154,7 @@ jobs:
           npx playwright test --config=playwright.admin-refinement.config.js
           npx playwright test --config=playwright.admin-pipelines.config.js
           npx playwright test --config=playwright.admin-studio.config.js --grep "Home stays|website artwork|phone website|season eligibility"
+          npx playwright test --config=playwright.admin-correction.config.js
       - name: Upload failed Admin diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
@@ -168,7 +169,10 @@ jobs:
             artifacts/admin-pipeline-*.png
             artifacts/admin-pipelines-results.json
             artifacts/admin-studio-results.json
-            docs/reviews/admin-studio/native-zoom/
+            artifacts/admin-correction-results.json
+            docs/reviews/admin-correction/after/
+            docs/reviews/admin-correction/after-activities/
+            docs/reviews/admin-correction/native-zoom/
             docs/reviews/admin-refinement/after/
           if-no-files-found: ignore
           retention-days: 7

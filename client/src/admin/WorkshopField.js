@@ -5,6 +5,7 @@ import { displayValue } from "./workshopValues";
 import { CatalogField } from "./CatalogControls";
 import { DeckField } from "./DeckCompositionField";
 import MechanicsEditor, { GeneratedWording } from "./MechanicsEditor";
+import WebsiteControls from './WebsiteControls';
 const selectedKey = (domain, id, field) => `${domain}-${id}-${field}`.replace(/[^a-zA-Z0-9_-]/g, "-");
 export { displayValue } from "./workshopValues";
 
@@ -24,7 +25,7 @@ export default function WorkshopField({ state, domain, row, field, buffer, busy,
   const update = next => onEdit(next, saved);
   let contract = row[field];
   const catalogType = ["pack-composition", "modifier-reference", "choice", "catalog-flags", "card-list", "printing-edition", "deck-reference", "deck-composition", "offer-prices", "offer-sale"].includes(definition.type);
-  if (definition.type === "object" || catalogType) { try { contract = JSON.parse(value); } catch { contract = value; } }
+  if (definition.type.startsWith('website-') || definition.type === "object" || catalogType) { try { contract = JSON.parse(value); } catch { contract = value; } }
   const selectedEffect = field === "effect" && state.workshopMetadata?.cardEffects?.find(effect => effect.id === contract?.id);
   const errorId = `admin-error-${selectedKey(domain, row.id, field)}`;
   const noteId = errorId + "-help";
@@ -32,7 +33,9 @@ export default function WorkshopField({ state, domain, row, field, buffer, busy,
   const controlProps = { "aria-label": `Draft ${definition.label.toLowerCase()}`, value, disabled, "aria-invalid": invalid || undefined, "aria-describedby": [noteId, invalid && errorId].filter(Boolean).join(" "), onChange: event => update(event.target.value) };
   const structuredProps = { definition, row, guide: state.guide, value: contract, cards: (state.draft?.snapshot || state.live).domains.cards, disabled, onInspect, onChange: next => update(JSON.stringify(next, null, 2)) };
   let control;
-  if (catalogType) {
+  if (definition.type.startsWith('website-')) {
+    control=<WebsiteControls {...structuredProps} state={state} />;
+  } else if (catalogType) {
     const Field = ["deck-reference", "deck-composition", "offer-prices", "offer-sale"].includes(definition.type) ? DeckField : CatalogField;
     control = <Field {...structuredProps} state={state} modifiers={state.studio?.modifiers} editions={state.printingEditions} value={["deck-reference", "choice", "printing-edition", "modifier-reference"].includes(definition.type) ? value : contract} onChange={next => update(typeof next === "string" ? next : JSON.stringify(next))} />;
   } else if (definition.type === "object") {

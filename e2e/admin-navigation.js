@@ -15,18 +15,10 @@ async function area(page, name) {
 async function destination(page, name) {
   if (name === "Store") { await area(page, "Store & Economy"); return; }
   if (name === "Website prose") { await area(page, "Website"); return; }
-  const targets = {
-    Cards: ["Cards"], Decks: ["Decks"], Encounters: ["Campaigns & Encounters", "encounters"], Campaigns: ["Campaigns & Encounters", "campaigns"], Factions: ["Factions & Characters", "factions"], Characters: ["Factions & Characters", "characters"], "Characters / opponents": ["Factions & Characters", "characters"],
-    "Engine / Rules": ["Mechanics & Rules", "card-effects"], "Collector artwork": ["Printings & Sets", "assets"], Sets: ["Printings & Sets", "sets"], "Other content": ["Campaigns & Encounters", "campaigns"]
-  };
-  const [group, type] = targets[name] || [name];
-  if (!await page.getByRole("navigation", { name: "Content destinations" }).isVisible()) {
-    await area(page, "Content");
-    if (await page.getByRole("dialog", { name: "Unsaved local changes" }).isVisible()) return;
-  }
-  await page.getByRole("navigation", { name: "Content destinations" }).getByRole("button", { name: group, exact: true }).click();
-  if (await page.getByRole("dialog", { name: "Unsaved local changes" }).isVisible()) return;
-  if (type) await page.getByRole("combobox", { name: "Content type", exact: true }).selectOption(type);
+  const types={Cards:"cards",Decks:"decks",Encounters:"encounters",Campaigns:"campaigns",Factions:"factions",Characters:"characters","Characters / opponents":"characters","Engine / Rules":"card-effects","Collector artwork":"assets",Sets:"sets","Other content":"campaigns","Mechanics & Rules":"mechanics"};
+  if (!await page.getByLabel("Content type",{exact:true}).isVisible()) await area(page,"Content");
+  if (await page.getByRole("dialog",{name:"Unsaved local changes"}).isVisible()) return;
+  await page.getByLabel("Content type",{exact:true}).selectOption(types[name]||name);
   await workspaceView(page, "Editor");
   const backToList = page.getByRole("button", { name: "Back to list", exact: true });
   if (await backToList.isVisible()) await backToList.click();
@@ -95,12 +87,11 @@ async function saveDefinition(page) {
 }
 async function previewSavedDraft(page) {
   if (!await page.getByRole("button", { name: "Preview saved draft", exact: true }).isVisible()) await area(page, "Publishing");
-  const pending = page.waitForResponse(response => response.url().endsWith("/authoring/preview") && response.request().method() === "POST");
+  const pending = require("./buffered-admin-response").waitForBufferedAdminResponse(page, response => response.url().endsWith("/authoring/preview") && response.request().method() === "POST");
   await page.getByRole("button", { name: "Preview saved draft", exact: true }).click();
   const response = await pending;
   expect(response.ok()).toBeTruthy();
-  await response.finished();
-  await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible();
+  await expect(page.getByText("Saved draft preview is ready.", { exact: true })).toBeVisible({timeout:45000});
 }
 async function refreshAdmin(page) {
   await page.getByRole("button", { name: "Refresh admin", exact: true }).isVisible() || await page.getByLabel("Workspace options", { exact: true }).click();

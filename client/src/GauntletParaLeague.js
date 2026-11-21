@@ -4,7 +4,7 @@ import Economy from "./GauntletEconomy";
 import { RegistryForm, RegistrySearch, RegistryWorkspace, useRegistryEditor } from "./admin/RegistryEditor";
 import ValueControl, { replaceAt, removeAt, toggleValue } from "./admin/ValueControl";
 
-const TABS = { Overview: null, Seasons: "seasons", Events: "events", Prestige: "events", "Gold Awards": "awards", Marketplace: "products", Entitlements: "entitlements" };
+const TABS = { Seasons: "seasons", Events: "events", "Gold Awards": "awards", Marketplace: "products", Entitlements: "entitlements" };
 const copy = (value) => JSON.parse(JSON.stringify(value));
 const adjustEvent = (row, key, value) => {
   if (key === "winTarget") { row.lossLimit = value === 5 ? 2 : 3; row.prestige = Array.from({ length: value + 1 }, (_, i) => row.prestige[i] || 0); }
@@ -59,19 +59,16 @@ function Simulator({ state, config, request, disabled }) {
 }
 
 export default function GauntletParaLeague({ state, act, busy, request, onDirty, preview, scope, initialTarget, onSelect }) {
-  const [tab, setTab] = useState("Overview");
+  const [tab, setTab] = useState(scope === "Economy" ? "Marketplace" : "Events");
   const domain = TABS[tab];
   const registry = useRegistryEditor({ state, act, registry: "paraLeague", domain, action: "para-draft", scope: domain ? { domain } : undefined, onDirty, initialTarget, initialId: initialTarget?.id, onSelect: id => onSelect?.(domain, id),
     onTarget: target => { const name = Object.keys(TABS).find(tab => TABS[tab] === target.domain); if (!name) return false; setTab(name); },
     fieldId: target => `para-${target.domain}-${target.field || "name"}`, label: "definition", localBaseline: true, serverIds: false, copy, adjust: adjustEvent });
   const { buffer: editor, config, dirty, leave, select, update, mutate, setQuery, filter, setFilter } = registry;
   const disabled = busy || !state.writable;
-  return <div className="para-workspace"><p className="admin-lede">{state.para.capabilities.message}</p>
-    <nav className="admin-subnav" aria-label="Para workspaces">{Object.keys(TABS).filter(name => scope === "Competition" ? ["Overview", "Seasons", "Events", "Prestige"].includes(name) : scope === "Economy" ? !["Events", "Prestige"].includes(name) : true).map((name) => <button key={name} aria-pressed={tab === name} onClick={() => leave(() => { setTab(name); select(null); setQuery(""); setFilter("all"); })}>{name}</button>)}</nav>
-    {!domain ? <><h3 className="admin-section-heading">Configuration overview</h3><p>Review definitions in Publishing before activation.</p><ul>{state.para.invariants.map((text) => <li key={text}>{text}</li>)}</ul>
-      <button disabled={disabled || Object.values(config).some((rows) => Array.isArray(rows) && rows.length)} onClick={() => mutate({ operation: "seed" })}>Create Season Zero draft</button>
-      <dl className="admin-facts">{Object.keys(state.para.fields).map((key) => <div key={key}><dt>{key}</dt><dd>{config[key]?.length || 0} proposals</dd></div>)}</dl>
-    </> : <><p className="admin-note">{tab === "Prestige" ? "Edit awards and simulate; thresholds are in Seasons." : "Save to the shared draft. Archiving preserves history."}</p>
+  return <div className="para-workspace">
+    <nav className="admin-subnav" aria-label="Para workspaces">{Object.keys(TABS).filter(name => scope === "Competition" ? ["Seasons", "Events"].includes(name) : scope === "Economy" ? !["Events"].includes(name) : true).map((name) => <button key={name} aria-pressed={tab === name} onClick={() => leave(() => { setTab(name); select(null); setQuery(""); setFilter("all"); })}>{name}</button>)}</nav>
+    <>
       <div className="admin-actions"><RegistrySearch editor={registry} label="Search definitions" /><ValueControl label="Filter state" value={filter} onChange={setFilter} options={[["all", "All"], ["current", "Unarchived"], ["archived", "Archived"]]} />
         <button disabled={disabled} onClick={() => leave(() => { const row = copy(state.para.templates[domain]); row.id = `para-${crypto.randomUUID()}`; row.seasonId = Object.hasOwn(row, "seasonId") && domain !== "entitlements" ? config.seasons?.[0]?.id || "" : row.seasonId; if (!Object.hasOwn(state.para.templates[domain], "seasonId")) delete row.seasonId; select(row, true); })}>New {domain === "awards" ? "Gold award" : domain.slice(0, -1)}</button></div>
       <RegistryWorkspace editor={registry} searchIds pressed={false} summary={row => <>{row.id} · {row.status || row.provenance}</>}>
@@ -79,10 +76,10 @@ export default function GauntletParaLeague({ state, act, busy, request, onDirty,
           {Object.entries(state.para.fields[domain]).filter(([key]) => key !== "id").map(([key, field]) => <Field key={key} id={`para-${domain}-${key}`} field={field} value={editor.row[key] ?? state.para.templates[domain][key]} onChange={(value) => update(key, value)} config={config} assets={state.assetLibrary} disabled={disabled} />)}
           <details><summary>Advanced · permanent identity</summary><Field field={state.para.fields[domain].id} value={editor.row.id} disabled={disabled || !!editor.original} onChange={value => update("id", value)} /></details><div className="admin-actions"><button type="submit" disabled={disabled || !dirty}>Save definition to draft</button><button type="button" onClick={() => leave(() => select(null))}>Close definition</button>{editor.original && Object.hasOwn(editor.row, "status") && <button type="button" disabled={disabled || dirty || editor.row.status === "archived"} onClick={() => mutate({ operation: "archive", id: editor.row.id })}>Archive definition</button>}</div>
         </RegistryForm>{editor.original && <div className="admin-actions"><button disabled={disabled || dirty} onClick={() => mutate({ operation: "duplicate", id: `para-${crypto.randomUUID()}`, sourceId: editor.row.id })}>Duplicate definition</button></div>}</> : <p>{state.guide?.help?.registryChoose}</p>}</section></RegistryWorkspace>
-    </>}
+    </>
 
-    {["Overview", "Seasons", "Events"].includes(tab) && <section><h3 className="admin-section-heading">Proposed calendar</h3><ol>{(config.events || []).slice().sort((a, b) => a.week - b.week).map((e) => <li key={e.id}>Week {e.week} · {e.name} · {e.winTarget}/{e.lossLimit} · {e.startsAt ? new Date(e.startsAt).toLocaleString() : "Unscheduled"} · {e.status}</li>)}</ol></section>}
-    {["Events", "Prestige"].includes(tab) && <Simulator state={state} config={config} request={request} disabled={disabled || dirty} />}
-    {(["Overview", "Gold Awards", "Marketplace", "Entitlements"].includes(tab) || preview) && <Economy request={request} tab={tab} catalog={state.para.catalog} summary={state.para.summary} preview={preview} />}
+    {tab === "Events" && <details><summary>Test event eligibility</summary><Simulator state={state} config={config} request={request} disabled={disabled || dirty}/></details>}
+    <details><summary>League rules & initial season</summary><p>{state.para.capabilities.message}</p><ul>{state.para.invariants.map(text=><li key={text}>{text}</li>)}</ul><button disabled={disabled || Object.values(config).some(rows=>Array.isArray(rows)&&rows.length)} onClick={()=>mutate({operation:"seed"})}>Create Season Zero draft</button></details>
+    {(["Gold Awards", "Marketplace", "Entitlements"].includes(tab) || preview) && <Economy request={request} tab={tab} catalog={state.para.catalog} summary={state.para.summary} preview={preview} />}
   </div>;
 }

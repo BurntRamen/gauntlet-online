@@ -1,0 +1,815 @@
+{
+  "method": "Latest per-case outcome after recorded repairs; not a claim of one clean invocation. Fixture secrets and traces omitted.",
+  "runs": [
+    {
+      "report": "artifacts/admin-correction-run-two.json",
+      "stats": {
+        "startTime": "2026-11-20T23:18:33.226Z",
+        "duration": 498965.452,
+        "expected": 7,
+        "skipped": 0,
+        "unexpected": 2,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "file": "admin-correction.spec.js",
+          "line": 23,
+          "title": "Home creates a card in its chosen set with a real preview before save",
+          "status": "passed",
+          "durationMs": 40743,
+          "errors": []
+        },
+        {
+          "file": "admin-correction.spec.js",
+          "line": 41,
+          "title": "create a mechanic, use it on an existing card and execute it in the real engine",
+          "status": "passed",
+          "durationMs": 45317,
+          "errors": []
+        },
+        {
+          "file": "admin-correction.spec.js",
+          "line": 69,
+          "title": "Website Studio changes actual page content, imagery, navigation, section order and typography through release and rollback",
+          "status": "failed",
+          "durationMs": 30091,
+          "errors": [
+            "Error: expect(locator).toHaveCSS(expected) failed\n\nLocator: locator('.website-render').locator('.player-layout-grid').first()\nExpected pattern: /^\\d+(?:\\.\\d+)?px$/\nReceived string:  \"327.5px 157.094px\"\nTimeout: 20000ms\n\n"
+          ]
+        },
+        {
+          "file": "admin-correction.spec.js",
+          "line": 93,
+          "title": "product price and availability save through the same editor and resolve in the real storefront projection",
+          "status": "passed",
+          "durationMs": 38914,
+          "errors": []
+        },
+        {
+          "file": "admin-correction.spec.js",
+          "line": 101,
+          "title": "review changes from multiple workspaces, validate, publish and restore the exact original release",
+          "status": "passed",
+          "durationMs": 49923,
+          "errors": []
+        },
+        {
+          "file": "admin-correction.spec.js",
+          "line": 109,
+          "title": "phone editing preserves unsaved work, keyboard focus and accessible controls",
+          "status": "passed",
+          "durationMs": 12102,
+          "errors": []
+        },
+        {
+          "file": "admin-correction.spec.js",
+          "line": 118,
+          "title": "measure the twelve operator activities using visible controls",
+          "status": "failed",
+          "durationMs": 149595,
+          "errors": [
+            "Error: Command failed: C:\\Program Files\\nodejs\\node.exe C:\\Users\\gjoep\\OneDrive\\Desktop\\parapoker github\\para-poker-site\\gauntlet-online\\.admin-redesign\\scripts\\measure-admin-workflows.cjs\n(node:19724) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+          ]
+        },
+        {
+          "file": "admin-correction.spec.js",
+          "line": 127,
+          "title": "native 200 percent browser zoom preserves website and authoring workflows",
+          "status": "passed",
+          "durationMs": 88912,
+          "errors": []
+        },
+        {
+          "file": "admin-correction.spec.js",
+          "line": 134,
+          "title": "create a set inside card creation without losing the local card",
+          "status": "passed",
+          "durationMs": 27839,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "report": "artifacts/admin-correction-run-three.json",
+      "stats": {
+        "startTime": "2026-11-20T23:28:34.168Z",
+        "duration": 262723.06700000004,
+        "expected": 2,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "file": "admin-correction.spec.js",
+          "line": 69,
+          "title": "Website Studio changes actual page content, imagery, navigation, section order and typography through release and rollback",
+          "status": "passed",
+          "durationMs": 63006,
+          "errors": []
+        },
+        {
+          "file": "admin-correction.spec.js",
+          "line": 118,
+          "title": "measure the twelve operator activities using visible controls",
+          "status": "passed",
+          "durationMs": 190413,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "report": "artifacts/admin-correction-regression-full.json",
+      "stats": {
+        "startTime": "2026-11-20T23:33:00.396Z",
+        "duration": 1704940.676,
+        "expected": 22,
+        "skipped": 0,
+        "unexpected": 6,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "file": "admin-pipelines.spec.js",
+          "line": 24,
+          "title": "direct set creation carries membership through contextual card creation, reload and shared review",
+          "status": "passed",
+          "durationMs": 63753,
+          "errors": []
+        },
+        {
+          "file": "admin-pipelines.spec.js",
+          "line": 43,
+          "title": "faction and campaign creation connects a chapter and guards cross-record departure",
+          "status": "failed",
+          "durationMs": 56655,
+          "errors": [
+            "TimeoutError: locator.click: Timeout 20000ms exceeded.\n"
+          ]
+        },
+        {
+          "file": "admin-pipelines.spec.js",
+          "line": 67,
+          "title": "events have one home and a reload restores their authoritative definition",
+          "status": "passed",
+          "durationMs": 45074,
+          "errors": []
+        },
+        {
+          "file": "admin-pipelines.spec.js",
+          "line": 77,
+          "title": "a reusable mechanic can be created, attached and executed through ordinary content editors",
+          "status": "failed",
+          "durationMs": 65828,
+          "errors": [
+            "Error: locator.fill: Error: strict mode violation: getByRole('searchbox') resolved to 2 elements:\n    1) <input value=\"\" type=\"search\" maxlength=\"160\" placeholder=\"Cards, mechanics, events, website copy\u2026\"/> aka getByRole('searchbox', { name: 'Find content or a destination' })\n    2) <input value=\"\" type=\"search\" placeholder=\"Name, ID or faction\"/> aka getByRole('searchbox', { name: 'Search cards' })\n\n"
+          ]
+        },
+        {
+          "file": "admin-pipelines.spec.js",
+          "line": 129,
+          "title": "card modules save, reload, navigate dependencies and execute ordered effects with captured revisions",
+          "status": "passed",
+          "durationMs": 114960,
+          "errors": []
+        },
+        {
+          "file": "admin-pipelines.spec.js",
+          "line": 206,
+          "title": "native 200 percent browser zoom retains reflow, keyboard focus and accessible review views",
+          "status": "passed",
+          "durationMs": 118821,
+          "errors": []
+        },
+        {
+          "file": "admin-redesign.spec.js",
+          "line": 46,
+          "title": "card fields stay local across sections and browser Back, then save together to the shared draft",
+          "status": "failed",
+          "durationMs": 41012,
+          "errors": [
+            "Error: expect(locator).toContainText(expected) failed\n\nLocator: getByRole('region', { name: 'Card Workshop preview and test' })\nExpected pattern: /Live content|Saved draft/\nReceived string:  \"Player presentation\u00d7Card previewLocal presentation \u00b7 unsaved \u00b7 revision 176 \u00b7 player card facePresentation updates as you type. Save before running gameplay.4\u2660Dividend Yield Blade \u00b7 multi-field fixtureA focused wording review. Arm from lane: when you attack from hand, reveal this from your lane to attach it. The attacker gets +2 value this combat, then discard this.4\u2660Preview suitSpadesHeartsDiamondsClubsCollector versionDividend Yield Blade StandardDividend Yield Blade Animated Collector FoilSupport Zone rulesPay the printed value during open priority; existing pitch and payment modifiers apply. Support cannot enter during pending combat or ordinary end-turn placement. Configure effects with a supported contract or the bounded Mechanic Studio, then save and test. Older matches keep their original rules.Printed cost4On playNoneActivated / continuous effectA focused wording review. Arm from lane: when you attack from hand, reveal this from your lane to attach it. The attacker gets +2 value this "
+          ]
+        },
+        {
+          "file": "admin-redesign.spec.js",
+          "line": 80,
+          "title": "failed saves preserve input and two operators deliberately reconcile a stale record",
+          "status": "passed",
+          "durationMs": 44389,
+          "errors": []
+        },
+        {
+          "file": "admin-redesign.spec.js",
+          "line": 103,
+          "title": "genuine departure offers keep, discard, and save-and-continue only after acknowledgement",
+          "status": "passed",
+          "durationMs": 57253,
+          "errors": []
+        },
+        {
+          "file": "admin-redesign.spec.js",
+          "line": 130,
+          "title": "creation selects the new record and printing comparison retains the selected version",
+          "status": "passed",
+          "durationMs": 45960,
+          "errors": []
+        },
+        {
+          "file": "admin-redesign.spec.js",
+          "line": 162,
+          "title": "keyboard search is a modal extension, restores focus and opens exact editable text",
+          "status": "passed",
+          "durationMs": 18234,
+          "errors": []
+        },
+        {
+          "file": "admin-redesign.spec.js",
+          "line": 180,
+          "title": "operator preferences are scoped and private recent work clears when accounts change",
+          "status": "failed",
+          "durationMs": 30257,
+          "errors": [
+            "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 400\nReceived: 0\n\nCall Log:\n- Timeout 20000ms exceeded while waiting on the predicate\n\n  189 |   const destinations = page.getByLabel(\"Content type\",{exact:true});\n  190 |   await destinations.selectOption(\"decks\");\n> 191 |   await expect(page.getByRole(\"region\", { name: \"Deck Workshop\", exact: true })).toBeVisible();\n      |                                                                           ^\n  192 |   await destinations.selectOption(\"cards\");\n  193 |   await expect(page.getByRole(\"region\", { name: \"Card Workshop\", exact: true })).toBeVisible();\n  194 |   await expect.poll(() => browser.evaluate(element => element.scrollTop)).toBe(400);\n    at C:\\Users\\gjoep\\OneDrive\\Desktop\\parapoker github\\para-poker-site\\gauntlet-online\\.admin-redesign\\e2e\\admin-redesign.spec.js:191:75"
+          ]
+        },
+        {
+          "file": "admin-redesign.spec.js",
+          "line": 215,
+          "title": "player support and match evidence retain their readable authoritative detail",
+          "status": "passed",
+          "durationMs": 10048,
+          "errors": []
+        },
+        {
+          "file": "admin-redesign.spec.js",
+          "line": 234,
+          "title": "browser Back from player corrections resumes the requested content destination after a deliberate choice",
+          "status": "passed",
+          "durationMs": 21475,
+          "errors": []
+        },
+        {
+          "file": "admin-redesign.spec.js",
+          "line": 268,
+          "title": "saved-draft preview and fixture publication verify active without claiming local values are live",
+          "status": "failed",
+          "durationMs": 58947,
+          "errors": [
+            "Error: expect(locator).toContainText(expected) failed\n\nLocator: getByRole('region', { name: 'Shared release review', exact: true })\nExpected substring: \"One release, across all workshops\"\nReceived string:    \"PublishingReview saved changesValidation passed. All values use supported content contracts.Validate draftPreview saved draftRelease summarySaved changes1Affected records1Included operators: aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa. Field authors are recorded for this saved candidate.Release namePublish releaseIncludes all 1 saved changes across 1 records. Your next step reviews a confirmation of this shared scope.Name this release before publishing.Active release & sourceLocal publication activates this server immediately.gauntlet-content-f9ace475c2196594520a83406d17b9c0198668cbeb0449deae8484ab09b65726Draft revision 1861 saved validation warningsThe reference resolves to immutable, digest-verified bytes in the asset manifest. Inspect its preview before publishing.Inspect warningPresentation \u00b7 1NameDividend Yield Blade \u00b7 fixture publicationOpen Dividend Yield Blade \u00b7 fixture publicationLiveDividend Yield BladeSaved draftDividend Yield Blade \u00b7 fixture publicationDiscard shared draf"
+          ]
+        },
+        {
+          "file": "admin-redesign.spec.js",
+          "line": 302,
+          "title": "release blockers open the exact field and the corrected record returns to review",
+          "status": "passed",
+          "durationMs": 42949,
+          "errors": []
+        },
+        {
+          "file": "admin-redesign.spec.js",
+          "line": 322,
+          "title": "encounter setup earns exact-draft engine evidence and a later change invalidates it",
+          "status": "passed",
+          "durationMs": 65074,
+          "errors": []
+        },
+        {
+          "file": "admin-redesign.spec.js",
+          "line": 355,
+          "title": "review screenshots and responsive workspace preserve usable content and keyboard access",
+          "status": "passed",
+          "durationMs": 134378,
+          "errors": []
+        },
+        {
+          "file": "admin-refinement.spec.js",
+          "line": 45,
+          "title": "validation repair returns to its issue list with keyboard focus and stales old evidence",
+          "status": "passed",
+          "durationMs": 43712,
+          "errors": []
+        },
+        {
+          "file": "admin-refinement.spec.js",
+          "line": 68,
+          "title": "review loading and failed responses are distinct and retry is read-only",
+          "status": "passed",
+          "durationMs": 37099,
+          "errors": []
+        },
+        {
+          "file": "admin-refinement.spec.js",
+          "line": 83,
+          "title": "mobile record actions remain visible without covering the focused field",
+          "status": "passed",
+          "durationMs": 15227,
+          "errors": []
+        },
+        {
+          "file": "admin-refinement.spec.js",
+          "line": 99,
+          "title": "visual baseline and release surfaces \u00b7 laptop",
+          "status": "passed",
+          "durationMs": 88222,
+          "errors": []
+        },
+        {
+          "file": "admin-refinement.spec.js",
+          "line": 99,
+          "title": "visual baseline and release surfaces \u00b7 desktop",
+          "status": "passed",
+          "durationMs": 94760,
+          "errors": []
+        },
+        {
+          "file": "admin-refinement.spec.js",
+          "line": 99,
+          "title": "visual baseline and release surfaces \u00b7 phone",
+          "status": "passed",
+          "durationMs": 105724,
+          "errors": []
+        },
+        {
+          "file": "admin-studio.spec.js",
+          "line": 21,
+          "title": "Home stays compact and six destinations lead directly to the owning workspace",
+          "status": "passed",
+          "durationMs": 16701,
+          "errors": []
+        },
+        {
+          "file": "admin-studio.spec.js",
+          "line": 38,
+          "title": "website artwork and card edits share a release, reach the actual player and roll back together",
+          "status": "failed",
+          "durationMs": 109204,
+          "errors": [
+            "TimeoutError: locator.click: Timeout 20000ms exceeded.\n"
+          ]
+        },
+        {
+          "file": "admin-studio.spec.js",
+          "line": 85,
+          "title": "phone website editing and keyboard search stay accessible with a protected local buffer",
+          "status": "passed",
+          "durationMs": 19178,
+          "errors": []
+        },
+        {
+          "file": "admin-studio.spec.js",
+          "line": 108,
+          "title": "season eligibility, event rewards and product terms save through their owning editors",
+          "status": "passed",
+          "durationMs": 101749,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "report": "artifacts/admin-correction-regression-repaired.json",
+      "stats": {
+        "startTime": "2026-11-21T00:03:19.169Z",
+        "duration": 259667.337,
+        "expected": 6,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "file": "admin-pipelines.spec.js",
+          "line": 43,
+          "title": "faction and campaign creation connects a chapter and guards cross-record departure",
+          "status": "passed",
+          "durationMs": 29692,
+          "errors": []
+        },
+        {
+          "file": "admin-pipelines.spec.js",
+          "line": 77,
+          "title": "a reusable mechanic can be created, attached and executed through ordinary content editors",
+          "status": "passed",
+          "durationMs": 43347,
+          "errors": []
+        },
+        {
+          "file": "admin-redesign.spec.js",
+          "line": 46,
+          "title": "card fields stay local across sections and browser Back, then save together to the shared draft",
+          "status": "passed",
+          "durationMs": 23058,
+          "errors": []
+        },
+        {
+          "file": "admin-redesign.spec.js",
+          "line": 183,
+          "title": "operator preferences are scoped and private recent work clears when accounts change",
+          "status": "passed",
+          "durationMs": 23404,
+          "errors": []
+        },
+        {
+          "file": "admin-redesign.spec.js",
+          "line": 271,
+          "title": "saved-draft preview and fixture publication verify active without claiming local values are live",
+          "status": "passed",
+          "durationMs": 44174,
+          "errors": []
+        },
+        {
+          "file": "admin-studio.spec.js",
+          "line": 38,
+          "title": "website artwork and card edits share a release, reach the actual player and roll back together",
+          "status": "passed",
+          "durationMs": 80680,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "report": "artifacts/admin-correction-production-full.json",
+      "stats": {
+        "startTime": "2026-11-21T00:07:44.525Z",
+        "duration": 87377.39099999999,
+        "expected": 2,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "file": "admin-production.spec.js",
+          "line": 13,
+          "title": "production links guard edits and resume the selected card, filter and section",
+          "status": "failed",
+          "durationMs": 27032,
+          "errors": [
+            "TimeoutError: locator.click: Timeout 20000ms exceeded.\n"
+          ]
+        },
+        {
+          "file": "admin-production.spec.js",
+          "line": 44,
+          "title": "a registered website header is previewed, published to the player menu and rolled back",
+          "status": "passed",
+          "durationMs": 35419,
+          "errors": []
+        },
+        {
+          "file": "admin-production.spec.js",
+          "line": 70,
+          "title": "only an admin can restore reviewed progress, with a reason and retained audit evidence",
+          "status": "passed",
+          "durationMs": 8957,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "report": "artifacts/admin-correction-production-repaired.json",
+      "stats": {
+        "startTime": "2026-11-21T00:09:58.531Z",
+        "duration": 30805.666999999998,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "file": "admin-production.spec.js",
+          "line": 13,
+          "title": "production links guard edits and resume the selected card, filter and section",
+          "status": "passed",
+          "durationMs": 18325,
+          "errors": []
+        }
+      ]
+    }
+  ],
+  "latest": [
+    {
+      "file": "admin-correction.spec.js",
+      "line": 23,
+      "title": "Home creates a card in its chosen set with a real preview before save",
+      "status": "passed",
+      "durationMs": 40743,
+      "errors": []
+    },
+    {
+      "file": "admin-correction.spec.js",
+      "line": 41,
+      "title": "create a mechanic, use it on an existing card and execute it in the real engine",
+      "status": "passed",
+      "durationMs": 45317,
+      "errors": []
+    },
+    {
+      "file": "admin-correction.spec.js",
+      "line": 69,
+      "title": "Website Studio changes actual page content, imagery, navigation, section order and typography through release and rollback",
+      "status": "passed",
+      "durationMs": 63006,
+      "errors": []
+    },
+    {
+      "file": "admin-correction.spec.js",
+      "line": 93,
+      "title": "product price and availability save through the same editor and resolve in the real storefront projection",
+      "status": "passed",
+      "durationMs": 38914,
+      "errors": []
+    },
+    {
+      "file": "admin-correction.spec.js",
+      "line": 101,
+      "title": "review changes from multiple workspaces, validate, publish and restore the exact original release",
+      "status": "passed",
+      "durationMs": 49923,
+      "errors": []
+    },
+    {
+      "file": "admin-correction.spec.js",
+      "line": 109,
+      "title": "phone editing preserves unsaved work, keyboard focus and accessible controls",
+      "status": "passed",
+      "durationMs": 12102,
+      "errors": []
+    },
+    {
+      "file": "admin-correction.spec.js",
+      "line": 118,
+      "title": "measure the twelve operator activities using visible controls",
+      "status": "passed",
+      "durationMs": 190413,
+      "errors": []
+    },
+    {
+      "file": "admin-correction.spec.js",
+      "line": 127,
+      "title": "native 200 percent browser zoom preserves website and authoring workflows",
+      "status": "passed",
+      "durationMs": 88912,
+      "errors": []
+    },
+    {
+      "file": "admin-correction.spec.js",
+      "line": 134,
+      "title": "create a set inside card creation without losing the local card",
+      "status": "passed",
+      "durationMs": 27839,
+      "errors": []
+    },
+    {
+      "file": "admin-pipelines.spec.js",
+      "line": 24,
+      "title": "direct set creation carries membership through contextual card creation, reload and shared review",
+      "status": "passed",
+      "durationMs": 63753,
+      "errors": []
+    },
+    {
+      "file": "admin-pipelines.spec.js",
+      "line": 43,
+      "title": "faction and campaign creation connects a chapter and guards cross-record departure",
+      "status": "passed",
+      "durationMs": 29692,
+      "errors": []
+    },
+    {
+      "file": "admin-pipelines.spec.js",
+      "line": 67,
+      "title": "events have one home and a reload restores their authoritative definition",
+      "status": "passed",
+      "durationMs": 45074,
+      "errors": []
+    },
+    {
+      "file": "admin-pipelines.spec.js",
+      "line": 77,
+      "title": "a reusable mechanic can be created, attached and executed through ordinary content editors",
+      "status": "passed",
+      "durationMs": 43347,
+      "errors": []
+    },
+    {
+      "file": "admin-pipelines.spec.js",
+      "line": 129,
+      "title": "card modules save, reload, navigate dependencies and execute ordered effects with captured revisions",
+      "status": "passed",
+      "durationMs": 114960,
+      "errors": []
+    },
+    {
+      "file": "admin-pipelines.spec.js",
+      "line": 206,
+      "title": "native 200 percent browser zoom retains reflow, keyboard focus and accessible review views",
+      "status": "passed",
+      "durationMs": 118821,
+      "errors": []
+    },
+    {
+      "file": "admin-redesign.spec.js",
+      "line": 46,
+      "title": "card fields stay local across sections and browser Back, then save together to the shared draft",
+      "status": "passed",
+      "durationMs": 23058,
+      "errors": []
+    },
+    {
+      "file": "admin-redesign.spec.js",
+      "line": 80,
+      "title": "failed saves preserve input and two operators deliberately reconcile a stale record",
+      "status": "passed",
+      "durationMs": 44389,
+      "errors": []
+    },
+    {
+      "file": "admin-redesign.spec.js",
+      "line": 103,
+      "title": "genuine departure offers keep, discard, and save-and-continue only after acknowledgement",
+      "status": "passed",
+      "durationMs": 57253,
+      "errors": []
+    },
+    {
+      "file": "admin-redesign.spec.js",
+      "line": 130,
+      "title": "creation selects the new record and printing comparison retains the selected version",
+      "status": "passed",
+      "durationMs": 45960,
+      "errors": []
+    },
+    {
+      "file": "admin-redesign.spec.js",
+      "line": 162,
+      "title": "keyboard search is a modal extension, restores focus and opens exact editable text",
+      "status": "passed",
+      "durationMs": 18234,
+      "errors": []
+    },
+    {
+      "file": "admin-redesign.spec.js",
+      "line": 183,
+      "title": "operator preferences are scoped and private recent work clears when accounts change",
+      "status": "passed",
+      "durationMs": 23404,
+      "errors": []
+    },
+    {
+      "file": "admin-redesign.spec.js",
+      "line": 215,
+      "title": "player support and match evidence retain their readable authoritative detail",
+      "status": "passed",
+      "durationMs": 10048,
+      "errors": []
+    },
+    {
+      "file": "admin-redesign.spec.js",
+      "line": 234,
+      "title": "browser Back from player corrections resumes the requested content destination after a deliberate choice",
+      "status": "passed",
+      "durationMs": 21475,
+      "errors": []
+    },
+    {
+      "file": "admin-redesign.spec.js",
+      "line": 271,
+      "title": "saved-draft preview and fixture publication verify active without claiming local values are live",
+      "status": "passed",
+      "durationMs": 44174,
+      "errors": []
+    },
+    {
+      "file": "admin-redesign.spec.js",
+      "line": 302,
+      "title": "release blockers open the exact field and the corrected record returns to review",
+      "status": "passed",
+      "durationMs": 42949,
+      "errors": []
+    },
+    {
+      "file": "admin-redesign.spec.js",
+      "line": 322,
+      "title": "encounter setup earns exact-draft engine evidence and a later change invalidates it",
+      "status": "passed",
+      "durationMs": 65074,
+      "errors": []
+    },
+    {
+      "file": "admin-redesign.spec.js",
+      "line": 355,
+      "title": "review screenshots and responsive workspace preserve usable content and keyboard access",
+      "status": "passed",
+      "durationMs": 134378,
+      "errors": []
+    },
+    {
+      "file": "admin-refinement.spec.js",
+      "line": 45,
+      "title": "validation repair returns to its issue list with keyboard focus and stales old evidence",
+      "status": "passed",
+      "durationMs": 43712,
+      "errors": []
+    },
+    {
+      "file": "admin-refinement.spec.js",
+      "line": 68,
+      "title": "review loading and failed responses are distinct and retry is read-only",
+      "status": "passed",
+      "durationMs": 37099,
+      "errors": []
+    },
+    {
+      "file": "admin-refinement.spec.js",
+      "line": 83,
+      "title": "mobile record actions remain visible without covering the focused field",
+      "status": "passed",
+      "durationMs": 15227,
+      "errors": []
+    },
+    {
+      "file": "admin-refinement.spec.js",
+      "line": 99,
+      "title": "visual baseline and release surfaces \u00b7 laptop",
+      "status": "passed",
+      "durationMs": 88222,
+      "errors": []
+    },
+    {
+      "file": "admin-refinement.spec.js",
+      "line": 99,
+      "title": "visual baseline and release surfaces \u00b7 desktop",
+      "status": "passed",
+      "durationMs": 94760,
+      "errors": []
+    },
+    {
+      "file": "admin-refinement.spec.js",
+      "line": 99,
+      "title": "visual baseline and release surfaces \u00b7 phone",
+      "status": "passed",
+      "durationMs": 105724,
+      "errors": []
+    },
+    {
+      "file": "admin-studio.spec.js",
+      "line": 21,
+      "title": "Home stays compact and six destinations lead directly to the owning workspace",
+      "status": "passed",
+      "durationMs": 16701,
+      "errors": []
+    },
+    {
+      "file": "admin-studio.spec.js",
+      "line": 38,
+      "title": "website artwork and card edits share a release, reach the actual player and roll back together",
+      "status": "passed",
+      "durationMs": 80680,
+      "errors": []
+    },
+    {
+      "file": "admin-studio.spec.js",
+      "line": 85,
+      "title": "phone website editing and keyboard search stay accessible with a protected local buffer",
+      "status": "passed",
+      "durationMs": 19178,
+      "errors": []
+    },
+    {
+      "file": "admin-studio.spec.js",
+      "line": 108,
+      "title": "season eligibility, event rewards and product terms save through their owning editors",
+      "status": "passed",
+      "durationMs": 101749,
+      "errors": []
+    },
+    {
+      "file": "admin-production.spec.js",
+      "line": 13,
+      "title": "production links guard edits and resume the selected card, filter and section",
+      "status": "passed",
+      "durationMs": 18325,
+      "errors": []
+    },
+    {
+      "file": "admin-production.spec.js",
+      "line": 44,
+      "title": "a registered website header is previewed, published to the player menu and rolled back",
+      "status": "passed",
+      "durationMs": 35419,
+      "errors": []
+    },
+    {
+      "file": "admin-production.spec.js",
+      "line": 70,
+      "title": "only an admin can restore reviewed progress, with a reason and retained audit evidence",
+      "status": "passed",
+      "durationMs": 8957,
+      "errors": []
+    }
+  ]
+}

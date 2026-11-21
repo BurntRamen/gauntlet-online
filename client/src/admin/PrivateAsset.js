@@ -24,6 +24,7 @@ function useImage(path, enabled = true) {
   }, [path, privateImage, load, enabled]);
   return privateImage ? result?.path === path ? result : {} : { src: path };
 }
+export {useImage as usePrivateImage};
 export function PrivateAudio({ src, label }) {
   const [requested, setRequested] = useState(false), result = useImage(src, requested);
   if (result.error) return <p role="alert">Audio unavailable · retrieval failed</p>;

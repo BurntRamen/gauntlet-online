@@ -16,18 +16,5 @@ export function releaseProgress(state, receipt, unsaved = false) {
     : !ready.ready ? help.releaseProgressNoChanges : help.releaseProgressReview;
   return { ready: !!ready?.ready && !unsaved && !pending && state.writable,
     reason, current,
-    steps: [["Draft", unsaved ? "Unsaved" : state.draft ? "Saved" : "No draft"],
-      ["Validate", ready?.validated ? "Passed" : state.draft ? "Required" : "—"],
-      ["Preview / test", ready?.previewed && (!ready.engineTestRequired || ready.engineTested) ? "Current" : state.draft ? "Required" : "—"],
-      ["Review", ready?.ready ? "Ready" : "Waiting"],
-      ["Publish", pending ? pending.phase.replaceAll("-", " ") : "Separate action"],
-      ["Deployment / live", pending ? "Unverified" : live ? "Active on this server" : "Unverified"]] };
-}
-
-export default function ReleaseProgress({ state, receipt, unsaved }) {
-  const progress = releaseProgress(state, receipt, unsaved);
-  return <div className="admin-release-progress">
-    <ol aria-label="Release readiness">{progress.steps.map(([label, status]) => <li key={label}><strong>{label}</strong><span>{status}</span></li>)}</ol>
-    <p className="admin-note">{state.draft ? `Shared candidate · revision ${state.revision} · ${(state.draft.hash || "").slice(0, 12)}` : "Published content"} · {progress.reason}</p>
-  </div>;
+    deployment:live ? "Active on this server" : "Unverified" };
 }

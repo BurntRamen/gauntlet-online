@@ -1,5 +1,7 @@
 # Verification and remaining work
 
+Historical first-pass evidence. See the [correction review](../admin-correction/README.md) for the current implementation and its expanded Website capabilities.
+
 Local review on 2026-11-20, based on `41d8801f`, using the compiled production client and isolated file-backed fixtures. No production publication, deployment, account correction or payment was performed. Browser publication/rollback assertions apply only to the local fixture provider. Existing authentication records, engine behavior, release gates, activation flags and bundle limits are unchanged.
 
 Local runtime: Windows, Node 24.16.0, npm 11.13.0 and Playwright Chromium. Node 24 is within the repository's supported engine range; CI uses the checked-in Node 22 pin. Remote CI is separate from these local results.

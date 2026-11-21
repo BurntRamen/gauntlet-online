@@ -57,7 +57,7 @@ import { fetchGameContent } from "./loadGameContent";
 import CurrencyWallet from "./CurrencyWallet";
 import { canUsePrinting } from "@gauntlet/duel-rules/printings";
 
-const PlayerMenuExperience = lazy(() => import(/* webpackChunkName: "gauntlet-command-deck", webpackPrefetch: true */ "./navigation/PlayerMenuExperience"));
+const PlayerMenuExperience = lazy(() => import(/* webpackChunkName: "gauntlet-player-entry", webpackPrefetch: true */ "./navigation/PlayerMenuExperience"));
 const FactionLoreScreen = lazy(() => import("./FactionLoreScreen"));
 const DraftScreen = lazy(() => import("./DraftScreen"));
 const LiveBabylonMatchExperience = lazy(() => import("./babylon/LiveBabylonMatchExperience"));

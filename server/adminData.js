@@ -210,31 +210,24 @@ function createAdminData(deps) {
   }
 
   async function home() {
-    // One fresh read per request keeps the release, capabilities and health on
-    // the same revision without repeatedly building the full editor catalog.
-    const authoring = Promise.resolve().then(readAuthoring);
-    const reads = await Promise.allSettled([modules(authoring), authoring, players({ limit: "100" }), system(authoring), Promise.resolve().then(() => deps.para?.inspect?.())]);
+    // Home reads the shared summary once. Account samples, purchases, catalogs,
+    // storage probes and module inventories belong to Operations, not this path.
+    const reads = await Promise.allSettled([
+      Promise.resolve().then(readAuthoring),
+      Promise.resolve().then(() => deps.para?.inspect?.()),
+      Promise.resolve().then(() => deps.runtimeStorage?.())
+    ]);
     const value = i => reads[i].status === "fulfilled" ? reads[i].value : null;
-    const registry = value(0), state = value(1), people = value(2), health = value(3);
-    const config = state?.live?.paraLeague || {};
-    const tasks = (registry?.modules || []).flatMap(row => row.blockers.map(message => ({ area: row.area, title: row.name, message, kind: ["gems", "payments", "legacy"].includes(row.gate) ? "capability" : "attention" })));
-    if (state?.draft) tasks.unshift({ area: "Publishing", title: "Shared draft needs review", message: `${state.changes.length} saved changes; validation ${state.validation.valid ? "passes" : "needs attention"}.` });
-    if (state?.pending) tasks.unshift({ area: "Publishing", title: "Release pending", message: `Publication is ${state.pending.phase}. Verify deployment before calling it active.` });
-    const para = value(4), pinned = new Map((para?.events || []).map(event => [event.id, event]));
-    if (para?.failures?.length) tasks.push({ area: "Competition", title: "Para settlement needs review", message: `${para.failures.length} recorded failures. Inspect results and recovery evidence before intervening.` });
-    for (const message of health?.issues || []) tasks.push({ area: "Operations", title: "Storage or recovery needs attention", message });
-    for (let i = 0; i < reads.length; i++) if (reads[i].status === "rejected") tasks.push({ area: "Operations", title: "A data source could not be read", message: `${["Module capabilities", "Shared authoring", "Player accounts", "System health", "Para runtime"][i]} is unavailable; no empty-success state is inferred.` });
-    return { guide: require("./adminHomeGuide.json"), pipelines: require("./adminProductionPipelines").definitions, checkedAt: new Date().toISOString(), tasks, modules: registry?.modules || [],
-      seasons: [deps.runtime.season(), ...(state?.live?.competition?.ranked || []).map(s => ({ ...s, kind: "Ranked" })), ...(config.seasons || []).map(s => ({ ...s, kind: "Para", runtimeEnabled: !!deps.para?.enabled }))].filter(Boolean).filter((s, i, all) => all.findIndex(other => (other.id || other.seasonId) === (s.id || s.seasonId)) === i),
-      events: [...require("./events").listEventDefinitions().map(e => ({ ...e, availability: deps.gold?.enabled ? { ...e.availability, label: "New entry closed after finite Gold cutover" } : e.availability })), ...[...new Set([...(config.events || []).map(e => e.id), ...pinned.keys()])].map(id => {
-        const runtime = pinned.get(id), e = runtime?.definition || config.events.find(e => e.id === id);
-        return { id, name: e.name, schedule: { startsAt: e.startsAt }, availability: { label: !deps.para?.enabled ? "Para configured · runtime disabled" : reads[4].status === "rejected" ? "Para runtime unavailable" : runtime ? `Para · ${runtime.status} · pinned rules` : `Para · ${e.status} · not activated` } };
-      })],
-      storefront: { accountProducts: state ? state.live?.domains?.offers?.filter(o => o.status === "available").length || 0 : null, digitalProducts: state ? config.products?.filter(p => p.status === "active").length || 0 : null, goldEnabled: !!deps.gold?.enabled },
-      players: { sampled: people?.players.length ?? null, more: people?.hasMore || false, seenLastDay: people ? people.players.filter(p => Date.parse(p.lastSeenAt) >= Date.now() - 86400000).length : null, scope: "Up to 100 accounts; last-seen activity is not online presence." },
-      purchases: (people?.players || []).flatMap(p => [...p.commerce.receipts, ...(p.commerce.ledger?.purchases || []).filter(receipt => !receipt.deckReceipt).map(receipt => ({ ...receipt, productName: receipt.product.name, price: receipt.gold, currency: "gold" }))].map(receipt => ({ ...receipt, playerName: p.name }))).sort((a, b) => String(b.at || b.purchasedAt).localeCompare(String(a.at || a.purchasedAt))).slice(0, 10),
-      publication: state ? { hasDraft: !!state.draft, pending: state.pending?.phase || null, activeReleaseId: state.activeReleaseId } : null,
-      storage: health?.storage || null };
+    const state = value(0), para = value(1), runtime = value(2), tasks = [];
+    if (state?.pending) tasks.push({ area: "Publishing", title: "Check publication in progress", message: `Publication is ${state.pending.phase}.` });
+    else if (state?.draft) tasks.push({ area: "Publishing", title: "Review saved changes", message: `${state.changes.length} saved changes; ${state.validation.valid ? "ready for review" : "fix validation problems before publishing"}.` });
+    if (para?.failures?.length) tasks.push({ area: "Competition", title: "Event settlement needs review", message: `${para.failures.length} recorded failures. Open events to inspect recovery evidence.` });
+    if (reads[0].status === "rejected") tasks.push({ area: "Publishing", title: "Shared authoring is unavailable", message: "Retry before continuing with saved changes." });
+    const operationalIssues = reads.slice(1).filter(r => r.status === "rejected").length +
+      Number(!!runtime?.checkpoint?.blocked) + Number(!!(runtime?.backups?.enabled && (!runtime.backups.lastSuccessfulAt || runtime.backups.lastError)));
+    if (operationalIssues) tasks.push({ area: "System", title: "Check operations", message: `${operationalIssues} storage or recovery problems need attention.` });
+    return { checkedAt: new Date().toISOString(), tasks,
+      publication: state ? { hasDraft: !!state.draft, pending: state.pending?.phase || null, activeReleaseId: state.activeReleaseId } : null };
   }
   async function competition() {
     const accounts = deps.loadAccounts ? await deps.loadAccounts() : readLocalRows(deps.accountFile, "accounts");

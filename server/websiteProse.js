@@ -12,13 +12,15 @@ const defaults = {
 const fields = [["heroEyebrow", "Page overline", 80], ["heroTitle", "Page heading", 160], ["heroDescription", "Page introduction", 600], ["menuDetail", "Menu description", 80]];
 const locations = { practice: "Learn & Rules → Practice", freeForAll: "Play → Join a Table", ranked: "Compete → Ranked", draft: "Draft", campaign: "Campaign" };
 const surfaces = require("../shared/admin/websiteSurfaces.json");
+const presentation = require("../shared/websitePresentation");
 function proseFields(id) {
-  return Object.fromEntries([...(defaults[id] || []).map((defaultValue, index) => {
+  return Object.fromEntries([...(id === 'practice' ? [['websiteNavigation', { label:'Website navigation', type:'website-navigation', defaultValue:presentation.defaultNavigation(), note:'Labels and ordering only. Destinations and access stay registered.' }]] : []), ...(defaults[id] || []).map((defaultValue, index) => {
     const [key, label, maxLength] = fields[index];
     return [key, { label, type: "text", maxLength, required: true, defaultValue, note: `Shown in ${locations[id]}. Presentation only; save to the shared draft, preview, then publish.` }];
   }), ...surfaces.filter(surface => surface.owner === id).flatMap(surface => [
     ...["title", "description"].map(part => [`${surface.id}Page${part === "title" ? "Title" : "Description"}`, { label: `${surface.name} · ${part === "title" ? "heading" : "introduction"}`, type: "text", maxLength: part === "title" ? 160 : 600, required: true, defaultValue: surface[part], note: `Shown in ${surface.name}. Save to the shared draft; publish from Publishing.` }]),
-    [`${surface.id}PageImage`, { label: `${surface.name} · header image`, type: "asset", media: "image", maxLength: 600, required: false, defaultValue: "", note: "Optional decorative header artwork. Choose a versioned image; clearing it restores the standard header. Existing releases keep their original image." }]
+    [`${surface.id}PageImage`, { label: `${surface.name} · header image`, type: "asset", media: "image", maxLength: 600, required: false, defaultValue: "", note: "Optional decorative header artwork. Choose a versioned image; clearing it restores the standard header. Existing releases keep their original image." }],
+    [`${surface.id}PageLayout`, {label:`${surface.name} · presentation`, type:'website-layout', page:surface.id, labels:Object.fromEntries(presentation.sectionIds(surface.id).map(id=>[id,presentation.labels[id] || id])), defaultValue:presentation.defaultLayout(surface.id), note:'Arrange registered shortcuts. Recovery, invitations, account and gameplay controls stay available.'}]
   ])]);
 }
 function projectProse(domains, versions = [], releaseId = "") {
@@ -28,4 +30,8 @@ function projectProse(domains, versions = [], releaseId = "") {
     return [surface.id, { ...Object.fromEntries(["title", "description"].map(part => [part, row?.[`${surface.id}Page${part === "title" ? "Title" : "Description"}`] ?? surface[part]])), ...(image ? { image: require("./contentAssets").resolveAsset(image, versions, releaseId) } : {}) }];
   }));
 }
-module.exports = { proseFields, projectProse, surfaces };
+function projectPresentation(domains) {
+  const factionIds=domains.factions.filter(f=>domains.campaigns.some(c=>c.id===f.id)).map(f=>f.id);
+  return {version:1, navigation:domains.game.find(row=>row.id==='practice')?.websiteNavigation, pages:Object.fromEntries(surfaces.map(surface=>[surface.id,presentation.layoutFor(surface.id, domains.game.find(row=>row.id===surface.owner)?.[`${surface.id}PageLayout`],factionIds)]))};
+}
+module.exports = { proseFields, projectProse, projectPresentation, surfaces };

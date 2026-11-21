@@ -10,6 +10,7 @@ import { getFactionArtwork, getFactionCover, getFactionAsset, resolveVisualAsset
 import { getDeckFeaturedArt } from "../contentArt";
 import { MENU_SCENES, STANDARD_DECK_ART, TUTORIAL_ART } from "./menuArtwork";
 import "./PlayerMenus.css";
+import {WebsitePresentationContext} from "./WebsitePresentation";
 
 function ActionDirectory({ title, items }) {
   return <details className="cd-directory"><summary>All {title} actions</summary><div className="cd-row">
@@ -73,7 +74,7 @@ function RankedSetup({ account, content, status, onJoin, onLeave, onProfile, onE
     {status.message && <p role="status">{status.message}</p>}
     <div className="cd-row">{status.inQueue ? <button type="button" onClick={onLeave}>Leave Queue</button> : <button type="button" className="cd-button-primary" disabled={!account || busy || (selections.format === "factions" && !selectedFaction)} onClick={findMatch}>{busy ? "Preparing deck…" : "Find Ranked Match"}</button>}
       {!account && <button type="button" onClick={onProfile}>Sign in / Create Account</button>}</div>
-  </section><aside className="cd-panel"><h3>{season?.displayName || "Ranked season"}</h3><p>{season ? `Status: ${season.status}` : "Season information is loading."}</p><p>Matchmaking waits for another signed-in player. It never substitutes a bot.</p><p>BO1 scores each match. BO3 scores the completed series.</p></aside></div>;
+  </section><section className="cd-panel" aria-label="Ranked season"><h3>{season?.displayName || "Ranked season"}</h3><p>{season ? `Status: ${season.status}` : "Season information is loading."}</p><p>Matchmaking waits for another signed-in player. It never substitutes a bot.</p><p>BO1 scores each match. BO3 scores the completed series.</p></section></div>;
 }
 
 function DraftSetup({ view, onNavigate, account, content, actions, status, savedDecks, draftSetId }) {
@@ -107,7 +108,7 @@ function DraftSetup({ view, onNavigate, account, content, actions, status, saved
   </>;
 }
 
-export default function PlayerMenus({ serverUrl, route, onNavigate, account, ownerAuthorized, content, actions, state, slots, workflow, audioMuted, onToggleAudio }) {
+export default function PlayerMenus({ embedded = false, serverUrl, route, onNavigate, account, ownerAuthorized, content, actions, state, slots, workflow, audioMuted, onToggleAudio }) {
   const { customizationEnabled, editing, setEditing } = usePlayerLayout();
   const { page, view } = route;
   const [rankedSelections, setRankedSelections] = useState({ format: "factions", bestOf: 1, factionId: "", generalId: "", deckId: "" });
@@ -218,7 +219,7 @@ export default function PlayerMenus({ serverUrl, route, onNavigate, account, own
       action("record", "Competitive Record", "Wins, losses, and match history.", "View player record", () => nav("profile", "record"), "matches"),
       action("library", "Gold & Library", "Balances and existing earned entitlements.", "Open account library", () => nav("profile", "library"), "decks"),
     ]} />{slots.profileExtras}</div>
-    <aside className="cd-profile-account" aria-label="Account and preferences">{slots.account}{customizationEnabled && <details className="cd-profile-layouts"><summary>Customize menu layouts</summary><PageLayoutSettings /></details>}</aside></div>
+    <aside role={embedded ? "presentation" : undefined} className="cd-profile-account" aria-label="Account and preferences">{slots.account}{customizationEnabled && <details className="cd-profile-layouts"><summary>Customize menu layouts</summary><PageLayoutSettings /></details>}</aside></div>
   </>;
   else if (page === "settings") body = <><BrandChoice />{slots.settings}</>;
 
@@ -229,12 +230,12 @@ export default function PlayerMenus({ serverUrl, route, onNavigate, account, own
     {state.hasSavedRoom && !(page === "play" && !view && !workflow) && <section className="cd-notice" aria-label="Saved match recovery"><span>Saved room {state.savedRoomCode}</span><button onClick={actions.resume}>Resume Match</button></section>}
     {actions.roomCode && !(page === "play" && view === "tables" && !workflow) && !(page === "play" && !view && !workflow && !state.hasSavedRoom) && <section className="cd-notice" aria-label="Room invitation"><span>Room invitation: {actions.roomCode}</span><button onClick={() => nav("play", "tables")}>Open Invitation</button></section>}
   </>;
-  return <PlayerShell serverUrl={serverUrl} destination={page} navigationKey={`${page}:${view}:${workflow ? "workflow" : "landing"}`} onNavigate={nav} account={account} ownerAuthorized={ownerAuthorized} onAdmin={() => nav("studio")}
+  return <WebsitePresentationContext.Provider value={content.websitePresentation}><PlayerShell embedded={embedded} serverUrl={serverUrl} destination={page} navigationKey={`${page}:${view}:${workflow ? "workflow" : "landing"}`} onNavigate={nav} account={account} ownerAuthorized={ownerAuthorized} onAdmin={() => nav("studio")}
     audioMuted={audioMuted} onToggleAudio={onToggleAudio}
     pageTitle={page === "draft" ? draftPresentation.title : content.websiteProse?.[page]?.title} pageDescription={page === "draft" ? draftPresentation.description : content.websiteProse?.[page]?.description}
     pageImage={content.websiteProse?.[page]?.image}
     pageEyebrow={page === "draft" ? draftPresentation.eyebrow : undefined} pageDetail={page === "draft" ? draftPresentation.detail : undefined}
     onCustomize={() => setEditing(true)} customizable={customizable} editing={editing} onDoneEditing={() => setEditing(false)} notices={notices}>
     <div className={focused ? "cd-focused-workflow" : "cd-landing"}>{body}</div>
-  </PlayerShell>;
+  </PlayerShell></WebsitePresentationContext.Provider>;
 }

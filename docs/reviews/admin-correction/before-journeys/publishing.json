@@ -1,0 +1,77 @@
+{
+  "id": "publishing",
+  "events": [
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Create & Edit",
+      "url": "?area=Content",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Cards",
+      "url": "?workshop=cards&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Inspect Dividend Yield Blade",
+      "url": "?workshop=cards&object=rumin-coin-scale-spear&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "change",
+      "tag": "INPUT",
+      "control": "Draft name",
+      "url": "?workshop=cards&object=rumin-coin-scale-spear&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Saving… to Card · Dividend Yield Blade",
+      "url": "?workshop=cards&object=rumin-coin-scale-spear&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Website",
+      "url": "?workshop=modes&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "change",
+      "tag": "INPUT",
+      "control": "Draft play landing · heading",
+      "url": "?workshop=modes&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Saving… to Website prose · Practice privately",
+      "url": "?workshop=modes&area=Content",
+      "forms": 0
+    },
+    {
+      "type": "click",
+      "tag": "BUTTON",
+      "control": "Publishing",
+      "url": "?workshop=modes&area=Publishing",
+      "forms": 0
+    }
+  ],
+  "clicks": 7,
+  "changes": 2,
+  "screens": [
+    "?area=Content",
+    "?workshop=cards&area=Content",
+    "?workshop=cards&object=rumin-coin-scale-spear&area=Content",
+    "?workshop=modes&area=Content",
+    "?workshop=modes&area=Publishing"
+  ]
+}

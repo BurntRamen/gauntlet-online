@@ -7,6 +7,7 @@ import { getDestination, PRIMARY_DESTINATIONS, MOBILE_DESTINATIONS, MORE_DESTINA
 import { resolveVisualAsset } from "../GauntletVisuals";
 import { GAUNTLET_CREST, MENU_SCENES } from "./menuArtwork";
 import "./PlayerShell.css";
+import {useWebsitePresentation} from "./WebsitePresentation";
 
 const ICON_PATHS = {
   play: "M8 5v14l11-7L8 5Z",
@@ -30,16 +31,18 @@ export function DestinationIcon({ name, className = "" }) {
 }
 
 function NavigationButton({ id, current, onNavigate, mobile = false }) {
-  const entry = getDestination(id);
+  const presentation = useWebsitePresentation();
+  const entry = {...getDestination(id), ...presentation?.navigation?.items?.find(item=>item.id===id)};
   return (
     <button type="button" className={`cd-nav-button${current === id ? " is-current" : ""}`} aria-current={current === id ? "page" : undefined} onClick={() => onNavigate(id)}>
       <DestinationIcon name={id} />
-      <span>{mobile ? entry.mobileLabel || entry.label : entry.label}</span>
+      <span>{mobile && !presentation?.navigation ? entry.mobileLabel || entry.label : entry.label}</span>
     </button>
   );
 }
 
-function MoreSheet({ destination, onNavigate, onClose, onCustomize, customizable, editing, onDoneEditing, ownerAuthorized, onAdmin }) {
+function MoreSheet({ moreDestinations = MORE_DESTINATIONS, destination, onNavigate, onClose, onCustomize, customizable, editing, onDoneEditing, ownerAuthorized, onAdmin }) {
+  const presentation = useWebsitePresentation();
   const sheetRef = useRef(null);
   const headingId = useId();
 
@@ -87,8 +90,8 @@ function MoreSheet({ destination, onNavigate, onClose, onCustomize, customizable
       <section className="cd-more-sheet" role="dialog" aria-modal="true" aria-labelledby={headingId} ref={sheetRef} tabIndex={-1}>
         <header className="cd-sheet-header"><div><span className="cd-eyebrow">YOUR COMMAND DECK</span><h2 id={headingId}>More destinations</h2></div><button type="button" className="cd-sheet-close" onClick={onClose} aria-label="Close More menu">×</button></header>
         <nav className="cd-more-links" aria-label="More destinations">
-          {MORE_DESTINATIONS.map((id) => {
-            const entry = getDestination(id);
+          {moreDestinations.map((id) => {
+  const entry = {...getDestination(id), ...presentation?.navigation?.items?.find(item=>item.id===id)};
             return <button key={id} type="button" aria-current={destination === id ? "page" : undefined} onClick={() => visit(id)}><DestinationIcon name={id} /><span><strong>{entry.label}</strong><small>{entry.outcome}</small></span><span aria-hidden="true">→</span></button>;
           })}
         </nav>
@@ -103,7 +106,15 @@ function MoreSheet({ destination, onNavigate, onClose, onCustomize, customizable
   );
 }
 
-export default function PlayerShell({ serverUrl, destination = "play", navigationKey = destination, pageTitle, pageDescription, pageImage, pageEyebrow, pageDetail, onNavigate, account, audioMuted = false, onToggleAudio, ownerAuthorized = false, onAdmin, onCustomize, customizable = false, editing = false, onDoneEditing, children, notices }) {
+export default function PlayerShell({ embedded = false, serverUrl, destination = "play", navigationKey = destination, pageTitle, pageDescription, pageImage, pageEyebrow, pageDetail, onNavigate, account, audioMuted = false, onToggleAudio, ownerAuthorized = false, onAdmin, onCustomize, customizable = false, editing = false, onDoneEditing, children, notices }) {
+  const Main=embedded?"div":"main", Rail=embedded?"div":"aside";
+  const presentation = useWebsitePresentation();
+  const publishedNav = presentation?.navigation?.items;
+  const primary = publishedNav ? publishedNav.filter(item=>PRIMARY_DESTINATIONS.includes(item.id)).map(item=>item.id) : PRIMARY_DESTINATIONS;
+  const mobile = publishedNav ? primary.slice(0,4) : MOBILE_DESTINATIONS;
+  const more = publishedNav ? publishedNav.map(item=>item.id).filter(id=>!mobile.includes(id)) : MORE_DESTINATIONS;
+  const pageLayout = presentation?.pages?.[destination];
+  const label = id => publishedNav?.find(item=>item.id===id)?.label || getDestination(id).label;
   const preview = useBrandPreview();
   const [moreOpen, setMoreOpen] = useState(false);
   const returnFocusRef = useRef(null);
@@ -111,16 +122,16 @@ export default function PlayerShell({ serverUrl, destination = "play", navigatio
   const mainRef = useRef(null);
   const previousNavigationKey = useRef(navigationKey);
   const mainId = useId();
-  const current = getDestination(destination);
+  const current = {...getDestination(destination), label:label(destination)};
   const accountName = account?.name || account?.displayName || account?.display_name || account?.username;
 
   useEffect(() => {
-    if (previousNavigationKey.current !== navigationKey) {
+    if (!embedded && previousNavigationKey.current !== navigationKey) {
       previousNavigationKey.current = navigationKey;
       const heading = mainRef.current?.querySelector("[data-cd-workflow-heading]") || titleRef.current;
       heading?.focus({ preventScroll: true });
     }
-  }, [navigationKey]);
+  }, [navigationKey, embedded]);
 
   const openMore = (event) => {
     returnFocusRef.current = event.currentTarget;
@@ -140,10 +151,10 @@ export default function PlayerShell({ serverUrl, destination = "play", navigatio
   }, []);
 
   return (
-    <div className={`cd-shell${preview ? " is-suitfire" : ""}${editing ? " is-editing" : ""}`} data-destination={current.id} style={{ "--cd-scene": `url("${resolveVisualAsset(MENU_SCENES[current.id])}")` }}>
+    <div className={`cd-shell${preview ? " is-suitfire" : ""}${editing ? " is-editing" : ""}`} data-destination={current.id} data-typography={pageLayout?.typography || "standard"} data-arrangement={pageLayout?.arrangement || "tiles"} style={{ "--cd-scene": `url("${resolveVisualAsset(MENU_SCENES[current.id])}")` }}>
       <div className="cd-environment" aria-hidden="true"><img key={current.id} src={resolveVisualAsset(MENU_SCENES[current.id])} alt="" decoding="async" draggable={false} /></div>
       <div className="cd-shell-surface" inert={moreOpen ? true : undefined} aria-hidden={moreOpen ? true : undefined}>
-        <a className="cd-skip-link" href={`#${mainId}`}>Skip to page content</a>
+        {!embedded && <a className="cd-skip-link" href={`#${mainId}`}>Skip to page content</a>}
         <header className="cd-topbar">
           <button className="cd-brand" type="button" onClick={() => onNavigate("play")} aria-label={brandText("SuitFire — open Play", "Gauntlet Online — open Play")}>{preview ? <SuitFireBrand /> : <><img className="cd-brand-crest" src={resolveVisualAsset(GAUNTLET_CREST)} alt="" width="44" height="44" decoding="async" draggable={false} /><span>GAUNTLET <small>ONLINE</small></span></>}</button>
           <span className="cd-topbar-caption">{preview ? <><small>Current location</small><strong>{current.label}</strong></> : "THE COMMAND DECK"}</span>
@@ -151,26 +162,26 @@ export default function PlayerShell({ serverUrl, destination = "play", navigatio
             {editing && <button type="button" className="cd-button cd-button-primary cd-done-editing" onClick={onDoneEditing}>Done Editing</button>}
             {onToggleAudio && <button type="button" className="cd-header-button cd-audio-button" aria-label="Mute menu audio" aria-pressed={audioMuted} title={audioMuted ? "Unmute menu audio" : "Mute menu audio"} onClick={onToggleAudio}><DestinationIcon name={audioMuted ? "muted" : "sound"} /><span>{audioMuted ? "Muted" : "Mute"}</span></button>}
             <button type="button" className="cd-header-button cd-profile-button" onClick={() => onNavigate("profile")} aria-label={accountName ? `Profile — ${accountName}` : "Profile"}>{preview && account ? <PlayerAvatar serverUrl={serverUrl} subject={account} name={accountName || "Guest"} size="large" decorative /> : <DestinationIcon name="profile" />}<span>{accountName || "Profile"}</span></button>
-            <button type="button" className="cd-header-button cd-settings-button" onClick={() => onNavigate("settings")}><DestinationIcon name="settings" /><span>Settings</span></button>
+            <button type="button" className="cd-header-button cd-settings-button" onClick={() => onNavigate("settings")}><DestinationIcon name="settings" /><span>{label("settings")}</span></button>
             <button type="button" className="cd-header-button cd-desktop-more" onClick={openMore} aria-haspopup="dialog" aria-expanded={moreOpen}><DestinationIcon name="more" /><span>More</span></button>
           </div>
         </header>
-        <aside className="cd-rail">
+        <Rail className="cd-rail">
           <div className="cd-rail-label">YOUR NEXT MOVE</div>
-          <nav aria-label="Main navigation">{PRIMARY_DESTINATIONS.map((id) => <NavigationButton key={id} id={id} current={destination} onNavigate={onNavigate} />)}</nav>
+          <nav aria-label="Main navigation">{primary.map((id) => <NavigationButton key={id} id={id} current={destination} onNavigate={onNavigate} />)}</nav>
           <div className="cd-rail-footer"><span className="cd-rail-suits" aria-hidden="true">♠ <span>♦</span> ♣ <span>♥</span></span><p>Simple to start.<br />More to master.</p>{ownerAuthorized && onAdmin && <button type="button" className="cd-button-quiet" onClick={onAdmin}>Admin workspace ↗</button>}</div>
-        </aside>
-        <main className="cd-main" id={mainId} ref={mainRef} tabIndex={-1}>
+        </Rail>
+        <Main className="cd-main" id={mainId} ref={mainRef} tabIndex={-1}>
           <PlayerPageHeader title={pageTitle || current.title} description={pageDescription || current.description} eyebrow={pageEyebrow} detail={pageDetail} image={pageImage} headingRef={titleRef}>{editing && <span className="cd-editing-badge">Editing page layout</span>}</PlayerPageHeader>
           {notices && <div className="cd-critical-notices">{notices}</div>}
           {children}
-        </main>
+        </Main>
         <nav className="cd-mobile-nav" aria-label="Mobile navigation">
-          {MOBILE_DESTINATIONS.map((id) => <NavigationButton key={id} id={id} current={destination} onNavigate={onNavigate} mobile />)}
-          <button type="button" className={`cd-nav-button${!MOBILE_DESTINATIONS.includes(destination) ? " is-current" : ""}`} onClick={openMore} aria-haspopup="dialog" aria-expanded={moreOpen}><DestinationIcon name="more" /><span>More</span></button>
+          {mobile.map((id) => <NavigationButton key={id} id={id} current={destination} onNavigate={onNavigate} mobile />)}
+          <button type="button" className={`cd-nav-button${!mobile.includes(destination) ? " is-current" : ""}`} onClick={openMore} aria-haspopup="dialog" aria-expanded={moreOpen}><DestinationIcon name="more" /><span>More</span></button>
         </nav>
       </div>
-      {moreOpen && <MoreSheet destination={destination} onNavigate={onNavigate} onClose={closeMore} onCustomize={onCustomize} customizable={customizable} editing={editing} onDoneEditing={onDoneEditing} ownerAuthorized={ownerAuthorized} onAdmin={onAdmin} />}
+      {moreOpen && <MoreSheet moreDestinations={more} destination={destination} onNavigate={onNavigate} onClose={closeMore} onCustomize={onCustomize} customizable={customizable} editing={editing} onDoneEditing={onDoneEditing} ownerAuthorized={ownerAuthorized} onAdmin={onAdmin} />}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useEditorSession } from "./EditorSession";
+import WorkshopShell from "./WorkshopShell";
 
 const EMPTY = {};
 const snapshot = state => state?.draft?.snapshot || state?.live;
@@ -49,7 +50,7 @@ export function useRegistryEditor({ state, act, registry, domain, action, scope,
     opened.current = initialTarget; select(row);
     requestAnimationFrame(() => { const control = document.getElementById(fieldId(initialTarget)); control?.scrollIntoView?.({ block: "center" }); control?.focus(); });
   }, [initialTarget, config, onTarget, fieldId, select]);
-  return { config, rows, buffer, editing, original, saved, dirty, errors, query, setQuery, filter, setFilter, select, setValue, update, mutate, save, leave,
+  return { label, config, rows, buffer, editing, original, saved, dirty, errors, query, setQuery, filter, setFilter, select, setValue, update, mutate, save, leave,
     open: row => leave(() => { select(row); onSelect?.(row.id); }),
     submit: event => { event.preventDefault(); save(); } };
 }
@@ -58,10 +59,10 @@ export function RegistrySearch({ editor, label, className = "admin-search" }) {
   return <label className={className}>{label}<input value={editor.query} onChange={event => editor.setQuery(event.target.value)} /></label>;
 }
 
-export function RegistryWorkspace({ editor, summary, searchIds = false, pressed = true, children }) {
+export function RegistryWorkspace({ editor, summary, searchIds = false, pressed = true, children, name, actions, search, preview }) {
   const { rows, editing, query, filter, open } = editor;
   const visible = rows.filter(row => (searchIds ? `${row.id} ${row.name}` : row.name).toLowerCase().includes(query.toLowerCase()) && (filter === "all" || (row.status === "archived") === (filter === "archived")));
-  return <div className="admin-authoring-layout"><div className="admin-object-list">{visible.map(row => <button key={row.id} aria-pressed={pressed ? editing?.id === row.id : undefined} onClick={() => open(row)}><strong>{row.name}</strong><small>{summary(row)}</small></button>)}</div>{children}</div>;
+  return <WorkshopShell name={name || editor.label || "Records"} title={editing?.name || "Choose a record"} selectionId={editing ? editing.id || "new" : null} actions={actions} search={search} preview={preview} list={<div className="admin-object-list">{visible.map(row => <button key={row.id} aria-pressed={pressed ? editing?.id === row.id : undefined} onClick={() => open(row)}><strong>{row.name}</strong><small>{summary(row)}</small></button>)}</div>}>{children}</WorkshopShell>;
 }
 
 export function RegistryForm({ editor, children, className = "admin-editor admin-contract-fields" }) {
