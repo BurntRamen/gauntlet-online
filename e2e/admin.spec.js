@@ -654,6 +654,8 @@ test("Encounter Workshop keeps editing and engine evidence tied to the correct s
   expect((await new AxeBuilder({ page }).include('[aria-label="Encounter Workshop"]').analyze()).violations).toEqual([]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
   await encounterSection(page, "preview");
+  // Preview keeps the Story section selected; exercise an actual section change.
+  await encounterSection(page, "setup");
   await page.getByRole("combobox", { name: "Encounter Workshop section", exact: true }).focus();
   await page.getByRole("combobox", { name: "Encounter Workshop section", exact: true }).selectOption("story");
   await expect(page.locator("#workshop-story")).toBeFocused();

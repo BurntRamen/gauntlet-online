@@ -265,6 +265,10 @@
       "Shared draft available",
       "Continue editing or review the saved changes together. The shared draft is not live yet."
     ],
+    "tested": [
+      "Saved draft tested",
+      "An engine action was accepted for this saved version. Review all saved changes before publishing."
+    ],
     "save": [
       "Save your changes",
       "Your edits are still in this browser. Finish the required fields, then save them to the shared draft."

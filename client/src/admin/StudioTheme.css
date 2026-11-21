@@ -44,7 +44,7 @@
 .admin-workspace .catalog-open .design-list-toggle{display:block}
 .admin-workspace .catalog-open .design-selection{display:block}
 .catalog-open .admin-browser-tools{display:flex;flex-wrap:wrap;gap:12px}.catalog-open .admin-browser-tools label{min-width:140px;flex:1}
-.catalog-open .admin-content-browser{max-height:70vh;overflow:auto}
+.admin-workspace .design-workshop.catalog-open .design-selection .admin-content-browser{max-height:70vh;overflow:auto}
 .catalog-open .admin-content-browser[data-visual] ul{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:18px}
 .catalog-open .admin-content-browser[data-visual] li{min-width:0}
 .admin-workspace .catalog-open .admin-content-browser[data-visual] button{height:100%;display:flex;flex-direction:column;align-items:stretch;padding:0;overflow:hidden;background:var(--admin-surface);border:1px solid transparent;border-radius:12px}

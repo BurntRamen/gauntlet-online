@@ -1,7 +1,7 @@
 const { navigatePlayer } = require("./player-navigation");
 const { area: adminArea, paraTab, identity, saveDefinition } = require("./admin-navigation");
 const { origin, clientOrigin } = require("./admin-urls");
-const { test, expect } = require("@playwright/test");
+const { test, expect } = require("./admin-release-test");
 const AxeBuilder = require("@axe-core/playwright").default;
 const fs = require("node:fs"), path = require("node:path");
 

@@ -51,10 +51,11 @@ test("operator composes a reusable mechanic, creates a card, executes it and pub
   await page.screenshot({ path: "artifacts/phase2-mechanic-studio.png", fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 }); expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true); expect((await new AxeBuilder({ page }).include(".mechanic-studio").analyze()).violations).toEqual([]); await page.screenshot({ path: "artifacts/phase2-mechanic-mobile.png", fullPage: true }); await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/admin/gauntlet?workshop=sets"); await page.getByRole("button", { name: "Create set", exact: true }).click(); await page.getByLabel("New content name").fill("Browser Studio set"); await page.getByRole("button", { name: "Save new set to draft", exact: true }).click();
-  if(await page.getByRole("button", { name: "Back to list", exact: true }).isVisible()) await page.getByRole("button", { name: "Back to list", exact: true }).click();
-  await page.getByRole("button", { name: "Create card", exact: true }).click(); await page.getByLabel("New content name").fill("Browser Studio guard"); await page.getByLabel("Mechanical effect", { exact: true }).selectOption(mechanic.id);
+  await expect(page.getByRole("heading", { name: "Browser Studio set", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Create card in this set", exact: true }).click(); await page.getByLabel("New content name").fill("Browser Studio guard"); await page.getByLabel("Mechanical effect", { exact: true }).selectOption(mechanic.id);
   pending = waitForBufferedAdminResponse(page, r => r.url().endsWith("/authoring/create") && r.request().method() === "POST"); await page.getByRole("button", { name: "Save new card to draft", exact: true }).click();
   const created = await (await pending).json(), card = created.draft.snapshot.domains.cards.at(-1); expect(card.effect.mechanicId).toBe(mechanic.id);
+  expect(created.draft.snapshot.domains.sets.find(row => row.name === "Browser Studio set").members).toContain(card.id);
   await cardSection(page, "Mechanics"); await page.getByRole("button", { name: "Open Mechanics Studio", exact: true }).click(); await expect(page.getByLabel("Mechanic name", { exact: true })).toHaveValue(mechanic.name);
   await page.getByRole("button", { name: "Test Browser Studio guard in engine", exact: true }).click();
   const harness = page.getByRole("region", { name: "Real engine playtest" }); await harness.getByRole("combobox", { name: "Test content", exact: true }).selectOption("draft");
@@ -67,6 +68,7 @@ test("operator composes a reusable mechanic, creates a card, executes it and pub
   await harness.getByRole("combobox", { name: "Action", exact: true }).selectOption(action.id); await harness.getByRole("group", { name: /^Payment cards/ }).getByRole("checkbox", { name: /Ace|A of|14/ }).check();
   pending = waitForBufferedAdminResponse(page, r => r.url().endsWith("/playtest/command")); await harness.getByRole("button", { name: "Execute selected action", exact: true }).click(); const result = await (await pending).json();
   expect(result.playtest.game.handAttacks[0].effectiveValue).toBe(card.value + 2); expect(result.playtest.game.players[1].life).toBe(life + 1);
+  await expect(page.getByLabel("Your next step", { exact: true })).toContainText("Saved draft tested");
   await page.screenshot({ path: "artifacts/phase2-mechanic-engine.png", fullPage: true });
   await previewSavedDraft(page); await page.getByLabel("Release name").fill("Browser Studio verified"); await page.getByRole("button", { name: "Publish release", exact: true }).click(); await page.getByRole("button", { name: "Confirm publish", exact: true }).click(); await expect(page.getByText("No saved changes to review.", { exact: true })).toBeVisible();
   const manifest = (await (await request.get(origin + "/api/game-content")).json()).content; const published = manifest.cards.find(c => c.id === card.id); expect(published.effect.definition.abilities[0].effects[0].amount).toBe(2);

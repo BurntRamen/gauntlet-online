@@ -10,7 +10,8 @@ permissions:
   contents: read
 
 jobs:
-  check:
+  player-journeys:
+    name: Player release journeys
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -34,18 +35,6 @@ jobs:
 
       - name: Install client dependencies
         run: npm --prefix client ci
-
-      - name: Check server syntax
-        run: npm run check:server
-
-      - name: Test server rules
-        run: npm run test:server
-
-      - name: Test client behavior
-        run: npm run test:client
-
-      - name: Test build configuration and development server boundaries
-        run: npm --prefix client run test:toolchain
 
       - name: Verify approved SuitFire art, exact mappings and retained originals
         run: npm run check:suitfire-art
@@ -108,6 +97,56 @@ jobs:
           path: test-results/
           if-no-files-found: ignore
           retention-days: 7
+
+  unit-checks:
+    name: Unit verification · ${{ matrix.suite }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [server, client]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            server/package-lock.json
+            client/package-lock.json
+      - name: Install locked dependencies
+        run: |
+          npm ci
+          npm --prefix server ci
+          npm --prefix client ci
+      - name: Check server syntax and rules
+        if: matrix.suite == 'server'
+        run: |
+          npm run check:server
+          npm run test:server
+      - name: Test client behavior and development boundaries
+        if: matrix.suite == 'client'
+        run: |
+          npm run test:client
+          npm --prefix client run test:toolchain
+      - name: Test engine tooling and qualification gates
+        if: matrix.suite == 'client'
+        run: npm run test:qualification
+
+  check:
+    name: check
+    needs: [unit-checks, player-journeys]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require all unit and player checks
+        env:
+          UNIT_RESULT: ${{ needs.unit-checks.result }}
+          PLAYER_RESULT: ${{ needs.player-journeys.result }}
+        run: |
+          test "$UNIT_RESULT" = success
+          test "$PLAYER_RESULT" = success
 
   admin-journeys:
     name: Admin journeys · ${{ matrix.suite }}

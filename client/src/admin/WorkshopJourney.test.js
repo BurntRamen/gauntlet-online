@@ -17,9 +17,12 @@ test('an untested saved revision stays on Test and qualified evidence leads to r
  const review=jest.fn();HTMLElement.prototype.scrollIntoView=jest.fn();
  const props={section:'test',sections:[['test','Test'],['related','Related content']],children:<section id="workshop-test"><select aria-label="Test source"><option>Saved draft</option></select></section>};
  const view=renderJourney({draft:true,tested:false,review},props);
+ expect(screen.getByLabelText('Your next step')).toHaveTextContent('Test your saved changes');
  expect(screen.queryByRole('button',{name:'Continue to Related content'})).not.toBeInTheDocument();
  fireEvent.click(screen.getByRole('button',{name:'Go to test controls'}));expect(screen.getByLabelText('Test source')).toHaveFocus();
  view.unmount();renderJourney({draft:true,tested:true,review},props);
+ expect(screen.getByLabelText('Your next step')).toHaveTextContent('Saved draft tested');
+ expect(screen.getByLabelText('Your next step')).toHaveTextContent('Review all saved changes before publishing.');
  fireEvent.click(screen.getByRole('button',{name:'Review saved changes'}));expect(review).toHaveBeenCalledTimes(1);
 });
 test('conflicts never suggest continuing or reviewing',()=>{

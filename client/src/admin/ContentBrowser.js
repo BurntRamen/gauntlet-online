@@ -29,7 +29,12 @@ export default function ContentBrowser({ rows, total, domain, selected, busy, on
   const creativeCopy=useCreativeCopy();
 
   const browser = useRef(null);
-  useLayoutEffect(() => { if (browser.current) browser.current.scrollTop = position; }, [domain, position]);
+  useLayoutEffect(() => {
+    // A selected editor hides its catalog. Restore only after it has a size.
+    const node=browser.current,restore=()=>{if(node.clientHeight)node.scrollTop=position;};
+    restore();const observer=typeof ResizeObserver==='function'?new ResizeObserver(restore):null;
+    observer?.observe(node);return()=>observer?.disconnect();
+  }, [domain, position]);
   const manifest = preview?.manifest || preview;
   const changed = id => changes.some(change => change.domain === domain && change.id === id);
   const sorted = [...rows].sort((a,b) => sort === "name" ? contentName(a).localeCompare(contentName(b)) : sort === "changed" ? Number(changed(b.id)) - Number(changed(a.id)) : 0);
@@ -44,5 +49,5 @@ export default function ContentBrowser({ rows, total, domain, selected, busy, on
       const context = entry.status === "archived" ? creativeCopy.workspaceCopy43 : [faction, entry.type || entry.mediaType || entry.status].filter(Boolean).join(" · ") || (domain === "encounters" ? snapshot.domains.campaigns?.find(row => row.id === entry.campaignId)?.commanderName : "Saved content");
       return { id: entry.id, button: <button disabled={busy} title={entry.id} aria-label={`Inspect ${contentName(entry)}`} data-object={entry.id} aria-current={selected === entry.id ? "true" : undefined} onClick={() => onSelect(entry.id)}>{visual && <span className="admin-browser-thumbnail">{image ? <PrivateImage src={image} alt="" loading="lazy" /> : <span aria-hidden="true">{contentName(entry).slice(0,1)}</span>}</span>}<span className="admin-browser-label"><strong>{contentName(entry)}</strong><small>{context}</small>{changed(entry.id) && <span className="admin-badge">Draft changed</span>}</span></button> };
   });
-  return <><p className="admin-browser-count">{rows.length} of {total} records</p><div ref={browser} data-visual={visual || undefined} onScroll={event=>onPosition?.(event.currentTarget.scrollTop)} className="admin-object-list admin-content-browser">{entries.length?<ul>{entries.map(item=><li key={item.id}>{item.button}</li>)}</ul>:<Help topic="workspaceContentBrowser1" className="admin-empty" role="status"/>}</div></>;
+  return <><p className="admin-browser-count">{rows.length} of {total} records</p><div ref={browser} data-visual={visual || undefined} onScroll={event=>event.currentTarget.clientHeight&&onPosition?.(event.currentTarget.scrollTop)} className="admin-object-list admin-content-browser">{entries.length?<ul>{entries.map(item=><li key={item.id}>{item.button}</li>)}</ul>:<Help topic="workspaceContentBrowser1" className="admin-empty" role="status"/>}</div></>;
 }
