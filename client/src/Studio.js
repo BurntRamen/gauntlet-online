@@ -1,3 +1,4 @@
+import { TransferProgress, trackedGet, checkAdminAccess } from "./TransferProgress";
 import "./Studio.css";
 import { brandText } from './brand/brandPreview';
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -27,7 +28,7 @@ export default function Studio({ serverUrl, authToken = "", onSignIn, onAuthoriz
     setError("");
     if (!authToken) return undefined;
     setLoading(true);
-    fetch(`${serverUrl}/api/admin/access`, { headers: { Authorization: `Bearer ${authToken}` } })
+    checkAdminAccess(serverUrl, authToken)
       .then(async (response) => {
         const body = await response.json();
         if (!response.ok || !body.authorized) throw new Error(body.error || "This account does not have admin access.");
@@ -46,7 +47,9 @@ export default function Studio({ serverUrl, authToken = "", onSignIn, onAuthoriz
   const ownerRequest = useCallback(async (path, options = {}) => {
     const token = sessionRef.current;
     if (!token || token !== authToken) throw new Error("Sign in with an authorized account.");
-    const response = await fetch(`${serverUrl}${path}`, {
+    const readJson = !options.download && (!options.method || options.method === "GET");
+    const send = readJson ? (url, init) => trackedGet("admin", url, init) : fetch;
+    const response = await send(`${serverUrl}${path}`, {
       ...options,
       headers: { "Content-Type": "application/json", ...(options.headers || {}), Authorization: `Bearer ${token}` }
     });
@@ -68,7 +71,7 @@ export default function Studio({ serverUrl, authToken = "", onSignIn, onAuthoriz
         <h3 id="studio-gate-title">Private administration</h3>
         <p>Server-verified access for simply and Burnt Ramen.</p>
         {!authToken && <button onClick={onSignIn}>Sign in through Profile</button>}
-        {authToken && loading && <progress className="sf-load-bar" aria-label="Checking admin access" />}
+        {authToken && loading && <TransferProgress scope="admin" />}
         {authToken && <button disabled={loading} onClick={() => setAttempt((value) => value + 1)}>{loading ? "Checking access…" : "Check admin access"}</button>}
         {onClose && <button onClick={onClose}>{brandText("Back to SuitFire", "Back to Gauntlet")}</button>}
         {error && <p className="studio-error" role="alert">{error}</p>}
@@ -76,5 +79,5 @@ export default function Studio({ serverUrl, authToken = "", onSignIn, onAuthoriz
     );
   }
 
-  return <GauntletAdmin key={`${serverUrl}:${operatorId}`} operatorScope={operatorId ? `${serverUrl}:${operatorId}` : ""} environment={serverUrl} exitGuard={exitGuard} request={ownerRequest} onClose={onClose || closeAdmin} />;
+  return <><TransferProgress scope="admin" /><GauntletAdmin key={`${serverUrl}:${operatorId}`} operatorScope={operatorId ? `${serverUrl}:${operatorId}` : ""} environment={serverUrl} exitGuard={exitGuard} request={ownerRequest} onClose={onClose || closeAdmin} /></>;
 }

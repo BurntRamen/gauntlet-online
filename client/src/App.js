@@ -1,3 +1,4 @@
+import { TransferProgress, trackedGet } from "./TransferProgress";
 import { presentationArt, usePresentationArt } from "./brand/presentationArt";
 import PreviewPackArt from "./brand/PreviewPackArt";
 import { brandText, useBrandPreview, useAccountBrand } from './brand/brandPreview';
@@ -3268,19 +3269,22 @@ export default function App() {
     return () => window.removeEventListener("keydown", closeDrawer);
   }, [matchDrawer]);
 
+  const contentRequest = useRef(null);
+  const needsGameContent = homeArea !== "studio" && !publicView;
   const loadGameContent = useCallback(async () => {
     setGameContentError("");
     try {
-      setGameContent(await fetchGameContent(SOCKET_URL));
+      contentRequest.current ||= fetchGameContent(SOCKET_URL, (url, options) => trackedGet("startup", url, options));
+      setGameContent(await contentRequest.current);
     } catch (contentError) {
+      contentRequest.current = null;
       setGameContentError(contentError.message);
     }
   }, []);
 
   useEffect(() => {
-    loadGameContent();
-    return undefined;
-  }, [loadGameContent]);
+    if (needsGameContent && !gameContent) loadGameContent();
+  }, [needsGameContent, gameContent, loadGameContent]);
 
   useEffect(() => {
     function handleGameplayHotkey(event) {
@@ -3535,7 +3539,8 @@ export default function App() {
     const path = publicView.type === "match"
       ? `/api/matches/${encodeURIComponent(publicView.id)}`
       : `/api/profiles/${encodeURIComponent(publicView.id)}`;
-    fetch(`${SOCKET_URL}${path}`)
+    const controller = new AbortController();
+    trackedGet("record", `${SOCKET_URL}${path}`, { signal: controller.signal })
       .then(async (response) => {
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Could not load public record.");
@@ -3543,7 +3548,7 @@ export default function App() {
       })
       .catch((viewError) => active && setPublicViewError(viewError.message))
       .finally(() => active && setPublicViewLoading(false));
-    return () => { active = false; };
+    return () => { active = false; controller.abort(); };
   }, [publicView]);
 
   const loadFriends = useCallback(async () => {
@@ -4760,7 +4765,7 @@ export default function App() {
             <p role="status" className={gameContentError ? "is-error" : ""}>
             {gameContentError || "Checking the server's game-content version..."}
             </p>
-            {!gameContentError && <progress className="sf-load-bar" aria-label="Loading game content" />}
+            {!gameContentError && <TransferProgress scope="startup" />}
             {gameContentError && <MenuButton onClick={loadGameContent}>Retry</MenuButton>}
           </div>
         </section>

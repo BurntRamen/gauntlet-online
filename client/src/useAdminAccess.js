@@ -1,3 +1,4 @@
+import { checkAdminAccess } from "./TransferProgress";
 import { useCallback, useEffect, useState } from "react";
 
 function clearPreviousWorkspace(nextScope) {
@@ -22,7 +23,7 @@ export default function useAdminAccess(serverUrl, authToken) {
     let active = true;
     setApproved(null);
     if (!authToken) { clearPreviousWorkspace(); return undefined; }
-    fetch(`${serverUrl}/api/admin/access`, { headers: { Authorization: `Bearer ${authToken}` } })
+    checkAdminAccess(serverUrl, authToken)
       .then(async response => {
         const access = response.ok ? await response.json() : null;
         if (!active) return;
