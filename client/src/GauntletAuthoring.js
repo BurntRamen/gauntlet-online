@@ -219,7 +219,7 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
     } catch (failure) { setError(failure.message); if (failure.status === 409) await refresh(); if (action === "assets/upload") throw failure; return false; }
     finally { setBusy(false); }
   }
-  if (!state) return <p role={error ? "alert" : "status"}>{error || help.workspaceCopy2}</p>;
+  if (!state) return <p role={error ? "alert" : "status"}>{error || help.workspaceCopy2}{!error && <progress className="sf-load-bar" aria-label="Loading authoring data" />}</p>;
   if (guide.workspaceVersion !== 2) return <p role="status">{help.workspaceCopy3}</p>;
   const DOMAINS = { ...guide.domains, game: "Website prose", sets: "Sets", decks: "Decks", offers: "Store", assets: "Collector artwork" };
   const snapshot = state.draft?.snapshot || state.live;
