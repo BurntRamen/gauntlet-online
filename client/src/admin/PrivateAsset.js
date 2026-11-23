@@ -30,15 +30,15 @@ export function PrivateAudio({ src, label }) {
   const [requested, setRequested] = useState(false), result = useImage(src, requested);
   if (result.error) return <p role="alert">Audio unavailable · retrieval failed</p>;
   if (src?.startsWith("/api/admin/") && !requested) return <button type="button" onClick={() => setRequested(true)}>Load private audio preview</button>;
-  return result.src ? <audio controls preload="none" src={result.src} aria-label={label} /> : <span role="status">Loading private audio…</span>;
+  return result.src ? <audio controls preload="none" src={result.src} aria-label={label} /> : <span role="status">Loading private audio…<progress className="sf-load-bar" aria-label="Loading private audio" /></span>;
 }
 export function PrivateImage({ src, alt, ...props }) {
   const result = useImage(src);
-  return result.error ? <span role="alert">Artwork unavailable · retrieval failed</span> : result.src ? <img {...props} src={result.src} alt={alt} /> : <span>Loading private artwork…</span>;
+  return result.error ? <span role="alert">Artwork unavailable · retrieval failed</span> : result.src ? <img {...props} src={result.src} alt={alt} /> : <span>Loading private artwork…<progress className="sf-load-bar" aria-label="Loading private artwork" /></span>;
 }
 export function PrivateCard({ card, ...props }) {
   const illustration = card?.presentation?.illustration, result = useImage(illustration);
   if (result.error) return <p role="alert">Artwork unavailable · retrieval failed</p>;
-  if (illustration?.startsWith("/api/admin/") && !result.src) return <p>Loading private artwork…</p>;
+  if (illustration?.startsWith("/api/admin/") && !result.src) return <p>Loading private artwork…<progress className="sf-load-bar" aria-label="Loading private artwork" /></p>;
   return <SpecialCardFace {...props} previewArt={false} card={result.src && card.presentation ? { ...card, presentation: { ...card.presentation, illustration: result.src } } : card} />;
 }

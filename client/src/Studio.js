@@ -68,6 +68,7 @@ export default function Studio({ serverUrl, authToken = "", onSignIn, onAuthoriz
         <h3 id="studio-gate-title">Private administration</h3>
         <p>Server-verified access for simply and Burnt Ramen.</p>
         {!authToken && <button onClick={onSignIn}>Sign in through Profile</button>}
+        {authToken && loading && <progress className="sf-load-bar" aria-label="Checking admin access" />}
         {authToken && <button disabled={loading} onClick={() => setAttempt((value) => value + 1)}>{loading ? "Checking access…" : "Check admin access"}</button>}
         {onClose && <button onClick={onClose}>{brandText("Back to SuitFire", "Back to Gauntlet")}</button>}
         {error && <p className="studio-error" role="alert">{error}</p>}

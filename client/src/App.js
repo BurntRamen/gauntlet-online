@@ -157,7 +157,7 @@ function retainEquivalentData(current, next) {
 }
 
 function SurfaceLoading({ label }) {
-  return <div className="loading" role="status">Loading {label}&hellip;</div>;
+  return <div className="loading" role="status">Loading {label}&hellip;<progress className="sf-load-bar" aria-label={`Loading ${label}`} /></div>;
 }
 
 const SOCKET_URL =
@@ -1881,7 +1881,7 @@ function CollectionPanel({ account, deckRules, lastOpenedPack, openingPackId, on
             <button key={viewId} type="button" role="tab" aria-selected={collectionView === viewId} onClick={() => setCollectionView(viewId)}>{label}</button>
           ))}
         </div>
-        {collectionView === "shop" && <Suspense fallback={<p className="economy-sign-in">Loading shop…</p>}><EconomyShop deckStore={deckStore} economy={account?.economy} pending={economyPending} onBuyGameplayPack={onBuyGameplayPack} onBuyTimetwisters={onBuyTimetwisters} /></Suspense>}
+        {collectionView === "shop" && <Suspense fallback={<p className="economy-sign-in">Loading shop…<progress className="sf-load-bar" aria-label="Loading shop" /></p>}><EconomyShop deckStore={deckStore} economy={account?.economy} pending={economyPending} onBuyGameplayPack={onBuyGameplayPack} onBuyTimetwisters={onBuyTimetwisters} /></Suspense>}
         {collectionView === "packs" && <>
         <div className="collection-view-heading">
           <div><h3>Earned Gameplay Packs</h3><p>Spend campaign credits on all-faction or seeded faction packs. These are the packs that unlock playable cards.</p></div>
@@ -4699,7 +4699,7 @@ export default function App() {
 
   if (publicView?.type === "replay") {
     return (
-      <Suspense fallback={<div className="loading">Loading replay...</div>}>
+      <Suspense fallback={<div className="loading">Loading replay...<progress className="sf-load-bar" aria-label="Loading replay" /></div>}>
         <MatchReplayScreen
           matchId={publicView.id}
           serverUrl={SOCKET_URL}
@@ -4760,7 +4760,7 @@ export default function App() {
             <p role="status" className={gameContentError ? "is-error" : ""}>
             {gameContentError || "Checking the server's game-content version..."}
             </p>
-            {!gameContentError && <span className="gauntlet-loading-pulse" aria-hidden="true"><i /><i /><i /></span>}
+            {!gameContentError && <progress className="sf-load-bar" aria-label="Loading game content" />}
             {gameContentError && <MenuButton onClick={loadGameContent}>Retry</MenuButton>}
           </div>
         </section>
@@ -4871,10 +4871,10 @@ export default function App() {
           events: <Suspense fallback={<SurfaceLoading label="official events" />}>{playerRoute.view === "para"
             ? <ParaEventHub serverUrl={SOCKET_URL} authToken={authToken} socket={socket} onOpenMatch={(id) => openPublicView("match", id)} />
             : <EventHub serverUrl={SOCKET_URL} socket={socket} authToken={authToken} account={account} factions={gameContent.factions} onAccountUpdated={setAccount} onError={setError} />}</Suspense>,
-          lore: <><Suspense fallback={<SurfaceLoading label="faction lore" />}><FactionLoreScreen embedded manifest={gameContent} onBack={() => navigateHomeArea("campaign")} onOpenCampaign={(factionId) => openCampaign(factionId)} /></Suspense><Suspense fallback={<p>Loading set reference…</p>}><LegaciesPanel set={gameContent.upcomingSets?.find((set) => set.id === "legacies")} /></Suspense></>,
+          lore: <><Suspense fallback={<SurfaceLoading label="faction lore" />}><FactionLoreScreen embedded manifest={gameContent} onBack={() => navigateHomeArea("campaign")} onOpenCampaign={(factionId) => openCampaign(factionId)} /></Suspense><Suspense fallback={<p>Loading set reference…<progress className="sf-load-bar" aria-label="Loading set reference" /></p>}><LegaciesPanel set={gameContent.upcomingSets?.find((set) => set.id === "legacies")} /></Suspense></>,
           standings: <SeasonStandings season={activeSeason} standings={leaderboard} playerStanding={playerSeasonStanding} lifetimeStandings={lifetimeLeaderboard} error={leaderboardError} onOpenProfile={(id) => openPublicView("profile", id)} />,
           liveMatches: <ActiveSeasonMatches season={activeSeason} matches={activeSeasonMatches} error={activeSeasonMatchesError} onSpectate={spectateSeasonMatch} />,
-          recentMatch: <Suspense fallback={<section className="cd-utility"><div><strong>Match history</strong><small>Loading saved games…</small></div><button onClick={() => navigateHomeArea("matches")}>Open Matches</button></section>}><RecentMatchShortcut account={account} authToken={authToken} serverUrl={SOCKET_URL} onOpenReplay={openReplay} onOpenMatches={() => navigateHomeArea("matches")} /></Suspense>,
+          recentMatch: <Suspense fallback={<section className="cd-utility"><div><strong>Match history</strong><small>Loading saved games…<progress className="sf-load-bar" aria-label="Loading saved games" /></small></div><button onClick={() => navigateHomeArea("matches")}>Open Matches</button></section>}><RecentMatchShortcut account={account} authToken={authToken} serverUrl={SOCKET_URL} onOpenReplay={openReplay} onOpenMatches={() => navigateHomeArea("matches")} /></Suspense>,
           matches: <Suspense fallback={<SurfaceLoading label="match history" />}><MatchesHub account={account} authToken={authToken} serverUrl={SOCKET_URL}
             view={playerRoute.view || "recent"} hideStandings season={activeSeason} standings={leaderboard} playerStanding={playerSeasonStanding} lifetimeStandings={lifetimeLeaderboard} seasonError={leaderboardError}
             onOpenProfile={(id) => openPublicView("profile", id)} onOpenMatch={(id, record) => openPublicView("match", id, record || null)} onOpenReplay={openReplay}
@@ -5059,7 +5059,7 @@ export default function App() {
   if (useBabylonMatchRenderer) {
     return (
       <MatchRendererBoundary resetKey={game.matchId} onLeaveMatch={returnToMainMenu}>
-        <Suspense fallback={<div className="loading">Loading Babylon match renderer…</div>}>
+        <Suspense fallback={<div className="loading">Loading Babylon match renderer…<progress className="sf-load-bar" aria-label="Loading Babylon match renderer" /></div>}>
           <LiveBabylonMatchExperience
             key={game.matchId}
             session={liveMatchSessionRef.current}

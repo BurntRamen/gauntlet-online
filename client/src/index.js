@@ -9,7 +9,7 @@ const AbilityPreview = React.lazy(() => import('./babylon/AbilityPreview'));
 const showAbilityPreview = process.env.REACT_APP_ABILITY_PREVIEW === 'true' && window.location.pathname === '/ability-preview';
 root.render(
   <React.StrictMode>
-    {showAbilityPreview ? <React.Suspense fallback={<p>Loading ability preview…</p>}><AbilityPreview /></React.Suspense> : <App />}
+    {showAbilityPreview ? <React.Suspense fallback={<p>Loading ability preview…<progress className="sf-load-bar" aria-label="Loading ability preview" /></p>}><AbilityPreview /></React.Suspense> : <App />}
   </React.StrictMode>
 );
 

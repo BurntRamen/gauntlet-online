@@ -137,7 +137,7 @@ export default function CollectorClaimScreen({
           </section>
         )}
 
-        {account && loading && <p role="status">Checking the signed entitlement...</p>}
+        {account && loading && <p role="status">Checking the signed entitlement...<progress className="sf-load-bar" aria-label="Checking the signed entitlement" /></p>}
 
         {account && error && (
           <section className="collector-claim-error" role="alert">

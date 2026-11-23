@@ -2140,6 +2140,7 @@ export default function ProductionMatchExperience({
   if (!viewModel) {
     return (
       <main className="production-match-loading" aria-busy="true">
+        <progress className="sf-load-bar" aria-label="Preparing the table" />
         <span className="production-loading-crest" aria-hidden="true">◇</span>
         <strong>{brandText("Preparing the SuitFire table…", "Preparing the Gauntlet table…")}</strong>
       </main>

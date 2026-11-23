@@ -273,7 +273,7 @@ export function CompetitiveIdentityPanel({ profile, loading, error, onOpenProfil
         <div><span>Competitive Identity</span><h3 id="competitive-panel-title">Verified Record</h3></div>
         {profile && <button type="button" onClick={() => onOpenProfile(profile.accountId)}>Public Profile</button>}
       </div>
-      {loading && <p className="competitive-empty">Loading verified matches...</p>}
+      {loading && <p className="competitive-empty">Loading verified matches...<progress className="sf-load-bar" aria-label="Loading verified matches" /></p>}
       {error && <p className="competitive-error">{error}</p>}
       {profile && !loading && (
         <>
@@ -296,7 +296,7 @@ export function PublicProfileScreen({ profile, loading, error, serverUrl, onBack
     <main className="competitive-page" style={{ "--dossier-background": `url(${process.env.PUBLIC_URL || ""}/assets/gauntlet/backgrounds/gauntlet-menu-identity-v2.jpg)` }}>
       <div className="competitive-page-inner">
         <button type="button" className="competitive-back" onClick={onBack}>Back</button>
-        {loading && <p className="competitive-empty">Loading player profile...</p>}
+        {loading && <p className="competitive-empty">Loading player profile...<progress className="sf-load-bar" aria-label="Loading player profile" /></p>}
         {error && <p className="competitive-error">{error}</p>}
         {profile && <ProfileBody profile={profile} serverUrl={serverUrl} onOpenMatch={onOpenMatch} onOpenReplay={onOpenReplay} />}
       </div>
@@ -309,7 +309,7 @@ export function MatchRecordScreen({ match, loading, error, serverUrl, onBack, on
     <main className="competitive-page">
       <div className="competitive-page-inner">
         <button type="button" className="competitive-back" onClick={onBack}>Back</button>
-        {loading && <p className="competitive-empty">Loading verified match...</p>}
+        {loading && <p className="competitive-empty">Loading verified match...<progress className="sf-load-bar" aria-label="Loading verified match" /></p>}
         {error && <p className="competitive-error">{error}</p>}
         {match && (
           <>

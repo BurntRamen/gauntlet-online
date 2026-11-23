@@ -292,7 +292,7 @@ export default function MatchReplayScreen({ matchId, serverUrl, initialReplay = 
   const openMatches = onOpenMatches || onBack;
   useReplayExitShortcut(openMatches);
 
-  if (loading) return <main className="match-replay-page"><ReplayNavigation onOpenMatches={openMatches} onOpenMatchRecord={onBack} /><section className="replay-status"><strong>Loading authoritative replay...</strong></section></main>;
+  if (loading) return <main className="match-replay-page"><ReplayNavigation onOpenMatches={openMatches} onOpenMatchRecord={onBack} /><section className="replay-status"><strong>Loading authoritative replay...<progress className="sf-load-bar" aria-label="Loading authoritative replay" /></strong></section></main>;
   if (error) return <main className="match-replay-page"><ReplayNavigation onOpenMatches={openMatches} onOpenMatchRecord={onBack} /><section className="replay-status"><strong>Replay unavailable</strong><p>{error}</p></section></main>;
   if (!replay?.availability?.available || !adapter) {
     return <main className="match-replay-page"><ReplayNavigation onOpenMatches={openMatches} onOpenMatchRecord={onBack} /><section className="replay-status"><strong>Replay no longer available</strong><p>{replay?.availability?.unavailableReason || "The complete record is no longer available."}</p></section></main>;

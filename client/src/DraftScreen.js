@@ -91,7 +91,7 @@ export default function DraftScreen({ presentation, onCancelDraft, draft, lobby,
             </div>
             {canStart && !isBotDraft && <MenuButton onClick={onStartDraft} disabled={busy || connectedPlayers.length < 2} style={{ marginTop: 12 }}>Start Draft</MenuButton>}
             {draft?.status === "lobby" && !canStart && <p className="draft-note">Waiting for Player 1 to start the draft.</p>}
-            {draft?.status === "lobby" && isBotDraft && <p className="draft-note">Preparing bot draft seats...</p>}
+            {draft?.status === "lobby" && isBotDraft && <p className="draft-note">Preparing bot draft seats...<progress className="sf-load-bar" aria-label="Preparing bot draft seats" /></p>}
           </MenuCard>}
 
           <MenuCard title="Draft Status">

@@ -372,6 +372,7 @@ export default function MatchesHub({
       {localEntries.length > 0 && <p className="matches-storage-note">Device replays stay in this browser. Export a match file to back it up or watch it on another device.</p>}
       {error && <p className="matches-error" role="alert">{error}</p>}
       {!loading && !visibleMatches.length && !visibleReferences.length && <p className="matches-empty">{replayView ? "No playable replays are available yet. Import a saved match file below." : "No completed match records are available yet."}</p>}
+      {loading && <progress className="sf-load-bar" aria-label="Loading match history" />}
       <div className="matches-list" aria-busy={loading}>
         {visibleMatches.map((match) => (
           <MatchRow
