@@ -1,5 +1,6 @@
 "use strict";
 
+const { applyInitiativeCampaignArt } = require("../shared/duel-rules/resolveInitiativeArt");
 const fs = require("node:fs");
 const path = require("node:path");
 const crypto = require("node:crypto");
@@ -211,6 +212,7 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
     if (!activeCache || activeCache.signature !== signature) {
       const state = read(), release = state.releases[state.activeReleaseId];
       const resolved = resolveEngineContent(release.snapshot, release.id);
+      resolved.manifest.campaigns = applyInitiativeCampaignArt(resolved.manifest.campaigns);
       activeCache = { signature, resolved, cards: new Map(resolved.manifest.cards.map(card => [card.id, card])), variants: new Map(resolved.manifest.collectorVariants.map(variant => [variant.variantId, variant])) };
     }
     return activeCache;
