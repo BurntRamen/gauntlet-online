@@ -213,7 +213,7 @@ function createAdminData(deps) {
     // Home reads the shared summary once. Account samples, purchases, catalogs,
     // storage probes and module inventories belong to Operations, not this path.
     const reads = await Promise.allSettled([
-      Promise.resolve().then(readAuthoring),
+      Promise.resolve().then(() => deps.publication?.homeSummary ? deps.publication.homeSummary() : readAuthoring()),
       Promise.resolve().then(() => deps.para?.inspect?.()),
       Promise.resolve().then(() => deps.runtimeStorage?.())
     ]);

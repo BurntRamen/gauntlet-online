@@ -276,6 +276,17 @@ const io = new Server(server, {
 });
 
 app.use(cors(corsOptions));
+app.use((req, res, next) => {
+  if (!req.path.startsWith("/api/")) return next();
+  const start = process.hrtime.bigint();
+  const writeHead = res.writeHead;
+  res.writeHead = function (...args) {
+    const duration = Number(process.hrtime.bigint() - start) / 1e6;
+    this.setHeader("Server-Timing", "app;dur=" + duration.toFixed(1));
+    return writeHead.apply(this, args);
+  };
+  next();
+});
 const { createGauntletAdminAuthorization } = require("./adminAuthorization");
 const gauntletAdminAuthorization = createGauntletAdminAuthorization({
   requireAccount: requireAccountRecord,
@@ -3781,7 +3792,9 @@ app.get("/api/game-content", (_req, res) => {
   const deployedCommit = process.env.RENDER_GIT_COMMIT || "";
   if (/^[a-f0-9]{40}$/i.test(deployedCommit)) res.set("X-Gauntlet-Commit", deployedCommit);
   res.set("Cache-Control", "no-store");
-  try { res.json({ content: getPublicGameContent() }); }
+  try {
+    res.type("json").send(contentPublication.publicManifestJson());
+  }
   catch { res.status(503).json({ error: "Published content is unavailable." }); }
 });
 

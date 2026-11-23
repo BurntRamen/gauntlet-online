@@ -133,6 +133,11 @@ function createGitHubContentPublication({ baseline, draftStore = null, mediaStor
     }
     return activeCache;
   }
+  function publicManifestJson() {
+    const cache = resolvedActive();
+    if (!cache.publicJson) cache.publicJson = JSON.stringify({ content: cache.resolved.manifest });
+    return cache.publicJson;
+  }
   const active = () => clone(resolvedActive().resolved);
   const core = (state) => createContentPublication({ baseline, mediaStore, runtimeCapabilities, economyCapabilities, memory: true, initialState: state });
   async function activateCaptured(state) {
@@ -366,6 +371,12 @@ function createGitHubContentPublication({ baseline, draftStore = null, mediaStor
       return body?.then ? body.then(project) : project(body);
     },
     status: async () => project((await load()).state, await hasPrivateStorage()),
+    publicManifestJson,
+    homeSummary: async () => {
+      const { state } = await load();
+      if (state.draft && !state.pending) return { ...core(state).summary(), activeReleaseId: deployed.id };
+      return { activeReleaseId: deployed.id, pending: state.pending, draft: !!state.draft };
+    },
     summary: async () => project((await load()).state, await hasPrivateStorage(), true),
     lookupCard: id => clone(resolvedActive().cards.get(id) || null), lookupVariant: id => clone(resolvedActive().variants.get(id) || null),
     lookupSet: id => clone(resolvedActive().resolved.manifest.draftSets.find(set => set.id === id) || null),

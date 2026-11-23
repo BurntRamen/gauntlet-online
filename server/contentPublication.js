@@ -215,6 +215,11 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
     }
     return activeCache;
   }
+  function publicManifestJson() {
+    const cache = resolvedActive();
+    if (!cache.publicJson) cache.publicJson = JSON.stringify({ content: cache.resolved.manifest });
+    return cache.publicJson;
+  }
   function active() { return clone(resolvedActive().resolved); }
   const lookupCard = id => clone(resolvedActive().cards.get(id) || null);
   const lookupVariant = id => clone(resolvedActive().variants.get(id) || null);
@@ -516,7 +521,7 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
     assetStorageUsage: () => mediaStore ? mediaStore.capacity() : imageAssets.capacity(read()),
     verifyMedia: async () => { if (mediaStore) { const state = read(); await mediaStore.ensurePrivate(); await mediaStore.verify(Object.values(state.releases).flatMap(release => release.snapshot.assetVersions || []), state.assetBlobs || {}); } },
     summary: () => project(read(), true),
-    archiveAsset, privateAsset, publicAsset, exportState: () => clone(read()), releaseSnapshot, active, lookupCard, lookupVariant, lookupSet, status: () => project(read()), create, patch, patchRecord, discard, preview, publish: verifiedActivation(publish), rollback: verifiedActivation(rollback), playtestContent, recordPlaytest };
+    archiveAsset, privateAsset, publicAsset, exportState: () => clone(read()), releaseSnapshot, publicManifestJson, active, lookupCard, lookupVariant, lookupSet, status: () => project(read()), create, patch, patchRecord, discard, preview, publish: verifiedActivation(publish), rollback: verifiedActivation(rollback), playtestContent, recordPlaytest };
 }
 
 function registerContentPublicationRoutes(app, publication) {
