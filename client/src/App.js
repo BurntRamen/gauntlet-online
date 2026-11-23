@@ -2885,6 +2885,8 @@ function CampaignScreen({ embedded = false, initialFactionId, initialChapterId =
   const campaignEntries = Object.entries(campaigns || {});
   const [selectedFactionId, setSelectedFactionId] = useState(initialFactionId || campaignEntries[0]?.[0] || "rumin");
   const [briefingChapterId, setBriefingChapterId] = useState(initialChapterId);
+  // The player menu already selected the faction; do not render a second selector.
+  const directFaction = embedded && campaignEntries.some(([id]) => id === initialFactionId);
   const [activeFactionId, activeCampaign] = campaignEntries.find(([factionId]) => factionId === selectedFactionId) || campaignEntries[0] || [];
   useEffect(() => { onFactionChange?.(activeFactionId); }, [activeFactionId, onFactionChange]);
   const activeTheme = getFactionTheme(activeFactionId);
@@ -2908,14 +2910,14 @@ function CampaignScreen({ embedded = false, initialFactionId, initialChapterId =
         <div className="campaign-header" style={{ "--journey-art": `url("${resolveVisualAsset(JOURNEY_ART)}")` }}>
           <div className="campaign-heading">
             <div className="campaign-kicker">{campaignPresentation.eyebrow || "Commander Archives"}</div>
-            <h1>{campaignPresentation.title}</h1>
-            <p>{campaignPresentation.description}</p>
+            <h1>{directFaction ? `${activeCampaign.factionName} Campaign` : campaignPresentation.title}</h1>
+            <p>{directFaction ? "Choose a chapter to view its briefing or begin battle." : campaignPresentation.description}</p>
             {campaignPresentation.detail && <p className="cd-authored-detail">{campaignPresentation.detail}</p>}
           </div>
-          <MenuButton variant="secondary" onClick={onBack}>Main Menu</MenuButton>
+          <MenuButton variant="secondary" onClick={onBack}>{directFaction ? "Back to Campaign Selection" : "Main Menu"}</MenuButton>
         </div>
         {!canPlayAsPlayer && <div className="campaign-guest-entry"><div><strong>Ready to deploy?</strong><span>Start immediately as a guest. Sign in later if you want campaign progress and rewards saved.</span></div><MenuButton onClick={onEnableGuest}>Play Campaign as Guest</MenuButton></div>}
-        <div className="campaign-faction-tabs" role="tablist" aria-label="Faction campaigns">
+        {!directFaction && <div className="campaign-faction-tabs" role="tablist" aria-label="Faction campaigns">
           {campaignEntries.map(([factionId, campaign]) => {
             const selected = factionId === activeFactionId;
             const theme = getFactionTheme(factionId);
@@ -2934,7 +2936,7 @@ function CampaignScreen({ embedded = false, initialFactionId, initialChapterId =
               </button>
             );
           })}
-        </div>
+        </div>}
         {activeCampaign && (briefingChapter ? (
           <CampaignChapterBriefing
             campaign={activeCampaign}
@@ -4814,7 +4816,7 @@ export default function App() {
     if (showCampaign) workflow = <CampaignScreen manifest={gameContent} onEnableGuest={() => setPlayAsGuest(true)} embedded key={showCampaign.factionId || "campaign"}
       initialFactionId={showCampaign.factionId} initialChapterId={showCampaign.chapterId}
       onFactionChange={setCampaignMusicFaction}
-      onBack={() => setShowCampaign(false)} onStartChapter={startCampaignChapter} canPlayAsPlayer={canPlayAsPlayer}
+      onBack={() => navigateHomeArea("campaign")} onStartChapter={startCampaignChapter} canPlayAsPlayer={canPlayAsPlayer}
       account={account} campaigns={gameContent.campaigns} audioEnabled={!accountSoundMuted && !menuAudioSettings.masterMuted}
       />;
     else if (showCollection) workflow = <SetupFrame wide={collectionView === "decks"} title={collectionView === "decks" ? "Deck Editor" : collectionView === "catalog" ? "Card Collection" : "Earned Packs"}
