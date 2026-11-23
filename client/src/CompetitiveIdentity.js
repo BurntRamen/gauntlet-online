@@ -274,7 +274,7 @@ export function CompetitiveIdentityPanel({ profile, loading, error, onOpenProfil
         <div><span>Competitive Identity</span><h3 id="competitive-panel-title">Verified Record</h3></div>
         {profile && <button type="button" onClick={() => onOpenProfile(profile.accountId)}>Public Profile</button>}
       </div>
-      {loading && <p className="competitive-empty">Loading verified matches...<progress className="sf-load-bar" aria-label="Loading verified matches" /></p>}
+      {loading && <p className="competitive-empty">Loading verified matches...<TransferProgress scope="profile" /></p>}
       {error && <p className="competitive-error">{error}</p>}
       {profile && !loading && (
         <>

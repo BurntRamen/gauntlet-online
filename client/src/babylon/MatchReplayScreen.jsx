@@ -1,3 +1,4 @@
+import { TransferProgress, trackedGet } from "../TransferProgress";
 import { brandText, useBrandPreview } from '../brand/brandPreview';
 import { useEffect, useMemo, useRef, useState } from "react";
 import { presentationArt, usePresentationArt } from "../brand/presentationArt";
@@ -277,7 +278,7 @@ export default function MatchReplayScreen({ matchId, serverUrl, initialReplay = 
     let active = true;
     setLoading(true);
     setError("");
-    fetch(`${serverUrl}/api/matches/${encodeURIComponent(matchId)}/replay`)
+    trackedGet("replay", `${serverUrl}/api/matches/${encodeURIComponent(matchId)}/replay`)
       .then(async (response) => {
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Could not load replay.");
@@ -292,7 +293,7 @@ export default function MatchReplayScreen({ matchId, serverUrl, initialReplay = 
   const openMatches = onOpenMatches || onBack;
   useReplayExitShortcut(openMatches);
 
-  if (loading) return <main className="match-replay-page"><ReplayNavigation onOpenMatches={openMatches} onOpenMatchRecord={onBack} /><section className="replay-status"><strong>Loading authoritative replay...<progress className="sf-load-bar" aria-label="Loading authoritative replay" /></strong></section></main>;
+  if (loading) return <main className="match-replay-page"><ReplayNavigation onOpenMatches={openMatches} onOpenMatchRecord={onBack} /><section className="replay-status"><strong>Loading authoritative replay...<TransferProgress scope="replay" /></strong></section></main>;
   if (error) return <main className="match-replay-page"><ReplayNavigation onOpenMatches={openMatches} onOpenMatchRecord={onBack} /><section className="replay-status"><strong>Replay unavailable</strong><p>{error}</p></section></main>;
   if (!replay?.availability?.available || !adapter) {
     return <main className="match-replay-page"><ReplayNavigation onOpenMatches={openMatches} onOpenMatchRecord={onBack} /><section className="replay-status"><strong>Replay no longer available</strong><p>{replay?.availability?.unavailableReason || "The complete record is no longer available."}</p></section></main>;

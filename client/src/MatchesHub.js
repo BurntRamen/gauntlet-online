@@ -1,3 +1,4 @@
+import { TransferProgress, trackedGet } from "./TransferProgress";
 import { brandText, useBrandPreview } from './brand/brandPreview';
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SeasonStandings } from "./SeasonZero";
@@ -269,7 +270,7 @@ export default function MatchesHub({
     }
     setLoading(true);
     try {
-      const response = await fetch(`${serverUrl}/api/account/matches?limit=30`, { headers: { Authorization: `Bearer ${authToken}` } });
+      const response = await trackedGet("history", `${serverUrl}/api/account/matches?limit=30`, { headers: { Authorization: `Bearer ${authToken}` } });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error || "Could not load matches.");
       if (version !== requestVersion.current) return;
@@ -372,7 +373,7 @@ export default function MatchesHub({
       {localEntries.length > 0 && <p className="matches-storage-note">Device replays stay in this browser. Export a match file to back it up or watch it on another device.</p>}
       {error && <p className="matches-error" role="alert">{error}</p>}
       {!loading && !visibleMatches.length && !visibleReferences.length && <p className="matches-empty">{replayView ? "No playable replays are available yet. Import a saved match file below." : "No completed match records are available yet."}</p>}
-      {loading && <progress className="sf-load-bar" aria-label="Loading match history" />}
+      {loading && <TransferProgress scope="history" />}
       <div className="matches-list" aria-busy={loading}>
         {visibleMatches.map((match) => (
           <MatchRow

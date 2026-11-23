@@ -3495,7 +3495,7 @@ export default function App() {
     }
     setCompetitiveProfileLoading(true);
     try {
-      const response = await fetch(`${SOCKET_URL}/api/profiles/${encodeURIComponent(account.id)}`);
+      const response = await trackedGet("profile", `${SOCKET_URL}/api/profiles/${encodeURIComponent(account.id)}`);
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Could not load competitive profile.");
       setCompetitiveProfile(data.profile);
