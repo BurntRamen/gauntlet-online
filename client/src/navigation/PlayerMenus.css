@@ -52,10 +52,10 @@
 .cd-shell .friend-contact-copy small { font-size: 12px; }
 .cd-shell .friend-conversation-header { flex-wrap: wrap; }
 .cd-shell .collection-workspace { min-width: 0; }
-.cd-campaign-experience .campaign-header { background: none; min-height: 0; padding: 0 0 16px; margin: 0; }
-.cd-campaign-experience .campaign-header h1 { font-size: 24px; }
-.cd-campaign-experience .campaign-faction-tabs { margin: 0 0 16px; }
-.cd-campaign-experience .campaign-faction-tab { min-height: 64px; }
+:is(.cd-campaign-experience, .campaign-page) .campaign-header { background: none; min-height: 0; padding: 0 0 16px; margin: 0; }
+:is(.cd-campaign-experience, .campaign-page) .campaign-header h1 { font-size: 24px; }
+:is(.cd-campaign-experience, .campaign-page) .campaign-faction-tabs { margin: 0 0 16px; }
+:is(.cd-campaign-experience, .campaign-page) .campaign-faction-tab { min-height: 64px; }
 .cd-tutorial-experience .tutorial-header { background: none; min-height: 0; padding: 0 0 16px; }
 .cd-tutorial-experience .tutorial-header h1 { font-size: 24px; }
 .cd-tutorial-experience .tutorial-layout { grid-template-columns: minmax(0,2fr) minmax(220px,1fr); }
@@ -249,14 +249,14 @@
 
 /* Campaign uses the same square visual language for faction and chapter choices.
    The briefing is the navigation action; battle start remains separately gated. */
-.cd-campaign-experience .campaign-faction-tabs {
+:is(.cd-campaign-experience, .campaign-page) .campaign-faction-tabs {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
   gap: 14px;
   max-width: 1100px;
   margin: 0 auto 20px;
 }
-.cd-campaign-experience .campaign-faction-tab {
+:is(.cd-campaign-experience, .campaign-page) .campaign-faction-tab {
   box-sizing: border-box;
   aspect-ratio: 1 / 1;
   min-height: 0;
@@ -267,35 +267,35 @@
   text-shadow: 0 2px 4px #000;
   border-radius: 10px;
 }
-.cd-campaign-experience .campaign-faction-tab span {
+:is(.cd-campaign-experience, .campaign-page) .campaign-faction-tab span {
   white-space: normal;
   overflow-wrap: anywhere;
 }
-.cd-campaign-experience .campaign-faction-tab strong {
+:is(.cd-campaign-experience, .campaign-page) .campaign-faction-tab strong {
   font-size: 13px;
   flex-shrink: 0;
 }
-.cd-campaign-experience .campaign-faction-tab:focus-visible,
-.cd-campaign-experience .campaign-chapter-briefing-button:focus-visible {
+:is(.cd-campaign-experience, .campaign-page) .campaign-faction-tab:focus-visible,
+:is(.cd-campaign-experience, .campaign-page) .campaign-chapter-briefing-button:focus-visible {
   outline: 3px solid var(--faction-accent, #7be0d0);
   outline-offset: 3px;
 }
-.cd-campaign-experience .campaign-chapter-grid {
+:is(.cd-campaign-experience, .campaign-page) .campaign-chapter-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
   max-width: 1100px;
   margin-inline: auto;
 }
-.cd-campaign-experience .campaign-chapter {
+:is(.cd-campaign-experience, .campaign-page) .campaign-chapter {
   padding: 10px;
   gap: 8px;
   border-radius: 10px;
 }
-.cd-campaign-experience .campaign-chapter.is-locked {
+:is(.cd-campaign-experience, .campaign-page) .campaign-chapter.is-locked {
   opacity: 1;
   filter: none;
 }
-.cd-campaign-experience .campaign-chapter-tile {
+:is(.cd-campaign-experience, .campaign-page) .campaign-chapter-tile {
   position: relative;
   isolation: isolate;
   display: flex;
@@ -306,17 +306,17 @@
   overflow: hidden;
   background: #07111b;
 }
-.cd-campaign-experience .campaign-chapter-art {
+:is(.cd-campaign-experience, .campaign-page) .campaign-chapter-art {
   position: absolute;
   inset: 0;
   height: 100%;
   margin: 0;
   border-radius: inherit;
 }
-.cd-campaign-experience .campaign-chapter-art::after {
+:is(.cd-campaign-experience, .campaign-page) .campaign-chapter-art::after {
   background: linear-gradient(to bottom, transparent 35%, rgba(4,9,15,.12) 50%, rgba(4,9,15,.94) 100%);
 }
-.cd-campaign-experience .campaign-chapter-tile-copy {
+:is(.cd-campaign-experience, .campaign-page) .campaign-chapter-tile-copy {
   position: relative;
   z-index: 1;
   display: grid;
@@ -326,9 +326,9 @@
   pointer-events: none;
   text-shadow: 0 2px 4px #000;
 }
-.cd-campaign-experience .campaign-chapter-tile h3 { font-size: clamp(19px, 2vw, 26px); }
-.cd-campaign-experience .campaign-chapter-tile .campaign-chapter-status { font-size: 12px; }
-.cd-campaign-experience .campaign-chapter-tile .campaign-chapter-briefing-button {
+:is(.cd-campaign-experience, .campaign-page) .campaign-chapter-tile h3 { font-size: clamp(19px, 2vw, 26px); }
+:is(.cd-campaign-experience, .campaign-page) .campaign-chapter-tile .campaign-chapter-status { font-size: 12px; }
+:is(.cd-campaign-experience, .campaign-page) .campaign-chapter-tile .campaign-chapter-briefing-button {
   position: absolute;
   inset: 0;
   z-index: 2;
@@ -343,27 +343,58 @@
   text-align: right;
   font-size: 13px;
 }
-.cd-campaign-experience .campaign-chapter-tile .campaign-chapter-briefing-button span {
+:is(.cd-campaign-experience, .campaign-page) .campaign-chapter-tile .campaign-chapter-briefing-button span {
   padding: 6px 10px;
   border: 1px solid #a99677;
   background: #07111be6;
   border-radius: 5px;
 }
-.cd-campaign-experience .campaign-chapter-tile .campaign-chapter-briefing-button:hover {
+:is(.cd-campaign-experience, .campaign-page) .campaign-chapter-tile .campaign-chapter-briefing-button:hover {
   box-shadow: inset 0 0 0 2px var(--faction-accent);
 }
-.cd-campaign-experience .campaign-chapter-tile .campaign-chapter-briefing-button:focus-visible {
+:is(.cd-campaign-experience, .campaign-page) .campaign-chapter-tile .campaign-chapter-briefing-button:focus-visible {
   outline-offset: -4px;
 }
-.cd-campaign-experience .campaign-chapter > p { -webkit-line-clamp: 2; }
-.cd-campaign-experience .campaign-chapter-actions { grid-template-columns: minmax(0, 1fr); }
-.cd-campaign-experience .campaign-chapter-actions > button { min-height: 44px; }
+:is(.cd-campaign-experience, .campaign-page) .campaign-chapter > p { -webkit-line-clamp: 2; }
+:is(.cd-campaign-experience, .campaign-page) .campaign-chapter-actions { grid-template-columns: minmax(0, 1fr); }
+:is(.cd-campaign-experience, .campaign-page) .campaign-chapter-actions > button { min-height: 44px; }
 @media (max-width: 640px) {
-  .cd-campaign-experience .campaign-chapter-grid { grid-template-columns: minmax(0, 1fr); padding: 10px; }
-  .cd-campaign-experience .campaign-faction-tabs { grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); gap: 10px; }
-  .cd-campaign-experience .campaign-faction-tab { padding: 10px; }
+  :is(.cd-campaign-experience, .campaign-page) .campaign-chapter-grid { grid-template-columns: minmax(0, 1fr); padding: 10px; }
+  :is(.cd-campaign-experience, .campaign-page) .campaign-faction-tabs { grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); gap: 10px; }
+  :is(.cd-campaign-experience, .campaign-page) .campaign-faction-tab { padding: 10px; }
 }
 @media (forced-colors: active) {
-  .cd-campaign-experience .campaign-chapter-tile .campaign-chapter-briefing-button { border: 1px solid ButtonText; }
-  .cd-campaign-experience .campaign-chapter-art { display: none; }
+  :is(.cd-campaign-experience, .campaign-page) .campaign-chapter-tile .campaign-chapter-briefing-button { border: 1px solid ButtonText; }
+  :is(.cd-campaign-experience, .campaign-page) .campaign-chapter-art { display: none; }
 }
+
+/* Override the former destination-specific fixed heights on all breakpoints. */
+.cd-shell[data-destination] .cd-landing .cd-grid .cd-action-tile { min-height: 0; }
+.cd-shell[data-destination] .cd-landing .cd-grid .cd-action-tile.has-artwork { padding: clamp(12px, 1.6vw, 22px); }
+.cd-shell[data-destination] .cd-landing .cd-grid .cd-action-tile.has-artwork .cd-action-copy { max-width: none; padding-right: 24px; }
+@media (max-width: 560px) {
+  .cd-shell[data-destination] .cd-landing .cd-grid { grid-template-columns: minmax(0, 1fr); }
+}
+/* The editing workflow should use the whole available content region rather
+   than the narrow setup form column. Keep the persistent navigation intact. */
+.cd-shell .cd-main:has(.deck-workshop),
+.cd-shell .cd-main:has(.cd-setup-frame.is-wide) {
+  max-width: none;
+  padding-inline: clamp(12px, 1.5vw, 24px);
+}
+.cd-shell .cd-setup-frame.is-wide,
+.cd-shell .cd-setup-frame:has(.deck-workshop) {
+  width: 100%;
+  max-width: none;
+}
+.cd-shell .cd-setup-frame.is-wide .cd-setup-content {
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
+}
+.cd-shell .cd-setup-frame.is-wide .collection-workspace {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  padding: 8px !important;
+}
+.cd-shell .cd-setup-frame.is-wide .deck-workshop { width: 100%; min-width: 0; box-sizing: border-box; }
