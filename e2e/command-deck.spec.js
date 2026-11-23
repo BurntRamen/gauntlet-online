@@ -446,3 +446,43 @@ test('blocked browser storage keeps the whole app usable and guest layout surviv
   await expect.poll(async () => (await layoutOrder(page))[0]).toBe('ranked');
   expect(errors).toEqual([]);
 });
+
+test('navigation remains usable before the game-content response, without exposing match actions', async ({ page }) => {
+  let release;
+  const pending = new Promise(resolve => { release = resolve; });
+  await page.route('**/api/game-content', async route => { await pending; await route.continue(); });
+  try {
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    await expect(page.getByRole('heading', { name: 'Connecting to the game server' })).toBeVisible();
+    const navigation = page.getByRole('navigation', { name: 'Main navigation' });
+    await expect(navigation).toBeVisible();
+    await navigation.getByRole('button', { name: 'Campaign', exact: true }).click();
+    await expect(navigation.getByRole('button', { name: 'Campaign', exact: true })).toHaveAttribute('aria-current', 'page');
+    await navigation.getByRole('button', { name: 'Play', exact: true }).click();
+    await expect(page.locator('.cd-action-tile[data-action-id="basic-ai"]')).toHaveCount(0);
+  } finally { release(); }
+  await expect(page.locator('.cd-action-tile[data-action-id="basic-ai"]')).toBeVisible();
+});
+
+test('verified record remains visible during refresh and a failed refresh can be retried', async ({ page, request }) => {
+  const account = await getAccount(request, 'CommandDeckRecordLoading');
+  await page.addInitScript(token => localStorage.setItem('gauntlet_auth_token', token), account.token);
+  await page.goto('/?page=profile&view=record');
+  const panel = page.getByRole('region', { name: 'Verified Record' });
+  await expect(panel.getByRole('button', { name: 'Public Profile' })).toBeVisible();
+  let release;
+  const pending = new Promise(resolve => { release = resolve; });
+  const failProfile = async route => { await pending; await route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'Temporary profile failure' }), headers: { 'Access-Control-Allow-Origin': '*' } }); };
+  await page.route('**/api/profiles/*', failProfile);
+  try {
+    await page.getByRole('button', { name: 'Back to Profile', exact: true }).click();
+    await page.locator('.cd-action-tile[data-action-id="record"]').click();
+    await expect(panel.getByText('Refreshing verified matches…')).toBeVisible();
+    await expect(panel.getByRole('button', { name: 'Public Profile' })).toBeVisible();
+  } finally { release(); }
+  await expect(panel.getByText('Showing the last successfully retrieved record.')).toBeVisible();
+  await page.unroute('**/api/profiles/*', failProfile);
+  await panel.getByRole('button', { name: 'Retry' }).click();
+  await expect(panel.getByText('Showing the last successfully retrieved record.')).toHaveCount(0);
+  await expect(panel.getByRole('button', { name: 'Public Profile' })).toBeVisible();
+});
