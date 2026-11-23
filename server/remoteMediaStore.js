@@ -36,7 +36,14 @@ function createRemoteMediaStore({ request, storageRequest, maxBytes = 256 * 1024
       await get(row, ref); return ref;
     },
     get,
-    async verify(versions, blobs) { for (const row of versions) if (validReference(blobs[row.sha256], row)) await get(row, blobs[row.sha256]); },
+    async verify(versions, blobs) {
+      const rows = versions.filter(row => validReference(blobs[row.sha256], row));
+      const pending = rows.values();
+      async function verifyNext() {
+        for (const row of pending) await get(row, blobs[row.sha256]);
+      }
+      await Promise.all(Array.from({ length: Math.min(4, rows.length) }, verifyNext));
+    },
     async capacity() {
       await ensurePrivate();
       const budgets = await request("gauntlet_media_capacity?id=eq.library&select=max_bytes");
