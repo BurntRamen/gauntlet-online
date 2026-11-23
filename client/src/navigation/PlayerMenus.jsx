@@ -1,3 +1,4 @@
+import { hasInitiativeArt } from "@gauntlet/duel-rules/resolveInitiativeArt";
 import BrandChoice from '../brand/BrandChoice';
 import { useCallback, useEffect, useRef, useState } from "react";
 import PlayerShell from "./PlayerShell";
@@ -179,7 +180,7 @@ export default function PlayerMenus({ embedded = false, serverUrl, route, onNavi
     const items = Object.entries(content.campaigns || {}).map(([id, campaign]) => {
       const completed = account?.progression?.campaign?.[id] || [];
       const faction = content.factions?.find((entry) => entry.id === id);
-      const emblem = getFactionAsset(id, faction?.cardImage) || getFactionAsset(id, faction?.commander?.image);
+      const emblem = hasInitiativeArt(id) ? "" : getFactionAsset(id, faction?.cardImage) || getFactionAsset(id, faction?.commander?.image);
       return { ...action(`faction-${id}`, campaign.factionName || id, `${completed.length} of ${campaign.chapters.length} chapters cleared · ${campaign.commanderName}`, `Chapters · ${completed.length} of ${campaign.chapters.length} cleared`, () => actions.campaign(id), emblem ? <img src={resolveVisualAsset(emblem)} alt="" loading="lazy" decoding="async" draggable={false} /> : "campaign"), artwork: getFactionCover(id, campaign.coverImage, faction?.commander?.image, faction?.cardImage) };
     });
     items.push(action("tutorial", "Tutorial", "Learn one complete turn.", "Open tutorial", actions.tutorial, "learn"), action("lore", "Faction Lore", "Meet the published commanders.", "Read faction stories", () => nav("campaign", "lore"), "campaign"), action("rulebook", "Rulebook", "The full rules reference.", "Read rules", () => nav("learn", "rulebook"), "learn"));
