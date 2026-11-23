@@ -9,3 +9,5 @@ export default function PlayerMenuExperience({ authToken, serverUrl, factionIds,
     <PlayerMenus {...menuProps} serverUrl={serverUrl} />
   </Provider>;
 }
+
+export { default as StartupPlayerShell } from "./PlayerShell";

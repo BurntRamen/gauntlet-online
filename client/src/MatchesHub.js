@@ -10,6 +10,7 @@ import {
 } from "./matchHistory";
 import "./MatchesHub.css";
 import { downloadMatchTranscript } from "./matchTranscript";
+import { readPlayerJson } from "./playerReads";
 
 function formatDate(value) {
   if (!value) return "Unknown date";
@@ -186,23 +187,44 @@ export function RecentMatchShortcut({ account, authToken, serverUrl, onOpenRepla
   const [error, setError] = useState('');
   useEffect(() => {
     let active = true;
-    const controller = new AbortController();
-    async function load() {
-      const [local, cloud] = await Promise.allSettled([
-        matchLibrary.list(),
-        authToken ? fetch(`${serverUrl}/api/account/matches?limit=1`, { headers: { Authorization: `Bearer ${authToken}` }, signal: controller.signal }).then(async (response) => {
-          if (!response.ok) throw new Error('Account history unavailable');
-          return response.json();
-        }) : Promise.resolve({ matches: [] })
-      ]);
+    let localEntries = [];
+    let cloudData = { matches: [] };
+    let localFailed = false;
+    let cloudFailed = false;
+    let localVersion = 0;
+    function publish() {
       if (!active) return;
-      const matches = mergeMatchHistory(cloud.status === 'fulfilled' ? cloud.value : {}, local.status === 'fulfilled' ? local.value : [], account?.id).matches;
+      const matches = mergeMatchHistory(cloudData, localEntries, account?.id).matches;
       setRecent({ scope, match: matches[0] || null });
-      setError(local.status === 'rejected' || cloud.status === 'rejected' ? 'Some history is unavailable. Open Matches to retry.' : '');
+      setError(localFailed || cloudFailed ? 'Some history is unavailable. Open Matches to retry.' : '');
     }
-    load();
-    const unsubscribe = matchLibrary.subscribe?.(load);
-    return () => { active = false; controller.abort(); unsubscribe?.(); };
+    async function loadLocal() {
+      const version = ++localVersion;
+      try {
+        const entries = await matchLibrary.list();
+        if (!active || version !== localVersion) return;
+        localEntries = entries;
+        localFailed = false;
+      } catch {
+        if (!active || version !== localVersion) return;
+        localFailed = true;
+      }
+      publish();
+    }
+    async function loadCloud() {
+      if (!authToken) return;
+      try {
+        cloudData = await readPlayerJson(`${serverUrl}/api/account/matches?limit=1`, { authToken, errorMessage: 'Account history unavailable' });
+        cloudFailed = false;
+      } catch {
+        cloudFailed = true;
+      }
+      publish();
+    }
+    void loadLocal();
+    void loadCloud();
+    const unsubscribe = matchLibrary.subscribe?.(() => { void loadLocal(); void loadCloud(); });
+    return () => { active = false; unsubscribe?.(); };
   }, [account?.id, authToken, serverUrl, matchLibrary, scope]);
   const match = recent.scope === scope ? recent.match : null;
   const opponent = match?.perspective?.opponent?.displayName || match?.perspective?.opponents?.[0]?.displayName;
@@ -260,8 +282,8 @@ export default function MatchesHub({
 
   const loadMatches = useCallback(async () => {
     const version = ++requestVersion.current;
-    await loadLocalMatches();
-    if (version !== requestVersion.current) return;
+    // Device and server histories are independent. Do not block the network on IndexedDB.
+    void loadLocalMatches();
     if (!authToken) {
       setServerData({ matches: [], unavailableMatchReferences: [], storage: null, scope: authToken });
       setLoading(false);
@@ -269,9 +291,7 @@ export default function MatchesHub({
     }
     setLoading(true);
     try {
-      const response = await fetch(`${serverUrl}/api/account/matches?limit=30`, { headers: { Authorization: `Bearer ${authToken}` } });
-      const body = await response.json();
-      if (!response.ok) throw new Error(body.error || "Could not load matches.");
+      const body = await readPlayerJson(`${serverUrl}/api/account/matches?limit=30`, { authToken, errorMessage: "Could not load matches." });
       if (version !== requestVersion.current) return;
       setServerData({ ...body, scope: authToken });
       setError("");

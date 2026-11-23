@@ -55,10 +55,13 @@ import {
 } from "./MenuAudio";
 import { JOURNEY_ART, TUTORIAL_ART } from "./navigation/menuArtwork";
 import { fetchGameContent } from "./loadGameContent";
+import { readPlayerJson } from "./playerReads";
 import CurrencyWallet from "./CurrencyWallet";
 import { canUsePrinting } from "@gauntlet/duel-rules/printings";
 
-const PlayerMenuExperience = lazy(() => import(/* webpackChunkName: "gauntlet-player-entry", webpackPrefetch: true */ "./navigation/PlayerMenuExperience"));
+const loadPlayerMenuExperience = () => import(/* webpackChunkName: "gauntlet-player-entry", webpackPrefetch: true */ "./navigation/PlayerMenuExperience");
+const PlayerMenuExperience = lazy(loadPlayerMenuExperience);
+const StartupPlayerShell = lazy(() => loadPlayerMenuExperience().then(module => ({ default: module.StartupPlayerShell })));
 const FactionLoreScreen = lazy(() => import("./FactionLoreScreen"));
 const DraftScreen = lazy(() => import("./DraftScreen"));
 const LiveBabylonMatchExperience = lazy(() => import("./babylon/LiveBabylonMatchExperience"));
@@ -3076,9 +3079,17 @@ export default function App() {
   const [activeSeasonMatchesError, setActiveSeasonMatchesError] = useState("");
   const [gameContent, setGameContent] = useState(null);
   const [gameContentError, setGameContentError] = useState("");
-  const [competitiveProfile, setCompetitiveProfile] = useState(null);
-  const [competitiveProfileLoading, setCompetitiveProfileLoading] = useState(false);
-  const [competitiveProfileError, setCompetitiveProfileError] = useState("");
+  const gameContentRequest = useRef(null);
+  const [competitiveProfileState, setCompetitiveProfileState] = useState({ scope: "", profile: null, loading: false, error: "" });
+  const profileScope = account?.id && authToken ? JSON.stringify([account.id, authToken]) : "";
+  const profileScopeRef = useRef(profileScope);
+  profileScopeRef.current = profileScope;
+  const authTokenRef = useRef(authToken);
+  authTokenRef.current = authToken;
+  const currentProfile = competitiveProfileState.scope === profileScope ? competitiveProfileState : null;
+  const competitiveProfile = currentProfile?.profile || null;
+  const competitiveProfileLoading = Boolean(profileScope && (!currentProfile || currentProfile.loading));
+  const competitiveProfileError = currentProfile?.error || "";
   const [publicView, setPublicView] = useState(getPublicViewFromLocation);
   const [publicViewData, setPublicViewData] = useState(null);
   const [publicViewLoading, setPublicViewLoading] = useState(false);
@@ -3213,17 +3224,15 @@ export default function App() {
 
   useEffect(() => {
     if (!menuAudioActive) return undefined;
-    preloadHomeArea("matches");
-    preloadHomeArea("identity");
-    if (!ownerAuthorized) return undefined;
+    const preload = () => { preloadHomeArea("matches"); preloadHomeArea("profile"); };
     const idleId = window.requestIdleCallback
-      ? window.requestIdleCallback(() => preloadHomeArea("studio"), { timeout: 800 })
-      : window.setTimeout(() => preloadHomeArea("studio"), 180);
+      ? window.requestIdleCallback(preload, { timeout: 3000 })
+      : window.setTimeout(preload, 1500);
     return () => {
       if (window.cancelIdleCallback) window.cancelIdleCallback(idleId);
       else window.clearTimeout(idleId);
     };
-  }, [menuAudioActive, ownerAuthorized]);
+  }, [menuAudioActive]);
 
   useEffect(() => {
     liveMatchSessionRef.current.update({
@@ -3268,13 +3277,15 @@ export default function App() {
     return () => window.removeEventListener("keydown", closeDrawer);
   }, [matchDrawer]);
 
-  const loadGameContent = useCallback(async () => {
+  const loadGameContent = useCallback(() => {
+    if (gameContentRequest.current) return gameContentRequest.current;
     setGameContentError("");
-    try {
-      setGameContent(await fetchGameContent(SOCKET_URL));
-    } catch (contentError) {
-      setGameContentError(contentError.message);
-    }
+    const request = fetchGameContent(SOCKET_URL)
+      .then(setGameContent)
+      .catch(contentError => setGameContentError(contentError.message))
+      .finally(() => { gameContentRequest.current = null; });
+    gameContentRequest.current = request;
+    return request;
   }, []);
 
   useEffect(() => {
@@ -3434,36 +3445,29 @@ export default function App() {
   }, [authToken, game?.matchId, game?.phase, game?.winner, loadAuthoritativeAccount]);
 
   const loadLeaderboard = useCallback(() => {
-    fetch(`${SOCKET_URL}/api/leaderboard`, {
-      headers: authToken ? { Authorization: `Bearer ${authToken}` } : {}
-    })
-      .then(async (response) => {
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || "Could not load leaderboard.");
-        setLeaderboard((current) => retainEquivalentData(current, data.leaderboard || []));
-        setActiveSeason((current) => retainEquivalentData(current, data.season || null));
-        setPlayerSeasonStanding((current) => retainEquivalentData(current, data.playerStanding || null));
-        setLifetimeLeaderboard((current) => retainEquivalentData(current, data.lifetimeLeaderboard || []));
+    return readPlayerJson(`${SOCKET_URL}/api/leaderboard`, { authToken, errorMessage: "Could not load leaderboard." })
+      .then(data => {
+        if (authTokenRef.current !== authToken) return;
+        setLeaderboard(current => retainEquivalentData(current, data.leaderboard || []));
+        setActiveSeason(current => retainEquivalentData(current, data.season || null));
+        setPlayerSeasonStanding(current => retainEquivalentData(current, data.playerStanding || null));
+        setLifetimeLeaderboard(current => retainEquivalentData(current, data.lifetimeLeaderboard || []));
         setLeaderboardError("");
       })
-      .catch((leaderboardLoadError) => setLeaderboardError(leaderboardLoadError.message));
+      .catch(failure => { if (authTokenRef.current === authToken) setLeaderboardError(failure.message); });
   }, [authToken]);
 
   const loadActiveSeasonMatches = useCallback(() => {
-    fetch(`${SOCKET_URL}/api/seasons/active/matches`)
-      .then(async (response) => {
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || "Could not load active seasonal matches.");
-        setActiveSeason((current) => retainEquivalentData(current, data.season || current));
-        setActiveSeasonMatches((current) => retainEquivalentData(current, data.matches || []));
+    return readPlayerJson(`${SOCKET_URL}/api/seasons/active/matches`, { errorMessage: "Could not load active seasonal matches." })
+      .then(data => {
+        setActiveSeason(current => retainEquivalentData(current, data.season || current));
+        setActiveSeasonMatches(current => retainEquivalentData(current, data.matches || []));
         setActiveSeasonMatchesError("");
       })
-      .catch((seasonError) => setActiveSeasonMatchesError(seasonError.message));
+      .catch(failure => setActiveSeasonMatchesError(failure.message));
   }, []);
 
-  useEffect(() => {
-    loadLeaderboard();
-  }, [loadLeaderboard]);
+  useEffect(() => { setPlayerSeasonStanding(null); }, [authToken]);
 
   const seasonDataVisible = homeArea === "matches" || homeArea === "compete";
 
@@ -3484,24 +3488,22 @@ export default function App() {
   }, [loadActiveSeasonMatches, loadLeaderboard, seasonDataVisible]);
 
   const loadCompetitiveProfile = useCallback(async () => {
-    if (!account?.id) {
-      setCompetitiveProfile(null);
-      setCompetitiveProfileError("");
-      return;
-    }
-    setCompetitiveProfileLoading(true);
+    const scope = profileScope;
+    if (!scope || profileScopeRef.current !== scope) return;
+    setCompetitiveProfileState(previous => ({
+      scope, profile: previous.scope === scope ? previous.profile : null, loading: true, error: ""
+    }));
     try {
-      const response = await fetch(`${SOCKET_URL}/api/profiles/${encodeURIComponent(account.id)}`);
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Could not load competitive profile.");
-      setCompetitiveProfile(data.profile);
-      setCompetitiveProfileError("");
-    } catch (profileError) {
-      setCompetitiveProfileError(profileError.message);
-    } finally {
-      setCompetitiveProfileLoading(false);
+      const data = await readPlayerJson(`${SOCKET_URL}/api/profiles/${encodeURIComponent(account.id)}`, { errorMessage: "Could not load competitive profile." });
+      if (profileScopeRef.current === scope) setCompetitiveProfileState({ scope, profile: data.profile, loading: false, error: "" });
+    } catch (failure) {
+      if (profileScopeRef.current === scope) setCompetitiveProfileState(previous => ({ ...previous, scope, loading: false, error: failure.message }));
     }
-  }, [account?.id]);
+  }, [account?.id, profileScope]);
+
+  useEffect(() => {
+    if (!profileScope) setCompetitiveProfileState({ scope: "", profile: null, loading: false, error: "" });
+  }, [profileScope]);
 
   useEffect(() => {
     if (homeArea === "profile" && identityView === "record") loadCompetitiveProfile();
@@ -3535,10 +3537,8 @@ export default function App() {
     const path = publicView.type === "match"
       ? `/api/matches/${encodeURIComponent(publicView.id)}`
       : `/api/profiles/${encodeURIComponent(publicView.id)}`;
-    fetch(`${SOCKET_URL}${path}`)
-      .then(async (response) => {
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || "Could not load public record.");
+    readPlayerJson(`${SOCKET_URL}${path}`, { errorMessage: "Could not load public record." })
+      .then(data => {
         if (active) setPublicViewData(publicView.type === "match" ? data.match : data.profile);
       })
       .catch((viewError) => active && setPublicViewError(viewError.message))
@@ -3554,33 +3554,25 @@ export default function App() {
     }
 
     try {
-      const response = await fetch(`${SOCKET_URL}/api/friends`, {
-        headers: { Authorization: `Bearer ${authToken}` }
-      });
-      const data = await response.json();
-      if (browserStorage.getItem(STORAGE_KEYS.authToken) !== authToken) return;
-      if (response.status === 401) {
-        browserStorage.removeItem(STORAGE_KEYS.authToken);
-        setAuthToken("");
-        setAccount(null);
-      }
-      if (!response.ok) throw new Error(data.error || "Could not load friends.");
+      const data = await readPlayerJson(`${SOCKET_URL}/api/friends`, { authToken, errorMessage: "Could not load friends." });
+      if (authTokenRef.current !== authToken || browserStorage.getItem(STORAGE_KEYS.authToken) !== authToken) return;
       const nextFriendsData = { friends: data.friends || [], messages: data.messages || [], challenges: data.challenges || [] };
       setFriendsData((current) => retainEquivalentData(current, nextFriendsData));
       setSelectedFriendId((current) => data.friends?.some((friend) => friend.id === current) ? current : "");
       setFriendsError("");
     } catch (friendLoadError) {
-      if (browserStorage.getItem(STORAGE_KEYS.authToken) !== authToken) return;
+      if (authTokenRef.current !== authToken || browserStorage.getItem(STORAGE_KEYS.authToken) !== authToken) return;
+      if (friendLoadError.status === 401) {
+        browserStorage.removeItem(STORAGE_KEYS.authToken);
+        setAuthToken("");
+        setAccount(null);
+      }
       setFriendsError(friendLoadError.message);
     }
   }, [authToken]);
 
   useEffect(() => {
-    loadFriends();
-  }, [loadFriends]);
-
-  useEffect(() => {
-    if (!authToken) return undefined;
+    if (!authToken) { loadFriends(); return undefined; }
     const refreshVisibleFriends = () => {
       if (document.visibilityState !== "hidden") loadFriends();
     };
@@ -3591,7 +3583,7 @@ export default function App() {
       window.clearInterval(intervalId);
       document.removeEventListener("visibilitychange", refreshVisibleFriends);
     };
-  }, [authToken, homeArea, identityView, loadFriends]);
+  }, [authToken, loadFriends]);
 
   useEffect(() => {
     browserStorage.setItem(STORAGE_KEYS.friendReadAt, JSON.stringify(friendReadAt));
@@ -4749,6 +4741,20 @@ export default function App() {
     );
   }
 
+  if (!gameContent && !role && !game && !lobby && !draftState && !draftPending) {
+    return (
+      <Suspense fallback={<SurfaceLoading label="Command Deck" />}>
+        <StartupPlayerShell serverUrl={SOCKET_URL} destination={homeArea} navigationKey={`${homeArea}:${playerRoute.view}`} onNavigate={navigateHomeArea} account={account} ownerAuthorized={ownerAuthorized} onAdmin={() => navigateHomeArea("studio")}>
+          <section className="cd-panel" aria-busy={!gameContentError}>
+            <h2>{gameContentError ? "Game server unavailable" : "Connecting to the game server"}</h2>
+            <p role="status">{gameContentError || "You can navigate while the current game content is being verified. Game actions will be available once the server responds."}</p>
+            {gameContentError && <MenuButton onClick={loadGameContent}>Retry connection</MenuButton>}
+          </section>
+        </StartupPlayerShell>
+      </Suspense>
+    );
+  }
+
   if (!gameContent) {
     return (
       <main className="gauntlet-loading" style={{ "--loading-art": `url(${resolveAssetPath(presentationArt("/assets/gauntlet/kaiser-gauntlet.webp", { surface: "loading" }))})` }}>
@@ -4865,7 +4871,7 @@ export default function App() {
             </section>
             <ProgressionPanel account={account} campaigns={gameContent.campaigns} onSelectCosmetic={selectAccountCosmetic} />
           </details>,
-          record: <Suspense fallback={<SurfaceLoading label="competitive record" />}><CompetitiveIdentityPanel profile={competitiveProfile} loading={competitiveProfileLoading} error={competitiveProfileError}
+          record: <Suspense fallback={<SurfaceLoading label="competitive record" />}><CompetitiveIdentityPanel profile={competitiveProfile} loading={competitiveProfileLoading} error={competitiveProfileError} onRetry={loadCompetitiveProfile}
             onOpenProfile={(id) => openPublicView("profile", id)} onOpenMatch={(id) => openPublicView("match", id)} onOpenReplay={openReplay} /></Suspense>,
           economy: <Suspense fallback={<SurfaceLoading label="Gold and Library" />}><EconomyConsole serverUrl={SOCKET_URL} authToken={authToken} onAccountUpdated={setAccount} /></Suspense>,
           events: <Suspense fallback={<SurfaceLoading label="official events" />}>{playerRoute.view === "para"
