@@ -370,18 +370,24 @@ test('account layouts sync across browser contexts and remain isolated between a
 
 test('Campaign faction selection opens its real chapter briefing and Factions AI opens the lobby', async ({ page, request }) => {
   const { content } = await (await request.get(`${SERVER_URL}/api/game-content`)).json();
-  const [factionId, campaign] = Object.entries(content.campaigns)[0];
+  const campaigns = Object.entries(content.campaigns);
+  const [factionId, campaign] = campaigns[1] || campaigns[0];
   await openPlay(page);
   await page.locator('.cd-action-tile[data-action-id="campaign"]').click();
   await expect(page.locator('.cd-action-tile[data-action-id^="faction-"]')).toHaveCount(Object.keys(content.campaigns).length);
   await page.locator(`.cd-action-tile[data-action-id="faction-${factionId}"]`).click();
-  await expect(page.getByRole('tab', { name: new RegExp(`^${campaign.factionName}`) })).toHaveAttribute('aria-selected', 'true');
+  await expect(page.getByRole('tablist', { name: 'Faction campaigns' })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: `${campaign.factionName} Campaign`, exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Chapter Map', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: campaign.chapters[0].title, exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'View Briefing', exact: true }).first().click();
   await expect(page.getByRole('heading', { name: campaign.chapters[0].title, exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Begin Battle', exact: true }).first()).toBeEnabled();
   await page.screenshot({ path: 'artifacts/command-deck/after-campaign-briefing.png', fullPage: true });
   await page.getByRole('button', { name: /Back to Chapter Map/ }).click();
   await expect(page.getByRole('button', { name: 'View Briefing', exact: true }).first()).toBeVisible();
+  await page.getByRole('button', { name: 'Back to Campaign Selection', exact: true }).click();
+  await expect(page.locator('.cd-action-tile[data-action-id^="faction-"]')).toHaveCount(campaigns.length);
   await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name: 'Play', exact: true }).click();
   await page.locator('.cd-action-tile[data-action-id="faction-ai"]').click();
   await expect(page.getByText('Table Command', { exact: true })).toBeVisible();
