@@ -1,7 +1,5 @@
 "use strict";
 
-const art = require("./initiativeCampaignArt.json");
-
 function isDefaultImage(image, aliases = []) {
   return !image || (typeof image === "string" && aliases.includes(image.replace(/\?v=[a-f0-9]+$/i, "")));
 }
@@ -17,7 +15,7 @@ function resolveChapter(chapter, catalog) {
   return image === chapter.image && cinematic === chapter.cinematic ? chapter : { ...chapter, image, ...(cinematic && { cinematic }) };
 }
 
-function applyInitiativeCampaignArt(campaigns) {
+function applyInitiativeCampaignArt(campaigns, art) {
   const revised = { ...campaigns };
   for (const [id, campaign] of Object.entries(campaigns || {})) {
     if (!Object.hasOwn(art, id) || !Array.isArray(campaign?.chapters)) continue;
