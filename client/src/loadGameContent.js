@@ -1,5 +1,3 @@
-import { applyInitiativeCampaignArt } from "@gauntlet/duel-rules/resolveInitiativeArt";
-
 export const GAME_CONTENT_TIMEOUT_MS = 20000;
 
 export async function fetchGameContent(apiBaseUrl, fetchImpl = fetch) {
@@ -21,7 +19,7 @@ export async function fetchGameContent(apiBaseUrl, fetchImpl = fetch) {
         if (!data.content?.contentVersion || !data.content?.campaigns || !data.content?.deckRules) {
           throw new Error("The server returned an unsupported game-content manifest.");
         }
-        return { ...data.content, campaigns: applyInitiativeCampaignArt(data.content.campaigns) };
+        return data.content;
       })()
     ]);
   } finally {

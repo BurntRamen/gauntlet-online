@@ -2,10 +2,6 @@
 
 const art = require("./initiativeCampaignArt.json");
 
-function hasInitiativeArt(factionId) {
-  return Object.hasOwn(art, factionId);
-}
-
 function isDefaultImage(image, aliases = []) {
   return !image || (typeof image === "string" && aliases.includes(image.replace(/\?v=[a-f0-9]+$/i, "")));
 }
@@ -24,7 +20,7 @@ function resolveChapter(chapter, catalog) {
 function applyInitiativeCampaignArt(campaigns) {
   const revised = { ...campaigns };
   for (const [id, campaign] of Object.entries(campaigns || {})) {
-    if (!hasInitiativeArt(id) || !Array.isArray(campaign?.chapters)) continue;
+    if (!Object.hasOwn(art, id) || !Array.isArray(campaign?.chapters)) continue;
     const catalog = art[id];
     const coverImage = isDefaultImage(campaign.coverImage, catalog.previousCover) ? catalog.cover : campaign.coverImage;
     revised[id] = { ...campaign, coverImage, chapters: campaign.chapters.map(chapter => resolveChapter(chapter, catalog.chapters)) };
@@ -32,4 +28,4 @@ function applyInitiativeCampaignArt(campaigns) {
   return revised;
 }
 
-module.exports = { applyInitiativeCampaignArt, hasInitiativeArt };
+module.exports = { applyInitiativeCampaignArt };
