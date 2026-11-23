@@ -58,7 +58,9 @@ import { fetchGameContent } from "./loadGameContent";
 import CurrencyWallet from "./CurrencyWallet";
 import { canUsePrinting } from "@gauntlet/duel-rules/printings";
 
-const PlayerMenuExperience = lazy(() => import(/* webpackChunkName: "gauntlet-player-entry", webpackPrefetch: true */ "./navigation/PlayerMenuExperience"));
+const loadPlayerMenuExperience = () => import(/* webpackChunkName: "gauntlet-player-entry", webpackPrefetch: true */ "./navigation/PlayerMenuExperience");
+const PlayerMenuExperience = lazy(loadPlayerMenuExperience);
+const StartupPlayerShell = lazy(() => loadPlayerMenuExperience().then(module => ({ default: module.StartupPlayerShell })));
 const FactionLoreScreen = lazy(() => import("./FactionLoreScreen"));
 const DraftScreen = lazy(() => import("./DraftScreen"));
 const LiveBabylonMatchExperience = lazy(() => import("./babylon/LiveBabylonMatchExperience"));
@@ -3074,6 +3076,7 @@ export default function App() {
   const [activeSeasonMatchesError, setActiveSeasonMatchesError] = useState("");
   const [gameContent, setGameContent] = useState(null);
   const [gameContentError, setGameContentError] = useState("");
+  const gameContentRequest = useRef(null);
   const [competitiveProfile, setCompetitiveProfile] = useState(null);
   const [competitiveProfileLoading, setCompetitiveProfileLoading] = useState(false);
   const [competitiveProfileError, setCompetitiveProfileError] = useState("");
@@ -3266,13 +3269,15 @@ export default function App() {
     return () => window.removeEventListener("keydown", closeDrawer);
   }, [matchDrawer]);
 
-  const loadGameContent = useCallback(async () => {
+  const loadGameContent = useCallback(() => {
+    if (gameContentRequest.current) return gameContentRequest.current;
     setGameContentError("");
-    try {
-      setGameContent(await fetchGameContent(SOCKET_URL));
-    } catch (contentError) {
-      setGameContentError(contentError.message);
-    }
+    const request = fetchGameContent(SOCKET_URL)
+      .then(setGameContent)
+      .catch(contentError => setGameContentError(contentError.message))
+      .finally(() => { gameContentRequest.current = null; });
+    gameContentRequest.current = request;
+    return request;
   }, []);
 
   useEffect(() => {
@@ -4744,6 +4749,20 @@ export default function App() {
           />
         </Suspense>
       </main>
+    );
+  }
+
+  if (!gameContent && !role && !game && !lobby && !draftState && !draftPending) {
+    return (
+      <Suspense fallback={<SurfaceLoading label="Command Deck" />}>
+        <StartupPlayerShell serverUrl={SOCKET_URL} destination={homeArea} navigationKey={`${homeArea}:${playerRoute.view}`} onNavigate={navigateHomeArea} account={account} ownerAuthorized={ownerAuthorized} onAdmin={() => navigateHomeArea("studio")}>
+          <section className="cd-panel" aria-busy={!gameContentError}>
+            <h2>{gameContentError ? "Game server unavailable" : "Connecting to the game server"}</h2>
+            <p role="status">{gameContentError || "You can navigate while the current game content is being verified. Game actions will be available once the server responds."}</p>
+            {gameContentError && <MenuButton onClick={loadGameContent}>Retry connection</MenuButton>}
+          </section>
+        </StartupPlayerShell>
+      </Suspense>
     );
   }
 
