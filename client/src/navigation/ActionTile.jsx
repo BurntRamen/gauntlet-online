@@ -4,7 +4,7 @@ import { resolveVisualAsset } from "../GauntletVisuals";
 import { ACTION_ART, ACTION_ART_POSITIONS } from "./menuArtwork";
 
 /** The whole illustrated tile is one destination; its outcome remains available to assistive technology. */
-export default function ActionTile({ id, title, description, outcome, badge, onClick, disabled = false, icon, artwork = ACTION_ART[id], tone = typeof icon === "string" ? icon : "campaign", className = "" }) {
+export default function ActionTile({ id, title, description, outcome, badge, onClick, disabled = false, icon, artwork = ACTION_ART[id], tone = typeof icon === "string" ? icon : "campaign", className = "", current = false }) {
   return (
     <button
       type="button"
@@ -14,6 +14,7 @@ export default function ActionTile({ id, title, description, outcome, badge, onC
       onClick={onClick}
       disabled={disabled}
       aria-label={title}
+      aria-current={current ? "page" : undefined}
       aria-description={outcome || description}
     >
       {(artwork || icon) && <span className="cd-action-visual" aria-hidden="true">
