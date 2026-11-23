@@ -311,7 +311,8 @@ app.use("/api/payments/webhook", express.raw({ type: "application/json", limit: 
 app.use(express.json({ limit: "20kb" }));
 // Parse bounded request bodies before joining the writer queue. Include
 // profile reads: binding an existing opening balance is a ledger write.
-app.use((req,res,next)=>remoteOperationsEnabled && req.path.startsWith("/api/") && !["/api/content-assets/","/api/admin/authoring","/api/admin/workshops"].some(prefix=>req.path.startsWith(prefix))
+// Published game content is independent of room checkpoints and ledger writes.
+app.use((req,res,next)=>remoteOperationsEnabled && !(["GET", "HEAD"].includes(req.method) && req.path === "/api/game-content") && req.path.startsWith("/api/") && !["/api/content-assets/","/api/admin/authoring","/api/admin/workshops"].some(prefix=>req.path.startsWith(prefix))
   ? require("./durableHttpBoundary").durableHttpMiddleware(durableRooms)(req,res,next) : next());
 
 function getRequestAddress(req) {
