@@ -1,7 +1,7 @@
 "use strict";
 
 const { applyInitiativeCampaignArt } = require("../shared/duel-rules/resolveInitiativeArt");
-const initiativeArt = require("../client/public/assets/gauntlet/campaigns/initiative-art-v1.json");
+const initiativeArt = require("../client/public/assets/gauntlet/campaigns/initiative-art-v2.json");
 const fs = require("node:fs");
 const path = require("node:path");
 const crypto = require("node:crypto");
@@ -214,7 +214,7 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
       const state = read(), release = state.releases[state.activeReleaseId];
       const resolved = resolveEngineContent(release.snapshot, release.id);
       resolved.manifest.campaigns = applyInitiativeCampaignArt(resolved.manifest.campaigns, initiativeArt);
-      resolved.manifest.initiativeArtVersion = 1;
+      resolved.manifest.initiativeArtVersion = 2;
       activeCache = { signature, resolved, cards: new Map(resolved.manifest.cards.map(card => [card.id, card])), variants: new Map(resolved.manifest.collectorVariants.map(variant => [variant.variantId, variant])) };
     }
     return activeCache;

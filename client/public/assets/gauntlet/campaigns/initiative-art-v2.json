@@ -1,0 +1,278 @@
+{
+  "rumin": {
+    "cover": "/assets/gauntlet/faction-art-2026-11-07/rumin/rumin-rumie-hero.webp",
+    "chapters": {
+      "brothers-of-destiny": {
+        "image": "/assets/gauntlet/campaigns/rumin/initiative/brothers-of-destiny.3c6152c83803.webp",
+        "replaces": [
+          "/assets/gauntlet/campaigns/rumin/01-brothers-of-destiny.webp",
+          "/assets/gauntlet/releases/61b79805dabed7a2282c4f78619fd4848bcae0d57f31d3c2874ed2511e920603.webp"
+        ]
+      },
+      "the-republic": {
+        "image": "/assets/gauntlet/campaigns/rumin/initiative/the-republic.eb3117221cb5.webp",
+        "replaces": [
+          "/assets/gauntlet/campaigns/rumin/02-the-republic.webp",
+          "/assets/gauntlet/releases/a60392cc1143ad35862ccb001eefb55e32792fdf9ba01a789c454fd0815daf6b.webp"
+        ]
+      },
+      "the-jewel": {
+        "image": "/assets/gauntlet/campaigns/rumin/initiative/the-jewel.97cfaadefb78.webp",
+        "replaces": [
+          "/assets/gauntlet/campaigns/rumin/03-the-jewel.webp",
+          "/assets/gauntlet/releases/48bc4d87c3e5fba1e26f9d2dfbde00755aaec3da61af1770e2ce8429f692bff5.webp"
+        ]
+      },
+      "gaulic-wars": {
+        "image": "/assets/gauntlet/campaigns/rumin/initiative/gaulic-wars.59bf1455824f.webp",
+        "replaces": [
+          "/assets/gauntlet/campaigns/rumin/04-gaulic-wars.webp",
+          "/assets/gauntlet/releases/31fa0c8a2baccc51dc858a4f1c69f86a9f400ad6374e6325b96f040c34314c68.webp"
+        ]
+      },
+      "three-runes": {
+        "image": "/assets/gauntlet/campaigns/rumin/initiative/three-runes.d37bb676566a.webp",
+        "replaces": [
+          "/assets/gauntlet/campaigns/rumin/05-three-runes.webp",
+          "/assets/gauntlet/releases/96e3b5418929b17e63a7afbe0f2e4312242aeea57f15de199c9fab3f32dfd8bf.webp"
+        ]
+      },
+      "first-empire-bank": {
+        "image": "/assets/gauntlet/campaigns/rumin/initiative/first-empire-bank.a370130320d4.webp",
+        "replaces": [
+          "/assets/gauntlet/campaigns/rumin/06-first-empire-bank.webp",
+          "/assets/gauntlet/releases/704e0fd8352a6f0ef71beb500361cdb7ac79d6747eaa33c1952da9b7c38b15b4.webp"
+        ]
+      },
+      "the-crossing": {
+        "image": "/assets/gauntlet/campaigns/rumin/initiative/the-crossing.5324d6f2b0c6.webp",
+        "replaces": [
+          "/assets/gauntlet/campaigns/rumin/07-the-crossing.webp",
+          "/assets/gauntlet/releases/799ea9f0015d1c0f24eb1b68f7c3933129d9c502845fdb72f4c459dbc3b75a60.webp"
+        ]
+      },
+      "last-republic": {
+        "image": "/assets/gauntlet/campaigns/rumin/initiative/last-republic.8594d3530c77.webp",
+        "replaces": [
+          "/assets/gauntlet/campaigns/rumin/08-last-republic.webp",
+          "/assets/gauntlet/releases/6133caee60038c018e0d892fcfdfe27dafd2e10c5bc81f9ccad1830e5357847d.webp"
+        ]
+      },
+      "emperor-of-gold": {
+        "image": "/assets/gauntlet/campaigns/rumin/initiative/emperor-of-gold.8f740597f035.webp",
+        "replaces": [
+          "/assets/gauntlet/campaigns/rumin/09-emperor-of-gold.webp",
+          "/assets/gauntlet/releases/462b89cac574b041055d047fb29bc83d440509c99fa34aee88e7730d44f8b21b.webp"
+        ]
+      },
+      "ides-of-rumie": {
+        "image": "/assets/gauntlet/campaigns/rumin/initiative/ides-of-rumie.99088f3a0083.webp",
+        "replaces": [
+          "/assets/gauntlet/campaigns/rumin/10-ides-of-rumie.webp",
+          "/assets/gauntlet/releases/a5a0e1df54836c64b0971b06f59dfecb9d7337cb25c2f724aac97e9164bec3cb.webp"
+        ]
+      },
+      "war-of-successors": {
+        "image": "/assets/gauntlet/campaigns/rumin/initiative/war-of-successors.0d439c252e00.webp",
+        "replaces": [
+          "/assets/gauntlet/campaigns/rumin/11-war-of-successors.webp",
+          "/assets/gauntlet/releases/f45da8c0f5d2d7962b0e4359dda90b69432c72df1b14f4782aca6a764b0b6871.webp"
+        ]
+      },
+      "first-emperor": {
+        "image": "/assets/gauntlet/campaigns/rumin/initiative/first-emperor.8929590aee7e.webp",
+        "replaces": [
+          "/assets/gauntlet/campaigns/rumin/12-first-emperor.webp",
+          "/assets/gauntlet/releases/e2a8ab104b45b0b568e3e7558343ff7e6a418b7b82822d4b6a69ee8ba0fd041f.webp"
+        ]
+      }
+    },
+    "previousCover": [
+      "/assets/gauntlet/campaigns/rumin/06-first-empire-bank.webp",
+      "/assets/gauntlet/releases/704e0fd8352a6f0ef71beb500361cdb7ac79d6747eaa33c1952da9b7c38b15b4.webp"
+    ]
+  },
+  "bizi": {
+    "cover": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-constanti-hero.webp",
+    "chapters": {
+      "kharons-vision": {
+        "image": "/assets/gauntlet/campaigns/bizi/01-kharons-vision.webp"
+      },
+      "first-titan": {
+        "image": "/assets/gauntlet/campaigns/bizi/initiative/first-titan.6ac5e4434eef.webp",
+        "replaces": [
+          "/assets/gauntlet/campaigns/bizi/02-first-titan.webp",
+          "/assets/gauntlet/releases/b77ec33713880d44ebe810435f366516eea66e89c91ccb0643f3832ae33c7067.webp",
+          "/assets/gauntlet/campaigns/bizi/initiative/first-titan.44a100835e37.webp",
+          "/assets/gauntlet/releases/44a100835e37024b0d61620f4a70acb29bbe05c2b2ce327d73cde61c41941f4d.webp"
+        ]
+      },
+      "golden-empire": {
+        "image": "/assets/gauntlet/campaigns/bizi/initiative/golden-empire.89977e81978d.webp",
+        "replaces": [
+          "/assets/gauntlet/campaigns/bizi/03-golden-empire.webp",
+          "/assets/gauntlet/releases/65d8210fe7419eb9c27e0e1624ab65c1563b262251f4e36d5a5e26832f2e2181.webp"
+        ]
+      },
+      "riot-of-sparks": {
+        "image": "/assets/gauntlet/campaigns/bizi/initiative/riot-of-sparks.76d1550d05df.webp",
+        "replaces": [
+          "/assets/gauntlet/campaigns/bizi/04-riot-of-sparks.webp",
+          "/assets/gauntlet/releases/a7401ca5a18f410b2149612d19e9e9b395aff05577b7114e0630fab79a2f6db3.webp"
+        ]
+      },
+      "last-victories": {
+        "image": "/assets/gauntlet/campaigns/bizi/initiative/last-victories.6bfe84e4d608.webp",
+        "replaces": [
+          "/assets/gauntlet/campaigns/bizi/05-last-victories.webp",
+          "/assets/gauntlet/releases/4d156be06880a09cd8208d22d5acc8abbee433629e767cda2cc624819179ba00.webp"
+        ]
+      },
+      "age-of-focus": {
+        "image": "/assets/gauntlet/campaigns/bizi/initiative/age-of-focus.ddbe2866d691.webp",
+        "replaces": [
+          "/assets/gauntlet/campaigns/bizi/06-age-of-focus.webp",
+          "/assets/gauntlet/releases/c2e40b2f82458a3205e2eae3c83338d2612672de6e65a39e4cfea67c40b14a1b.webp"
+        ]
+      },
+      "great-invasion": {
+        "image": "/assets/gauntlet/campaigns/bizi/initiative/great-invasion.03a8f4c969d9.webp",
+        "replaces": [
+          "/assets/gauntlet/campaigns/bizi/07-great-invasion.webp",
+          "/assets/gauntlet/releases/d876de12d94446257130628820caf06b75881a58b6493b70653e282571c4f699.webp"
+        ]
+      },
+      "heras-counterattack": {
+        "image": "/assets/gauntlet/campaigns/bizi/initiative/heras-counterattack.032705131caf.webp",
+        "replaces": [
+          "/assets/gauntlet/campaigns/bizi/08-heras-counterattack.webp",
+          "/assets/gauntlet/releases/08cdb25d50e2cc5ea18561b249e077a56311b9551cf7dae7861ac1e4a32a7cb7.webp"
+        ]
+      },
+      "three-titans": {
+        "image": "/assets/gauntlet/campaigns/bizi/initiative/three-titans.84b00fe86744.webp",
+        "replaces": [
+          "/assets/gauntlet/campaigns/bizi/09-three-titans.webp",
+          "/assets/gauntlet/releases/0bba864fa71a018409762aaf35c980f2981b77c252ac5eecedac8c7816a9744b.webp",
+          "/assets/gauntlet/campaigns/bizi/initiative/three-titans.c3a3f12d2238.webp",
+          "/assets/gauntlet/releases/c3a3f12d2238f24bec6c64e0c6de1874860f77726513ed97bb300f2a6a097f3d.webp"
+        ]
+      },
+      "the-schism": {
+        "image": "/assets/gauntlet/campaigns/bizi/initiative/the-schism.5804214162e8.webp",
+        "replaces": [
+          "/assets/gauntlet/campaigns/bizi/10-the-schism.webp",
+          "/assets/gauntlet/releases/95285de39296bf990c57c31fe3fcdc376e5b68674d1e544f89d69fe6dd77e2dd.webp"
+        ]
+      },
+      "the-restoration": {
+        "image": "/assets/gauntlet/campaigns/bizi/initiative/the-restoration.df860fa5defb.webp",
+        "replaces": [
+          "/assets/gauntlet/campaigns/bizi/11-the-restoration.webp",
+          "/assets/gauntlet/releases/8f23afdc00493e0ab9535a7332028d6c942a141452911d9cc0584e0e521139a2.webp"
+        ]
+      },
+      "last-gear": {
+        "image": "/assets/gauntlet/campaigns/bizi/initiative/last-gear.ee797edb2ef7.webp",
+        "replaces": [
+          "/assets/gauntlet/campaigns/bizi/12-last-gear.webp",
+          "/assets/gauntlet/releases/27b38ab882ba4fb45be390ae47afaa6d9f64f54a4089b290dd0018e6b9930c85.webp"
+        ]
+      }
+    },
+    "previousCover": [
+      "/assets/gauntlet/campaigns/bizi/03-golden-empire.webp",
+      "/assets/gauntlet/releases/65d8210fe7419eb9c27e0e1624ab65c1563b262251f4e36d5a5e26832f2e2181.webp"
+    ]
+  },
+  "sheen": {
+    "cover": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-beli-hero.webp",
+    "chapters": {
+      "iron-roots": {
+        "image": "/assets/gauntlet/campaigns/sheen/initiative/iron-roots.603917990f86.webp"
+      },
+      "verdant-uprising": {
+        "image": "/assets/gauntlet/campaigns/sheen/initiative/verdant-uprising.7322007bf1fb.webp"
+      },
+      "obsidian-throne": {
+        "image": "/assets/gauntlet/campaigns/sheen/initiative/obsidian-throne.072d7ce27e6d.webp"
+      },
+      "beli-living-city": {
+        "image": "/assets/gauntlet/campaigns/sheen/initiative/beli-living-city.d5e0501b0df6.webp"
+      },
+      "root-network": {
+        "image": "/assets/gauntlet/campaigns/sheen/initiative/root-network.322947df762d.webp"
+      },
+      "blooming-age": {
+        "image": "/assets/gauntlet/campaigns/sheen/initiative/blooming-age.fc7ff84510b0.webp"
+      },
+      "court-of-blossoms": {
+        "image": "/assets/gauntlet/campaigns/sheen/initiative/court-of-blossoms.696c8ef579ed.webp"
+      },
+      "the-reformer": {
+        "image": "/assets/gauntlet/campaigns/sheen/initiative/the-reformer.2b374b05a706.webp"
+      },
+      "thorned-crown": {
+        "image": "/assets/gauntlet/campaigns/sheen/initiative/thorned-crown.de507cddead0.webp"
+      },
+      "war-of-roots": {
+        "image": "/assets/gauntlet/campaigns/sheen/initiative/war-of-roots.292f45ec2e7a.webp"
+      },
+      "fall-of-thorn-mang": {
+        "image": "/assets/gauntlet/campaigns/sheen/initiative/fall-of-thorn-mang.a8f435dd8492.webp",
+        "previousCinematic": [
+          "/assets/gauntlet/tang.webp",
+          "/assets/gauntlet/releases/149ee7713328f74b4a9be6cb4be403975280c41bd15201802b3e794fc66f367c.webp"
+        ]
+      },
+      "green-era": {
+        "image": "/assets/gauntlet/campaigns/sheen/initiative/green-era.98b817b43c9d.webp"
+      }
+    }
+  },
+  "frumo": {
+    "cover": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-ristus-hero.webp",
+    "chapters": {
+      "tax-of-tides": {
+        "image": "/assets/gauntlet/campaigns/frumo/initiative/tax-of-tides.13880b296201.webp"
+      },
+      "voices-of-revolution": {
+        "image": "/assets/gauntlet/campaigns/frumo/initiative/voices-of-revolution.adca63fda352.webp"
+      },
+      "fall-of-silver-shoals": {
+        "image": "/assets/gauntlet/campaigns/frumo/initiative/fall-of-silver-shoals.badd2aa9275c.webp"
+      },
+      "sunken-fortress": {
+        "image": "/assets/gauntlet/campaigns/frumo/initiative/sunken-fortress.9dc2a1f61175.webp"
+      },
+      "trial-of-king": {
+        "image": "/assets/gauntlet/campaigns/frumo/initiative/trial-of-king.f6b7a479d02d.webp"
+      },
+      "reign-of-revolution": {
+        "image": "/assets/gauntlet/campaigns/frumo/initiative/reign-of-revolution.722e59c5750b.webp"
+      },
+      "hero-of-republic": {
+        "image": "/assets/gauntlet/campaigns/frumo/initiative/hero-of-republic.b622baecfef4.webp"
+      },
+      "lord-commander": {
+        "image": "/assets/gauntlet/campaigns/frumo/initiative/lord-commander.2e7e8ad0eb2e.webp"
+      },
+      "frumo-empire": {
+        "image": "/assets/gauntlet/campaigns/frumo/initiative/frumo-empire.3fa3c0aecfd6.webp"
+      },
+      "hundred-fleets": {
+        "image": "/assets/gauntlet/campaigns/frumo/initiative/hundred-fleets.d48c2d53f1fb.webp"
+      },
+      "frozen-sea": {
+        "image": "/assets/gauntlet/campaigns/frumo/initiative/frozen-sea.b111a03c1f51.webp"
+      },
+      "last-tide": {
+        "image": "/assets/gauntlet/campaigns/frumo/initiative/last-tide.1a281a6268ce.webp",
+        "previousCinematic": [
+          "/assets/gauntlet/polea.webp",
+          "/assets/gauntlet/releases/43b80136c83389f8676e814517c218b17fa44123a2555b18ceee6aec656be944.webp"
+        ]
+      }
+    }
+  }
+}

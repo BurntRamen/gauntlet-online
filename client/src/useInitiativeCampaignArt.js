@@ -4,7 +4,7 @@ import { applyInitiativeCampaignArt } from "@gauntlet/duel-rules/resolveInitiati
 let artRequest;
 function loadCampaignArt() {
   if (!artRequest) {
-    artRequest = fetch((process.env.PUBLIC_URL || "") + "/assets/gauntlet/campaigns/initiative-art-v1.json")
+    artRequest = fetch((process.env.PUBLIC_URL || "") + "/assets/gauntlet/campaigns/initiative-art-v2.json")
       .then(response => {
         if (!response.ok) throw new Error("Campaign illustration catalog unavailable");
         return response.json();
@@ -16,11 +16,11 @@ function loadCampaignArt() {
 
 export function useInitiativeCampaignArt(open, content, setContent) {
   useEffect(() => {
-    if (!open || !content?.campaigns || content.initiativeArtVersion >= 1) return;
+    if (!open || !content?.campaigns || content.initiativeArtVersion >= 2) return;
     let active = true;
     loadCampaignArt().then(art => {
       if (active) setContent(current => current === content
-        ? { ...current, campaigns: applyInitiativeCampaignArt(current.campaigns, art), initiativeArtVersion: 1 }
+        ? { ...current, campaigns: applyInitiativeCampaignArt(current.campaigns, art), initiativeArtVersion: 2 }
         : current);
     }).catch(() => { /* Keep the published campaign playable and retry on the next visit. */ });
     return () => { active = false; };
