@@ -13,11 +13,17 @@ const guide = require("../../server/adminAuthoringGuide");
 const clone = (value) => JSON.parse(JSON.stringify(value));
 let state, request;
 const props = () => ({ request, area: "Design", revision: 0, onPublished: jest.fn(), onNavigate: jest.fn() });
-test("a rolling deployment keeps editors closed until the matching guidance contract is available", async () => {
-  state.guide = { ...guide, workspaceVersion: 1 };
+test("unknown workspace versions keep editors closed", async () => {
+  state.guide = { ...guide, workspaceVersion: 99 };
   render(<GauntletAuthoring {...props()} />);
   expect(await screen.findByText(guide.help.workspaceCopy3)).toBeVisible();
   expect(screen.queryByRole("region", { name: "Card Workshop", exact: true })).not.toBeInTheDocument();
+});
+test("version one opens the current card workshop", async () => {
+  state.guide = { ...guide, workspaceVersion: 1 };
+  delete state.guide.websiteSurfaces;
+  render(<GauntletAuthoring {...props()} />);
+  expect(await screen.findByRole("region", { name: "Card Workshop", exact: true })).toBeVisible();
 });
 const resolvedPresentation = () => ({ releaseId: state.draft ? `draft:${state.draft.hash}` : state.activeReleaseId,
   manifest: { cards: clone((state.draft?.snapshot || state.live).domains.cards), collectorVariants: [], campaigns: {} } });

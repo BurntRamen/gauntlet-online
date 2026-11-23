@@ -1,3 +1,4 @@
+import legacyHelp from "./admin/workspaceV1Help.json";
 import {Json} from './admin/Presentation';
 import CampaignChapters from "./admin/CampaignChapters";
 import { HelpProvider } from "./admin/AuthoringHelp";
@@ -7,7 +8,7 @@ import UnsavedChangesDialog from "./admin/UnsavedChangesDialog";
 import "./admin/TestHarness.css";
 import ContentBrowser, { BrowserControls, contentName, filterContent } from "./admin/ContentBrowser";
 import WorkshopShell, { WorkshopSection, WorkshopFacts } from "./admin/WorkshopShell";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Validation from "./admin/WorkshopValidation";
 import { displayValue as display, parseFieldValue, bufferTarget } from "./admin/workshopValues";
 import { EditorSessionContext } from "./admin/EditorSession";
@@ -38,7 +39,10 @@ function domainRows(state, domain) {
 
 export default function GauntletAuthoring({ request, area, initialDomain = null, revision, catalog, onPublished, guard, onNavigate, beforeNavigate, onExit, onStatus }) {
   const [state, setState] = useState(null);
-  const guide = state?.guide || {};
+  const serverGuide = state?.guide;
+  const guide = useMemo(() => serverGuide?.workspaceVersion === 1
+    ? { ...serverGuide, help: { ...legacyHelp, ...serverGuide.help }, websiteSurfaces: [] }
+    : serverGuide || {}, [serverGuide]);
   const help = guide.help || {};
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -220,7 +224,7 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
     finally { setBusy(false); }
   }
   if (!state) return <p role={error ? "alert" : "status"}>{error || help.workspaceCopy2}{!error && <progress className="sf-load-bar" aria-label="Loading authoring data" />}</p>;
-  if (guide.workspaceVersion !== 2) return <p role="status">{help.workspaceCopy3}</p>;
+  if (![1, 2].includes(guide.workspaceVersion)) return <p role="status">{help.workspaceCopy3}</p>;
   const DOMAINS = { ...guide.domains, game: "Website prose", sets: "Sets", decks: "Decks", offers: "Store", assets: "Collector artwork" };
   const snapshot = state.draft?.snapshot || state.live;
   const previewContent = preview || resolvedView;
@@ -341,7 +345,7 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
           </WorkshopSection><details className="admin-json"><summary>{help.workspaceCopy44}</summary><code>{row.id}</code><p className="admin-note">{help.workspaceCopy45}{catalog?.domains[domain]?.find(entry => entry.id === row.id)?.source || help.workspaceCopy46}{help.workspaceCopy47}{state.revision}</p><p className="admin-note">{guide.engineHelp}</p><pre>{JSON.stringify(Object.fromEntries(Object.entries(row).filter(([key]) => !Object.hasOwn(fields, key))), null, 2)}</pre></details>
         </> : <div className="admin-empty"><h4>{help.workspaceCopy48}</h4><p>{help.workspaceChooseContent}</p></div>}
       {domain === "assets" && <Json title={<>{help.workspaceCopy49}{state.live.engine.assetManifestVersion}</>} value={(state.assetLibrary || []).filter((asset) => asset.source === row?.art || asset.id === row?.art || asset.path === row?.art)} className="admin-json" />}
-      {row && domain === "campaigns" && <CampaignChapters campaign={row} snapshot={snapshot} assets={state.assetLibrary} busy={busy || unsaved} onInspect={inspect} onCreate={beginCreation} onReorder={ids=>act("reorder-encounters",{campaignId:row.id,ids})}/>}{row && !["sets", "assets", "asset-library"].includes(domain) && <details className="admin-editor-test"><summary>{help.workspaceCopy50}</summary>{playtest}</details>}{row && relationships && <WorkshopSection title="Related content" id="workshop-related"><RelatedContent data={relationships} domain={domain} id={row.id} onInspect={inspect} /></WorkshopSection>}
+      {row && domain === "campaigns" && <CampaignChapters campaign={row} snapshot={snapshot} assets={state.assetLibrary} busy={busy || unsaved} onInspect={inspect} onCreate={beginCreation} onReorder={guide.workspaceVersion === 2 ? ids=>act("reorder-encounters",{campaignId:row.id,ids}) : undefined}/>}{row && !["sets", "assets", "asset-library"].includes(domain) && <details className="admin-editor-test"><summary>{help.workspaceCopy50}</summary>{playtest}</details>}{row && relationships && <WorkshopSection title="Related content" id="workshop-related"><RelatedContent data={relationships} domain={domain} id={row.id} onInspect={inspect} /></WorkshopSection>}
       {preview && !row && <p className="admin-good">{guide.previewSelection}</p>}
       </WorkshopShell>
       </>}
