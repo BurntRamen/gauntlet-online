@@ -221,7 +221,7 @@ export default function PlayerMenus({ embedded = false, serverUrl, route, onNavi
     {!account && <button onClick={profile}>Sign in to use Community</button>}{slots.community}
   </>;
   else if (page === "learn" && view === "rulebook") body = <SetupFrame autoFocus={!embedded} title="Rulebook" description="Complete rules reference." onBack={() => nav("learn")} backLabel="Back to Learn & Rules">{slots.rulebook}</SetupFrame>;
-  else if (page === "learn" && view === "formats") body = <SetupFrame autoFocus={!embedded} title="Format Guide" description="Choose the kind of game you want to play." onBack={() => nav("learn")} backLabel="Back to Learn & Rules"><div className="cd-reference-grid">{playItems.map((item) => <article className="cd-panel" key={item.id}><h3>{item.title}</h3><p>{item.description}</p><button onClick={item.onClick}>{item.outcome}</button></article>)}</div></SetupFrame>;
+  else if (page === "learn" && view === "formats") body = <SetupFrame autoFocus={!embedded} title="Format Guide" description="Choose the kind of game you want to play." onBack={() => nav("learn")} backLabel="Back to Learn & Rules"><div className="cd-grid">{playItems.map((item) => <ActionTile key={item.id} {...item} />)}</div></SetupFrame>;
   else if (page === "learn") body = <Tiles pageId="learn" items={[
     action("tutorial", "Tutorial", "Learn priority, attacking, defending, and lanes.", "Read the guided tutorial", actions.tutorial, "learn"),
     action("rulebook", "Rulebook", "The complete rules, ready to reference.", "Open rulebook", () => nav("learn", "rulebook"), "learn"),
