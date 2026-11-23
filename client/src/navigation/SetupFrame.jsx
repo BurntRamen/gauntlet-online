@@ -1,12 +1,12 @@
 import React, { useEffect, useId, useRef } from "react";
 
 /** Focused workflows share a clear return path without adding another menu level. */
-export default function SetupFrame({ title, description, eyebrow, detail, onBack, backLabel = "Back to Play", children, actions, autoFocus = true }) {
+export default function SetupFrame({ title, description, eyebrow, detail, onBack, backLabel = "Back to Play", children, actions, autoFocus = true, wide = false }) {
   const titleId = useId();
   const titleRef = useRef(null);
   useEffect(() => { if (autoFocus) titleRef.current?.focus({ preventScroll: true }); }, [title, autoFocus]);
   return (
-    <section className="cd-setup-frame" aria-labelledby={titleId}>
+    <section className={`cd-setup-frame${wide ? " is-wide" : ""}`} aria-labelledby={titleId}>
       {onBack && <button type="button" className="cd-back-link" onClick={onBack}><span aria-hidden="true">←</span> {backLabel}</button>}
       <header className="cd-setup-header">
         {eyebrow && <span className="cd-eyebrow">{eyebrow}</span>}
