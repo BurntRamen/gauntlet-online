@@ -4817,7 +4817,7 @@ export default function App() {
       onBack={() => setShowCampaign(false)} onStartChapter={startCampaignChapter} canPlayAsPlayer={canPlayAsPlayer}
       account={account} campaigns={gameContent.campaigns} audioEnabled={!accountSoundMuted && !menuAudioSettings.masterMuted}
       />;
-    else if (showCollection) workflow = <SetupFrame title={collectionView === "decks" ? "Deck Editor" : collectionView === "catalog" ? "Card Collection" : "Earned Packs"}
+    else if (showCollection) workflow = <SetupFrame wide={collectionView === "decks"} title={collectionView === "decks" ? "Deck Editor" : collectionView === "catalog" ? "Card Collection" : "Earned Packs"}
       description="Owned cards, saved deck versions, and legal format choices." onBack={() => { if (confirmLeaveDeck()) setShowCollection(false); }}
       backLabel={playerRoute.view === "ranked" ? "Return to Ranked Setup" : playerRoute.page === "play" ? "Back to Play" : "Back to Decks & Cards"}>
       <CollectionPanel key={collectionView} onDirtyChange={setDeckDirty} account={account} initialView={collectionView} deckRules={gameContent.deckRules}
