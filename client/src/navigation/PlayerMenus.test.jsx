@@ -474,3 +474,18 @@ test("embedded workflow previews leave focus in the editor when mounting and upd
   expect(screen.getByRole("heading", { name: "Edited heading" })).toBeVisible();
   expect(screen.getByLabelText("Draft page heading")).toHaveFocus();
 });
+
+test("limited format destinations share the artwork tile and indicate the selected format", () => {
+  const { props } = renderMenus({ route: { page: "draft", view: "sealed" } });
+  const formats = within(screen.getByRole("navigation", { name: "Limited formats" }));
+  for (const label of ["Live Draft", "Bot Draft", "Sealed", "Limited League"]) {
+    const tile = formats.getByRole("button", { name: label, exact: true });
+    expect(tile).toHaveClass("cd-action-tile", "has-artwork");
+    expect(tile.querySelector(".cd-action-art img")).toHaveAttribute("loading", "lazy");
+    if (label === "Sealed") expect(tile).toHaveAttribute("aria-current", "page");
+    else expect(tile).not.toHaveAttribute("aria-current");
+  }
+  fireEvent.click(formats.getByRole("button", { name: "Bot Draft" }));
+  expect(props.onNavigate).toHaveBeenLastCalledWith("draft", "bot");
+  expect(props.actions.createBotDraft).not.toHaveBeenCalled();
+});
