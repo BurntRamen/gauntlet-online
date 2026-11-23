@@ -11,12 +11,15 @@ export default function Studio({ serverUrl, authToken = "", onSignIn, onAuthoriz
   const [error, setError] = useState("");
   const [attempt, setAttempt] = useState(0);
 
+  const authorizationListener = useRef(onAuthorizedChange);
+  useEffect(() => { authorizationListener.current = onAuthorizedChange; }, [onAuthorizedChange]);
+
   const closeAdmin = useCallback(() => {
     sessionRef.current = "";
     setAuthorizedToken("");
     setOperatorId("");
-    onAuthorizedChange?.(false);
-  }, [onAuthorizedChange]);
+    authorizationListener.current?.(false);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -32,13 +35,13 @@ export default function Studio({ serverUrl, authToken = "", onSignIn, onAuthoriz
           sessionRef.current = authToken;
           setAuthorizedToken(authToken);
           setOperatorId(body.accountId);
-          onAuthorizedChange?.(true);
+          authorizationListener.current?.(true);
         }
       })
       .catch((failure) => { if (active) setError(failure.message); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; sessionRef.current = ""; };
-  }, [authToken, serverUrl, closeAdmin, onAuthorizedChange, attempt]);
+  }, [authToken, serverUrl, closeAdmin, attempt]);
 
   const ownerRequest = useCallback(async (path, options = {}) => {
     const token = sessionRef.current;
