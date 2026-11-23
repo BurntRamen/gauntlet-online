@@ -2452,19 +2452,26 @@ async function findMatchRecordById(matchId) {
   return matchPersistence.findById(matchId);
 }
 
-async function listMatchRecordsByAccount(accountId, limit = 30) {
+async function listMatchRecordsByAccount(accountId, limit = 30, { account: knownAccount, archiveCache } = {}) {
   const safeLimit = Math.max(1, Math.min(Number(limit) || 30, 100));
-  const archiveIndexes = await matchArchive.list({ accountId, limit: safeLimit });
-  const archived = (await Promise.all(archiveIndexes.map((entry) => matchArchive.findById(entry.matchId))))
-    .filter(Boolean)
-    .map((entry) => entry.record);
-  const mode = await matchPersistence.getMode();
-  let indexedMatchIds = [];
-  if (mode === "compatibility") {
-    const account = await findSupabaseAccountById(accountId);
-    indexedMatchIds = normalizeProgression(account?.stats || {}).matchHistory.map((entry) => entry.matchId || entry.id);
-  }
-  const legacyRecords = await matchPersistence.listByAccount(accountId, safeLimit, indexedMatchIds);
+  // Both sources are independent. Preserve verification and merge precedence.
+  const [archived, legacyRecords] = await Promise.all([
+    (async () => {
+      const indexes = await matchArchive.list({ accountId, limit: safeLimit });
+      const verified = await Promise.all(indexes.map(entry => matchArchive.findById(entry.matchId)));
+      for (const entry of verified) if (entry) archiveCache?.set(entry.record.matchId, entry.index);
+      return verified.filter(Boolean).map(entry => entry.record);
+    })(),
+    (async () => {
+      const mode = await matchPersistence.getMode();
+      let indexedMatchIds = [];
+      if (mode === "compatibility") {
+        const account = knownAccount || await findSupabaseAccountById(accountId);
+        indexedMatchIds = normalizeProgression(account?.stats || {}).matchHistory.map(entry => entry.matchId || entry.id);
+      }
+      return matchPersistence.listByAccount(accountId, safeLimit, indexedMatchIds);
+    })()
+  ]);
   const recordsById = new Map([...legacyRecords, ...archived].filter(Boolean).map((record) => [record.matchId, record]));
   return [...recordsById.values()]
     .filter((record) => !record.completion || record.completion.status === "finalized")
@@ -3817,12 +3824,13 @@ app.get("/api/account/matches", async (req, res) => {
   try {
     const context = await requireAccountRecord(req, res);
     if (!context) return;
-    const records = await listMatchRecordsByAccount(context.account.id, req.query.limit);
+    const archiveCache = new Map();
+    const records = await listMatchRecordsByAccount(context.account.id, req.query.limit, { account: context.account, archiveCache });
     const safeLimit = Math.max(1, Math.min(Number(req.query.limit) || 30, 100));
     const references = normalizeProgression(context.account.stats || {}).matchHistory.slice(0, safeLimit);
     const availableIds = new Set(records.map((record) => record.matchId));
     const matches = await Promise.all(records.map(async (record) => {
-      const archive = await archiveProjectionForRecord(record);
+      const archive = archiveCache.get(record.matchId) || await archiveProjectionForRecord(record);
       const replay = replayAvailability(record, publicMatchStorageStatus());
       return {
         ...publicMatchSummary(record, { accountId: context.account.id }),
@@ -3858,11 +3866,13 @@ app.get("/api/profiles/:accountId", async (req, res) => {
       res.status(404).json({ error: "Profile not found." });
       return;
     }
-    const records = await listMatchRecordsByAccount(account.id, 100);
     const season = require("./seasons").getCurrentSeason();
-    const accounts = useSupabaseStore()
-      ? (await supabaseRequest("gauntlet_accounts?select=*")).map(accountFromSupabaseRow)
-      : loadAccountStore().accounts;
+    const [records, accounts] = await Promise.all([
+      listMatchRecordsByAccount(account.id, 100, { account }),
+      useSupabaseStore()
+        ? supabaseRequest("gauntlet_accounts?select=*").then(rows => rows.map(accountFromSupabaseRow))
+        : Promise.resolve(loadAccountStore().accounts)
+    ]);
     const seasonStanding = buildSeasonStandings(accounts, season).find((entry) => entry.accountId === account.id) || null;
     res.json({
       profile: { ...buildPublicPlayerProfile(account, records, { season, seasonStanding }), ...(paraRuntime?.enabled ? { para: paraRuntime.profile(account.id) } : {}) },
