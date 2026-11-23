@@ -260,8 +260,8 @@ export default function MatchesHub({
 
   const loadMatches = useCallback(async () => {
     const version = ++requestVersion.current;
-    await loadLocalMatches();
-    if (version !== requestVersion.current) return;
+    // Device and server histories are independent. Do not block the network on IndexedDB.
+    void loadLocalMatches();
     if (!authToken) {
       setServerData({ matches: [], unavailableMatchReferences: [], storage: null, scope: authToken });
       setLoading(false);
