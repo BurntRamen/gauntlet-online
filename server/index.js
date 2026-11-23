@@ -3791,7 +3791,7 @@ app.get("/api/game-content", (_req, res) => {
   res.set("X-Gauntlet-Rules-Version", DUEL_RULES_VERSION);
   const deployedCommit = process.env.RENDER_GIT_COMMIT || "";
   if (/^[a-f0-9]{40}$/i.test(deployedCommit)) res.set("X-Gauntlet-Commit", deployedCommit);
-  res.set("Cache-Control", "no-store");
+  res.set("Cache-Control", "public, max-age=0, must-revalidate");
   try {
     res.type("json").send(contentPublication.publicManifestJson());
   }
