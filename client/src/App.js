@@ -2927,7 +2927,7 @@ function CampaignScreen({ embedded = false, initialFactionId, initialChapterId =
                 aria-selected={selected}
                 className={`campaign-faction-tab${selected ? " is-active" : ""}`}
                 onClick={() => { setSelectedFactionId(factionId); changeBriefing(""); }}
-                style={{ "--faction-accent": theme.primary, backgroundImage: `linear-gradient(90deg, rgba(4,8,13,0.24), rgba(4,8,13,0.76)), url(${resolveVisualAsset(getFactionCover(factionId, campaign.coverImage) || "/assets/gauntlet/ui/faction-art-unavailable.svg")})` }}
+                style={{ "--faction-accent": theme.primary, backgroundImage: `linear-gradient(180deg, transparent 35%, rgba(4,8,13,0.12) 50%, rgba(4,8,13,0.94) 100%), url(${resolveVisualAsset(getFactionCover(factionId, campaign.coverImage) || "/assets/gauntlet/ui/faction-art-unavailable.svg")})` }}
               >
                 <span>{campaign.factionName}</span>
                 <strong>{factionClears}/{campaign.chapters.length}</strong>
@@ -3004,16 +3004,20 @@ function CampaignScreen({ embedded = false, initialFactionId, initialChapterId =
                 const completed = completedChapters.includes(chapter.id);
                 return (
                   <article key={chapter.id} aria-current={index === nextChapterIndex ? "step" : undefined} className={`campaign-chapter${unlocked ? " is-unlocked" : " is-locked"}${completed ? " is-complete" : ""}${index === nextChapterIndex ? " is-current" : ""}`}>
-                    <div className="campaign-chapter-art" data-art-state={chapterArtwork ? "chapter-art" : "faction-fallback"}>
-                      {chapterArtwork ? <img src={resolveVisualAsset(chapterArtwork)} alt="" loading="lazy" decoding="async" /> : <FactionArtwork factionId={activeFactionId} decorative />}
+                    <div className="campaign-chapter-tile">
+                      <div className="campaign-chapter-art" data-art-state={chapterArtwork ? "chapter-art" : "faction-fallback"}>
+                        {chapterArtwork ? <img src={resolveVisualAsset(chapterArtwork)} alt="" loading="lazy" decoding="async" /> : <FactionArtwork factionId={activeFactionId} decorative />}
+                      </div>
+                      <div className="campaign-chapter-tile-copy">
+                        <div className="campaign-chapter-status">Chapter {index + 1}<span>{completed ? "Cleared" : index === nextChapterIndex ? "Next Battle" : unlocked ? "Pack Reward" : "Locked"}</span></div>
+                        <h3>{chapter.title}</h3>
+                        <div className="campaign-chapter-opponent">Opponent: {chapter.opponentName}</div>
+                      </div>
+                      <button type="button" className="campaign-chapter-briefing-button" onClick={() => changeBriefing(chapter.id)} aria-label="View Briefing" aria-description={chapter.title}><span>View Briefing ↗</span></button>
                     </div>
-                    <div className="campaign-chapter-status">Chapter {index + 1}<span>{completed ? "Cleared" : index === nextChapterIndex ? "Next Battle" : unlocked ? "Pack Reward" : "Locked"}</span></div>
-                    <h3>{chapter.title}</h3>
-                    <div className="campaign-chapter-opponent">Opponent: {chapter.opponentName}</div>
                     <div className="campaign-boss-line">{difficulty.bossLife} life / {difficulty.attacksPerTurn} attacks per turn / values {difficulty.minAttackValue}-{difficulty.maxAttackValue}</div>
                     <p>{chapter.story}</p>
                     <div className="campaign-chapter-actions">
-                      <button type="button" className="campaign-chapter-briefing-button" onClick={() => changeBriefing(chapter.id)}>View Briefing</button>
                       <MenuButton onClick={() => onStartChapter(activeFactionId, chapter.id)} disabled={!canPlayAsPlayer || !unlocked || !chapter.setup}>{unlocked ? "Begin Battle" : `Clear Chapter ${index} First`}</MenuButton>
                     </div>
                   </article>
