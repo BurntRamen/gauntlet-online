@@ -55,6 +55,7 @@ import {
   useMenuAudio
 } from "./MenuAudio";
 import { JOURNEY_ART, TUTORIAL_ART } from "./navigation/menuArtwork";
+import { useInitiativeCampaignArt } from "./useInitiativeCampaignArt";
 import { fetchGameContent } from "./loadGameContent";
 import CurrencyWallet from "./CurrencyWallet";
 import { canUsePrinting } from "@gauntlet/duel-rules/printings";
@@ -3115,6 +3116,7 @@ export default function App() {
   const confirmLeaveDeck = useCallback(() => !unsavedDeckRef.current || window.confirm("Discard unsaved deck changes and leave the editor?"), []);
   const { route: playerRoute, navigate: navigatePlayer } = usePlayerNavigation({ beforeNavigate: confirmLeaveDeck });
   const homeArea = playerRoute.page;
+  useInitiativeCampaignArt(homeArea === "campaign" || showCampaign, gameContent, setGameContent);
   const [ownerAuthorized, setOwnerAuthorized] = useAdminAccess(SOCKET_URL, authToken);
   const adminSignInRequested = useRef(false);
   const adminExitGuard = useRef(action => { action?.(); return true; });
