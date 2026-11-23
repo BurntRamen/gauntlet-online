@@ -265,7 +265,7 @@ function ProfileBody({ profile, serverUrl, onOpenMatch, onOpenReplay }) {
   );
 }
 
-export function CompetitiveIdentityPanel({ profile, loading, error, onOpenProfile, onOpenMatch, onOpenReplay }) {
+export function CompetitiveIdentityPanel({ profile, loading, error, onRetry, onOpenProfile, onOpenMatch, onOpenReplay }) {
   const identityFactionId = profile ? identityFaction(profile) : "basic";
   return (
     <section className="competitive-panel" aria-labelledby="competitive-panel-title" style={identityFactionId !== "basic" ? { "--identity-art": `url(${factionArt(identityFactionId)})` } : undefined}>
@@ -273,9 +273,9 @@ export function CompetitiveIdentityPanel({ profile, loading, error, onOpenProfil
         <div><span>Competitive Identity</span><h3 id="competitive-panel-title">Verified Record</h3></div>
         {profile && <button type="button" onClick={() => onOpenProfile(profile.accountId)}>Public Profile</button>}
       </div>
-      {loading && <p className="competitive-empty">Loading verified matches...</p>}
-      {error && <p className="competitive-error">{error}</p>}
-      {profile && !loading && (
+      {loading && <p className="competitive-empty" role="status">{profile ? "Refreshing verified matches…" : "Loading verified matches…"}</p>}
+      {error && <div className="competitive-error" role="alert">{error}{profile && <p>Showing the last successfully retrieved record.</p>}{onRetry && <button type="button" onClick={onRetry}>Retry</button>}</div>}
+      {profile && (
         <>
           <section className="competitive-panel-stats">
             {profile.para && <p>{profile.para.summary}</p>}
