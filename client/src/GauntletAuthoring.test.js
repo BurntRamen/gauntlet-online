@@ -502,3 +502,23 @@ test("reopens downloaded authoring and restores typed fields without fetching th
     localStorage.clear();
   }
 });
+
+test.each([true, false])("saves only module edits the legacy server accepts (%s)", async accepted => {
+  const registry = require("@gauntlet/duel-rules/effectRegistry");
+  const effect = registry.defaultCardEffect("mercaw-spades-2");
+  const spec = registry.definitionFor(effect.id);
+  Object.assign(state.live.domains.cards[0], {effect, factionId:spec.factionId, type:spec.cardType});
+  state.fields.cards["card-one"].effect = {type:"object", label:"Card effect", options:[{...spec, parameters:{...spec.parameters, bonus:{min:1,max:accepted ? 3 : 1}}}]};
+  render(<GauntletAuthoring {...props()} />);
+  await selectCard();
+  fireEvent.click(screen.getByRole("button", {name:"Mechanics", exact:true}));
+  fireEvent.change(screen.getByLabelText("Add combat value"), {target:{value:"3"}});
+  fireEvent.click(screen.getByRole("button", {name:/^Save changes to/}));
+  if (accepted) {
+    await waitFor(() => expect(state.draft?.snapshot.domains.cards[0].effect).toEqual({...effect,parameters:{...effect.parameters,bonus:3}}));
+  } else {
+    expect(await screen.findByText(/This game server cannot save these module values yet/)).toBeVisible();
+    expect(state.draft).toBeNull();
+    expect(screen.getByLabelText("Add combat value")).toHaveValue(3);
+  }
+});
