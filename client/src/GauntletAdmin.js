@@ -33,7 +33,7 @@ function State({ state, children }) {
 }
 
 function Overview({ request, revision, onSelect }) {
-  const state = useAdminData(request, "/api/admin/home", revision);
+  const state = useAdminData(request, "/api/admin/home?view=tasks", revision);
   return <ModuleHome data={state.data} loading={state.loading} error={state.error} onSelect={onSelect} />;
 }
 
