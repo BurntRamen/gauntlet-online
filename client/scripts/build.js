@@ -31,6 +31,8 @@ async function build() {
     if (process.env.CI && process.env.CI.toLowerCase() !== "false" && stats.hasWarnings()) return reject(new Error("Client compilation warnings fail CI"));
     resolve();
   })));
+  const catalog = require("../../server/gameContent").getPublicGameContent();
+  fs.writeFileSync(path.join(root, "build/startup-catalog.json"), JSON.stringify(catalog));
 }
 if (require.main === module) build().catch(error => { console.error(error); process.exitCode = 1; });
 module.exports = { build, prepareOutput };

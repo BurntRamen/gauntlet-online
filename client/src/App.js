@@ -3281,6 +3281,13 @@ export default function App() {
     } catch (contentError) {
       contentRequest.current = null;
       setGameContentError(contentError.message);
+      try {
+        const response = await fetch(process.env.PUBLIC_URL + "/startup-catalog.json");
+        if (response.ok) {
+          const fallback = await response.json();
+          if (fallback.contentVersion && fallback.deckRules && fallback.campaigns) setGameContent(fallback);
+        }
+      } catch { /* Keep the retry screen available when both sources fail. */ }
     }
   }, []);
 
@@ -4839,6 +4846,7 @@ export default function App() {
     else if (showTutorial) workflow = <TutorialScreen embedded onBack={() => setShowTutorial(false)}
       onPlayBasicAi={() => startTutorialVsAi("basic")} onPlayFactionAi={() => startTutorialVsAi("factions")} canPlayAsPlayer={canPlayAsPlayer} />;
     return <Suspense fallback={<SurfaceLoading label="Command Deck" />}>
+      {gameContentError && <aside role="status">Showing the bundled game catalog. Online services may be unavailable. <button onClick={loadGameContent}>Reconnect</button></aside>}
       <PlayerMenuExperience authToken={authToken} serverUrl={SOCKET_URL} factionIds={Object.keys(gameContent.campaigns || {})} route={playerRoute} onNavigate={navigateHomeArea} account={account} ownerAuthorized={ownerAuthorized}
         audioMuted={effectiveMenuAudioSettings.masterMuted} onToggleAudio={toggleMenuMasterMute}
         content={gameContent} workflow={workflow}
