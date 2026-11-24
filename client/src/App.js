@@ -3387,13 +3387,14 @@ export default function App() {
     updateMenuAudioSettings({ masterMuted: nextMuted });
   }
 
+  const adminOpen = homeArea === "studio";
   const loadAuthoritativeAccount = useCallback(() => fetchAuthoritativeAccount({
     apiBaseUrl: SOCKET_URL,
     authToken
   }), [authToken]);
 
   useEffect(() => {
-    if (!authToken) return;
+    if (!authToken || adminOpen) return;
     let active = true;
     loadAuthoritativeAccount()
       .then((updatedAccount) => { if (active) { setAccount(updatedAccount); setAuthError(""); } })
@@ -3408,7 +3409,7 @@ export default function App() {
         setAccount(null);
       });
     return () => { active = false; };
-  }, [authToken, loadAuthoritativeAccount]);
+  }, [adminOpen, authToken, loadAuthoritativeAccount]);
 
   useEffect(() => {
     const matchId = game?.matchId;
@@ -3494,7 +3495,6 @@ export default function App() {
       .catch((seasonError) => setActiveSeasonMatchesError(seasonError.message));
   }, []);
 
-  const adminOpen = homeArea === "studio";
   const seasonDataVisible = homeArea === "matches" || homeArea === "compete";
   useEffect(() => {
     if (!adminOpen && !seasonDataVisible) loadLeaderboard();
