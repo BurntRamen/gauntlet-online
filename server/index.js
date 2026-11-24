@@ -3,7 +3,7 @@ const { handSize: configuredHandSize, SUITS: PLAYING_SUITS, VALUES: PLAYING_VALU
 const encounterDefaults = require("./encounterDefinitions.json");
 const { campaignDifficulty } = require("../shared/duel-rules/encounterContract");
 const { resolveCampaignFactionCards } = require("../shared/duel-rules/campaignDeckPlan");
-const { cardEffect, hasCardEffect, cardParameter, factionMechanicId, factionParameter } = require("../shared/duel-rules/effectRegistry");
+const { configuredCombatBonus, cardEffect, hasCardEffect, cardParameter, factionMechanicId, factionParameter } = require("../shared/duel-rules/effectRegistry");
 const { resolvePrinting, canUsePrinting } = require("../shared/duel-rules/printings");
 const { resolveComposition, compositionPayload } = require("../shared/duel-rules/deckContract");
 const PORT = process.env.PORT || 4000;
@@ -100,6 +100,7 @@ const {
   SCHEMA_VERSION: DUEL_SCHEMA_VERSION,
   STARTING_LIFE: BASIC_STARTING_LIFE,
   applyCommand: applySharedDuelCommand,
+  catalogTriggerActive,
   cardValue: getSharedBasicCardValue,
   createSeededRandom: createSharedSeededRandom,
   getActionAvailability: getSharedActionAvailability,
@@ -6961,6 +6962,11 @@ function calculateAttackBonuses(game, playerNum, card, source) {
   let value = 0;
   const attackNumber = player.turnData.attacksDeclaredThisTurn + 1;
   const cardBaseValue = getBaseCardValue(card);
+  const configuredBonus = configuredCombatBonus(card);
+  if (configuredBonus && catalogTriggerActive(player, card, configuredBonus.trigger, {kind:"attack", source, attackNumber, baseValue:cardBaseValue})) {
+    value += configuredBonus.bonus;
+    notes.push(`${card.name} +${configuredBonus.bonus}`);
+  }
 
   if (factionMechanicId(player) === "rumin") {
     if (attackNumber === 4) {
@@ -7199,6 +7205,14 @@ function applyBlockBonuses(game, playerNum, card, context = {}) {
   const playedNotes = applyPlayedCardBonuses(player, card);
   let effectiveValue = getCardCurrentValue(card);
   const notes = [...playedNotes];
+  const configuredBonus = configuredCombatBonus(card);
+  if (configuredBonus && catalogTriggerActive(player, card, configuredBonus.trigger, {
+    kind:"block", source:context.isLaneBlock ? "lane" : "hand", blockNumber:Number(player.turnData.blocksDeclaredThisTurn || 0) + 1,
+    attackSource:context.attack?.source, attacker:context.attack?.card
+  })) {
+    effectiveValue += configuredBonus.bonus;
+    notes.push(`${card.name} +${configuredBonus.bonus}`);
+  }
   const faction = player.faction?.id;
   if (faction === "sheen") {
     effectiveValue += 1;

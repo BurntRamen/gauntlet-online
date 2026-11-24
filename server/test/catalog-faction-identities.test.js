@@ -120,3 +120,36 @@ test("The Continuants build persistent Continuity and cohere without losing thei
   assert.equal(result.state.players[1].life, 18);
   assert.equal(result.state.players[1].turnData.alienEndTurnDraws, 1);
 });
+
+test("default authored rules round-trip their original game effects across the catalog", () => {
+  const registry = require("../../shared/duel-rules/effectRegistry");
+  const cards = require("../gameContent").getPublicGameContent().cards;
+  let converted = 0;
+  for (const card of cards) {
+    const original = registry.defaultCardEffect(card.id);
+    const editable = registry.authoredEffect(original);
+    if (!editable.modules) continue;
+    converted++;
+    assert.ok(registry.validateCardEffect(editable, card), card.id);
+    assert.deepEqual(registry.runtimeEffect(editable), original, card.id);
+  }
+  assert.equal(converted, 1090);
+});
+
+test("editing a trigger and amount changes a card's actual combat resolution", () => {
+  const registry = require("../../shared/duel-rules/effectRegistry");
+  const original = catalogCard("mercaw-spades-2", 2, "spades");
+  const editable = registry.authoredEffect(original.effect);
+  editable.modules[0].when = "hand_attack";
+  editable.modules[0].operations[0].amount = 4;
+  const state = engine.createMatch({ gameMode: "factions", startingPriority: 1,
+    factions: {1:engine.FACTION_PROFILES.mercaw, 2:engine.FACTION_PROFILES.rumin} }).state;
+  state.players[1].turnData.attacksDeclaredThisTurn = 1;
+  state.players[1].hand = [{...original, effect:registry.runtimeEffect(editable)}, {id:"payment",value:14,suit:"hearts"}];
+  const result = engine.applyCommand(state, {type:"declareHandAttack",player:1,attackerCardId:original.id,paymentCardIds:["payment"]});
+  assert.equal(result.accepted, true);
+  assert.equal(result.state.handAttacks[0].effectiveValue, 6);
+  assert.equal(original.effect.parameters.bonus, 1);
+  editable.modules[0].operations[0].amount = 999;
+  assert.equal(registry.validateCardEffect(editable, original), false);
+});

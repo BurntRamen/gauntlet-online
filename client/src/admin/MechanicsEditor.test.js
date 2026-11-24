@@ -30,7 +30,6 @@ test("authors ordered abilities with authoritative explanation, duplication, rem
 });
 test("switching does not translate legacy prose; flavor/wording are not execution authority", () => {
   render(<Editor initial={{ id: "coin-scale-spear", version: 1, parameters: { armBonus: 6 } }} />);
-  fireEvent.change(screen.getByLabelText("Execution model"), { target: { value: "composition" } });
   expect(screen.getByLabelText("Ability 1 effect 1 amount")).toHaveValue(6);
   expect(screen.getByRole("region", { name: "Generated mechanics explanation" })).toHaveTextContent("Printed wording differs");
 });
@@ -60,4 +59,15 @@ test("card modules preserve executable references, keyboard order, arming and ex
   fireEvent.click(screen.getByText("Remove module 2")); fireEvent.click(screen.getByText("Remove module 1"));
   fireEvent.click(screen.getByLabelText("Include arming effects"));
   expect(screen.getByRole("alert")).toHaveTextContent("six abilities");
+});
+
+test("an existing catalog card opens directly on its real trigger and operation", () => {
+  const registry = require("@gauntlet/duel-rules/effectRegistry");
+  const effect = registry.defaultCardEffect("mercaw-spades-2"), spec = registry.definitionFor(effect.id);
+  const onChange = jest.fn();
+  render(<MechanicsEditor row={{id:spec.legacyCardId, factionId:spec.factionId, type:spec.cardType, effect}} value={effect}
+    definition={{options:[spec]}} studio={{catalogRuleModules:1}} onChange={onChange} />);
+  expect(screen.getByLabelText("Add combat value")).toHaveValue(1);
+  fireEvent.change(screen.getByLabelText("Trigger"), {target:{value:"lane_block"}});
+  expect(onChange.mock.calls[0][0].modules).toEqual([{when:"lane_block",operations:[{kind:"bonus",amount:1}]}]);
 });

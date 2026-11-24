@@ -79,7 +79,7 @@ test("unsupported effect IDs, versions, parameters and encounter definitions fai
   const mutations = [
     (s) => { s.domains.cards[0].effect.id = "eval"; },
     (s) => { s.domains.cards[0].effect.version = 2; },
-    (s) => { s.domains.cards[0].effect.parameters.execute = "code"; },
+    (s) => { s.domains.cards[0].effect.unrecognizedOperation = "code"; },
     (s) => { s.domains.cards[0].effect = effects.defaultCardEffect("sheen-rootwatch-initiate"); },
     (s) => { s.domains.factions.find((faction) => faction.id === "rumin").mechanics.parameters.fourthAttackBonus = 99; },
     (s) => { s.domains.factions.find((faction) => faction.id === "rumin").mechanics.id = "other"; },

@@ -80,6 +80,7 @@ function createObject(snapshot, input) {
     freeAcquisition: registry.FREE_GAMEPLAY_ACQUISITION, defaultVariantId: `${id}:standard`,
     effect: source?.effect && source.effect.id === effect.id ? clone(source.effect) : { id: effect.id, version: effect.version, parameters: Object.fromEntries(Object.entries(effect.parameters).map(([k, rule]) => [k, rule.default])) },
     availability: { ...defaultAvailability(), ...(snapshot.domains.factions.some(f => f.id === (input.factionId || source?.factionId) && f.origin === "admin-faction-v1") ? { constructed: false } : {}) }, status: "active" };
+  row.effect = effects.authoredEffect(row.effect);
   const art = input.art || snapshot.domains.assets.find(v => v.id === source?.defaultVariantId)?.art || registry.getCollectorVariantById(`${effect.legacyCardId}:standard`)?.art;
   if (composedSource) row.effect = clone(source.effect);
   if (mechanic) { row.effect = { id: "authored-mechanic", version: mechanic.interpreter, mechanicId }; row.text = require("../shared/duel-rules/mechanicContract").explain(mechanic); }

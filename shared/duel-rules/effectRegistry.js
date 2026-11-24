@@ -23,7 +23,7 @@ const definitions = [
         cardType: alien?.type || "servitor",
         handler: alien ? "catalog-alien-resource" : "catalog-faction-identity",
         parameters: alien ? {
-          trigger: { min: alien.trigger, max: alien.trigger, default: alien.trigger },
+          trigger: { min: 1, max: 15, default: alien.trigger },
           gain: { min: 0, max: 6, default: alien.gain },
           spend: { min: 0, max: 6, default: alien.spend },
           bonus: { min: 0, max: 8, default: alien.bonus },
@@ -32,13 +32,14 @@ const definitions = [
           heal: { min: 0, max: 8, default: alien.heal },
           onPlayGain: { min: 0, max: 6, default: alien.onPlayGain }
         } : {
-          trigger: { min: trigger, max: trigger, default: trigger },
+          trigger: { min: 1, max: 15, default: trigger },
           bonus: { min: 0, max: 8, default: 1 }
         }
       };
     });
   }))
 ];
+const catalogRules = require("./catalogRuleModules");
 const composition = require("./compositionContract");
 const CARD_EFFECT_CONTRACT_VERSION = "gauntlet.card-effects.v1";
 const FACTION_EFFECT_CONTRACT_VERSION = "gauntlet.faction-effects.v1";
@@ -54,7 +55,34 @@ function defaultCardEffect(cardId) {
   const definition = entries[legacy[cardId]];
   return definition ? { id: definition.id, version: definition.version, parameters: Object.fromEntries(Object.entries(definition.parameters).map(([key, rule]) => [key, rule.default])) } : null;
 }
+function authoredEffect(effect) {
+  const definition = entries[effect?.id];
+  if (!definition || Object.hasOwn(effect, "modules")) return effect;
+  const arm = composition.fromRegistered(effect, { factionId: definition.factionId, type: definition.cardType });
+  if (arm) return { id: effect.id, version: effect.version, modules: arm.abilities };
+  return catalogRules.decompile(effect, definition) || effect;
+}
+function runtimeEffect(effect) {
+  if (!effect || !Object.hasOwn(effect, "modules")) return effect;
+  const definition = entries[effect.id];
+  if (!definition || effect.version !== definition.version || Object.keys(effect).sort().join() !== "id,modules,version") return null;
+  if (catalogRules.supports(definition)) return catalogRules.compile(effect, definition);
+  const original = defaultCardEffect(definition.legacyCardId);
+  const source = {factionId:definition.factionId, type:definition.cardType};
+  const originalArm = composition.fromRegistered(original, source);
+  if (!originalArm) return null;
+  const arm = {id:composition.ID, version:1, abilities:effect.modules};
+  if (!composition.validate(arm, source)) return null;
+  if (JSON.stringify(arm.abilities) === JSON.stringify(originalArm.abilities)) return original;
+  return arm;
+}
 function validateCardEffect(effect, card) {
+  if (effect && Object.hasOwn(effect, "modules")) {
+    const definition = entries[effect.id];
+    if (!definition || card && (card.factionId !== definition.factionId || card.type !== definition.cardType)) return false;
+    const compiled = runtimeEffect(effect);
+    return !!compiled && validateCardEffect(compiled, card);
+  }
   if (effect?.id === require("./mechanicProgram").ID) return require("./mechanicProgram").validate(effect, card);
   if (effect?.id === require("./mechanicContract").ID) return require("./mechanicContract").validateEffect(effect, card);
   if (effect?.id === composition.ID) return composition.validate(effect, card);
@@ -64,7 +92,7 @@ function validateRegistered(effect, card) {
   const entry = effect && Object.hasOwn(entries, effect.id) && entries[effect.id];
   return !!entry && Object.keys(effect).sort().join() === "id,parameters,version" && effect.version === entry.version
     && (!card || (entry.factionId === card.factionId && entry.cardType === card.type))
-    && validateParameters(effect.parameters, entry.parameters);
+    && (validateParameters(effect.parameters, entry.parameters) || (catalogRules.printedOnly(entry) || catalogRules.namedBonus(entry)) && validateParameters(effect.parameters, catalogRules.combatSpecs));
 }
 function cardEffect(card) {
   // The fallback is an ingress adapter for pre-contract saves/replays only.
@@ -73,11 +101,19 @@ function cardEffect(card) {
   if (effect?.id === "mechanic-program" && effect.version === 2) {
     return require("./mechanicProgram").validate(effect, card, true) ? effect.registered : null;
   }
-  return validateCardEffect(effect) ? effect : null;
+  const compiled = runtimeEffect(effect);
+  return validateCardEffect(compiled) ? compiled : null;
 }
 function hasCardEffect(card, handler) {
   const effect = cardEffect(card);
+  if (effect?.parameters?.trigger && (catalogRules.namedBonus(entries[effect.id]) || catalogRules.printedOnly(entries[effect.id]))) return handler === "catalog-faction-identity";
   return effect?.id === handler || entries[effect?.id]?.handler === handler;
+}
+function configuredCombatBonus(card) {
+  const effect = cardEffect(card);
+  if (!hasCardEffect(card, "catalog-faction-identity")) return null;
+  const defaults = entries[effect.id]?.parameters;
+  return effect.parameters.trigger !== defaults?.trigger?.default || effect.parameters.bonus !== defaults?.bonus?.default ? effect.parameters : null;
 }
 function cardParameter(card, key) { return cardEffect(card)?.parameters[key] ?? 0; }
 const factionDefinitions = Object.freeze({
@@ -109,5 +145,6 @@ function factionParameter(player, key) {
   return validateFactionMechanics(mechanics, mechanicFamily(faction)) ? mechanics?.parameters[key] ?? 0 : 0;
 }
 module.exports = { CARD_EFFECT_CONTRACT_VERSION, FACTION_EFFECT_CONTRACT_VERSION, cardEffect, hasCardEffect, cardParameter,
-  defaultCardEffect, validateRegistered, validateCardEffect, factionMechanicId, factionParameter, defaultFactionMechanics, validateFactionMechanics,
+  definitionFor: id => Object.hasOwn(entries, id) ? entries[id] : null,
+  configuredCombatBonus, authoredEffect, runtimeEffect, defaultCardEffect, validateRegistered, validateCardEffect, factionMechanicId, factionParameter, defaultFactionMechanics, validateFactionMechanics,
   cardEffectDefinitions: () => copy(definitions), factionEffectDefinitions: () => copy(factionDefinitions) };

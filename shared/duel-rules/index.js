@@ -4065,6 +4065,7 @@ function createCommandEnvelope(state, actorPlayerId, command, commandId = null) 
 }
 
 module.exports = {
+  catalogTriggerActive,
   previewPayment,
   valueBreakdown: effects.valueBreakdown,
   pendingEffects: effects.pendingEffects,

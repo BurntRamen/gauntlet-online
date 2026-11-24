@@ -37,6 +37,11 @@ function validate(snapshot) {
   return errors;
 }
 function resolve(card, snapshot, hash) {
+  if (card.effect?.modules) {
+    const effect = require("../shared/duel-rules/effectRegistry").runtimeEffect(card.effect);
+    if (!effect) throw new Error("Invalid card rule modules.");
+    return { ...card, effect };
+  }
   if (card.effect?.id === program.ID) {
     const effect = program.capture(card.effect, card, snapshot.studio?.mechanics || [], hash);
     if (!effect) throw new Error("Invalid, unresolved or excessive mechanic program.");
@@ -61,7 +66,7 @@ function metadata(snapshot) {
   const vocabulary = require("../shared/duel-rules/mechanicVocabulary");
   const labels = (kind, values) => Object.fromEntries(Object.entries(values).map(([id, value]) => [id, vocabulary[kind][id] ? { ...value, label: `${vocabulary[kind][id]} · ${value.label}` } : value]));
   return { modifiers: (snapshot.studio?.modifiers || []).map(row => ({ ...clone(row), explanation: modifiers.explain(row), usedBy: snapshot.domains.encounters.filter(e => e.ruleModifierId === row.id).map(e => ({ id: e.id, name: e.title })) })), version: contract.VERSION, triggers: contract.triggers, conditions: contract.conditions, targets: contract.targets, operations: contract.operations, types: contract.types,
-    programVersion: program.VERSION, registeredProgramVersion: program.VERSION2, operationLabels: labels("operations", contract.operations),
+    programVersion: program.VERSION, registeredProgramVersion: program.VERSION2, catalogRuleModules: 1, operationLabels: labels("operations", contract.operations),
     vocabulary: require("./cardWording").KEYWORDS.filter(term => ["Arm", ...Object.values(vocabulary.operations), ...Object.values(vocabulary.conditions)].includes(term.word)),
     definitions: (snapshot.studio?.mechanics || []).map(row => ({ ...clone(row), explanation: contract.explain(row), compatibility: require("../shared/duel-rules/mechanicModes").compatibility(row), usedBy: snapshot.domains.cards.filter(c => program.references(c.effect).some(ref => ref.mechanicId === row.id)).map(c => ({ id: c.id, name: c.name, factionId: c.factionId })) })) };
 }

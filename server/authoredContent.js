@@ -85,7 +85,7 @@ function createAuthoredBaseline(catalog) {
     for (const role of ["commander", "general", "city"]) domains.characters.push({ id: `${faction.id}:${role}`, kind: "faction-role", factionId: faction.id, role, ...clone(faction[role]) });
   }
   domains.characters.push({ id: "training-ai", name: "Training AI", kind: "engine", opponentKind: "training-ai" });
-  domains.cards = manifest.cards.map((card) => ({ ...clone(card), effect: effects.defaultCardEffect(card.id) }));
+  domains.cards = manifest.cards.map((card) => ({ ...clone(card), effect: effects.authoredEffect(effects.defaultCardEffect(card.id)) }));
   domains.assets = manifest.collectorVariants.map((variant) => ({ id: variant.variantId, ...clone(variant) }));
   domains.decks = catalog.domains.decks.map((deck) => ({ id: deck.id, name: deck.name, description: deck.id === "standard" ? "52 value-and-suit slots. Constructed cards replace matching slots." : "Campaign cards replace slots in the standard faction deck. Card choices and quantities follow this chapter.", plan: deck.id === "standard" ? clone(manifest.deckRules) : { encounterId: deck.id.replace(/:decks$/, "") } }));
   const authoredDeckIds = new Set(domains.decks.map((deck) => deck.id));

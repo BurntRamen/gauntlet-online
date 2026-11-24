@@ -6,6 +6,9 @@ import contract from "@gauntlet/duel-rules/compositionContract";
 import mechanicContract from "@gauntlet/duel-rules/mechanicContract";
 import guidance from "@gauntlet/duel-rules/compositionExplanation";
 import program from "@gauntlet/duel-rules/mechanicProgram";
+import CatalogRuleEditor from "./CatalogRuleEditor";
+import catalogRules from "@gauntlet/duel-rules/catalogRuleModules";
+import registry from "@gauntlet/duel-rules/effectRegistry";
 import MechanicLanguage from "./MechanicLanguage";
 
 export function GeneratedWording({ row, studio, disabled, onChange }) {
@@ -18,8 +21,18 @@ export default function MechanicsEditor(props) {
   const helpCopy = useHelp();
   const { row, disabled } = props;
   const authored = props.value?.id === mechanicContract.ID, mechanics = props.studio?.definitions || [];
-  const value = authored ? program.create(props.value) : props.value;
-  const onChange = next => props.onChange(authored && next.id === program.ID && next.mechanics.length === 1 && !next.armament ? next.mechanics[0] : next);
+  const original = props.value;
+  const definition = registry.definitionFor(original?.id);
+  const armTemplate = definition && contract.fromRegistered(registry.defaultCardEffect(definition.legacyCardId), row);
+  const armRules = armTemplate && original?.modules ? { ...armTemplate, abilities: original.modules } : contract.fromRegistered(original, row);
+  const value = authored ? program.create(original) : armRules || original;
+  const onChange = next => {
+    if (armRules && props.studio?.catalogRuleModules && next.id === contract.ID) {
+      props.onChange({ id:original.id, version:original.version, modules:next.abilities });
+      return;
+    }
+    props.onChange(authored && next.id === program.ID && next.mechanics.length === 1 && !next.armament ? next.mechanics[0] : next);
+  };
   const available = mechanics.filter(m => m.status === "active" && m.cardTypes.includes(row.type) && !program.references(value).some(ref => ref.mechanicId === m.id));
   const reference = id => ({ id: mechanicContract.ID, version: mechanics.find(m => m.id === id).interpreter, mechanicId: id });
   const composed = value?.id === contract.ID;
@@ -27,10 +40,28 @@ export default function MechanicsEditor(props) {
   const compatible = effect => effect.factionId === row.factionId && effect.cardType === row.type;
   const legacy = options.find(effect => compatible(effect) && effect.id === row.effect?.id) || options.find(effect => compatible(effect) && effect.legacyCardId === row.id) || options.find(effect => effect.factionId === row.factionId && effect.cardType === row.type);
   const registered = () => ({ id: legacy.id, version: legacy.version, parameters: Object.fromEntries(Object.entries(legacy.parameters).map(([key, spec]) => [key, spec.default])) });
-  const converted = contract.fromRegistered(value, row);
+  const converted = armRules;
   const nativeProgram = props.studio?.registeredProgramVersion === program.VERSION2 && program.fromRegistered(value, row);
   const errors = composed ? contract.errors(value, row) : [];
   const setAbility = (index, next) => onChange({ ...value, abilities: replaceAt(value.abilities, index, next) });
+  const localModules = registry.authoredEffect(value);
+  const localSpec = registry.definitionFor(value?.id);
+  const advertised = options.find(option => option.id === value?.id);
+  const moduleSpec = localSpec && advertised && { ...localSpec, ...advertised, parameters: (catalogRules.printedOnly(localSpec) || catalogRules.namedBonus(localSpec)) ? catalogRules.combatSpecs : advertised.parameters, handler: localSpec.handler };
+  if (localModules?.modules && moduleSpec) {
+    const acceptsModules = !!props.studio?.catalogRuleModules;
+    function update(next) {
+      if (acceptsModules) onChange(next);
+      else {
+        const compiled = catalogRules.compile(next, moduleSpec);
+        if (compiled) onChange(compiled);
+      }
+    }
+    return <><CatalogRuleEditor effect={localModules} definition={moduleSpec} disabled={disabled || (!acceptsModules && (catalogRules.printedOnly(moduleSpec) || catalogRules.namedBonus(moduleSpec)))} onChange={update} />
+      {!acceptsModules && <p>Parameter ranges are limited to those supported by the connected game server.</p>}
+      {acceptsModules && !catalogRules.compile(localModules, moduleSpec) && <p role="alert">Enter a whole number within each operation’s limits.</p>}
+    </>;
+  }
   if (value?.id === program.ID) return <EditorValues value={value} onChange={onChange}><fieldset disabled={disabled} className="mechanics-editor"><legend>{helpCopy.mechanicCopy2}</legend><Help topic="programRules" /><MechanicLanguage studio={props.studio} />
     <ValueControl label={helpCopy.mechanicCopy3} disabled={!props.studio?.programVersion || value.mechanics.length >= 4 || !available.length} value="" options={[["", helpCopy.mechanicCopy4], ...available.map(m => [m.id, m.name])]} onChange={id => { if (id) onChange({ ...value, mechanics: [...value.mechanics, reference(id)] }); }} />
     {value.registered && <fieldset><legend>Original card effect</legend><GauntletContractFields {...props} value={value.registered} onChange={registered => onChange({ ...value, registered })} /></fieldset>}
