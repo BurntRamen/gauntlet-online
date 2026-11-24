@@ -130,7 +130,15 @@ function PlayerProfile({ help, player, catalog, onBack, request, guard, onSaved,
   </section>;
 }
 
-export default function Players({ request, revision, catalog, guard, useData, State, Facts, Json, date, label }) {
+function DirectoryProfile({ id, revision, useData, State, ...props }) {
+  const entry = useData(props.request, `/api/admin/players?offset=0&limit=1&q=${encodeURIComponent(id)}`, revision);
+  return <State state={entry}>{data => {
+    const player = data.players.find(row => row.id === id);
+    return player ? <PlayerProfile {...props} player={player} /> : <p role="status">Player no longer available.</p>;
+  }}</State>;
+}
+
+export default function Players({ request, revision, catalog, onNeedCatalog, guard, useData, State, Facts, Json, date, label }) {
   const [offset, setOffset] = useState(0);
   const [query, setQuery] = useState("");
   const [search, setSearch] = useState("");
@@ -138,21 +146,22 @@ export default function Players({ request, revision, catalog, guard, useData, St
   const [reload, setReload] = useState(0);
   const [notice, setNotice] = useState("");
   const list = useRef(null);
-  const state = useData(request, `/api/admin/players?offset=${offset}&limit=25${search ? `&q=${encodeURIComponent(search)}` : ""}`, `${revision}:${reload}`);
+  const state = useData(request, `/api/admin/players?offset=${offset}&limit=25&view=directory${search ? `&q=${encodeURIComponent(search)}` : ""}`, `${revision}:${reload}`);
   const help = state.data?.guide || {};
-  const select = (id, accepted) => { if (id === selectedId) { accepted?.(); return true; } return guard.current(() => { setSelectedId(id); setNotice(""); accepted?.(); }); };
-  return <><p className="admin-lede">{help.playerNote18}</p>{notice && <p role="status" className="admin-good">{notice}</p>}<State state={state}>{(data) => {
+  const select = (id, accepted) => { if (id === selectedId) { accepted?.(); return true; } return guard.current(() => { setSelectedId(id); if (id) onNeedCatalog?.(); setNotice(""); accepted?.(); }); };
+  return <><p className="admin-lede">{help.playerNote18}</p>{notice && <p role="status" className="admin-good">{notice}</p>}<form onSubmit={e => { e.preventDefault(); guard.current(() => { setSelectedId(null); setOffset(0); setSearch(query.trim()); }); }}><label className="admin-search">Search all players<input ref={list} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Player name or account ID" /></label><div className="admin-actions"><button>Search players</button>{(query || search) && <button type="button" onClick={() => { guard.current(() => { setSelectedId(null); setQuery(""); setSearch(""); setOffset(0); }); }}>Clear search</button>}</div></form><State state={state}>{(data) => {
     const filtered = data.players;
     const selected = data.players.find((player) => player.id === selectedId);
+    const Profile = data.view === "directory" ? DirectoryProfile : PlayerProfile;
     return <div className={`admin-players-layout${selected ? " has-selection" : ""}`}>
-      <div className="admin-player-directory"><form onSubmit={e => { e.preventDefault(); guard.current(() => { setSelectedId(null); setOffset(0); setSearch(query.trim()); }); }}><label className="admin-search">Search all players<input ref={list} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Player name or account ID" /></label><div className="admin-actions"><button>Search players</button>{(query || search) && <button type="button" onClick={() => { guard.current(() => { setSelectedId(null); setQuery(""); setSearch(""); setOffset(0); }); }}>Clear search</button>}</div></form>
+      <div className="admin-player-directory">
         <p className="admin-note">Players {data.players.length ? offset + 1 : 0}–{offset + data.players.length} · Search covers all accounts.</p>
         {!data.players.length && <p role="status">{help.playerNote19}</p>}
 
         <div className="admin-object-list">{filtered.map((player) => <button key={player.id} aria-label={`View player ${player.name}`} aria-pressed={selectedId === player.id} onClick={() => select(player.id)}><strong>{player.name}</strong><small>Last seen {date(player.lastSeenAt)}</small></button>)}</div>
         <div className="admin-actions"><button disabled={!offset} onClick={() => { guard.current(() => { setSelectedId(null); setOffset(Math.max(0, offset - 25)); }); }}>Previous players</button><button disabled={!data.hasMore} onClick={() => { guard.current(() => { setSelectedId(null); setOffset(offset + 25); }); }}>Next players</button></div>
       </div>
-      {selected ? <PlayerProfile help={help} Facts={Facts} Json={Json} date={date} label={label} key={selected.id} player={selected} catalog={catalog} request={request} guard={guard} onSaved={() => { setNotice("Player metadata saved."); setReload((value) => value + 1); }} onBack={() => select(null, () => requestAnimationFrame(() => list.current?.focus()))} /> : <div className="admin-player-empty"><span className="admin-eyebrow">Player support</span><h3>Select a player</h3><p>{help.playerNote20}</p><p className="admin-note">{help.playerNote21}</p></div>}
+      {selected ? <Profile id={selected.id} revision={`${revision}:${reload}`} useData={useData} State={State} help={help} Facts={Facts} Json={Json} date={date} label={label} key={selected.id} player={selected} catalog={catalog} request={request} guard={guard} onSaved={() => { setNotice("Player metadata saved."); setReload((value) => value + 1); }} onBack={() => select(null, () => requestAnimationFrame(() => list.current?.focus()))} /> : <div className="admin-player-empty"><span className="admin-eyebrow">Player support</span><h3>Select a player</h3><p>{help.playerNote20}</p><p className="admin-note">{help.playerNote21}</p></div>}
     </div>;
   }}</State></>;
 }
