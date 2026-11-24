@@ -165,12 +165,12 @@ test("discard of a newly created shared record retains local values and refuses 
   fireEvent.change(await screen.findByLabelText("Draft name", {}, { timeout: 5000 }), { target: { value: "Retained new card" } });
   fireEvent.click(screen.getByRole("button", { name: /^Save changes to/ }));
   fireEvent.click(await screen.findByText("Retained local values", {}, { timeout: 5000 }));
-  expect(screen.getByText(/Retained new card/, { selector: "pre" })).toBeVisible();
+  expect(screen.getByText(/Retained new card/, { selector: "code, pre, dd" })).toBeVisible();
   fireEvent.click(screen.getByRole("button", { name: "Use latest revision for retry" }));
   await selectOther("Website prose");
   expect(screen.getByRole("button", { name: "Save and continue" })).toBeDisabled();
   fireEvent.click(screen.getByRole("button", { name: "Keep editing" }));
-  expect(screen.getByText(/Retained new card/, { selector: "pre" })).toBeVisible();
+  expect(screen.getByText(/Retained new card/, { selector: "code, pre, dd" })).toBeVisible();
 });
 
 test("pending GitHub publication keeps the deployed release active and cancellation preserves the draft", async () => {
@@ -249,7 +249,7 @@ test("field errors block preview, protected objects remain read-only, and confli
   expect(screen.queryByRole("button", { name: "Preview saved draft", hidden: true })).not.toBeInTheDocument();
   fireEvent.change(screen.getByLabelText("Draft name"), { target: { value: "Keep my edit" } });
   fireEvent.click(screen.getByRole("button", { name: /^Save changes to/ }));
-  expect(await screen.findByRole("alert")).toHaveTextContent("another session");
+  expect(await screen.findByText(/The server could not confirm this action/)).toBeVisible();
   expect(screen.getByLabelText("Draft name")).toHaveValue("Keep my edit");
 });
 
@@ -373,9 +373,9 @@ test("a lost authoring connection retains conflict values without offering an un
   await selectCard();
   fireEvent.change(screen.getByLabelText("Draft name"), { target: { value: "Retained through outage" } });
   fireEvent.click(screen.getByRole("button", { name: /^Save changes to/ }));
-  await screen.findByText("Live content · shared draft unavailable");
+  await screen.findByText(/Your downloaded copy is still open/);
   expect(screen.getByLabelText("Draft name")).toHaveValue("Retained through outage");
-  expect(screen.getByLabelText("Draft name")).toBeDisabled();
+  expect(screen.getByLabelText("Draft name")).toBeEnabled();
   expect(screen.queryByRole("button", { name: "Use latest revision for retry" })).not.toBeInTheDocument();
 });
 
@@ -430,6 +430,10 @@ test("Save and continue waits for the record acknowledgement and a failed save l
   expect(screen.getByRole("dialog")).toBeVisible();
   expect(screen.getByLabelText("Draft name")).toHaveValue("Retain until acknowledged");
   expect(state.draft).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Keep editing" }));
+  fireEvent.click(screen.getByRole("button", { name: "Download latest shared draft" }));
+  await waitFor(() => expect(screen.queryByText(/A previous change has an unconfirmed result/)).toBeNull());
+  fireEvent.click(screen.getByRole("button", { name: "Campaigns" }));
   fireEvent.click(screen.getByRole("button", { name: "Save and continue" }));
   await act(async () => resolveSave());
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
