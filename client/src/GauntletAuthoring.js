@@ -132,15 +132,21 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
     setMetadata(null); setRelationships(null); setResolvedView(null); setProjectionError("");
     const expectedHash = state.draft?.hash;
     const suffix = `?source=${source}${expectedHash ? `&hash=${expectedHash}` : ""}`;
-    Promise.allSettled([
-      request(`/api/admin/workshops${suffix}`), request(`/api/admin/workshops/relationships${suffix}`), request(`/api/admin/workshops/presentation${suffix}`)
-    ]).then(results => {
-      if (!active) return;
-      const failures = results.filter(result => result.status === "rejected");
-      if (failures.length) setProjectionError(failures.map(result => result.reason.message).join(" · "));
-      if (results[0].status === "fulfilled" && results[0].value.version === 1) setMetadata(results[0].value);
-      if (results[1].status === "fulfilled" && results[1].value.nodes) setRelationships(results[1].value);
-      if (results[2].status === "fulfilled" && results[2].value.resolved) setResolvedView(results[2].value.resolved);
+    function loadProjection(path, accept) {
+      request(path + suffix).then(value => {
+        if (active) accept(value);
+      }).catch(error => {
+        if (active) setProjectionError(previous => [previous, error.message].filter(Boolean).join(" · "));
+      });
+    }
+    loadProjection("/api/admin/workshops", value => {
+      if (value.version === 1) setMetadata(value);
+    });
+    loadProjection("/api/admin/workshops/relationships", value => {
+      if (value.nodes) setRelationships(value);
+    });
+    loadProjection("/api/admin/workshops/presentation", value => {
+      if (value.resolved) setResolvedView(value.resolved);
     });
     return () => { active = false; };
   // Metadata is keyed to content, not publication bookkeeping receipts.
@@ -201,12 +207,16 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
   useEffect(() => {
     if (!state?.pending || state.connectionRequired || ["closed", "checks-failed", "merge-blocked"].includes(state.pending.phase)) return;
     let active = true;
+    let inFlight = false;
     const timer = setInterval(async () => {
+      if (inFlight) return;
+      inFlight = true;
       try {
         const deploying = state.pending.phase === "deploying" && !state.publication?.dataOnly;
         const result = await request(deploying ? "/api/admin/authoring" : "/api/admin/authoring/reconcile", deploying ? undefined : { method: "POST", body: "{}" });
         if (active) { setState(result); if (!result.pending) onPublished(); }
       } catch (failure) { if (active) setError(failure.message); }
+      finally { inFlight = false; }
     }, 10000);
     return () => { active = false; clearInterval(timer); };
   }, [state?.pending, state?.connectionRequired, state?.publication?.dataOnly, request, onPublished]);
