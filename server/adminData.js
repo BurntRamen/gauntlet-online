@@ -216,7 +216,28 @@ function createAdminData(deps) {
       deck: deck.status === "fulfilled" ? deck.value : null, para: deps.para?.status(), gold: deps.gold?.status() });
   }
 
-  async function home() {
+  async function homeTasks() {
+    // Home reads the shared summary once. Account samples, purchases, catalogs,
+    // storage probes and module inventories belong to Operations, not this path.
+    const reads = await Promise.allSettled([
+      Promise.resolve().then(() => deps.publication?.homeSummary ? deps.publication.homeSummary() : readAuthoring()),
+      Promise.resolve().then(() => deps.para?.inspect?.()),
+      Promise.resolve().then(() => deps.runtimeStorage?.())
+    ]);
+    const value = i => reads[i].status === "fulfilled" ? reads[i].value : null;
+    const state = value(0), para = value(1), runtime = value(2), tasks = [];
+    if (state?.pending) tasks.push({ area: "Publishing", title: "Check publication in progress", message: `Publication is ${state.pending.phase}.` });
+    else if (state?.draft) tasks.push({ area: "Publishing", title: "Review saved changes", message: `${state.changes.length} saved changes; ${state.validation.valid ? "ready for review" : "fix validation problems before publishing"}.` });
+    if (para?.failures?.length) tasks.push({ area: "Competition", title: "Event settlement needs review", message: `${para.failures.length} recorded failures. Open events to inspect recovery evidence.` });
+    if (reads[0].status === "rejected") tasks.push({ area: "Publishing", title: "Shared authoring is unavailable", message: "Retry before continuing with saved changes." });
+    const operationalIssues = reads.slice(1).filter(r => r.status === "rejected").length +
+      Number(!!runtime?.checkpoint?.blocked) + Number(!!(runtime?.backups?.enabled && (!runtime.backups.lastSuccessfulAt || runtime.backups.lastError)));
+    if (operationalIssues) tasks.push({ area: "System", title: "Check operations", message: `${operationalIssues} storage or recovery problems need attention.` });
+    return { checkedAt: new Date().toISOString(), tasks,
+      publication: state ? { hasDraft: !!state.draft, pending: state.pending?.phase || null, activeReleaseId: state.activeReleaseId } : null };
+  }
+  async function home(query = {}) {
+    if (query.view === "tasks") return homeTasks();
     // One fresh read per request keeps the release, capabilities and health on
     // the same revision without repeatedly building the full editor catalog.
     const authoring = Promise.resolve().then(readAuthoring);
@@ -353,7 +374,7 @@ function createAdminData(deps) {
 
 function registerAdminRoutes(app, { authorize, data }) {
   for (const [route, read] of [
-    ["catalog", () => data.catalog()], ["players", (req) => data.players(req.query)], ["modules", () => data.modules()], ["home", () => data.home()], ["competition", () => data.competition()],
+    ["catalog", () => data.catalog()], ["players", (req) => data.players(req.query)], ["modules", () => data.modules()], ["home", req => data.home(req.query)], ["competition", () => data.competition()],
     ["matches", () => data.matches()], ["matches/:matchId", (req) => data.match(req.params.matchId)], ["system", () => data.system()]
   ]) {
     app.get(`/api/admin/${route}`, async (req, res) => {
