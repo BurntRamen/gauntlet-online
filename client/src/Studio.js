@@ -49,14 +49,27 @@ export default function Studio({ serverUrl, authToken = "", onSignIn, onAuthoriz
     if (!token || token !== authToken) throw new Error("Sign in with an authorized account.");
     const readJson = !options.download && (!options.method || options.method === "GET");
     const send = readJson ? (url, init) => trackedGet("admin", url, init) : fetch;
-    const response = await send(`${serverUrl}${path}`, {
+    const init = {
       ...options,
-      headers: { "Content-Type": "application/json", ...(options.headers || {}), Authorization: `Bearer ${token}` }
-    });
-    const body = options.download && response.ok ? await response.blob() : await response.json();
-    if (sessionRef.current !== token) throw new Error("Admin session closed.");
-    if (response.status === 401 || response.status === 403) closeAdmin();
-    if (!response.ok) throw Object.assign(new Error(body.error || "Admin data is unavailable."), { status: response.status });
+      headers: { ...(readJson ? {} : { "Content-Type": "application/json" }), ...(options.headers || {}), Authorization: `Bearer ${token}` }
+    };
+    const controller = !readJson && !options.signal ? new AbortController() : null;
+    if (controller) init.signal = controller.signal;
+    const timeout = controller ? setTimeout(() => controller.abort(), 120000) : null;
+    let body;
+    try {
+      const response = await send(`${serverUrl}${path}`, init);
+      if (sessionRef.current !== token) throw new Error("Admin session closed.");
+      if (response.status === 401 || response.status === 403) closeAdmin();
+      if (!response.ok) {
+        const details = await response.json().catch(() => null);
+        throw Object.assign(new Error(details?.error || `Admin request failed (HTTP ${response.status}).`), { status: response.status });
+      }
+      body = options.download ? await response.blob() : await response.json();
+      if (sessionRef.current !== token) throw new Error("Admin session closed.");
+    } finally {
+      if (timeout) clearTimeout(timeout);
+    }
     if(options.download) {
       const url=URL.createObjectURL(body), link=document.createElement('a');
       link.href=url;link.download=options.download;document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url);
