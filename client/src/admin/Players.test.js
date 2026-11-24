@@ -3,15 +3,16 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import Players from "./Players";
 const guide = require("../../../server/adminPlayerGuide.json");
 const profiles = [{ id: "one", name: "First player", campaigns: [], decks: [], matchReferences: [], unlocks: {} }, { id: "two", name: "Second player", campaigns: [], decks: [], matchReferences: [], unlocks: {} }];
-function useData(request, path, revision) {
+function useData(request, path, revision, enabled = true) {
   const [state, setState] = useState({ loading: true });
-  useEffect(() => { let active = true; request(path).then(data => { if (active) setState({ data }); }); return () => { active = false; }; }, [request, path, revision]);
+  useEffect(() => { if (!enabled) return; let active = true; request(path).then(data => { if (active) setState({ data }); }); return () => { active = false; }; }, [request, path, revision, enabled]);
   return state;
 }
 const State = ({ state, children }) => state.data ? children(state.data) : <p>Loading</p>;
 const Facts = () => null, Json = ({ title }) => <details><summary>{title}</summary></details>;
 const makeProps = request => ({ request, guard: { current: action => { action?.(); return true; } }, revision: 1, useData, State, Facts, Json, date: value => value || "Not recorded", label: value => value });
 async function edit() {
+  fireEvent.click(screen.getByRole("button", { name: "Load player directory" }));
   fireEvent.click(await screen.findByRole("button", { name: "View player First player" }));
   fireEvent.click(screen.getByRole("button", { name: "Edit player name" }));
   fireEvent.change(screen.getByLabelText("Player name"), { target: { value: "Corrected name" } });
@@ -23,7 +24,9 @@ test("profile sections preserve corrections and failed departure save retains in
     if (path.endsWith("/metadata")) { expect(JSON.parse(options.body)).toEqual({ expectedName: "First player", metadata: { name: "Corrected name" }, reason: "Requested by account owner", key: expect.stringMatching(/^[a-f0-9-]{36}$/) }); if (failure) throw new Error("Save unavailable"); return {}; }
     return { players: profiles, hasMore: false, guide };
   });
-  render(<Players {...makeProps(request)} />); await edit();
+  render(<Players {...makeProps(request)} />);
+  expect(request).not.toHaveBeenCalled();
+  await edit();
   fireEvent.click(within(screen.getByRole("navigation", { name: "Player details" })).getByRole("button", { name: "Decks" }));
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   expect(screen.getByLabelText("Player name")).toHaveValue("Corrected name");
