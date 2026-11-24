@@ -88,7 +88,7 @@ test("Admin shows only deployed support capabilities and rejects unsupported eff
   const view = render(summary(card()));
   expect(screen.getByText("Printed cost").nextElementSibling).toHaveTextContent("4");
   expect(screen.getByText(/Support cannot enter during pending combat/)).toBeInTheDocument();
-  expect(screen.getByText("explicit-removal-only")).toBeInTheDocument();
+  expect(screen.getByText("Only when an effect removes it")).toBeInTheDocument();
   view.rerender(summary({ ...card(), effect: { id: "custom-script", version: 1, parameters: {} } }));
   expect(screen.getByRole("alert")).toHaveTextContent("Unsupported support effect");
 });

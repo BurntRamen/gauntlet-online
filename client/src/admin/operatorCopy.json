@@ -25,5 +25,5 @@
   "MechanicStudio4": "Use this mechanic on a compatible card, save the card, then test it.",
   "programRules": "Use up to four different saved mechanics. They run in the order shown when their triggers occur.",
   "programReplacement": "Changing back to a built-in ability replaces this setup in your local edits.",
-  "supportRules": "Play this support by paying its printed cost when you have open priority. Read its effects below. Save changes and test the card before publishing."
+  "supportRules": "Play this support by paying its printed cost when you have open priority. Support cannot enter during pending combat or end-turn placement. Read its effects below. Save changes and test the card before publishing."
 }
