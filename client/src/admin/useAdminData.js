@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 // Each signed-in Studio owns a distinct request function. Only summary reads
 // are reusable, and an explicit workspace refresh changes the revision.
 const summaries = new WeakMap();
-const reusablePaths = new Set(["/api/admin/home", "/api/admin/catalog"]);
+const reusablePaths = new Set(["/api/admin/home?view=tasks", "/api/admin/catalog"]);
 
 function readSummary(request, path, revision) {
   let entries = summaries.get(request);
