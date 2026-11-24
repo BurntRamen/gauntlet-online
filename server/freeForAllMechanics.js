@@ -1,13 +1,18 @@
 "use strict";
 const runtime = require("../shared/duel-rules/mechanicRuntime"), modes = require("../shared/duel-rules/mechanicModes");
+const program = require("../shared/duel-rules/mechanicProgram");
+function registeredOnly(card) {
+  const effect = card?.effect;
+  return effect?.id === program.ID && effect.version === 2 && program.validate(effect, card, true) && !effect.mechanics.length;
+}
 function reason(card) {
-  if (!runtime.isAuthored(card)) return null;
+  if (!runtime.isAuthored(card) || registeredOnly(card)) return null;
   if (card.effect.id === "authored-mechanic") return modes.freeForAllReason(card.effect.definition);
   const modules = runtime.programs(card);
   return modules.length ? modules.map(source => modes.freeForAllReason(source.effect.definition)).find(Boolean) || null : "The captured mechanic program must resolve before mode eligibility can be determined.";
 }
 function trigger(game, player, source, timing, context = {}) {
-  if (game.gameMode !== "freeForAll" || !runtime.isAuthored(source)) return [];
+  if (game.gameMode !== "freeForAll" || !runtime.isAuthored(source) || registeredOnly(source)) return [];
   const problem = reason(source); if (problem) throw new Error(problem);
   const opponent = context.attack?.player === player ? context.attack.targetPlayer : context.attack?.player;
   if (!game.players[player] || !game.players[opponent] || opponent === player) throw new Error("Multiplayer mechanics require explicit combat controller and opposing player.");

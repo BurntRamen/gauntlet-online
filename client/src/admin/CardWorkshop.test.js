@@ -22,8 +22,8 @@ test("keeps wording separate from mechanics and previews resolved suit and colle
   expect(field).toHaveBeenLastCalledWith("art", { domain: "assets", row: expect.objectContaining({ id: "spear-alt" }) });
   fireEvent.click(screen.getByRole("button", { name: "Mechanics", exact: true }));
   expect(screen.getByText("Uses the deployed arm bonus.")).toBeVisible();
-  fireEvent.click(screen.getByText("Inspect effect and its uses"));
-  expect(inspect).toHaveBeenCalledWith("card-effects", "spear-effect");
+  fireEvent.click(screen.getByText("Edit this card’s effect"));
+  expect(inspect).toHaveBeenCalledWith("card-effects", "card:spear");
 });
 
 test("unsaved artwork prevents silently switching its owner and has no fabricated preview", () => {

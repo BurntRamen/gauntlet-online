@@ -17,6 +17,24 @@ export default function EngineWorkshop({state,field,playtest,onInspect,onReview,
   const compatible=(domains.cards||[]).filter(c=>c.factionId===selected?.factionId&&c.type===selected?.cardType);
   const related=domain==='card-effects'?(used.length?used:compatible):domain==='encounter-mechanics'?(domains.encounters||[]).filter(e=>e.setup?.bossAbility?.id===selected?.id):[];
   if(['mechanics','rule-modifiers'].includes(domain)) return <MechanicStudio key={domain+target?.id} kind={domain==='mechanics'?'mechanics':'modifiers'} initialId={target?.id} initialCreate={target?.section==='create'} onAttach={onAttach} onSelect={id=>onTarget?.({domain,id})} {...{state,act,busy,onDirty,onInspect,onTest,onReview,playtest}}/>;
+  if (domain === "card-effects" && (!target?.id || target.id.startsWith("card:"))) {
+    const cards = domains.cards || [];
+    const ownerId = target?.id?.slice(5);
+    const card = ownerId ? cards.find(item => item.id === ownerId) : null;
+    const matches = cards.filter(item => [item.id, item.name, item.factionId, item.effect?.id].join(" ").toLowerCase().includes(query.toLowerCase()));
+    const pageSize = 60;
+    const lastPage = Math.max(0, Math.ceil(matches.length / pageSize) - 1);
+    const page = Math.min(context?.page || 0, lastPage);
+    return <WorkshopShell name={copy.heading} title={card?.name || "Card effects"} selectionId={card?.id} busy={busy}
+      search={<label className="admin-search">{copy.search}<input value={query} onChange={e => onContext ? onContext({query:e.target.value, page:0}) : setQuery(e.target.value)} /></label>}
+      list={<div className="admin-object-list">{matches.slice(page * pageSize, (page + 1) * pageSize).map(item =>
+        <button key={item.id} disabled={busy} aria-pressed={item.id === card?.id} onClick={() => onTarget?.({domain, id:"card:" + item.id})}><strong>{item.name}</strong><small>{item.id}</small></button>)}
+        {!matches.length && <p>No matching cards.</p>}
+        {lastPage > 0 && <div className="admin-actions"><button disabled={!page} onClick={() => onContext({page:page-1})}>Previous</button><span>{page+1} / {lastPage+1}</span><button disabled={page===lastPage} onClick={() => onContext({page:page+1})}>Next</button></div>}</div>}>
+      {card ? <WorkshopSection title="Card effect" id="card-owned-effect"><p>{card.text}</p>{field("effect", {domain:"cards", row:card})}
+        <button type="button" onClick={() => onInspect?.("cards",card.id,"test",null)}>Test this card</button></WorkshopSection> : <p>Select a card to edit its effect.</p>}
+    </WorkshopShell>;
+  }
   return <WorkshopShell name={copy.heading} title={selected?.label||selected?.id||copy.choose} selectionId={selected?.id} busy={busy}
     actions={<button onClick={onReview} disabled={busy}>{copy.review}</button>}
     search={<label className="admin-search">{copy.search}<input value={query} onChange={e=>onContext?onContext({query:e.target.value}):setQuery(e.target.value)}/></label>}

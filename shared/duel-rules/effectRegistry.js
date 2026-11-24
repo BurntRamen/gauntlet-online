@@ -24,16 +24,16 @@ const definitions = [
         handler: alien ? "catalog-alien-resource" : "catalog-faction-identity",
         parameters: alien ? {
           trigger: { min: alien.trigger, max: alien.trigger, default: alien.trigger },
-          gain: { min: alien.gain, max: alien.gain, default: alien.gain },
-          spend: { min: alien.spend, max: alien.spend, default: alien.spend },
-          bonus: { min: alien.bonus, max: alien.bonus, default: alien.bonus },
-          prevent: { min: alien.prevent, max: alien.prevent, default: alien.prevent },
-          draw: { min: alien.draw, max: alien.draw, default: alien.draw },
-          heal: { min: alien.heal, max: alien.heal, default: alien.heal },
-          onPlayGain: { min: alien.onPlayGain, max: alien.onPlayGain, default: alien.onPlayGain }
+          gain: { min: 0, max: 6, default: alien.gain },
+          spend: { min: 0, max: 6, default: alien.spend },
+          bonus: { min: 0, max: 8, default: alien.bonus },
+          prevent: { min: 0, max: 8, default: alien.prevent },
+          draw: { min: 0, max: 3, default: alien.draw },
+          heal: { min: 0, max: 8, default: alien.heal },
+          onPlayGain: { min: 0, max: 6, default: alien.onPlayGain }
         } : {
           trigger: { min: trigger, max: trigger, default: trigger },
-          bonus: { min: 1, max: 1, default: 1 }
+          bonus: { min: 0, max: 8, default: 1 }
         }
       };
     });
@@ -58,7 +58,10 @@ function validateCardEffect(effect, card) {
   if (effect?.id === require("./mechanicProgram").ID) return require("./mechanicProgram").validate(effect, card);
   if (effect?.id === require("./mechanicContract").ID) return require("./mechanicContract").validateEffect(effect, card);
   if (effect?.id === composition.ID) return composition.validate(effect, card);
-  const entry = effect && entries[effect.id];
+  return validateRegistered(effect, card);
+}
+function validateRegistered(effect, card) {
+  const entry = effect && Object.hasOwn(entries, effect.id) && entries[effect.id];
   return !!entry && Object.keys(effect).sort().join() === "id,parameters,version" && effect.version === entry.version
     && (!card || (entry.factionId === card.factionId && entry.cardType === card.type))
     && validateParameters(effect.parameters, entry.parameters);
@@ -67,6 +70,9 @@ function cardEffect(card) {
   // The fallback is an ingress adapter for pre-contract saves/replays only.
   // Explicit but invalid definitions must never fall back to identity dispatch.
   const effect = card && Object.hasOwn(card, "effect") ? card.effect : defaultCardEffect(card?.definitionId || card?.catalogId || card?.gameplayCardId || card?.id);
+  if (effect?.id === "mechanic-program" && effect.version === 2) {
+    return require("./mechanicProgram").validate(effect, card, true) ? effect.registered : null;
+  }
   return validateCardEffect(effect) ? effect : null;
 }
 function hasCardEffect(card, handler) {
@@ -103,5 +109,5 @@ function factionParameter(player, key) {
   return validateFactionMechanics(mechanics, mechanicFamily(faction)) ? mechanics?.parameters[key] ?? 0 : 0;
 }
 module.exports = { CARD_EFFECT_CONTRACT_VERSION, FACTION_EFFECT_CONTRACT_VERSION, cardEffect, hasCardEffect, cardParameter,
-  defaultCardEffect, validateCardEffect, factionMechanicId, factionParameter, defaultFactionMechanics, validateFactionMechanics,
+  defaultCardEffect, validateRegistered, validateCardEffect, factionMechanicId, factionParameter, defaultFactionMechanics, validateFactionMechanics,
   cardEffectDefinitions: () => copy(definitions), factionEffectDefinitions: () => copy(factionDefinitions) };

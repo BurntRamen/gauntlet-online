@@ -31,7 +31,7 @@ test("authors ordered abilities with authoritative explanation, duplication, rem
 test("switching does not translate legacy prose; flavor/wording are not execution authority", () => {
   render(<Editor initial={{ id: "coin-scale-spear", version: 1, parameters: { armBonus: 6 } }} />);
   fireEvent.change(screen.getByLabelText("Execution model"), { target: { value: "composition" } });
-  expect(screen.getByLabelText("Ability 1 effect 1 amount")).toHaveValue(2);
+  expect(screen.getByLabelText("Ability 1 effect 1 amount")).toHaveValue(6);
   expect(screen.getByRole("region", { name: "Generated mechanics explanation" })).toHaveTextContent("Printed wording differs");
 });
 test("generated wording is an explicit edit and disabled state prevents mechanics changes", () => {

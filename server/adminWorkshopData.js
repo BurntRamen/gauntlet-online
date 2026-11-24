@@ -28,7 +28,7 @@ function workshopMetadata(selection) {
   ].map(key => [key, snapshot.engine[key]])) };
   if (snapshot.domains.cards.some(card => card.effect?.id === composition.ID || card.effect?.armament?.id === composition.ID)) bindings.compositionVersion = composition.VERSION;
   const program = require("../shared/duel-rules/mechanicProgram");
-  if (snapshot.domains.cards.some(card => card.effect?.id === program.ID)) bindings.mechanicProgramVersion = program.VERSION;
+  if (snapshot.domains.cards.some(card => card.effect?.id === program.ID)) bindings.mechanicProgramVersion = program.binding(snapshot.domains.cards);
   const releaseEffectIds = new Set(snapshot.domains.cards.map(card => card.effect?.id).filter(Boolean));
   const cardEffects = cardAuthoringDefinitions().filter(effect => releaseEffectIds.has(effect.id));
   return { version: 1, ...identity, studio: require("./mechanicAuthoring").metadata(snapshot), cardEffects, ...rulesAuthoringData(snapshot),

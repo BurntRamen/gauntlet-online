@@ -1,5 +1,5 @@
 import {render} from "./testSupport";
-import { fireEvent, screen } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import EngineWorkshop from "./EngineWorkshop";
 
 const faction = { id: "rumin", name: "Rumin", mechanics: { id: "rhythm", version: 1, parameters: { bonus: 3 } } };
@@ -16,11 +16,11 @@ test("effect contracts are read-only and direct editing to an authored card", ()
   expect(target).toHaveBeenCalledWith({ domain: "card-effects", id: "spear-effect", cardId: "spear", section: "test" });
 });
 
-test("editable parameters bind to their faction and shared configuration stays bounded", () => {
+test("editable parameters bind to their faction and shared configuration stays bounded", async () => {
   const field = jest.fn(() => <p>Owner field</p>);
   const { rerender } = render(<EngineWorkshop state={state} field={field} target={{ domain: "faction-effects", id: "rhythm" }} />);
   expect(field).toHaveBeenCalledWith("mechanics", { domain: "factions", row: faction });
-  fireEvent.click(screen.getByText("Advanced · contract and setup limits"));expect(document.querySelector(".admin-json pre")).toHaveTextContent('"min": 0');expect(document.querySelector(".admin-json pre")).toHaveTextContent('"max": 8');
+  fireEvent.click(screen.getByText("Advanced · contract and setup limits"));await waitFor(() => expect(document.querySelector(".admin-json pre")).toHaveTextContent('"min": 0'));expect(document.querySelector(".admin-json pre")).toHaveTextContent('"max": 8');
   field.mockClear();
   rerender(<EngineWorkshop state={state} field={field} target={{ domain: "game", id: "shared-rules" }} />);
   expect(field).toHaveBeenCalledTimes(2);
@@ -43,5 +43,16 @@ test("search restores remembered workshop context and reports edits without losi
   render(<EngineWorkshop state={state} field={() => null} context={{ query: "spear" }} onContext={remember} target={{ domain: "card-effects" }} />);
   expect(screen.getByLabelText("Search rules")).toHaveValue("spear");
   fireEvent.change(screen.getByLabelText("Search rules"), { target: { value: "rumin" } });
-  expect(remember).toHaveBeenCalledWith({ query: "rumin" });
+  expect(remember).toHaveBeenCalledWith({ query: "rumin", page: 0 });
+});
+
+test("a card-owned effect edits only the selected card even when another uses its handler", () => {
+  const owner = state.live.domains.cards[0];
+  const duplicate = { ...owner, id: "duplicate", name: "Duplicate spear" };
+  const data = { ...state, live: { domains: { ...state.live.domains, cards: [owner, duplicate] } } };
+  const field = jest.fn(() => <span>Effect editor</span>), target = jest.fn();
+  render(<EngineWorkshop state={data} field={field} onTarget={target} target={{domain:"card-effects",id:"card:duplicate"}} />);
+  expect(field).toHaveBeenCalledWith("effect", {domain:"cards",row:duplicate});
+  fireEvent.click(screen.getByRole("button", {name:"Spear spear"}));
+  expect(target).toHaveBeenCalledWith({domain:"card-effects",id:"card:spear"});
 });

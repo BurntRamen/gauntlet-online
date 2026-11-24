@@ -10,7 +10,7 @@ import MechanicLanguage from "./MechanicLanguage";
 
 export function GeneratedWording({ row, studio, disabled, onChange }) {
   const helpCopy = useHelp();
-  const wording = program.isAuthored(row.effect) ? program.explanation(row.effect, studio?.definitions) : row.effect?.id === contract.ID && contract.validate(row.effect, row) ? guidance.explain(row.effect, row) : null;
+  const wording = row.effect?.registered ? null : program.isAuthored(row.effect) ? program.explanation(row.effect, studio?.definitions) : row.effect?.id === contract.ID && contract.validate(row.effect, row) ? guidance.explain(row.effect, row) : null;
   return wording ? <button type="button" disabled={disabled} onClick={() => onChange(wording)}>{helpCopy.mechanicCopy1}</button> : null;
 }
 
@@ -23,21 +23,26 @@ export default function MechanicsEditor(props) {
   const available = mechanics.filter(m => m.status === "active" && m.cardTypes.includes(row.type) && !program.references(value).some(ref => ref.mechanicId === m.id));
   const reference = id => ({ id: mechanicContract.ID, version: mechanics.find(m => m.id === id).interpreter, mechanicId: id });
   const composed = value?.id === contract.ID;
-  const legacy = props.definition.options.find(effect => effect.factionId === row.factionId && effect.cardType === row.type);
+  const options = props.definition.options || [];
+  const compatible = effect => effect.factionId === row.factionId && effect.cardType === row.type;
+  const legacy = options.find(effect => compatible(effect) && effect.id === row.effect?.id) || options.find(effect => compatible(effect) && effect.legacyCardId === row.id) || options.find(effect => effect.factionId === row.factionId && effect.cardType === row.type);
   const registered = () => ({ id: legacy.id, version: legacy.version, parameters: Object.fromEntries(Object.entries(legacy.parameters).map(([key, spec]) => [key, spec.default])) });
+  const converted = contract.fromRegistered(value, row);
+  const nativeProgram = props.studio?.registeredProgramVersion === program.VERSION2 && program.fromRegistered(value, row);
   const errors = composed ? contract.errors(value, row) : [];
   const setAbility = (index, next) => onChange({ ...value, abilities: replaceAt(value.abilities, index, next) });
   if (value?.id === program.ID) return <EditorValues value={value} onChange={onChange}><fieldset disabled={disabled} className="mechanics-editor"><legend>{helpCopy.mechanicCopy2}</legend><Help topic="programRules" /><MechanicLanguage studio={props.studio} />
     <ValueControl label={helpCopy.mechanicCopy3} disabled={!props.studio?.programVersion || value.mechanics.length >= 4 || !available.length} value="" options={[["", helpCopy.mechanicCopy4], ...available.map(m => [m.id, m.name])]} onChange={id => { if (id) onChange({ ...value, mechanics: [...value.mechanics, reference(id)] }); }} />
+    {value.registered && <fieldset><legend>Original card effect</legend><GauntletContractFields {...props} value={value.registered} onChange={registered => onChange({ ...value, registered })} /></fieldset>}
     <ol>{value.mechanics.map((ref, index) => <li key={ref.mechanicId}><div className="admin-actions"><button type="button" aria-label={authored ? helpCopy.mechanicCopy5 : `Edit module ${index + 1}`} onClick={() => props.onInspect?.("mechanics", ref.mechanicId)}>{mechanics.find(m => m.id === ref.mechanicId)?.name || ref.mechanicId}</button><CollectionActions path={['mechanics']} index={index} name="module"/></div></li>)}</ol>
     <button type="button" onClick={() => props.onInspect?.("mechanics", null)}>{helpCopy.mechanicCopy7}</button>
-    {contract.supports(row) && <ValueControl type="checkbox" label={helpCopy.mechanicCopy8} checked={!!value.armament} onChange={enabled => onChange({ ...value, armament: enabled ? contract.create() : null })} />}
+    {!value.registered && contract.supports(row) && <ValueControl type="checkbox" label={helpCopy.mechanicCopy8} checked={!!value.armament} onChange={enabled => onChange({ ...value, armament: enabled ? contract.create() : null })} />}
     {value.armament && <MechanicsEditor {...props} embedded value={value.armament} onChange={armament => onChange({ ...value, armament })} />}
     {!program.capture(value, row, mechanics) && <Help role="alert" topic="programInvalid" />}
-    <p className="mechanics-explanation">{program.explanation(value, mechanics)}</p><Help topic="programReplacement" />{legacy && <button type="button" onClick={() => onChange(registered())}>{helpCopy.mechanicCopy9}</button>}
+    <p className="mechanics-explanation">{program.explanation(value, mechanics)}</p><Help topic="programReplacement" />{legacy && <button type="button" onClick={() => onChange(value.registered || registered())}>{helpCopy.mechanicCopy9}</button>}
   </fieldset></EditorValues>;
-  return <EditorValues value={value} onChange={onChange} disabled={disabled}><div className="mechanics-editor">{!props.embedded && props.studio?.programVersion && <button type="button" disabled={disabled} onClick={() => onChange(program.create(value))}>{composed ? helpCopy.mechanicCopy10 : helpCopy.mechanicCopy11}</button>}
-    {!props.embedded && <ValueControl label="Execution model" aria-label="Execution model" disabled={disabled || !contract.supports(row)} value={composed ? "composition" : "legacy"} options={[["legacy", helpCopy.mechanicCopy12], ["composition", helpCopy.mechanicCopy13]]} onChange={model => onChange(model === "composition" ? contract.create() : registered())} />}
+  return <EditorValues value={value} onChange={onChange} disabled={disabled}><div className="mechanics-editor">{!props.embedded && props.studio?.programVersion && <button type="button" disabled={disabled} onClick={() => onChange(nativeProgram || program.create(converted || value))}>{nativeProgram ? "Keep this effect and add modules" : converted ? "Build modules from this effect" : composed ? helpCopy.mechanicCopy10 : "Replace with a modular effect"}</button>}
+    {!props.embedded && <ValueControl label="Execution model" aria-label="Execution model" disabled={disabled || !contract.supports(row)} value={composed ? "composition" : "legacy"} options={[["legacy", helpCopy.mechanicCopy12], ["composition", helpCopy.mechanicCopy13]]} onChange={model => onChange(model === "composition" ? converted || contract.create() : registered())} />}
     {!composed ? <><Help className="admin-note" topic="MechanicsEditor2" /><GauntletContractFields {...props} /></> : <>
       <Help topic="MechanicsEditor3" />
       {errors.length > 0 && <ul role="alert">{errors.map(issue => <li key={issue.path}>{issue.path}: {issue.message}</li>)}</ul>}

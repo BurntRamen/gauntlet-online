@@ -31,4 +31,26 @@ function errors(effect, card) {
 const validate = (effect, card) => errors(effect, card).length === 0;
 const ability = () => ({ timing: "arm", condition: { kind: "always" }, cost: "attack-payment-and-source", limit: "once-per-arming", effects: [{ kind: "attackBonus", amount: 2, ...operations.attackBonus }] });
 const create = () => ({ id: ID, version: 1, abilities: [ability()] });
-module.exports = { ID, VERSION, limits, conditions, operations, supports, errors, validate, ability, create };
+// Only convert rules expressible by this arming interpreter. In particular,
+// Clawblade's once-per-attack heal cannot be repeated per attached copy.
+function fromRegistered(effect, card) {
+  if (!supports(card) || effect?.version !== 1) return null;
+  function bonus(amount, condition = {kind: "always"}) {
+    const result = ability();
+    result.condition = condition;
+    result.effects[0].amount = amount;
+    return result;
+  }
+  let abilities;
+  switch (effect.id) {
+    case "gilded-scale-legionary": abilities = [bonus(2, {kind:"diamondsPaid"})]; break;
+    case "coin-scale-spear":
+    case "rumie-vault-shield": abilities = [bonus(effect.parameters?.armBonus)]; break;
+    case "triumphal-ram": abilities = [bonus(4), bonus(1, {kind:"attackValue", amount:8})]; break;
+    case "kaisers-gold-claw": abilities = [bonus(5), bonus(1, {kind:"attackNumber", amount:4})]; break;
+    default: return null;
+  }
+  const result = { id: ID, version: 1, abilities };
+  return validate(result, card) ? result : null;
+}
+module.exports = { fromRegistered, ID, VERSION, limits, conditions, operations, supports, errors, validate, ability, create };

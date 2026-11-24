@@ -197,3 +197,37 @@ test("authoring vocabulary uses established lexicon definitions and exact suppor
   }
   assert.match(metadata.operationLabels.preventDamage.label, /^Ward/); assert.equal(metadata.vocabulary.some(term => term.word === "Peek"), false);
 });
+
+test("every catalog card can retain its own registered effect in an editable program", () => {
+  const registry = require("../../shared/duel-rules/effectRegistry");
+  const supports = require("../../shared/duel-rules/supportContract");
+  const cards = require("../gameContent").getPublicGameContent().cards;
+  for (const row of cards) {
+    const original = { ...row, effect: registry.defaultCardEffect(row.id) };
+    const effect = program.fromRegistered(original.effect, row);
+    assert.ok(effect, row.id);
+    const wrapped = authoring.resolve({ ...row, effect }, {}, hash);
+    assert.deepEqual(registry.cardEffect(wrapped), original.effect, row.id);
+    assert.deepEqual(supports.definition(wrapped), supports.definition(original), row.id);
+    assert.notEqual(wrapped.effect.registered.parameters, original.effect.parameters);
+    assert.equal(require("../freeForAllMechanics").reason(wrapped), null);
+  }
+});
+
+test("a registered attack rule and an attached module both run on the same physical card", () => {
+  const registry = require("../../shared/duel-rules/effectRegistry");
+  const def = registry.cardEffectDefinitions().find(r => r.handler === "catalog-faction-identity" && r.parameters.trigger.default === 1);
+  const source = { ...basic("source"), factionId: def.factionId, type: def.cardType, effect: registry.defaultCardEffect(def.legacyCardId) };
+  const first = game(source);
+  const baseline = accept(first, attack).state;
+  const copy = structuredClone(source);
+  copy.effect = program.fromRegistered(source.effect, source);
+  copy.effect.registered.parameters.bonus += 1;
+  copy.effect.mechanics.push(module(1, source.type, [ability("attack", [op("gainLife", 2)])]));
+  const modified = game(copy);
+  modified.contentBinding.mechanicProgramVersion = program.VERSION2;
+  const result = accept(modified, attack).state;
+  assert.equal(result.handAttacks[0].effectiveValue, baseline.handAttacks[0].effectiveValue + 1);
+  assert.equal(result.players[1].life, baseline.players[1].life + 2);
+  assert.equal(program.validate({...copy.effect, registered: copy.effect}, copy), false);
+});
