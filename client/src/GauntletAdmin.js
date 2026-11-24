@@ -32,9 +32,9 @@ function State({ state, children }) {
   return children(state.data);
 }
 
-function Overview({ request, revision, onSelect, onRefresh }) {
-  const state = useAdminData(request, "/api/admin/home?view=tasks", revision);
-  return <ModuleHome onRefresh={onRefresh} data={state.data} loading={state.loading} error={state.error} onSelect={onSelect} />;
+function Overview({ request, revision, onSelect, onRefresh, requested }) {
+  const state = useAdminData(request, "/api/admin/home?view=tasks", revision, requested);
+  return <ModuleHome requested={requested} onRefresh={onRefresh} data={state.data} loading={requested && state.loading} error={state.error} onSelect={onSelect} />;
 }
 
 export default function GauntletAdmin(props) {
@@ -54,6 +54,7 @@ function AdminWorkspace({ request, onClose, exitGuard, environment, operatorScop
     if (areaScroll.current[area] !== undefined) window.scrollTo(0, areaScroll.current[area]);
   }, [area]);
   const [matchesOpened, setMatchesOpened] = useState(false);
+  const [taskReads, setTaskReads] = useState(0);
   const [revision, setRevision] = useState(0);
   const guard = useRef(action => { action?.(); return true; });
   const playerGuard = useRef(action => { action?.(); return true; });
@@ -141,7 +142,7 @@ function AdminWorkspace({ request, onClose, exitGuard, environment, operatorScop
       {primaryArea === "Events & Commerce" && <nav className="admin-subnav" aria-label="Events & Commerce workspaces">{[["Events & seasons", "Competition", "Para definitions"], ["Ranked rules", "Competition", "Ranked & Gauntlet"], ["Results", "Competition", "Results"], ["Deck products", "Store & Economy", "Products"], ["Gold & rewards", "Store & Economy", "Gold & Rewards"]].map(([name, parent, value]) => <button key={name} aria-pressed={area === parent && workspace[parent] === value} onClick={() => selectArea(parent, value === "Products" ? "offers" : undefined, undefined, undefined, undefined, undefined, { workspace: value })}>{name}</button>)}</nav>}
       {primaryArea === "Operations" && <nav className="admin-subnav" aria-label="Operations workspaces"><button aria-pressed={area === "Players"} onClick={() => selectArea("Players")}>Players</button><button aria-pressed={area === "Operations" && workspace.Operations === "Match evidence"} onClick={() => selectArea("Matches")}>Match evidence</button><button aria-pressed={area === "Operations" && workspace.Operations === "Health"} onClick={() => selectArea("System")}>Health & recovery</button></nav>}
       {area === "Content" && matchesOpened && <button onClick={() => selectArea("Matches")}>Return to match inspection</button>}
-      {area === "Home" && <Overview onRefresh={() => setRevision(value => value + 1)} request={request} revision={revision} onSelect={selectArea} />}
+      {area === "Home" && <Overview requested={taskReads > 0 || revision > 0} onRefresh={() => setTaskReads(value => value + 1)} request={request} revision={`${revision}:${taskReads}`} onSelect={selectArea} />}
       {authoringArea && <div hidden={!authoring}><Suspense fallback={<p role="status">Opening your workspace…<progress className="sf-load-bar" aria-label="Opening workspace" /></p>}><GauntletAuthoring operatorScope={operatorScope} request={request} area={authoringArea} initialDomain={contentDomain} revision={revision} catalog={catalog.data} onNeedCatalog={() => setCatalogRequested(true)} onStatus={setEditing} onPublished={() => setRevision((value) => value + 1)} guard={guard} onNavigate={selectArea} beforeNavigate={action => { dismissMenus(); return playerGuard.current(action); }} onExit={onClose} /></Suspense></div>}
       {area === "Players" && <Suspense fallback={<p>Loading players…<progress className="sf-load-bar" aria-label="Loading players" /></p>}><Players onNeedCatalog={() => setCatalogRequested(true)} request={request} revision={revision} catalog={catalog.data} guard={playerGuard} useData={useAdminData} State={State} Facts={Facts} Json={Json} date={date} label={label} /></Suspense>}
 
