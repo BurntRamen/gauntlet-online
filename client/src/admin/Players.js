@@ -141,15 +141,15 @@ function DirectoryProfile({ id, revision, useData, State, ...props }) {
 export default function Players({ request, revision, catalog, onNeedCatalog, guard, useData, State, Facts, Json, date, label }) {
   const [offset, setOffset] = useState(0);
   const [query, setQuery] = useState("");
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
   const [reload, setReload] = useState(0);
   const [notice, setNotice] = useState("");
   const list = useRef(null);
-  const state = useData(request, `/api/admin/players?offset=${offset}&limit=25&view=directory${search ? `&q=${encodeURIComponent(search)}` : ""}`, `${revision}:${reload}`);
+  const state = useData(request, `/api/admin/players?offset=${offset}&limit=25&view=directory${search ? `&q=${encodeURIComponent(search)}` : ""}`, `${revision}:${reload}`, search !== null);
   const help = state.data?.guide || {};
   const select = (id, accepted) => { if (id === selectedId) { accepted?.(); return true; } return guard.current(() => { setSelectedId(id); if (id) onNeedCatalog?.(); setNotice(""); accepted?.(); }); };
-  return <><p className="admin-lede">{help.playerNote18}</p>{notice && <p role="status" className="admin-good">{notice}</p>}<form onSubmit={e => { e.preventDefault(); guard.current(() => { setSelectedId(null); setOffset(0); setSearch(query.trim()); }); }}><label className="admin-search">Search all players<input ref={list} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Player name or account ID" /></label><div className="admin-actions"><button>Search players</button>{(query || search) && <button type="button" onClick={() => { guard.current(() => { setSelectedId(null); setQuery(""); setSearch(""); setOffset(0); }); }}>Clear search</button>}</div></form><State state={state}>{(data) => {
+  return <><p className="admin-lede">{help.playerNote18}</p>{notice && <p role="status" className="admin-good">{notice}</p>}<form onSubmit={e => { e.preventDefault(); guard.current(() => { setSelectedId(null); setOffset(0); setSearch(query.trim()); setReload(value => value + 1); }); }}><label className="admin-search">Search all players<input ref={list} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Player name or account ID" /></label><div className="admin-actions"><button>{query.trim() ? "Search players" : "Load player directory"}</button>{(query || search) && <button type="button" onClick={() => { guard.current(() => { setSelectedId(null); setQuery(""); setSearch(null); setOffset(0); }); }}>Clear search</button>}</div></form>{search !== null && <State state={state}>{(data) => {
     const filtered = data.players;
     const selected = data.players.find((player) => player.id === selectedId);
     const Profile = data.view === "directory" ? DirectoryProfile : PlayerProfile;
@@ -163,5 +163,5 @@ export default function Players({ request, revision, catalog, onNeedCatalog, gua
       </div>
       {selected ? <Profile id={selected.id} revision={`${revision}:${reload}`} useData={useData} State={State} help={help} Facts={Facts} Json={Json} date={date} label={label} key={selected.id} player={selected} catalog={catalog} request={request} guard={guard} onSaved={() => { setNotice("Player metadata saved."); setReload((value) => value + 1); }} onBack={() => select(null, () => requestAnimationFrame(() => list.current?.focus()))} /> : <div className="admin-player-empty"><span className="admin-eyebrow">Player support</span><h3>Select a player</h3><p>{help.playerNote20}</p><p className="admin-note">{help.playerNote21}</p></div>}
     </div>;
-  }}</State></>;
+  }}</State>}</>;
 }
