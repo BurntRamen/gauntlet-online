@@ -40,7 +40,7 @@ function MatchPreview({ preview, sha256, id }) {
   );
 }
 
-function MatchRow({ match, onOpenMatch, onOpenReplay, onDownload, previewOpen, onTogglePreview }) {
+function MatchRow({ match, onPitch, onOpenMatch, onOpenReplay, onDownload, previewOpen, onTogglePreview }) {
   useBrandPreview();
   const perspective = match.perspective || {};
   const player = perspective.player || match.participants?.[0] || {};
@@ -86,6 +86,7 @@ function MatchRow({ match, onOpenMatch, onOpenReplay, onDownload, previewOpen, o
         {match.replay?.available && <button type="button" className="matches-primary-action" onClick={() => onOpenReplay(match)}>Watch Replay</button>}
         <div className="matches-tertiary-actions">
           {(match.preview || saved) && <button type="button" className="matches-preview-action" aria-expanded={previewOpen} aria-controls={`match-preview-${match.matchId}`} onClick={onTogglePreview}>{previewOpen ? "Hide Preview" : "Preview Record"}</button>}
+          <button type="button" onClick={() => onPitch(match)}>Start a Reath prompt</button>
           {saved && <button type="button" onClick={() => onDownload(match.matchId)}>Export Match File</button>}
           {saved && <button type="button" onClick={() => onDownload(match.matchId, "txt")}>Export Transcript</button>}
         </div>
@@ -248,6 +249,9 @@ export default function MatchesHub({
   const [error, setError] = useState("");
   const [previewMatchId, setPreviewMatchId] = useState("");
   const [loadedPreviews, setLoadedPreviews] = useState({});
+  const [opponents,setOpponents] = useState("all");
+  const [finishedOnly, setFinishedOnly] = useState(false);
+  const [overMinute, setOverMinute] = useState(false);
   const [visibleCount, setVisibleCount] = useState(20);
   const requestVersion = useRef(0);
 
@@ -291,8 +295,25 @@ export default function MatchesHub({
   const replayCount = useMemo(() => (data.matches || []).filter((match) => match.replay?.available).length, [data.matches]);
   const replayView = view === "replays";
   const standingsOnly = view === "standings";
-  const matchingRecords = replayView ? (data.matches || []).filter((match) => match.replay?.available) : data.matches || [];
-  const references = replayView ? [] : data.unavailableMatchReferences || [];
+  const starts = useMemo(() => {
+    const dates = new Map();
+    if (overMinute) for (const entry of localEntries) {
+      let start = entry.startedAt;
+      if (!start && entry.canonicalJson) {
+        try { start = JSON.parse(entry.canonicalJson).startedAt; } catch { /* Unreadable timestamps stay unknown. */ }
+      }
+      dates.set(entry.matchId, start);
+    }
+    return dates;
+  }, [overMinute, localEntries]);
+  const matchingRecords = (data.matches || []).filter(match => {
+    const done = !match.abandonmentReason && !["abandoned","cancelled"].includes(match.completionReason) && Number.isFinite(Date.parse(match.completedAt)) && (match.completion?.status === "finalized" || match.participants?.some(p => ["win","loss","draw"].includes(p.result)) || ["win","loss","draw"].includes(match.perspective?.outcome));
+    const duration = Date.parse(match.completedAt) - Date.parse(match.startedAt || starts.get(match.matchId));
+    const ai = match.participants?.some(p => ["ai","bot"].includes(p.identityType));
+    const human = match.participants?.length === 2 && match.participants.every(p => ["human","account","guest","player"].includes(p.identityType));
+    return (opponents==="all" || (opponents==="human" ? human : ai)) && (!replayView || match.replay?.available) && (!finishedOnly || done) && (!overMinute || duration > 60000);
+  });
+  const references = replayView || opponents!=="all" || finishedOnly || overMinute ? [] : data.unavailableMatchReferences || [];
   const totalCount = matchingRecords.length + references.length;
   const visibleMatches = matchingRecords.slice(0, visibleCount);
   const visibleReferences = references.slice(0, Math.max(0, visibleCount - matchingRecords.length));
@@ -336,6 +357,25 @@ export default function MatchesHub({
     }
   }
 
+  async function pitchMatch(match) {
+    try {
+      let source = match;
+      if (match.local?.saved) {
+        const entry = await matchLibrary.get(match.matchId);
+        if (entry) source = localEntryToMatch(entry, account?.id);
+      }
+      const summary = {
+        matchId:source.matchId, startedAt:source.startedAt, completedAt:source.completedAt,
+        turnCount:source.turnCount, abandonmentReason:source.abandonmentReason, completionReason:source.completionReason, completion:{status:source.completion?.status},
+        notableMoments:{decisiveTurn:source.notableMoments?.decisiveTurn},combatStats:{totalDamageDealt:source.combatStats?.totalDamageDealt,largestAttack:{value:source.combatStats?.largestAttack?.value}},
+        participants:(source.participants || []).map(p=>({displayName:p.displayName, identityType:p.identityType, faction:p.faction?.name, result:p.result, finalLife:p.finalLife})),
+      };
+      const destination = new URL("https://parapokerleague.netlify.app/newsroom");
+      destination.hash = new URLSearchParams({match:JSON.stringify(summary)}).toString();
+      window.location.assign(destination.href);
+    } catch (failure) { setError(failure.message || "Could not open this match summary."); }
+  }
+
   async function downloadMatchJson(matchId, format = "json") {
     try {
       const entry = await matchLibrary.get(matchId);
@@ -369,16 +409,22 @@ export default function MatchesHub({
         <span className="matches-overview-count">{replayView ? `${replayCount} available` : `${(data.matches || []).length + (data.unavailableMatchReferences || []).length} results · ${replayCount} replays`}</span>
         <button type="button" onClick={loadMatches} disabled={loading}>{loading ? "Refreshing…" : "Refresh"}</button>
       </section>
+      <fieldset className="matches-storage-note"><legend>Filter saved results</legend>
+        <label>Opponents <select value={opponents} onChange={e=>{setOpponents(e.target.value);setVisibleCount(20);}}><option value="all">All opponents</option><option value="human">Human opponents</option><option value="ai">AI opponent</option></select></label>{" · "}
+        <label><input type="checkbox" checked={finishedOnly} onChange={e=>{setFinishedOnly(e.target.checked);setVisibleCount(20);}}/> Finished game</label>{" · "}
+        <label><input type="checkbox" checked={overMinute} onChange={e=>{setOverMinute(e.target.checked);setVisibleCount(20);}}/> Over 1 minute long</label>
+      </fieldset>
       {!account && <p className="matches-storage-note">Sign in to see account results alongside replays saved on this device.</p>}
       {localEntries.length > 0 && <p className="matches-storage-note">Device replays stay in this browser. Export a match file to back it up or watch it on another device.</p>}
       {error && <p className="matches-error" role="alert">{error}</p>}
-      {!loading && !visibleMatches.length && !visibleReferences.length && <p className="matches-empty">{replayView ? "No playable replays are available yet. Import a saved match file below." : "No completed match records are available yet."}</p>}
+      {!loading && !visibleMatches.length && !visibleReferences.length && <p className="matches-empty">{(finishedOnly || overMinute || opponents!=="all") ? "No saved results match these filters." : replayView ? "No playable replays are available yet. Import a saved match file below." : "No completed match records are available yet."}</p>}
       {loading && <TransferProgress scope="history" />}
       <div className="matches-list" aria-busy={loading}>
         {visibleMatches.map((match) => (
           <MatchRow
             key={match.matchId}
             match={loadedPreviews[match.matchId] ? { ...match, preview: loadedPreviews[match.matchId] } : match}
+            onPitch={pitchMatch}
             onOpenMatch={openMatch}
             onOpenReplay={openReplay}
             onDownload={downloadMatchJson}
