@@ -314,7 +314,7 @@ export default function GauntletAuthoring({ operatorScope, request, area, initia
       setNotice(result.pending ? guide.publicationPending : ["para-draft", "competition-draft", "studio-draft"].includes(action) ? result.notice || help.workspaceDefinitionSaved : action === "assets/upload" ? help.workspaceImageUploaded : action === "assets/archive" ? help.workspaceAssetArchived : action === "create" ? help.workspaceContentCreated : action === "notes" ? help.workspaceNotesSaved : ["draft","reorder-encounters"].includes(action) ? guide.fieldSaved : action === "publish" ? guide.published : action === "rollback" ? help.workspaceReleaseRestored : action === "discard" ? help.workspaceDraftDiscarded : action === "validate" ? help.workspaceDraftValidated : help.workspacePreviewReady);
       return result;
     } catch (failure) {
-      if (!failure.status || failure.status >= 500) {
+      if (!failure.status || failure.status === 408 || failure.status >= 500) {
         markUnconfirmed(true);
         setError("The server could not confirm this action. Your local edits are available. Download the latest shared draft before retrying.");
       } else setError(failure.message);
