@@ -5,7 +5,7 @@ import aliases from "../../public/brand/suitfire-art/manifest.json";
 import { setAccountBrand, chooseBrand } from "./brandPreview";
 import { resolvePresentationArt, loadPresentationRegistry } from "./presentationArt";
 import { getCardForPresentation, getPlayingCardArtPath } from "../cardArt";
-import { getFactionCover, getFactionAsset } from "../GauntletVisuals";
+import { getCampaignCover, getFactionCover, getFactionAsset } from "../GauntletVisuals";
 import SpecialCardFace from "../SpecialCardFace";
 import MatchCardFace from "../babylon/MatchCardFace";
 import CollectorSetPackTile from "../CollectorSetPackTile";
@@ -29,21 +29,21 @@ afterEach(() => act(() => setAccountBrand(null)));
 
 test("an exact approved match respects faction, card identity, surface and external URLs", () => {
   const request = { source: source + "?v=3", factionId: "sheen", cardId: card.id, cardType: card.type, surface: "card" };
-  const resolve = extra => resolvePresentationArt({ ...request, ...extra }, { preview: true, registry: fixture });
+  const resolve = extra => resolvePresentationArt({ ...request, ...extra }, { registry: fixture });
   expect(resolve({})).toMatchObject({ src: illustration, kind: "illustration" });
   for (const mismatch of [{ factionId: "bizi" }, { cardId: "sheen-other" }, { cardId: "" }, { cardType: "armament" }, { cardType: "" }, { surface: "portrait" }, { source: "https://unrelated.test" + source }]) {
     expect(resolve(mismatch).src).not.toBe(illustration);
   }
   const draft = { ...fixture, replacements: { [source]: { ...fixture.replacements[source], status: "draft" } } };
-  expect(resolvePresentationArt(request, { preview: true, registry: draft }).src).toBe(request.source);
-  expect(resolvePresentationArt(request, { preview: false, registry: fixture }).src).toBe(request.source);
+  expect(resolvePresentationArt(request, { registry: draft }).src).toBe(request.source);
+  expect(resolvePresentationArt(request, { registry: null }).src).toBe(request.source);
 });
 
 test("captured content hashes route by exact original path without editing the saved card", () => {
   const historical = Object.keys(aliases.aliases).find(key => aliases.aliases[key].startsWith("/assets/gauntlet/constructed/faces/sheen-"));
   expect(historical).toBeTruthy();
   const config = { ...fixture, aliases: { [historical]: source } };
-  expect(resolvePresentationArt({ source: historical + "?v=4", factionId: "sheen", cardId: card.id, cardType: card.type, surface: "card" }, { preview: true, registry: config }).src).toBe(illustration);
+  expect(resolvePresentationArt({ source: historical + "?v=4", factionId: "sheen", cardId: card.id, cardType: card.type, surface: "card" }, { registry: config }).src).toBe(illustration);
 });
 
 test("composed preview keeps captured rules, identity, rank, suit and release untouched", () => {
@@ -74,6 +74,8 @@ test("decorative covers do not replace chapter events, portraits, or another fac
   enable();
   const scene = "/assets/gauntlet/campaigns/sheen/retained-event.webp";
   expect(getFactionCover("sheen", scene)).toBe(city);
+  expect(getCampaignCover("sheen", scene)).toBe(scene);
+  expect(getCampaignCover("sheen", "")).toBe(city);
   expect(getFactionAsset("sheen", scene)).toBe(scene);
   for (const surface of ["scene", "illustration", "card"]) {
     expect(resolvePresentationArt({ source: scene, factionId: "sheen", surface }).src).toBe(scene);
@@ -84,26 +86,30 @@ test("decorative covers do not replace chapter events, portraits, or another fac
 
 test("Initiative packs use approved covers outside the crest; other sets cannot borrow them", async () => {
   enable();
-  const view = render(<CollectorSetPackTile product={{ id: "pack", setId: "initiative", setName: "Initiative", artPath: "/old-baked-logo.png" }} />);
+  const view = render(<CollectorSetPackTile product={{ id: "pack", setId: "initiative", setName: "Initiative", artPath: "/assets/gauntlet/packs/initiative-set-1-suits.png" }} />);
   await waitFor(() => expect(view.container.querySelector(".preview-pack-faction")).toHaveAttribute("src", city));
   expect(view.container.querySelector(".preview-pack-crest")).toHaveAttribute("src", "/brand/suitfire-v14/crest.png");
-  view.rerender(<CollectorSetPackTile product={{ id: "pack", setId: "fractured-realms", artPath: "/old-baked-logo.png" }} />);
+  view.rerender(<CollectorSetPackTile product={{ id: "pack", setId: "fractured-realms" }} />);
   expect(view.container.querySelector(".preview-pack-faction")).toBeNull();
 });
 
-test("public accounts, GO selection, and Admin stored-art previews keep original artwork", () => {
-  setAccountBrand({ id: "ordinary", name: "simply" }); chooseBrand("suitfire");
-  expect(getCardForPresentation(card)).toBe(card);
-  enable();
+test("guests and both brands share game artwork and keep authored pack and admin assets", async () => {
+  setAccountBrand({ id: "ordinary" });
+  expect(getPlayingCardArtPath(card)).toBe(illustration);
+  const pack = render(<CollectorSetPackTile product={{ setId: "initiative", artPath: "/custom-pack.webp" }} />);
+  await waitFor(() => expect(pack.container.querySelector(".preview-pack-faction")).toHaveAttribute("src", "/custom-pack.webp"));
+  const crest = () => pack.container.querySelector(".preview-pack-crest").getAttribute("src");
+  const publicCrest = crest();
+  act(() => enable());
+  expect(crest()).not.toBe(publicCrest);
+  for (const brand of ["suitfire", "gauntlet"]) {
+    act(() => chooseBrand(brand));
+    expect(getPlayingCardArtPath(card)).toBe(illustration);
+    expect(getFactionCover("sheen")).toBe(city);
+    expect(pack.container.querySelector(".preview-pack-faction")).toHaveAttribute("src", "/custom-pack.webp");
+  }
   const view = render(<SpecialCardFace card={card} previewArt={false} />);
   expect(view.container.querySelector("img")).toHaveAttribute("src", source);
-  act(() => chooseBrand("gauntlet"));
-  expect(getCardForPresentation(card)).toBe(card);
-  expect(getFactionCover("sheen", "/original-city.webp")).toBe("/original-city.webp");
-  view.unmount();
-  const pack = render(<CollectorSetPackTile product={{ id: "pack", setId: "initiative", artPath: "/old-baked-logo.png" }} />);
-  expect(pack.container.innerHTML).toContain("old-baked-logo.png");
-  expect(pack.container.querySelector(".preview-pack-art")).toBeNull();
 });
 
 test("a historical type change retains the exact old face in preview and replay", () => {
@@ -121,9 +127,9 @@ test("a historical type change retains the exact old face in preview and replay"
 });
 
 test("deck decoration may use an exact source, without pretending to know a captured card type", () => {
-  expect(resolvePresentationArt({ source, factionId: "sheen", surface: "thumbnail" }, { preview: true, registry: fixture })).toMatchObject({ src: illustration });
-  expect(resolvePresentationArt({ source, factionId: "bizi", surface: "thumbnail" }, { preview: true, registry: fixture }).src).toBe(source);
-  expect(resolvePresentationArt({ source, factionId: "sheen", cardId: "other", surface: "thumbnail" }, { preview: true, registry: fixture }).src).toBe(source);
+  expect(resolvePresentationArt({ source, factionId: "sheen", surface: "thumbnail" }, { registry: fixture })).toMatchObject({ src: illustration });
+  expect(resolvePresentationArt({ source, factionId: "bizi", surface: "thumbnail" }, { registry: fixture }).src).toBe(source);
+  expect(resolvePresentationArt({ source, factionId: "sheen", cardId: "other", surface: "thumbnail" }, { registry: fixture }).src).toBe(source);
 });
 
 test("Leafen keeps the exact original art and cannot be reused as Nu or another identity", () => {
@@ -142,5 +148,5 @@ test("Leafen keeps the exact original art and cannot be reused as Nu or another 
     expect(resolveCharacterPortrait(speaker, "rumin")).toBe("/assets/gauntlet/ui/faction-art-unavailable.svg");
   }
   act(() => chooseBrand("gauntlet"));
-  expect(resolveCharacterPortrait("Nu", "sheen", hash)).toBe(hash);
+  expect(resolveCharacterPortrait("Nu", "sheen", hash)).toBe("/assets/gauntlet/ui/faction-art-unavailable.svg");
 });

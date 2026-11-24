@@ -1,5 +1,4 @@
-import { useEffect, useSyncExternalStore } from "react";
-import { brandText, useBrandPreview } from "./brandPreview";
+import { useSyncExternalStore } from "react";
 
 // Presentation only. Never write resolved paths into a printing, replay or account.
 let registry = null, request = null, artModule = null;
@@ -20,23 +19,18 @@ export function loadPresentationRegistry() {
   return request;
 }
 export const usePresentationRegistry = () => useSyncExternalStore(subscribe, snapshot, () => null);
-export function usePresentationArt() {
-  const active = useBrandPreview();
-  usePresentationRegistry();
-  useEffect(() => { if (active) loadPresentationRegistry(); }, [active]);
-  return active;
-}
+export const usePresentationArt = usePresentationRegistry;
 export function resolvePresentationArt(request = {}, options = {}) {
   return artModule
-    ? artModule.resolvePresentationArt(request, { preview: brandText(true, false), registry, ...options })
+    ? artModule.resolvePresentationArt(request, { registry, ...options })
     : { src: request.source || "", status: "original", kind: "image" };
 }
 export function presentationArt(source, context = {}) {
   return resolvePresentationArt({ source, ...context }).src;
 }
 export function presentationCard(...args) {
-  return brandText(true, false) && artModule ? artModule.presentationCard(registry, ...args) : args[0];
+  return artModule ? artModule.presentationCard(registry, ...args) : args[0];
 }
 export function presentationFace(...args) {
-  return brandText(true, false) && artModule ? artModule.presentationFace(registry, ...args) : args[0];
+  return artModule ? artModule.presentationFace(registry, ...args) : args[0];
 }

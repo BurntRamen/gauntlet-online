@@ -1569,8 +1569,8 @@ export default function ProductionMatchExperience({
   onRendererFailure,
   onSceneMetrics
 }) {
-  const previewBrand = useBrandPreview();
-  const previewRegistry = usePresentationRegistry();
+  useBrandPreview();
+  const artworkRegistry = usePresentationRegistry();
   const [update, setUpdate] = useState(null);
   const [authoritativeUpdate, setAuthoritativeUpdate] = useState(null);
   const [playbackState, setPlaybackState] = useState({
@@ -1915,7 +1915,7 @@ export default function ProductionMatchExperience({
     // Scene art helpers read these external stores; a change must refresh the
     // view-model reference without recreating the adapter or moving replay time.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  ), [previewBrand, previewRegistry, battlefieldViewModel, presentationKit, reducedMotion, update?.presentation?.cues, update?.presentation?.transitionMode, update?.replay?.speed, update?.replay?.transitionMode, update?.replay?.traversalGeneration, update?.source]);
+  ), [artworkRegistry, battlefieldViewModel, presentationKit, reducedMotion, update?.presentation?.cues, update?.presentation?.transitionMode, update?.replay?.speed, update?.replay?.transitionMode, update?.replay?.traversalGeneration, update?.source]);
 
   const phoneHandActive = Boolean(phoneHandLayout && viewModel
     && !viewModel.perspective?.spectator && !transportUpdate?.privacy?.required

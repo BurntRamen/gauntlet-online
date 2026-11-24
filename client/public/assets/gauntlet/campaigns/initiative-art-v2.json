@@ -93,7 +93,7 @@
     ]
   },
   "bizi": {
-    "cover": "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-constanti-hero.webp",
+    "cover": "/assets/gauntlet/campaigns/bizi/initiative/three-titans.84b00fe86744.webp",
     "chapters": {
       "kharons-vision": {
         "image": "/assets/gauntlet/campaigns/bizi/01-kharons-vision.webp"
@@ -182,7 +182,9 @@
     },
     "previousCover": [
       "/assets/gauntlet/campaigns/bizi/03-golden-empire.webp",
-      "/assets/gauntlet/releases/65d8210fe7419eb9c27e0e1624ab65c1563b262251f4e36d5a5e26832f2e2181.webp"
+      "/assets/gauntlet/releases/65d8210fe7419eb9c27e0e1624ab65c1563b262251f4e36d5a5e26832f2e2181.webp",
+      "/assets/gauntlet/faction-art-2026-11-07/bizi/bizi-constanti-hero.webp",
+      "/assets/gauntlet/releases/dfdc8d8c11ab5c5c2fc5df6d04a3979ccf464224cbbf1434d04240eb9400dc68.webp"
     ]
   },
   "sheen": {

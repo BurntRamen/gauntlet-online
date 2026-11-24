@@ -248,17 +248,17 @@
 }
 
 /* Brand, location, and identity stay distinct at every viewport. */
-.cd-shell.is-suitfire .cd-shell-surface { grid-template-rows: 108px 1fr; }
-.cd-shell.is-suitfire .cd-topbar { height: 108px; gap: 16px; }
-.cd-shell.is-suitfire .cd-environment { top: 108px; }
-.cd-shell.is-suitfire .cd-rail { top: 108px; height: calc(100dvh - 108px); }
-.cd-shell.is-suitfire .cd-topbar-caption { display: grid; flex: 1; min-width: 0; gap: 5px; margin-left: 0; text-align: center; letter-spacing: .02em; }
-.cd-shell.is-suitfire .cd-topbar-caption small { font-size: 12px; color: #dfc296; }
-.cd-shell.is-suitfire .cd-topbar-caption strong { font: 700 25px/1.15 Georgia, serif; color: #fff0d4; overflow-wrap: anywhere; }
-.cd-shell.is-suitfire .cd-profile-button .player-avatar { width: 64px; height: 76px; max-width: none; flex-shrink: 0; }
-.cd-shell.is-suitfire .cd-profile-button > span:last-child { white-space: normal; overflow-wrap: anywhere; font-size: 14px; }
-@media(max-width:1100px) { .cd-shell.is-suitfire .cd-topbar { flex-wrap: wrap; height: auto; min-height: 108px; padding-top: 8px; padding-bottom: 8px; } .cd-shell.is-suitfire .cd-header-actions { flex-wrap: wrap; } .cd-shell.is-suitfire .cd-topbar-caption { display: grid; } }
-@media(max-width:760px) { .cd-shell.is-suitfire .cd-shell-surface { grid-template-rows: auto 1fr; } .cd-shell.is-suitfire .cd-topbar { position: relative; display: grid; grid-template-columns: minmax(0,1fr); height: auto; gap: 10px; padding: 12px 16px; } .cd-shell.is-suitfire .cd-brand { justify-self: center; } .cd-shell.is-suitfire .cd-topbar-caption { display: grid; margin: 0; } .cd-shell.is-suitfire .cd-header-actions { justify-content: center; margin: 0; } .cd-shell.is-suitfire .cd-profile-button > span:last-child { max-width: 90px; } .cd-shell.is-suitfire .cd-topbar-caption strong { font-size: 24px; } }
+.cd-shell .cd-shell-surface { grid-template-rows: 108px 1fr; }
+.cd-shell .cd-topbar { height: 108px; gap: 16px; }
+.cd-shell .cd-environment { top: 108px; }
+.cd-shell .cd-rail { top: 108px; height: calc(100dvh - 108px); }
+.cd-shell .cd-topbar-caption { display: grid; flex: 1; min-width: 0; gap: 5px; margin-left: 0; text-align: center; letter-spacing: .02em; }
+.cd-shell .cd-topbar-caption small { font-size: 12px; color: #dfc296; }
+.cd-shell .cd-topbar-caption strong { font: 700 25px/1.15 Georgia, serif; color: #fff0d4; overflow-wrap: anywhere; }
+.cd-shell .cd-profile-button .player-avatar { width: 64px; height: 76px; max-width: none; flex-shrink: 0; }
+.cd-shell .cd-profile-button > span:last-child { white-space: normal; overflow-wrap: anywhere; font-size: 14px; }
+@media(max-width:1100px) { .cd-shell .cd-topbar { flex-wrap: wrap; height: auto; min-height: 108px; padding-top: 8px; padding-bottom: 8px; } .cd-shell .cd-header-actions { flex-wrap: wrap; } .cd-shell .cd-topbar-caption { display: grid; } }
+@media(max-width:760px) { .cd-shell .cd-shell-surface { grid-template-rows: auto 1fr; } .cd-shell .cd-topbar { position: relative; display: grid; grid-template-columns: minmax(0,1fr); height: auto; gap: 10px; padding: 12px 16px; } .cd-shell .cd-brand { justify-self: center; } .cd-shell .cd-topbar-caption { display: grid; margin: 0; } .cd-shell .cd-header-actions { justify-content: center; margin: 0; } .cd-shell .cd-profile-button > span:last-child { max-width: 90px; } .cd-shell .cd-topbar-caption strong { font-size: 24px; } }
 
 
 

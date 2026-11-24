@@ -2509,7 +2509,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       runtime.mesh.visibility = 1;
     }
     const record = updateCardRecord(actor.actorId, actor.label, position, {
-      artPath: brandText(getPlayingCardArtPath(actor.card?.raw || actor.card, actor.factionId) || actor.artPath, actor.artPath),
+      artPath: getPlayingCardArtPath(actor.card?.raw || actor.card, actor.factionId) || actor.artPath,
       publishedCard: getCardForPresentation(actor.card?.raw || actor.card, actor.factionId),
       faceDown: actor.faceDown,
       initialPosition: initial ? new Vector3(initial.x, initial.y, initial.z) : undefined,

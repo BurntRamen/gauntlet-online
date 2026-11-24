@@ -13,14 +13,11 @@ const FACTION_NAMES = {
 };
 
 export default function CollectorSetPackTile({ product, checkoutConfigured, onBuyPack }) {
-  const preview = useBrandPreview();
+  useBrandPreview();
   const theme = SET_THEMES[product.setId] || SET_THEMES.initiative;
   const available = product.available !== false;
   const canPurchase = available && checkoutConfigured;
   const plannedNames = (product.plannedFactionIds || product.factionIds || []).map((id) => FACTION_NAMES[id] || id);
-  const backgroundImage = product.artPath
-    ? `linear-gradient(180deg, rgba(2,6,23,0.02), rgba(2,6,23,0.34)), url(${product.artPath})`
-    : theme.art;
   return (
     <article className="booster-pack-tile collector-set-pack" style={{ "--pack-accent": theme.accent, "--pack-glow": theme.glow, background: theme.background, opacity: available ? 1 : 0.72 }}>
       <span className="booster-pack-shine" />
@@ -30,9 +27,7 @@ export default function CollectorSetPackTile({ product, checkoutConfigured, onBu
       <span className="booster-pack-set">Set {product.setNumber} · Animated Styles</span>
       <strong>{product.displayName || product.setName}</strong>
       <span className="booster-pack-subtitle">{product.subtitle}</span>
-      {preview ? <PreviewPackArt setId={product.setId} label={product.displayName || product.setName} /> : <span className={`booster-pack-art ${product.artPath ? "booster-pack-art-featured" : ""}`} style={{ backgroundImage }}>
-        {!product.artPath && <span className="booster-pack-sigil">{product.setNumber}</span>}
-      </span>}
+      <PreviewPackArt setId={product.setId} label={product.displayName || product.setName} source={product.artPath} />
       <span className="booster-pack-count">{product.variantCount} collector styles · ${Number(product.priceUsd || 0).toFixed(2)}</span>
       <span className="booster-pack-slots"><span>{plannedNames.join(" · ")}</span></span>
       <button

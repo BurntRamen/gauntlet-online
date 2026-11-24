@@ -1,5 +1,4 @@
-import { brandText } from "./brand/brandPreview";
-import { presentationArt } from "./brand/presentationArt";
+import { resolvePresentationArt } from "./brand/presentationArt";
 import { getFactionArtwork, getFactionAsset } from "./GauntletVisuals";
 
 const CHARACTER_PORTRAITS = {
@@ -43,7 +42,9 @@ export function portraitAssetUrl(source) {
 }
 
 export function resolveCharacterPortrait(speaker, factionId, explicitImage = "") {
-  if (brandText(true, false)) return presentationArt(explicitImage, { factionId, surface: "portrait", speaker }) || "/assets/gauntlet/ui/faction-art-unavailable.svg";
+  const reviewed = resolvePresentationArt({ source: explicitImage, factionId, surface: "portrait", speaker });
+  if (reviewed.status === "retained-exact" || (reviewed.status === "original" && reviewed.src)) return reviewed.src;
+  if (reviewed.status === "pending-portrait" && ["rumin", "sheen", "bizi", "frumo"].includes(factionId)) return reviewed.src;
   if (explicitImage) return getFactionAsset(factionId, explicitImage) || explicitImage;
   const name = normalize(speaker);
   const direct = Object.entries(CHARACTER_PORTRAITS).find(([key]) => name.includes(key));
