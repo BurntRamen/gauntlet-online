@@ -46,20 +46,15 @@ export default function MechanicsEditor(props) {
   const setAbility = (index, next) => onChange({ ...value, abilities: replaceAt(value.abilities, index, next) });
   const localModules = registry.authoredEffect(value);
   const localSpec = registry.definitionFor(value?.id);
-  const advertised = options.find(option => option.id === value?.id);
-  const moduleSpec = localSpec && advertised && { ...localSpec, ...advertised, parameters: (catalogRules.printedOnly(localSpec) || catalogRules.namedBonus(localSpec)) ? catalogRules.combatSpecs : advertised.parameters, handler: localSpec.handler };
-  if (localModules?.modules && moduleSpec) {
-    const acceptsModules = !!props.studio?.catalogRuleModules;
-    function update(next) {
-      if (acceptsModules) onChange(next);
-      else {
-        const compiled = catalogRules.compile(next, moduleSpec);
-        if (compiled) onChange(compiled);
-      }
-    }
-    return <><CatalogRuleEditor effect={localModules} definition={moduleSpec} disabled={disabled || (!acceptsModules && (catalogRules.printedOnly(moduleSpec) || catalogRules.namedBonus(moduleSpec)))} onChange={update} />
-      {!acceptsModules && <p>Parameter ranges are limited to those supported by the connected game server.</p>}
-      {acceptsModules && !catalogRules.compile(localModules, moduleSpec) && <p role="alert">Enter a whole number within each operation’s limits.</p>}
+  if (localModules?.modules && localSpec && catalogRules.supports(localSpec)) {
+    const combatOnly = catalogRules.printedOnly(localSpec) || catalogRules.namedBonus(localSpec);
+    const spec = combatOnly ? { ...localSpec, parameters: catalogRules.combatSpecs } : localSpec;
+    const compiled = catalogRules.compile(localModules, spec);
+    return <><CatalogRuleEditor effect={localModules} definition={spec} disabled={disabled} onChange={onChange} />
+      {!props.studio?.catalogRuleModules && <p>Edits stay in this browser. The shared draft can accept only values supported by the connected game server.</p>}
+      {!compiled && <p role="alert">Enter a whole number within each operation’s limits.</p>}
+      {compiled && props.studio?.registeredProgramVersion === program.VERSION2 && <button type="button" disabled={disabled}
+        onClick={() => onChange(program.fromRegistered(compiled, row))}>Attach an additional mechanic</button>}
     </>;
   }
   if (value?.id === program.ID) return <EditorValues value={value} onChange={onChange}><fieldset disabled={disabled} className="mechanics-editor"><legend>{helpCopy.mechanicCopy2}</legend><Help topic="programRules" /><MechanicLanguage studio={props.studio} />

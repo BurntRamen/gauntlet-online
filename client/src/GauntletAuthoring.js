@@ -1,3 +1,4 @@
+import effectRegistry from "@gauntlet/duel-rules/effectRegistry";
 import { readCopy, writeCopy, readFields, rememberField, forgetField } from "./admin/localWorkspace";
 import legacyHelp from "./admin/workspaceV1Help.json";
 import {Json} from './admin/Presentation';
@@ -359,6 +360,29 @@ export default function GauntletAuthoring({ operatorScope, request, area, initia
     let changes;
     try { changes = group.edits.map(edit => ({ field: edit.field, value: parseFieldValue(edit.value, edit.definition, edit.saved) })); }
     catch (failure) { setError(`Check ${group.label}: ${failure.message}`); return false; }
+    const changedEffect = group.domain === "cards" && changes.find(change => change.field === "effect");
+    if (changedEffect?.value?.modules) {
+      const compiled = effectRegistry.runtimeEffect(changedEffect.value);
+      if (!compiled || !effectRegistry.validateCardEffect(changedEffect.value, group.row)) {
+        setError("Check the effect module triggers and amounts before saving.");
+        return false;
+      }
+      if (!state.studio?.catalogRuleModules) {
+        const spec = state.fields.cards[group.id].effect;
+        const options = spec.options || state.cardEffectOptions?.[spec.optionGroup] || [];
+        const server = options.find(option => option.id === compiled.id && option.version === compiled.version);
+        const parameters = Object.entries(compiled.parameters || {});
+        const accepted = server && parameters.length === Object.keys(server.parameters || {}).length && parameters.every(([key, value]) => {
+          const bounds = server.parameters?.[key];
+          return bounds && Number.isInteger(value) && value >= bounds.min && value <= bounds.max;
+        });
+        if (!accepted) {
+          setError("This game server cannot save these module values yet. Your edits are retained in this browser.");
+          return false;
+        }
+        changedEffect.value = compiled;
+      }
+    }
     const result = await act("record", { domain: group.domain, id: group.id, changes, expectedRevision: bufferRevision.current ?? state.revision });
     if (!result) return false;
     clearBuffers(group.edits.map(edit => edit.key));
