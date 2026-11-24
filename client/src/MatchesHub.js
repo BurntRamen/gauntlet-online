@@ -249,6 +249,7 @@ export default function MatchesHub({
   const [error, setError] = useState("");
   const [previewMatchId, setPreviewMatchId] = useState("");
   const [loadedPreviews, setLoadedPreviews] = useState({});
+  const [opponents,setOpponents] = useState("all");
   const [finishedOnly, setFinishedOnly] = useState(false);
   const [overMinute, setOverMinute] = useState(false);
   const [visibleCount, setVisibleCount] = useState(20);
@@ -306,11 +307,13 @@ export default function MatchesHub({
     return dates;
   }, [overMinute, localEntries]);
   const matchingRecords = (data.matches || []).filter(match => {
-    const done = Number.isFinite(Date.parse(match.completedAt)) && (match.completion?.status === "finalized" || match.participants?.some(p => ["win","loss","draw"].includes(p.result)) || ["win","loss","draw"].includes(match.perspective?.outcome));
+    const done = !match.abandonmentReason && !["abandoned","cancelled"].includes(match.completionReason) && Number.isFinite(Date.parse(match.completedAt)) && (match.completion?.status === "finalized" || match.participants?.some(p => ["win","loss","draw"].includes(p.result)) || ["win","loss","draw"].includes(match.perspective?.outcome));
     const duration = Date.parse(match.completedAt) - Date.parse(match.startedAt || starts.get(match.matchId));
-    return (!replayView || match.replay?.available) && (!finishedOnly || done) && (!overMinute || duration > 60000);
+    const ai = match.participants?.some(p => ["ai","bot"].includes(p.identityType));
+    const human = match.participants?.length === 2 && match.participants.every(p => ["human","account","guest","player"].includes(p.identityType));
+    return (opponents==="all" || (opponents==="human" ? human : ai)) && (!replayView || match.replay?.available) && (!finishedOnly || done) && (!overMinute || duration > 60000);
   });
-  const references = replayView || finishedOnly || overMinute ? [] : data.unavailableMatchReferences || [];
+  const references = replayView || opponents!=="all" || finishedOnly || overMinute ? [] : data.unavailableMatchReferences || [];
   const totalCount = matchingRecords.length + references.length;
   const visibleMatches = matchingRecords.slice(0, visibleCount);
   const visibleReferences = references.slice(0, Math.max(0, visibleCount - matchingRecords.length));
@@ -363,8 +366,9 @@ export default function MatchesHub({
       }
       const summary = {
         matchId:source.matchId, startedAt:source.startedAt, completedAt:source.completedAt,
-        turnCount:source.turnCount, completion:{status:source.completion?.status},
-        participants:(source.participants || []).map(p=>({displayName:p.displayName, faction:p.faction?.name, result:p.result, finalLife:p.finalLife})),
+        turnCount:source.turnCount, abandonmentReason:source.abandonmentReason, completionReason:source.completionReason, completion:{status:source.completion?.status},
+        notableMoments:{decisiveTurn:source.notableMoments?.decisiveTurn},combatStats:{totalDamageDealt:source.combatStats?.totalDamageDealt,largestAttack:{value:source.combatStats?.largestAttack?.value}},
+        participants:(source.participants || []).map(p=>({displayName:p.displayName, identityType:p.identityType, faction:p.faction?.name, result:p.result, finalLife:p.finalLife})),
       };
       const destination = new URL("https://parapokerleague.netlify.app/newsroom");
       destination.hash = new URLSearchParams({match:JSON.stringify(summary)}).toString();
@@ -406,13 +410,14 @@ export default function MatchesHub({
         <button type="button" onClick={loadMatches} disabled={loading}>{loading ? "Refreshing…" : "Refresh"}</button>
       </section>
       <fieldset className="matches-storage-note"><legend>Filter saved results</legend>
+        <label>Opponents <select value={opponents} onChange={e=>{setOpponents(e.target.value);setVisibleCount(20);}}><option value="all">All opponents</option><option value="human">Human opponents</option><option value="ai">AI opponent</option></select></label>{" · "}
         <label><input type="checkbox" checked={finishedOnly} onChange={e=>{setFinishedOnly(e.target.checked);setVisibleCount(20);}}/> Finished game</label>{" · "}
         <label><input type="checkbox" checked={overMinute} onChange={e=>{setOverMinute(e.target.checked);setVisibleCount(20);}}/> Over 1 minute long</label>
       </fieldset>
       {!account && <p className="matches-storage-note">Sign in to see account results alongside replays saved on this device.</p>}
       {localEntries.length > 0 && <p className="matches-storage-note">Device replays stay in this browser. Export a match file to back it up or watch it on another device.</p>}
       {error && <p className="matches-error" role="alert">{error}</p>}
-      {!loading && !visibleMatches.length && !visibleReferences.length && <p className="matches-empty">{(finishedOnly || overMinute) ? "No saved results match these filters." : replayView ? "No playable replays are available yet. Import a saved match file below." : "No completed match records are available yet."}</p>}
+      {!loading && !visibleMatches.length && !visibleReferences.length && <p className="matches-empty">{(finishedOnly || overMinute || opponents!=="all") ? "No saved results match these filters." : replayView ? "No playable replays are available yet. Import a saved match file below." : "No completed match records are available yet."}</p>}
       {loading && <TransferProgress scope="history" />}
       <div className="matches-list" aria-busy={loading}>
         {visibleMatches.map((match) => (
