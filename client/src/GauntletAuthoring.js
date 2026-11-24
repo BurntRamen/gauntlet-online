@@ -1,3 +1,4 @@
+import { readCopy, writeCopy, readFields, rememberField, forgetField } from "./admin/localWorkspace";
 import legacyHelp from "./admin/workspaceV1Help.json";
 import {Json} from './admin/Presentation';
 import CampaignChapters from "./admin/CampaignChapters";
@@ -37,8 +38,33 @@ function domainRows(state, domain) {
   return (domain === "asset-library" ? state?.assetLibrary : domain === "rule-modifiers" ? snapshot?.studio?.modifiers : domain === "sets" ? state?.printingEditions || snapshot?.domains.sets : snapshot?.domains[domain]) || [];
 }
 
-export default function GauntletAuthoring({ request, area, initialDomain = null, revision, catalog, onNeedCatalog, onPublished, guard, onNavigate, beforeNavigate, onExit, onStatus }) {
+export default function GauntletAuthoring({ operatorScope, request, area, initialDomain = null, revision, catalog, onNeedCatalog, onPublished, guard, onNavigate, beforeNavigate, onExit, onStatus }) {
   const [serverState, setState] = useState(null);
+  const [initialFields] = useState(() => readFields(operatorScope));
+  const [syncedAt, setSyncedAt] = useState(null);
+  const [localWarning, setLocalWarning] = useState("");
+  const [downloadBusy, setDownloadBusy] = useState(false);
+  const uncertainKey = operatorScope ? "suitfire-unconfirmed:" + operatorScope : null;
+  const [unconfirmed, setUnconfirmed] = useState(() => {
+    try { return Boolean(uncertainKey && localStorage.getItem(uncertainKey)); } catch { return false; }
+  });
+  function markUnconfirmed(value) {
+    setUnconfirmed(value);
+    try {
+      if (uncertainKey && value) localStorage.setItem(uncertainKey, "1");
+      else if (uncertainKey) localStorage.removeItem(uncertainKey);
+    } catch { /* Current-session recovery is still available. */ }
+  }
+  const cachedSnapshot = useRef(null);
+  const firstRevision = useRef(revision);
+  const downloadGeneration = useRef(0);
+  useEffect(() => {
+    if (!operatorScope || !serverState?.live?.domains || serverState.liveOnly || cachedSnapshot.current === serverState || !Number.isSafeInteger(serverState.revision)) return;
+    const when = Date.now();
+    setSyncedAt(when);
+    writeCopy(operatorScope, "draft", { data: serverState, revision: serverState.revision, when })
+      .catch(() => setLocalWarning("This browser could not store the downloaded workspace."));
+  }, [serverState, operatorScope]);
   const state = useMemo(() => {
     if (serverState?.guide?.workspaceVersion !== 1) return serverState;
     const guide = serverState.guide;
@@ -54,8 +80,8 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
   const [busy, setBusy] = useState(false);
   const [session, setSession] = useState(null);
   const [scenario, setScenario] = useState(null), [scenarioDirty, setScenarioDirty] = useState(false);
-  const bufferRevision = useRef(null);
-  const bufferBase = useRef({});
+  const bufferRevision = useRef(initialFields.revision);
+  const bufferBase = useRef(initialFields.bases);
   const definitionBase = useRef(null);
   const [reviewedConflicts, setReviewedConflicts] = useState({});
   const [definitionSession, setDefinitionSession] = useState(null);
@@ -70,7 +96,20 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
   const latest = useRef(null);
   latest.current = { state, busy };
 
-  const [buffers, setBuffers] = useState({});
+  const [buffers, setBuffers] = useState(initialFields.values);
+  const previousBuffers = useRef(initialFields.values);
+  useEffect(() => {
+    const previous = previousBuffers.current;
+    previousBuffers.current = buffers;
+    try {
+      for (const [key, old] of Object.entries(previous)) {
+        if (bufferTarget(key) && !Object.hasOwn(buffers, key)) forgetField(operatorScope, key, old);
+      }
+      for (const [key, value] of Object.entries(buffers)) {
+        if (bufferTarget(key) && previous[key] !== value) rememberField(operatorScope, key, bufferBase.current[key], value, bufferRevision.current);
+      }
+    } catch { setLocalWarning("Browser storage is full or unavailable. Keep this tab open until you save."); }
+  }, [buffers, operatorScope]);
   latest.current.buffers = buffers;
   const [preview, setPreview] = useState(null);
   const [releaseName, setReleaseName] = useState("");
@@ -139,8 +178,17 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
     const expectedHash = state.draft?.hash;
     const suffix = `?source=${source}${expectedHash ? `&hash=${expectedHash}` : ""}`;
     function loadProjection(path, accept) {
-      request(path + suffix).then(value => {
-        if (active) accept(value);
+      const identity = JSON.stringify([source, state.activeReleaseId, expectedHash || null]);
+      async function readProjection() {
+        const entry = await readCopy(operatorScope, path).catch(() => null);
+        if (entry?.identity === identity) return entry.data;
+        if (!active) return null;
+        const value = await request(path + suffix);
+        if (active && operatorScope) writeCopy(operatorScope, path, { identity, revision: state.revision, data: value }).catch(() => {});
+        return value;
+      }
+      readProjection().then(value => {
+        if (active && value) accept(value);
       }).catch(error => {
         if (active) setProjectionError(previous => [previous, error.message].filter(Boolean).join(" · "));
       });
@@ -184,8 +232,21 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
     onStatus?.({ domain: domainChoice, id: selected, name: row && contentName(row), source: state?.draft ? "Saved draft" : "Live content", busy, unsaved, savedChanges: state?.changes?.length || 0, writable: !!state?.writable, liveOnly: !!state?.liveOnly, loading: !state, selected: row || null, target: context.target });
   }, [onStatus, busy, unsaved, state, domain, domainChoice, selected, context.target]);
   async function refresh() {
-    try { const data = await request("/api/admin/authoring"); if (data.liveOnly || latest.current.state?.liveOnly || data.revision >= (latest.current.state?.revision ?? 0)) { setState(data); setPreview((current) => current?.releaseId === `draft:${data.draft?.hash}` ? current : null); } }
-    catch (failure) { setError(failure.message); }
+    const generation = ++downloadGeneration.current;
+    setDownloadBusy(true);
+    try {
+      const data = await request("/api/admin/authoring");
+      if (generation !== downloadGeneration.current) return;
+      if (data.liveOnly && latest.current.state && !latest.current.state.liveOnly) throw new Error("The shared draft is unavailable. Your downloaded copy is still open.");
+      if (data.liveOnly || latest.current.state?.liveOnly || data.revision >= (latest.current.state?.revision ?? 0)) {
+        cachedSnapshot.current = null;
+        setState(data);
+        setError("");
+        if (!data.liveOnly) markUnconfirmed(false);
+        setPreview(current => current?.releaseId === `draft:${data.draft?.hash}` ? current : null);
+      }
+    } catch (failure) { if (generation === downloadGeneration.current) setError(failure.message); }
+    finally { if (generation === downloadGeneration.current) setDownloadBusy(false); }
   }
   useEffect(() => {
     if (!session) return;
@@ -207,11 +268,26 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
   }
   useEffect(() => {
     let active = true;
-    request("/api/admin/authoring").then((data) => { if (active) { setState(data); setError(""); setPreview(null); } }).catch((failure) => { if (active) setError(failure.message); });
-    return () => { active = false; };
-  }, [request, revision]);
+    async function open() {
+      if (revision === firstRevision.current && !latest.current.state) {
+        const entry = await readCopy(operatorScope).catch(() => null);
+        if (!active) return;
+        if (entry?.data?.live?.domains && [1, 2].includes(entry.data.guide?.workspaceVersion)) {
+          cachedSnapshot.current = entry.data;
+          setSyncedAt(entry.when);
+          setState(entry.data);
+          return;
+        }
+      }
+      if (active) await refresh();
+    }
+    open();
+    return () => { active = false; downloadGeneration.current++; };
+  // Reload only for a new session or the existing explicit admin refresh action.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [request, revision, operatorScope]);
   useEffect(() => {
-    if (!state?.pending || state.connectionRequired || ["closed", "checks-failed", "merge-blocked"].includes(state.pending.phase)) return;
+    if (unconfirmed || cachedSnapshot.current === serverState || !state?.pending || state.connectionRequired || ["closed", "checks-failed", "merge-blocked"].includes(state.pending.phase)) return;
     let active = true;
     let inFlight = false;
     const timer = setInterval(async () => {
@@ -225,8 +301,9 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
       finally { inFlight = false; }
     }, 10000);
     return () => { active = false; clearInterval(timer); };
-  }, [state?.pending, state?.connectionRequired, state?.publication?.dataOnly, request, onPublished]);
+  }, [unconfirmed, serverState, state?.pending, state?.connectionRequired, state?.publication?.dataOnly, request, onPublished]);
   async function act(action, body = {}) {
+    if (downloadBusy || unconfirmed) { setError("Download the latest shared draft before continuing."); return false; }
     setBusy(true); setError(""); setNotice("");
     try {
       const result = await request(`/api/admin/authoring/${action}`, { method: ["draft", "record", "notes"].includes(action) ? "PATCH" : "POST", body: JSON.stringify({ expectedRevision: ["para-draft", "competition-draft", "studio-draft"].includes(action) ? bufferRevision.current ?? state.revision : state.revision, ...body }) });
@@ -236,9 +313,15 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
       if (action === "publish" || action === "rollback") { setReleaseName(""); onPublished(); }
       setNotice(result.pending ? guide.publicationPending : ["para-draft", "competition-draft", "studio-draft"].includes(action) ? result.notice || help.workspaceDefinitionSaved : action === "assets/upload" ? help.workspaceImageUploaded : action === "assets/archive" ? help.workspaceAssetArchived : action === "create" ? help.workspaceContentCreated : action === "notes" ? help.workspaceNotesSaved : ["draft","reorder-encounters"].includes(action) ? guide.fieldSaved : action === "publish" ? guide.published : action === "rollback" ? help.workspaceReleaseRestored : action === "discard" ? help.workspaceDraftDiscarded : action === "validate" ? help.workspaceDraftValidated : help.workspacePreviewReady);
       return result;
-    } catch (failure) { setError(failure.message); if (failure.status === 409) await refresh(); if (action === "assets/upload") throw failure; return false; }
+    } catch (failure) {
+      if (!failure.status || failure.status >= 500) {
+        markUnconfirmed(true);
+        setError("The server could not confirm this action. Your local edits are available. Download the latest shared draft before retrying.");
+      } else setError(failure.message);
+      if (failure.status === 409) await refresh(); if (action === "assets/upload") throw failure; return false; }
     finally { setBusy(false); }
   }
+  if (!state && error) return <div role="alert">{error} <button disabled={downloadBusy} onClick={refresh}>Retry download</button></div>;
   if (!state) return <p role={error ? "alert" : "status"}>{error || help.workspaceCopy2}{!error && <progress className="sf-load-bar" aria-label="Loading authoring data" />}</p>;
   if (![1, 2].includes(guide.workspaceVersion)) return <p role="status">{help.workspaceCopy3}</p>;
   const DOMAINS = { ...guide.domains, game: "Website prose", sets: "Sets", decks: "Decks", offers: "Store", assets: "Collector artwork" };
@@ -329,6 +412,12 @@ export default function GauntletAuthoring({ request, area, initialDomain = null,
   if (Editor === EngineWorkshop) Object.assign(editorProps, { onAttach:(id,effect)=>context.navigate({domain:"cards",id,section:"mechanics"},()=>edit(`cards:${id}:effect`,JSON.stringify(effect),snapshot.domains.cards.find(c=>c.id===id).effect)), act, onDirty: onParaDirty, onTest: (id, domain = "cards") => context.navigate({ domain, id, section: "test" }), target: context.target, onTarget: context.navigate });
   if (domain === "encounters") Object.assign(editorProps, { session, search: <>{search}<label className="admin-search">Campaign<select aria-label={help.workspaceCopy4} value={context.context.campaign || ""} onChange={event => context.remember({ campaign: event.target.value })}><option value="">{help.workspaceCopy5}</option>{snapshot.domains.campaigns.map(campaign => <option key={campaign.id} value={campaign.id}>{campaign.commanderName}</option>)}</select></label></> });
   return <HelpProvider value={guide.help}><PrivateAssetProvider request={request}><EditorSessionContext.Provider value={{ register: registerEditor, requestLeave: leave, target: context.target, focusRequest: initialDomain, journey: { busy, dirty: unsaved, saveShown: groups.length>0, creating: !!creation, blocked: hasConflict || !state.writable || !!state.pending, draft: !!state.draft, tested: !!state.draft && state.draft.playtestedHash === state.draft.hash, issue: state.validation?.errors?.find(issue=>issue.domain===domain && issue.id===selected), fix: ()=>{const issue=state.validation.errors.find(issue=>issue.domain===domain && issue.id===selected);if(issue)inspect(issue.domain,issue.id,issue.field);}, review: reviewRelease } }}>
+    <div className="admin-actions" aria-label="Workspace synchronization">
+      {syncedAt && <span>Last synced {new Date(syncedAt).toLocaleString()}</span>}
+      <button disabled={busy || downloadBusy} onClick={refresh}>{downloadBusy ? "Downloading…" : "Download latest shared draft"}</button>
+      {unconfirmed && <span role="alert">A previous change has an unconfirmed result. Download the shared draft to check it.</span>}
+      {localWarning && <span role="alert">{localWarning}</span>}
+    </div>
     <WorkshopNavigation target={context.target} focusRequest={initialDomain} ready={area !== "Publishing" && !domainChoice.includes(":")} />
     {context.pending && <UnsavedChangesDialog onKeep={context.cancel} onDiscard={context.discard} onSave={context.saveAndContinue} saving={context.saving || busy} saveLabel={saveScope} saveDisabledReason={saveDisabledReason} error={context.saveError}>{groups.length + Number(notesDirty) > 1 && <div className="admin-actions">{groups.map(group => <button disabled={busy || hasConflict} key={group.key} onClick={() => saveRecord(group)}>Save {group.label}</button>)}{notesDirty && <button disabled={busy || hasConflict} onClick={saveNotes}>{help.workspaceCopy6}</button>}</div>}</UnsavedChangesDialog>}
     {(area === "Publishing" || context.backCount > 0) && <button className="admin-context-back" onClick={area === "Publishing" ? () => context.navigate(context.target) : context.back}>{help.workspaceCopy7}</button>}
