@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen, waitFor, within } from "@testing-librar
 import GauntletAdmin from "./GauntletAdmin";
 import { chooseBrand, setAccountBrand } from "./brand/brandPreview";
 
-jest.mock("./GauntletAuthoring", () => ({ __esModule: true, default: ({ area, catalog }) => <><p>Authoring area: {area}</p><span>{catalog ? "Catalog ready" : "Catalog loading"}</span></> }));
+jest.mock("./GauntletAuthoring", () => ({ __esModule: true, default: ({ area, catalog, onNeedCatalog }) => <><button onClick={onNeedCatalog}>Load catalog</button><p>Authoring area: {area}</p><span>{catalog ? "Catalog ready" : "Catalog loading"}</span></> }));
 
 beforeAll(() => Object.defineProperty(global.crypto, "randomUUID", { configurable: true, value: () => "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" }));
 const id = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
@@ -16,7 +16,7 @@ const catalog = {
 };
 const system = { guide: require("../../server/adminSystemGuide.json"), environment: "test", checkedAt: "2026-10-02T00:00:00Z", issues: [], versions: {}, storage: {}, sources: [], boundaries: [], validation: { message: "Registry passed." } };
 const respond = async (path) => {
-  if (path.endsWith("/home")) return { guide: require("../../server/adminHomeGuide.json"), seasons: [], events: [], purchases: [], modules: [], tasks: [], storefront: { accountProducts: 0, digitalProducts: 0 }, players: { seenLastDay: 1, scope: "Account sample" }, publication: { activeReleaseId: "content-v1" } };
+  if (path === "/api/admin/home?view=tasks") return { guide: require("../../server/adminHomeGuide.json"), seasons: [], events: [], purchases: [], modules: [], tasks: [], storefront: { accountProducts: 0, digitalProducts: 0 }, players: { seenLastDay: 1, scope: "Account sample" }, publication: { activeReleaseId: "content-v1" } };
   if (path.endsWith("/catalog")) return catalog;
   if (path.endsWith("/system")) return system;
   if (path.endsWith(`/matches/${id}`)) return { guide: require("../../server/adminMatchGuide.json"), match: record, provenance: { source: "canonical archive", integrity: "verified" } };
@@ -49,9 +49,17 @@ test("the private workspace uses SuitFire while return navigation follows the se
   expect(screen.getAllByRole("button", { name: /Back to Gauntlet/ })).toHaveLength(2);
 });
 
+async function openCatalog(area) {
+  if (area === "Content") fireEvent.click(await screen.findByRole("button", { name: "Load catalog" }));
+  else {
+    fireEvent.click(await screen.findByRole("button", { name: "Load player directory" }));
+    fireEvent.click(await screen.findByRole("button", { name: "View player Player A" }));
+  }
+}
+
 test.each(["Content", "Players"])("Home defers the catalog until %s needs it, then navigation retains it and Refresh reloads it", async area => {
   const catalogReads = () => request.mock.calls.filter(([path]) => path === "/api/admin/catalog").length;
-  const ready = () => screen.findByText(area === "Content" ? "Catalog ready" : "Player A");
+  const ready = () => screen.findByText(area === "Content" ? "Catalog ready" : "Next players");
   render(<GauntletAdmin request={request} onClose={() => {}} />);
   await screen.findByRole("heading", { name: "Create something" });
   expect(catalogReads()).toBe(0);
@@ -59,11 +67,13 @@ test.each(["Content", "Players"])("Home defers the catalog until %s needs it, th
   await screen.findByRole("heading", { name: "Create something" });
   expect(catalogReads()).toBe(0);
   select(area);
+  await openCatalog(area);
   await waitFor(() => expect(catalogReads()).toBe(1));
   await ready();
   select("Home");
   await screen.findByRole("heading", { name: "Create something" });
   select(area);
+  await openCatalog(area);
   await ready();
   expect(catalogReads()).toBe(1);
   fireEvent.click(screen.getByText("Refresh admin"));
@@ -74,9 +84,10 @@ test.each(["Content", "Players"])("Home defers the catalog until %s needs it, th
 test.each(["Content", "Players"])("a direct %s entry requests its catalog without visiting Home", async area => {
   window.history.replaceState({}, "", `/admin/gauntlet?area=${area}`);
   render(<GauntletAdmin request={request} onClose={() => {}} />);
+  await openCatalog(area);
   await waitFor(() => expect(request).toHaveBeenCalledWith("/api/admin/catalog"));
-  await screen.findByText(area === "Content" ? "Catalog ready" : "Player A");
-  expect(request).not.toHaveBeenCalledWith("/api/admin/home");
+  await screen.findByText(area === "Content" ? "Catalog ready" : "Next players");
+  expect(request).not.toHaveBeenCalledWith("/api/admin/home?view=tasks");
 });
 
 test("provides six task destinations with content, player state and original match evidence", async () => {
@@ -89,6 +100,7 @@ test("provides six task destinations with content, player state and original mat
   select("Design");
   expect(await screen.findByText("Authoring area: Content")).toBeVisible();
   select("Players");
+  fireEvent.click(await screen.findByRole("button", { name: "Load player directory" }));
   await screen.findByText("Player A");
   expect(screen.getByText("Next players")).toBeDisabled();
   select("Matches");
@@ -110,7 +122,7 @@ test("provides six task destinations with content, player state and original mat
 
 test("data failure is visible and can be retried without claiming zero counts", async () => {
   let failing = true;
-  const flaky = jest.fn((path) => path.endsWith("home") && failing ? Promise.reject(new Error("Registry unavailable")) : request(path));
+  const flaky = jest.fn((path) => path === "/api/admin/home?view=tasks" && failing ? Promise.reject(new Error("Registry unavailable")) : request(path));
   render(<GauntletAdmin request={flaky} onClose={() => {}} />);
   expect(await screen.findByRole("alert")).toHaveTextContent("Registry unavailable");
   failing = false;
@@ -136,6 +148,7 @@ test("player edits retain typed metadata on failure and protect section navigati
   const exitGuard = { current: () => true };
   render(<GauntletAdmin request={editorRequest} exitGuard={exitGuard} onClose={() => {}} />);
   select("Players");
+  fireEvent.click(await screen.findByRole("button", { name: "Load player directory" }));
   fireEvent.click(await screen.findByRole("button", { name: "View player Player A" }));
   expect(screen.queryByLabelText("Player name")).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "Edit player name" }));
@@ -179,6 +192,7 @@ test("Players protects browser Back before a workshop has mounted and resumes on
   try {
     render(<GauntletAdmin request={request} onClose={onClose} />);
     select("Players");
+  fireEvent.click(await screen.findByRole("button", { name: "Load player directory" }));
     fireEvent.click(await screen.findByRole("button", { name: "View player Player A" }));
     fireEvent.click(screen.getByRole("button", { name: "Edit player name" }));
     fireEvent.change(screen.getByLabelText("Player name"), { target: { value: "Player B" } });
