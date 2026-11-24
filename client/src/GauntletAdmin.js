@@ -34,7 +34,7 @@ function State({ state, children }) {
 
 function Overview({ request, revision, onSelect }) {
   const state = useAdminData(request, "/api/admin/home", revision);
-  return <State state={state}>{data => <ModuleHome data={data} onSelect={onSelect} />}</State>;
+  return <ModuleHome data={state.data} loading={state.loading} error={state.error} onSelect={onSelect} />;
 }
 
 export default function GauntletAdmin(props) {
