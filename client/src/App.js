@@ -3273,21 +3273,42 @@ export default function App() {
   const contentRequest = useRef(null);
   const needsGameContent = homeArea !== "studio" && !publicView;
   const loadGameContent = useCallback(async () => {
+    if (contentRequest.current) return contentRequest.current;
     setGameContentError("");
-    try {
-      contentRequest.current ||= fetchGameContent(SOCKET_URL, (url, options) => trackedGet("startup", url, options));
-      setGameContent(await contentRequest.current);
-    } catch (contentError) {
-      contentRequest.current = null;
-      setGameContentError(contentError.message);
+    const bundleController = new AbortController();
+    let liveReady = false;
+    let bundlePromise;
+    const loadBundle = () => {
+      bundlePromise ||= (async () => {
+        try {
+          const response = await fetch(process.env.PUBLIC_URL + "/startup-catalog.json", {
+            signal: bundleController.signal
+          });
+          if (!response.ok) return;
+          const catalog = await response.json();
+          if (!liveReady && catalog.contentVersion && catalog.deckRules && catalog.campaigns) {
+            setGameContent(catalog);
+          }
+        } catch { /* The live request or the retry screen remains available. */ }
+      })();
+      return bundlePromise;
+    };
+    const bundleTimer = setTimeout(loadBundle, 800);
+    contentRequest.current = (async () => {
       try {
-        const response = await fetch(process.env.PUBLIC_URL + "/startup-catalog.json");
-        if (response.ok) {
-          const fallback = await response.json();
-          if (fallback.contentVersion && fallback.deckRules && fallback.campaigns) setGameContent(fallback);
-        }
-      } catch { /* Keep the retry screen available when both sources fail. */ }
-    }
+        const catalog = await fetchGameContent(SOCKET_URL, (url, options) => trackedGet("startup", url, options));
+        liveReady = true;
+        bundleController.abort();
+        setGameContent(catalog);
+      } catch (error) {
+        await loadBundle();
+        contentRequest.current = null;
+        setGameContentError(error.message);
+      } finally {
+        clearTimeout(bundleTimer);
+      }
+    })();
+    return contentRequest.current;
   }, []);
 
   useEffect(() => {
