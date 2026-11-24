@@ -7,7 +7,7 @@ const { createHash } = require("node:crypto");
 const path = require("node:path");
 const { getPublicGameContent } = require("../gameContent");
 const { applyInitiativeCampaignArt } = require("../../shared/duel-rules/resolveInitiativeArt");
-const art = require("../../client/public/assets/gauntlet/campaigns/initiative-art-v1.json");
+const art = require("../../client/public/assets/gauntlet/campaigns/initiative-art-v2.json");
 
 test("every Initiative mission has a distinct, decodable WebP container and its own scene in the briefing", () => {
   const source = getPublicGameContent().campaigns;
@@ -51,4 +51,16 @@ test("older published references are upgraded while later authored images and ot
   assert.equal(result.rumin.chapters[3], campaigns.rumin.chapters[3]);
   assert.equal(result.other, other);
   assert.equal(campaigns.rumin.chapters[0].cinematic.image, old);
+});
+
+test("Bizi refresh upgrades both original and first-release assignments without replacing the protected opening", () => {
+  const previous = require("../../client/public/assets/gauntlet/campaigns/initiative-art-v1.json");
+  const baseline = getPublicGameContent().campaigns;
+  const firstRelease = applyInitiativeCampaignArt(baseline, previous);
+  const refreshed = applyInitiativeCampaignArt(firstRelease, art);
+  const chapters = refreshed.bizi.chapters;
+  assert.equal(chapters[0].image, firstRelease.bizi.chapters[0].image);
+  assert.equal(chapters.filter((chapter, i) => chapter.image !== firstRelease.bizi.chapters[i].image).length, 11);
+  for (const { id, image } of chapters) assert.equal(image, art.bizi.chapters[id].image);
+  for (const id of ["rumin", "sheen", "frumo"]) assert.deepEqual(refreshed[id], firstRelease[id]);
 });
