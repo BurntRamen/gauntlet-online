@@ -38,11 +38,17 @@ function domainRows(state, domain) {
 }
 
 export default function GauntletAuthoring({ request, area, initialDomain = null, revision, catalog, onPublished, guard, onNavigate, beforeNavigate, onExit, onStatus }) {
-  const [state, setState] = useState(null);
-  const serverGuide = state?.guide;
-  const guide = useMemo(() => serverGuide?.workspaceVersion === 1
-    ? { ...serverGuide, help: { ...legacyHelp, ...serverGuide.help }, websiteSurfaces: [] }
-    : serverGuide || {}, [serverGuide]);
+  const [serverState, setState] = useState(null);
+  const state = useMemo(() => {
+    if (serverState?.guide?.workspaceVersion !== 1) return serverState;
+    const guide = serverState.guide;
+    return { ...serverState, guide: {
+      ...guide,
+      help: { ...legacyHelp, ...guide.help },
+      websiteSurfaces: guide.websiteSurfaces || []
+    } };
+  }, [serverState]);
+  const guide = state?.guide || {};
   const help = guide.help || {};
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
