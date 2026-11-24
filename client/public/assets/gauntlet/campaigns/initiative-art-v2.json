@@ -1,6 +1,6 @@
 {
   "rumin": {
-    "cover": "/assets/gauntlet/faction-art-2026-11-07/rumin/rumin-rumie-hero.webp",
+    "cover": "/assets/gauntlet/campaigns/rumin/initiative/first-empire-bank.a370130320d4.webp",
     "chapters": {
       "brothers-of-destiny": {
         "image": "/assets/gauntlet/campaigns/rumin/initiative/brothers-of-destiny.3c6152c83803.webp",
@@ -89,7 +89,9 @@
     },
     "previousCover": [
       "/assets/gauntlet/campaigns/rumin/06-first-empire-bank.webp",
-      "/assets/gauntlet/releases/704e0fd8352a6f0ef71beb500361cdb7ac79d6747eaa33c1952da9b7c38b15b4.webp"
+      "/assets/gauntlet/releases/704e0fd8352a6f0ef71beb500361cdb7ac79d6747eaa33c1952da9b7c38b15b4.webp",
+      "/assets/gauntlet/faction-art-2026-11-07/rumin/rumin-rumie-hero.webp",
+      "/assets/gauntlet/releases/d269b8378dba06e8b6c682df192210fd7e16d8934ab4419a33db4b9509364b47.webp"
     ]
   },
   "bizi": {
@@ -188,7 +190,7 @@
     ]
   },
   "sheen": {
-    "cover": "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-beli-hero.webp",
+    "cover": "/assets/gauntlet/campaigns/sheen/initiative/beli-living-city.d5e0501b0df6.webp",
     "chapters": {
       "iron-roots": {
         "image": "/assets/gauntlet/campaigns/sheen/initiative/iron-roots.603917990f86.webp"
@@ -230,10 +232,14 @@
       "green-era": {
         "image": "/assets/gauntlet/campaigns/sheen/initiative/green-era.98b817b43c9d.webp"
       }
-    }
+    },
+    "previousCover": [
+      "/assets/gauntlet/faction-art-2026-11-07/sheen/sheen-beli-hero.webp",
+      "/assets/gauntlet/releases/328229730cd1db71a3e64df12ef1155ad2db6b6f18c030cb90a094362c4617aa.webp"
+    ]
   },
   "frumo": {
-    "cover": "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-ristus-hero.webp",
+    "cover": "/assets/gauntlet/campaigns/frumo/initiative/frozen-sea.b111a03c1f51.webp",
     "chapters": {
       "tax-of-tides": {
         "image": "/assets/gauntlet/campaigns/frumo/initiative/tax-of-tides.13880b296201.webp"
@@ -275,6 +281,10 @@
           "/assets/gauntlet/releases/43b80136c83389f8676e814517c218b17fa44123a2555b18ceee6aec656be944.webp"
         ]
       }
-    }
+    },
+    "previousCover": [
+      "/assets/gauntlet/faction-art-2026-11-07/frumo/frumo-ristus-hero.webp",
+      "/assets/gauntlet/releases/eea86fde991060e53b3064582a10945522f2bbfb266cfe8fbb668aaae4a29684.webp"
+    ]
   }
 }

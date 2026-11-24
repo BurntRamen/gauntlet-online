@@ -28,6 +28,7 @@ test("both brands resolve every Initiative mission and cinematic on the first re
       for (const [id, faction] of Object.entries(view.result.current.campaigns)) {
         expect(faction.coverImage).toBe(art[id].cover);
         expect(faction.chapters).toHaveLength(12);
+        expect(faction.chapters.map(chapter => chapter.image)).toContain(faction.coverImage);
         for (const chapter of faction.chapters) {
           expect(chapter.image).toBe(art[id].chapters[chapter.id].image);
           expect(chapter.cinematic.image).toBe(chapter.image);
