@@ -39,6 +39,8 @@ export function trackedGet(scope, url, options = {}) {
       active.set(xhr, { scope, loaded, total: lengthComputable ? total : 0, seconds }); notify();
     };
     xhr.onload = () => finish(() => resolve({ ok: xhr.status >= 200 && xhr.status < 300, status: xhr.status, json: async () => JSON.parse(xhr.responseText) }));
+    if (scope === "admin") xhr.timeout = 120000;
+    xhr.ontimeout = () => finish(() => reject(new Error("The server timed out. Retry when the connection recovers.")));
     xhr.onerror = () => finish(() => reject(new Error("The server could not be reached.")));
     xhr.onabort = () => finish(() => reject(new DOMException("Request aborted", "AbortError")));
     if (options.signal?.aborted) { reject(new DOMException("Request aborted", "AbortError")); return; }
