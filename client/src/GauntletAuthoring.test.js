@@ -165,12 +165,12 @@ test("discard of a newly created shared record retains local values and refuses 
   fireEvent.change(await screen.findByLabelText("Draft name", {}, { timeout: 5000 }), { target: { value: "Retained new card" } });
   fireEvent.click(screen.getByRole("button", { name: /^Save changes to/ }));
   fireEvent.click(await screen.findByText("Retained local values", {}, { timeout: 5000 }));
-  expect(screen.getByText(/Retained new card/, { selector: "code, pre, dd" })).toBeVisible();
+  expect(await screen.findByText(/Retained new card/, { selector: "pre" })).toBeVisible();
   fireEvent.click(screen.getByRole("button", { name: "Use latest revision for retry" }));
   await selectOther("Website prose");
   expect(screen.getByRole("button", { name: "Save and continue" })).toBeDisabled();
   fireEvent.click(screen.getByRole("button", { name: "Keep editing" }));
-  expect(screen.getByText(/Retained new card/, { selector: "code, pre, dd" })).toBeVisible();
+  expect(await screen.findByText(/Retained new card/, { selector: "pre" })).toBeVisible();
 });
 
 test("pending GitHub publication keeps the deployed release active and cancellation preserves the draft", async () => {
@@ -478,4 +478,27 @@ test("confirmed absence of a draft shows the empty release without waiting for a
   render(<GauntletAuthoring {...props()} area="Publishing" />);
   expect(await screen.findByRole("heading",{name:"No saved changes to review.",exact:true})).toBeVisible();
   expect(request).not.toHaveBeenCalledWith("/api/admin/workshops/review");
+});
+
+test("reopens downloaded authoring and restores typed fields without fetching the shared draft", async () => {
+  const storage = require("./admin/localWorkspace");
+  const cached = jest.spyOn(storage, "readCopy").mockImplementation(async (scope, part) =>
+    scope === "test-operator" && !part ? { data: clone(state), when: Date.now() } : null);
+  try {
+    const options = { ...props(), operatorScope: "test-operator" };
+    const first = render(<GauntletAuthoring {...options} />);
+    await selectCard();
+    fireEvent.change(screen.getByLabelText("Draft name"), { target: { value: "Local field recovery" } });
+    first.unmount();
+    render(<GauntletAuthoring {...options} initialDomain={{ name: "cards", id: "card-one" }} />);
+    expect(await screen.findByLabelText("Draft name")).toHaveValue("Local field recovery");
+    expect(request).not.toHaveBeenCalledWith("/api/admin/authoring");
+    expect(storage.readFields("different-operator").values).toEqual({});
+    fireEvent.click(screen.getByRole("button", { name: "Download latest shared draft" }));
+    await waitFor(() => expect(request).toHaveBeenCalledWith("/api/admin/authoring"));
+    expect(screen.getByLabelText("Draft name")).toHaveValue("Local field recovery");
+  } finally {
+    cached.mockRestore();
+    localStorage.clear();
+  }
 });
