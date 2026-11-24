@@ -89,6 +89,10 @@ export function getFactionCover(factionId, ...candidates) {
   return presentationArt(getFactionArtwork(factionId, ...candidates), { factionId: factionIdFrom(factionId), surface: "cover" });
 }
 
+export function getCampaignCover(factionId, publishedCover, ...fallbacks) {
+  return getFactionAsset(factionId, publishedCover) || getFactionCover(factionId, ...fallbacks);
+}
+
 export function factionIdFrom(value) {
   const raw = typeof value === "string" ? value : value?.id || value?.factionId || value?.name || "";
   const normalized = String(raw).trim().toLowerCase().replace(/[^a-z]/g, "");

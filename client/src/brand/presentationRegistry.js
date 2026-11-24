@@ -1,9 +1,9 @@
-// Loaded only after an eligible account selects the SuitFire presentation.
+// Shared by all player-facing artwork. The branding preference only selects logos and copy.
 export async function loadRegistry() {
   const response = await fetch(`${process.env.PUBLIC_URL || ""}/brand/suitfire-art/manifest.json`);
-  if (!response.ok) throw new Error("Preview art manifest unavailable");
+  if (!response.ok) throw new Error("Game art manifest unavailable");
   const data = await response.json();
-  if (data.version !== 1) throw new Error("Unsupported preview art manifest");
+  if (data.version !== 1) throw new Error("Unsupported game art manifest");
   return data;
 }
 const normalizeArtIdentity = value => String(value || "").toLowerCase().replace(/[’']/g, "").replace(/[^a-z0-9]+/g, " ").trim();
@@ -15,10 +15,9 @@ function localPath(source) {
   return base && path.startsWith(base + "/") ? path.slice(base.length) : path;
 }
 export function resolvePresentationArt({ source = "", factionId = "", surface = "art", cardId = "", cardType = "", speaker = "" } = {}, options = {}) {
-  const preview = options.preview ?? false;
   const config = options.registry;
   const original = { src: source, status: "original", kind: "image" };
-  if (!preview) return original;
+  if (!config) return original;
   const path = localPath(source);
   const canonical = config?.aliases?.[path] || path;
   const faction = normalizeArtIdentity(factionId).replace(/ /g, "");
@@ -29,7 +28,9 @@ export function resolvePresentationArt({ source = "", factionId = "", surface = 
       && (!source || canonical === portrait.source)) {
       return { src: portrait.source, status: "retained-exact", kind: "portrait" };
     }
-    // Existing neutral unavailable-art mark, never a draft likeness or faction study.
+    // Newly published operator portraits may be private uploads or immutable asset releases.
+    if (source && (/^(?:https?:\/\/|\/uploads\/)/i.test(source) || (path.startsWith("/assets/gauntlet/releases/") && !config.aliases?.[path]))) return original;
+    // Historical placeholder likenesses must not be shown as another named character.
     return { src: "/assets/gauntlet/ui/faction-art-unavailable.svg", status: "pending-portrait", kind: "image" };
   }
   if (surface === "loading") return { src: "/assets/gauntlet/menus/tutorial-table-v1.webp", status: "neutral", kind: "image" };
@@ -52,12 +53,12 @@ export function resolvePresentationArt({ source = "", factionId = "", surface = 
 }
 export function presentationCard(registry, card, factionId = card?.factionId, source = card?.presentation?.illustration || card?.image || "", surface = "illustration") {
   if (!card) return card;
-  const art = resolvePresentationArt({ source, factionId, surface, cardId: card.gameplayCardId || card.definitionId || card.id, cardType: card.type || card.cardType || "" }, { preview: true, registry });
+  const art = resolvePresentationArt({ source, factionId, surface, cardId: card.gameplayCardId || card.definitionId || card.id, cardType: card.type || card.cardType || "" }, { registry });
   if (art.kind !== "illustration") return card;
   return { ...card, factionId: card.factionId || factionId, presentation: { ...card.presentation, composed: true, illustration: art.src, face: "", faces: {} } };
 }
 export function presentationFace(registry, source, card, factionId = card?.factionId) {
-  const resolved = resolvePresentationArt({ source, factionId, surface: "card", cardId: card?.gameplayCardId || card?.definitionId || card?.id || "", cardType: card?.type || card?.cardType || "" }, { preview: true, registry });
+  const resolved = resolvePresentationArt({ source, factionId, surface: "card", cardId: card?.gameplayCardId || card?.definitionId || card?.id || "", cardType: card?.type || card?.cardType || "" }, { registry });
   // An illustration must be composed with the existing rank, suit and rules.
   return resolved.kind === "illustration" ? "" : resolved.src;
 }

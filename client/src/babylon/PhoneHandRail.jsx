@@ -24,7 +24,7 @@ export function usePhoneHandLayout() {
 }
 
 export default function PhoneHandRail({ viewModel, commands, presentationRef, interactionLocked }) {
-  const preview = usePresentationArt();
+  usePresentationArt();
   const railRef = useRef(null);
   const gestureRef = useRef(null);
   const selectedRef = useRef(new Set());
@@ -90,8 +90,8 @@ export default function PhoneHandRail({ viewModel, commands, presentationRef, in
         onPointerCancel={() => { if (gestureRef.current) gestureRef.current.moved = true; }}
         onScroll={() => { if (gestureRef.current) gestureRef.current.moved = true; measure(); }}>
         {hand.map((card, index) => {
-          const artPath = preview ? getPlayingCardArtPath(card.raw || card, card.factionId) || card.artPath : card.artPath;
-          const composed = preview && getCardForPresentation(card.raw || card, card.factionId) !== (card.raw || card);
+          const artPath = getPlayingCardArtPath(card.raw || card, card.factionId) || card.artPath;
+          const composed = getCardForPresentation(card.raw || card, card.factionId) !== (card.raw || card);
           const selected = Object.values(card.selected || {}).some(Boolean);
           const role = Object.keys(card.selected || {}).find((key) => card.selected[key]);
           const visible = card.visible !== false;

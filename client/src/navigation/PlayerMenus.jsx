@@ -6,7 +6,7 @@ import SetupFrame from "./SetupFrame";
 import { LayoutGrid, PageLayoutSettings, usePlayerLayout } from "./PlayerLayoutStudio";
 import { getDestination } from "./destinations";
 import { getModePresentation } from "./modePresentation";
-import { getFactionArtwork, getFactionCover, getFactionAsset, resolveVisualAsset } from "../GauntletVisuals";
+import { getFactionArtwork, getCampaignCover, getFactionAsset, resolveVisualAsset } from "../GauntletVisuals";
 import { getDeckFeaturedArt } from "../contentArt";
 import { MENU_SCENES, STANDARD_DECK_ART, TUTORIAL_ART } from "./menuArtwork";
 import { playFactionVoice } from "../factionVoicePlayback";
@@ -180,7 +180,7 @@ export default function PlayerMenus({ embedded = false, serverUrl, route, onNavi
       const completed = account?.progression?.campaign?.[id] || [];
       const faction = content.factions?.find((entry) => entry.id === id);
       const emblem = ["rumin", "bizi", "sheen", "frumo"].includes(id) ? "" : getFactionAsset(id, faction?.cardImage) || getFactionAsset(id, faction?.commander?.image);
-      return { ...action(`faction-${id}`, campaign.factionName || id, `${completed.length} of ${campaign.chapters.length} chapters cleared · ${campaign.commanderName}`, `Chapters · ${completed.length} of ${campaign.chapters.length} cleared`, () => actions.campaign(id), emblem ? <img src={resolveVisualAsset(emblem)} alt="" loading="lazy" decoding="async" draggable={false} /> : "campaign"), artwork: getFactionCover(id, campaign.coverImage, faction?.commander?.image, faction?.cardImage) };
+      return { ...action(`faction-${id}`, campaign.factionName || id, `${completed.length} of ${campaign.chapters.length} chapters cleared · ${campaign.commanderName}`, `Chapters · ${completed.length} of ${campaign.chapters.length} cleared`, () => actions.campaign(id), emblem ? <img src={resolveVisualAsset(emblem)} alt="" loading="lazy" decoding="async" draggable={false} /> : "campaign"), artwork: getCampaignCover(id, campaign.coverImage, faction?.commander?.image, faction?.cardImage) };
     });
     items.push(action("tutorial", "Tutorial", "Learn one complete turn.", "Open tutorial", actions.tutorial, "learn"), action("lore", "Faction Lore", "Meet the published commanders.", "Read faction stories", () => nav("campaign", "lore"), "campaign"), action("rulebook", "Rulebook", "The full rules reference.", "Read rules", () => nav("learn", "rulebook"), "learn"));
     body = <><section className="cd-context"><div>{campaignPresentation.eyebrow && <span className="cd-eyebrow">{campaignPresentation.eyebrow}</span>}<h2>{campaignPresentation.title}</h2><p>{campaignPresentation.description && <>{campaignPresentation.description} </>}{account ? `${state.completedChapters} chapters cleared. Progress and earned packs stay with your account.` : "Guests can play every published campaign. Sign in to retain chapter progress and rewards."}</p>{campaignPresentation.detail && <p className="cd-authored-detail">{campaignPresentation.detail}</p>}</div>{state.nextCampaign && <button className="cd-button-primary" onClick={() => actions.campaign(state.nextCampaign.factionId, state.nextCampaign.chapter.id)}>{state.completedChapters ? "Continue next chapter" : "Open first chapter"}</button>}</section>

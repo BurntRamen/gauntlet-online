@@ -4,13 +4,13 @@ const artManifest = require("../client/public/brand/suitfire-art/manifest.json")
 const reviewedCards = require("../docs/branding/suitfire-art-audit-inventory.json").cards;
 const { COLLECTION_CARDS } = require("../server/gameContent");
 
-test("opt-in art stays legible on desktop and phone and GO stays public", async ({ page, request }, testInfo) => {
+test("both brands share player artwork on desktop and phone", async ({ page, request }, testInfo) => {
   const base = "http://127.0.0.1:4161";
   await page.goto("/");
   await expect(page).toHaveTitle("Gauntlet Online");
   await navigatePlayer(page, "settings");
   await expect(page.getByRole("group", { name: "Game appearance" })).toHaveCount(0);
-  expect(await page.evaluate(() => performance.getEntriesByType("resource").some(e => e.name.includes("/brand/suitfire-art/manifest.json")))).toBe(false);
+  await expect.poll(() => page.evaluate(() => performance.getEntriesByType("resource").some(e => e.name.includes("/brand/suitfire-art/manifest.json")))).toBeTruthy();
   const result = await request.post(base + "/api/auth/register", { data: { name: "ArtPreview" + Date.now(), password: "Local-Preview-Only-42" } });
   expect(result.ok()).toBeTruthy();
   const { token } = await result.json();
@@ -81,7 +81,8 @@ test("opt-in art stays legible on desktop and phone and GO stays public", async 
   await page.getByRole("radio", { name: "Gauntlet Online", exact: true }).check();
   await expect(page).toHaveTitle("Gauntlet Online");
   await openCollection(page, "packs");
-  await expect(page.locator(".preview-pack-art")).toHaveCount(0);
+  await expect(page.locator(".preview-pack-art").first()).toBeVisible();
+  await expect(page.locator(".preview-pack-crest").first()).toHaveAttribute("src", "/assets/gauntlet/gauntlet-logo-transparent.png");
   await openCollection(page, "catalog");
   expect(await page.locator(".catalog-card-tile .special-card-presentation").first().evaluate(art => art.getBoundingClientRect().width)).toBeGreaterThanOrEqual(74);
   await navigatePlayer(page, "settings");

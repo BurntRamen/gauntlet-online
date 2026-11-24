@@ -30,7 +30,7 @@ import SpecialCardFace, { getCardIllustration } from "./SpecialCardFace";
 import CollectorCardPresentation from "./CollectorCardPresentation";
 import { nextFactionQuote, playFactionVoice } from "./factionVoicePlayback";
 import CampaignChapterBriefing from "./CampaignChapterBriefing";
-import { DeckVisual, FactionArtwork, FACTION_VISUALS, getFactionArtwork, getFactionCover, getFactionAsset, resolveVisualAsset } from "./GauntletVisuals";
+import { DeckVisual, FactionArtwork, FACTION_VISUALS, getFactionArtwork, getCampaignCover, getFactionAsset, resolveVisualAsset } from "./GauntletVisuals";
 import FactionLoadoutPicker from "./FactionLoadoutPicker";
 import { AchievementHonorCard, CampaignArchiveCard } from "./IdentityArchiveVisuals";
 import { findCollectorVariant, getCurrentDeckVersion, getDeckFeaturedArt, getNextCampaignChapter } from "./contentArt";
@@ -1548,9 +1548,8 @@ function normalizeReplacementSuitId(suit) {
 }
 
 function BoosterPackTile({ booster, collectorPack, opening, canOpen, onOpen, onBuyPack }) {
-  const preview = usePresentationArt();
+  useBrandPreview();
   const theme = booster.pool === "all-factions" ? INITIATIVE_PACK_THEME : (PACK_THEMES[booster.factionId] || PACK_THEMES.rumin);
-  const factionArt = resolveAssetPath(booster.artPath || `/assets/gauntlet/${booster.factionId}-card.webp`);
   const displayName = booster.displayName || theme.name;
   const subtitle = booster.subtitle || theme.subtitle;
   const rarityCounts = (booster.slots || []).reduce((counts, slot) => {
@@ -1571,9 +1570,8 @@ function BoosterPackTile({ booster, collectorPack, opening, canOpen, onOpen, onB
       <span className="booster-pack-set">Earned Gameplay Pack</span>
       <strong>{displayName}</strong>
       <span className="booster-pack-subtitle">{subtitle}</span>
-      {preview ? <PreviewPackArt setId={booster.setId || (booster.pool === "all-factions" ? "initiative" : "")} factionId={booster.pool === "all-factions" ? "" : booster.factionId} label={displayName} source={getFactionArtwork(booster.factionId)} /> : <span className={`booster-pack-art ${booster.artPath ? "booster-pack-art-featured" : ""}`} style={{ backgroundImage: `linear-gradient(180deg, rgba(2,6,23,0.02), rgba(2,6,23,0.28)), url(${factionArt})` }}>
-        {!booster.artPath && <span className="booster-pack-sigil">{theme.name.slice(0, 1)}</span>}
-      </span>}
+      <PreviewPackArt setId={booster.setId || (booster.pool === "all-factions" ? "initiative" : "")}
+        factionId={booster.pool === "all-factions" ? "" : booster.factionId} label={displayName} source={booster.artPath} />
       <span className="booster-pack-count">{booster.cardCount || booster.slots?.length || 13} free-play gameplay unlocks</span>
       <span className="booster-pack-slots">
         {Object.entries(rarityCounts).map(([rarity, count]) => (
@@ -2909,7 +2907,7 @@ function CampaignScreen({ embedded = false, initialFactionId, initialChapterId =
   return (
     <div className={embedded ? "cd-campaign-experience" : "campaign-page menu-page area-journey"}>
       <div className={embedded ? "campaign-frame" : "campaign-frame menu-frame"}>
-        <div className="campaign-header" style={{ "--journey-art": `url("${resolveVisualAsset(JOURNEY_ART)}")` }}>
+        <div className="campaign-header" style={{ "--journey-art": `url("${resolveVisualAsset(directFaction ? getCampaignCover(activeFactionId, activeCampaign.coverImage) || JOURNEY_ART : JOURNEY_ART)}")` }}>
           <div className="campaign-heading">
             <div className="campaign-kicker">{campaignPresentation.eyebrow || "Commander Archives"}</div>
             <h1>{directFaction ? `${activeCampaign.factionName} Campaign` : campaignPresentation.title}</h1>
@@ -2931,7 +2929,7 @@ function CampaignScreen({ embedded = false, initialFactionId, initialChapterId =
                 aria-selected={selected}
                 className={`campaign-faction-tab${selected ? " is-active" : ""}`}
                 onClick={() => { setSelectedFactionId(factionId); changeBriefing(""); }}
-                style={{ "--faction-accent": theme.primary, backgroundImage: `linear-gradient(180deg, transparent 35%, rgba(4,8,13,0.12) 50%, rgba(4,8,13,0.94) 100%), url(${resolveVisualAsset(getFactionCover(factionId, campaign.coverImage) || "/assets/gauntlet/ui/faction-art-unavailable.svg")})` }}
+                style={{ "--faction-accent": theme.primary, backgroundImage: `linear-gradient(180deg, transparent 35%, rgba(4,8,13,0.12) 50%, rgba(4,8,13,0.94) 100%), url(${resolveVisualAsset(getCampaignCover(factionId, campaign.coverImage) || "/assets/gauntlet/ui/faction-art-unavailable.svg")})` }}
               >
                 <span>{campaign.factionName}</span>
                 <strong>{factionClears}/{campaign.chapters.length}</strong>
@@ -3076,7 +3074,8 @@ export default function App() {
   const [lifetimeLeaderboard, setLifetimeLeaderboard] = useState([]);
   const [activeSeasonMatches, setActiveSeasonMatches] = useState([]);
   const [activeSeasonMatchesError, setActiveSeasonMatchesError] = useState("");
-  const [gameContent, setGameContent] = useState(null);
+  const [publishedContent, setGameContent] = useState(null);
+  const gameContent = useInitiativeCampaignArt(publishedContent);
   const [gameContentError, setGameContentError] = useState("");
   const [competitiveProfile, setCompetitiveProfile] = useState(null);
   const [competitiveProfileLoading, setCompetitiveProfileLoading] = useState(false);
@@ -3116,7 +3115,6 @@ export default function App() {
   const confirmLeaveDeck = useCallback(() => !unsavedDeckRef.current || window.confirm("Discard unsaved deck changes and leave the editor?"), []);
   const { route: playerRoute, navigate: navigatePlayer } = usePlayerNavigation({ beforeNavigate: confirmLeaveDeck });
   const homeArea = playerRoute.page;
-  useInitiativeCampaignArt(homeArea === "campaign" || showCampaign, gameContent, setGameContent);
   const [ownerAuthorized, setOwnerAuthorized] = useAdminAccess(SOCKET_URL, authToken);
   const adminSignInRequested = useRef(false);
   const adminExitGuard = useRef(action => { action?.(); return true; });

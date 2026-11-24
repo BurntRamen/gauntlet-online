@@ -1,28 +1,10 @@
-import { useEffect } from "react";
+import { useMemo } from "react";
 import { applyInitiativeCampaignArt } from "@gauntlet/duel-rules/resolveInitiativeArt";
+import initiativeArt from "../public/assets/gauntlet/campaigns/initiative-art-v2.json";
 
-let artRequest;
-function loadCampaignArt() {
-  if (!artRequest) {
-    artRequest = fetch((process.env.PUBLIC_URL || "") + "/assets/gauntlet/campaigns/initiative-art-v2.json")
-      .then(response => {
-        if (!response.ok) throw new Error("Campaign illustration catalog unavailable");
-        return response.json();
-      })
-      .catch(error => { artRequest = undefined; throw error; });
-  }
-  return artRequest;
-}
-
-export function useInitiativeCampaignArt(open, content, setContent) {
-  useEffect(() => {
-    if (!open || !content?.campaigns || content.initiativeArtVersion >= 2) return;
-    let active = true;
-    loadCampaignArt().then(art => {
-      if (active) setContent(current => current === content
-        ? { ...current, campaigns: applyInitiativeCampaignArt(current.campaigns, art), initiativeArtVersion: 2 }
-        : current);
-    }).catch(() => { /* Keep the published campaign playable and retry on the next visit. */ });
-    return () => { active = false; };
-  }, [open, content, setContent]);
+export function useInitiativeCampaignArt(content) {
+  return useMemo(() => {
+    if (!content?.campaigns || content.initiativeArtVersion > 2) return content;
+    return { ...content, campaigns: applyInitiativeCampaignArt(content.campaigns, initiativeArt), initiativeArtVersion: 2 };
+  }, [content]);
 }
