@@ -232,7 +232,8 @@ export default function GauntletAuthoring({ operatorScope, request, area, initia
     onStatus?.({ domain: domainChoice, id: selected, name: row && contentName(row), source: state?.draft ? "Saved draft" : "Live content", busy, unsaved, savedChanges: state?.changes?.length || 0, writable: !!state?.writable, liveOnly: !!state?.liveOnly, loading: !state, selected: row || null, target: context.target });
   }, [onStatus, busy, unsaved, state, domain, domainChoice, selected, context.target]);
   async function refresh() {
-    const generation = ++downloadGeneration.current;
+    const generation = Symbol("draft download");
+    downloadGeneration.current = generation;
     setDownloadBusy(true);
     try {
       const data = await request("/api/admin/authoring");
@@ -282,7 +283,7 @@ export default function GauntletAuthoring({ operatorScope, request, area, initia
       if (active) await refresh();
     }
     open();
-    return () => { active = false; downloadGeneration.current++; };
+    return () => { active = false; downloadGeneration.current = -1; };
   // Reload only for a new session or the existing explicit admin refresh action.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [request, revision, operatorScope]);
