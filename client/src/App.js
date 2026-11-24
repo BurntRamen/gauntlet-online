@@ -3494,11 +3494,11 @@ export default function App() {
       .catch((seasonError) => setActiveSeasonMatchesError(seasonError.message));
   }, []);
 
-  useEffect(() => {
-    loadLeaderboard();
-  }, [loadLeaderboard]);
-
+  const adminOpen = homeArea === "studio";
   const seasonDataVisible = homeArea === "matches" || homeArea === "compete";
+  useEffect(() => {
+    if (!adminOpen && !seasonDataVisible) loadLeaderboard();
+  }, [adminOpen, loadLeaderboard, seasonDataVisible]);
 
   useEffect(() => {
     if (!seasonDataVisible) return undefined;
@@ -3580,7 +3580,7 @@ export default function App() {
     return () => { active = false; controller.abort(); };
   }, [publicView]);
 
-  const loadFriends = useCallback(async () => {
+  const loadFriends = useCallback(async (options = {}) => {
     if (!authToken) {
       setFriendsData({ friends: [], messages: [], challenges: [] });
       setSelectedFriendId("");
@@ -3589,6 +3589,7 @@ export default function App() {
 
     try {
       const response = await fetch(`${SOCKET_URL}/api/friends`, {
+        signal: options?.signal,
         headers: { Authorization: `Bearer ${authToken}` }
       });
       const data = await response.json();
@@ -3604,28 +3605,35 @@ export default function App() {
       setSelectedFriendId((current) => data.friends?.some((friend) => friend.id === current) ? current : "");
       setFriendsError("");
     } catch (friendLoadError) {
+      if (options?.signal?.aborted) return;
       if (browserStorage.getItem(STORAGE_KEYS.authToken) !== authToken) return;
       setFriendsError(friendLoadError.message);
     }
   }, [authToken]);
 
   useEffect(() => {
-    loadFriends();
-  }, [loadFriends]);
-
-  useEffect(() => {
-    if (!authToken) return undefined;
-    const refreshVisibleFriends = () => {
-      if (document.visibilityState !== "hidden") loadFriends();
+    if (!authToken) {
+      loadFriends();
+      return undefined;
+    }
+    if (adminOpen) return undefined;
+    const controller = new AbortController();
+    let pending = false;
+    const refreshVisibleFriends = async () => {
+      if (document.visibilityState === "hidden" || pending) return;
+      pending = true;
+      try { await loadFriends({ signal: controller.signal }); }
+      finally { pending = false; }
     };
     refreshVisibleFriends();
     const intervalId = window.setInterval(refreshVisibleFriends, 10000);
     document.addEventListener("visibilitychange", refreshVisibleFriends);
     return () => {
       window.clearInterval(intervalId);
+      controller.abort();
       document.removeEventListener("visibilitychange", refreshVisibleFriends);
     };
-  }, [authToken, homeArea, identityView, loadFriends]);
+  }, [authToken, adminOpen, loadFriends]);
 
   useEffect(() => {
     browserStorage.setItem(STORAGE_KEYS.friendReadAt, JSON.stringify(friendReadAt));
