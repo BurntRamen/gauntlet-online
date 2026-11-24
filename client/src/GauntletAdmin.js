@@ -108,7 +108,7 @@ function AdminWorkspace({ request, onClose, exitGuard, environment }) {
   });
   const inspectContent = (domain, id) => selectArea("Content", domain, id);
   const [catalogRequested, setCatalogRequested] = useState(false);
-  const catalog = useAdminData(request, "/api/admin/catalog", revision, catalogRequested || area === "Players");
+  const catalog = useAdminData(request, "/api/admin/catalog", revision, catalogRequested);
   const currentDomain = editing?.domain || contentDomain?.name || targetFromLocation({ domain: "cards" }).domain;
 
   const primaryArea = studioDestination(area, area === "Content" ? currentDomain : null);
@@ -143,7 +143,7 @@ function AdminWorkspace({ request, onClose, exitGuard, environment }) {
       {area === "Content" && matchesOpened && <button onClick={() => selectArea("Matches")}>Return to match inspection</button>}
       {area === "Home" && <Overview request={request} revision={revision} onSelect={selectArea} />}
       {authoringArea && <div hidden={!authoring}><Suspense fallback={<p role="status">Opening your workspace…<progress className="sf-load-bar" aria-label="Opening workspace" /></p>}><GauntletAuthoring request={request} area={authoringArea} initialDomain={contentDomain} revision={revision} catalog={catalog.data} onNeedCatalog={() => setCatalogRequested(true)} onStatus={setEditing} onPublished={() => setRevision((value) => value + 1)} guard={guard} onNavigate={selectArea} beforeNavigate={action => { dismissMenus(); return playerGuard.current(action); }} onExit={onClose} /></Suspense></div>}
-      {area === "Players" && <Suspense fallback={<p>Loading players…<progress className="sf-load-bar" aria-label="Loading players" /></p>}><Players request={request} revision={revision} catalog={catalog.data} guard={playerGuard} useData={useAdminData} State={State} Facts={Facts} Json={Json} date={date} label={label} /></Suspense>}
+      {area === "Players" && <Suspense fallback={<p>Loading players…<progress className="sf-load-bar" aria-label="Loading players" /></p>}><Players onNeedCatalog={() => setCatalogRequested(true)} request={request} revision={revision} catalog={catalog.data} guard={playerGuard} useData={useAdminData} State={State} Facts={Facts} Json={Json} date={date} label={label} /></Suspense>}
 
       {area === "Competition" && workspace.Competition === "Results" && <Suspense fallback={<p role="status">Loading competition…<progress className="sf-load-bar" aria-label="Loading competition" /></p>}><Competition target={operationTarget} onDefinition={(registry,id)=>selectArea("Competition",registry+":events",id,undefined,undefined,undefined,{workspace:registry==="para"?"Para definitions":"Ranked & Gauntlet"})} request={request} revision={revision} useData={useAdminData} State={State} Json={Json} label={label} /></Suspense>}
       {(matchesOpened || area === "Operations") && <Suspense fallback={<p role="status">Loading operations…<progress className="sf-load-bar" aria-label="Loading operations" /></p>}><Operations active={area === "Operations"} workspace={workspace.Operations} matchesOpened={matchesOpened} request={request} revision={revision} environment={environment} onInspectContent={inspectContent} State={State} Facts={Facts} Json={Json} date={date} label={label} /></Suspense>}
