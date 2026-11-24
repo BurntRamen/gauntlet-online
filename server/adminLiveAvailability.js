@@ -16,10 +16,19 @@ async function deployedStatus(publication) {
 
 // Live references need no remote draft read. This accessor exists only for a
 // provider that captures an immutable, validated release at deployment time.
-async function readWorkshopStatus(publication, source = "live") {
-  return source === "live" && publication.deployedSnapshot
-    ? deployedStatus(publication)
-    : publication.status();
+const workshopReads = new WeakMap();
+function readWorkshopStatus(publication, source = "live") {
+  let reads = workshopReads.get(publication);
+  if (!reads) {
+    reads = new Map();
+    workshopReads.set(publication, reads);
+  }
+  const readDeployed = source === "live" && Boolean(publication.deployedSnapshot);
+  if (!reads.has(readDeployed)) {
+    const pending = Promise.resolve().then(() => readDeployed ? deployedStatus(publication) : publication.status());
+    reads.set(readDeployed, pending.finally(() => reads.delete(readDeployed)));
+  }
+  return reads.get(readDeployed);
 }
 
 async function readAuthoringStatus(publication, compact = false) {
