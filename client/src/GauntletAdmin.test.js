@@ -24,8 +24,8 @@ const respond = async (path) => {
   if (path.includes("/players?")) return { guide: require("../../server/adminPlayerGuide.json"), players: [{ id, name: "Player A", campaigns: [], decks: [], matchReferences: [], unlocks: {} }], source: "local JSON", hasMore: false };
   throw new Error("Unexpected route");
 };
-const request = jest.fn();
-beforeEach(() => { window.history.replaceState({}, "", "/"); request.mockReset().mockImplementation(respond); jest.spyOn(window, "scrollTo").mockImplementation(() => {}); });
+let request;
+beforeEach(() => { window.history.replaceState({}, "", "/"); request = jest.fn(respond); jest.spyOn(window, "scrollTo").mockImplementation(() => {}); });
 afterEach(() => { setAccountBrand(null); jest.restoreAllMocks(); });
 function select(area) {
   fireEvent.click(within(screen.getByRole("navigation", { name: "Administration sections" })).getByText(({ Design: "Create & Edit", Content: "Create & Edit", Players: "Operations", Matches: "Operations", System: "Operations" })[area] || area));
@@ -230,6 +230,7 @@ test("returning from Design preserves the match filter and page scroll", async (
     fireEvent.change(await screen.findByLabelText("Search recent records"), { target: { value: "Player A" } });
     Object.defineProperty(window, "scrollY", { configurable: true, value: 720 });
     select("Design");
+    await openCatalog("Content");
     await screen.findByText("Catalog ready");
     Object.defineProperty(window, "scrollY", { configurable: true, value: 140 });
     fireEvent.click(screen.getByRole("button", { name: "Return to match inspection" }));
