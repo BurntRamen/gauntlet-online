@@ -1184,7 +1184,7 @@ test("Admin composes abilities through guided blocks and proves two releases wit
   await page.getByRole("button", { name: "Save new card to draft", exact: true }).click();
   const card = (await pending).body.draft.snapshot.domains.cards.at(-1);
   await cardSection(page, "Mechanics");
-  await page.getByLabel("Execution model", { exact: true }).selectOption("composition");
+  await page.getByLabel("Ability type", { exact: true }).selectOption("composition");
   await page.getByLabel("Ability 1 requirement", { exact: true }).selectOption("overpay");
   await page.getByLabel("Ability 1 threshold", { exact: true }).fill("2");
   await page.getByRole("button", { name: "Add effect to ability 1", exact: true }).click();
@@ -1192,7 +1192,7 @@ test("Admin composes abilities through guided blocks and proves two releases wit
   await page.getByLabel("Ability 1 effect 2 amount", { exact: true }).fill("1");
   await page.getByRole("button", { name: "Duplicate ability 1", exact: true }).click();
   await page.getByRole("button", { name: "Remove ability 2", exact: true }).click();
-  await expect(page.getByRole("region", { name: "Generated mechanics explanation" })).toContainText("then gain 1 life");
+  await expect(page.getByRole("region", { name: "Ability explanation" })).toContainText("then gain 1 life");
   pending = page.waitForResponse(r => r.url().endsWith("/authoring/record") && r.request().method() === "PATCH");
   await saveRecord(page);
   expect((await pending).ok()).toBeTruthy();
@@ -1209,7 +1209,7 @@ test("Admin composes abilities through guided blocks and proves two releases wit
   await cardSection(page, "Details");
   await page.getByLabel("Draft flavor text", { exact: true }).fill("A measured investment.");
   await saveRecord(page);
-  await page.getByRole("button", { name: "Use generated mechanics explanation as wording", exact: true }).click();
+  await page.getByRole("button", { name: "Use this explanation as card wording", exact: true }).click();
   await saveRecord(page);
   const runCard = async (expectedValue, expectedLife) => {
     await cardSection(page, "Test");
@@ -1257,7 +1257,7 @@ test("Admin composes abilities through guided blocks and proves two releases wit
   await page.getByLabel("Ability 1 requirement", { exact: true }).selectOption("diamondsPaid");
   await page.getByRole("button", { name: "Move effect 2 up", exact: true }).click();
   await saveRecord(page);
-  await expect(page.getByRole("region", { name: "Generated mechanics explanation" })).toContainText("Printed wording differs");
+  await expect(page.getByRole("region", { name: "Ability explanation" })).toContainText("Printed wording differs");
   await runCard(2, 42); await publish("Browser composed R2");
   await page.getByRole("button", { name: "Restore Browser composed R1", exact: true }).click();
   const rollback = page.waitForResponse(response => response.url().endsWith("/authoring/rollback") && response.request().method() === "POST");

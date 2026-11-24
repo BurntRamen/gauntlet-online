@@ -7,6 +7,7 @@ import mechanicContract from "@gauntlet/duel-rules/mechanicContract";
 import guidance from "@gauntlet/duel-rules/compositionExplanation";
 import program from "@gauntlet/duel-rules/mechanicProgram";
 import MechanicLanguage from "./MechanicLanguage";
+import { BehaviorGuide } from "./AuthoringKey";
 
 export function GeneratedWording({ row, studio, disabled, onChange }) {
   const helpCopy = useHelp();
@@ -27,7 +28,7 @@ export default function MechanicsEditor(props) {
   const registered = () => ({ id: legacy.id, version: legacy.version, parameters: Object.fromEntries(Object.entries(legacy.parameters).map(([key, spec]) => [key, spec.default])) });
   const errors = composed ? contract.errors(value, row) : [];
   const setAbility = (index, next) => onChange({ ...value, abilities: replaceAt(value.abilities, index, next) });
-  if (value?.id === program.ID) return <EditorValues value={value} onChange={onChange}><fieldset disabled={disabled} className="mechanics-editor"><legend>{helpCopy.mechanicCopy2}</legend><Help topic="programRules" /><MechanicLanguage studio={props.studio} />
+  if (value?.id === program.ID) return <EditorValues value={value} onChange={onChange}><fieldset disabled={disabled} className="mechanics-editor"><legend>{helpCopy.mechanicCopy2}</legend><BehaviorGuide current="program"/><Help topic="programRules" /><MechanicLanguage studio={props.studio} />
     <ValueControl label={helpCopy.mechanicCopy3} disabled={!props.studio?.programVersion || value.mechanics.length >= 4 || !available.length} value="" options={[["", helpCopy.mechanicCopy4], ...available.map(m => [m.id, m.name])]} onChange={id => { if (id) onChange({ ...value, mechanics: [...value.mechanics, reference(id)] }); }} />
     <ol>{value.mechanics.map((ref, index) => <li key={ref.mechanicId}><div className="admin-actions"><button type="button" aria-label={authored ? helpCopy.mechanicCopy5 : `Edit module ${index + 1}`} onClick={() => props.onInspect?.("mechanics", ref.mechanicId)}>{mechanics.find(m => m.id === ref.mechanicId)?.name || ref.mechanicId}</button><CollectionActions path={['mechanics']} index={index} name="module"/></div></li>)}</ol>
     <button type="button" onClick={() => props.onInspect?.("mechanics", null)}>{helpCopy.mechanicCopy7}</button>
@@ -37,7 +38,7 @@ export default function MechanicsEditor(props) {
     <p className="mechanics-explanation">{program.explanation(value, mechanics)}</p><Help topic="programReplacement" />{legacy && <button type="button" onClick={() => onChange(registered())}>{helpCopy.mechanicCopy9}</button>}
   </fieldset></EditorValues>;
   return <EditorValues value={value} onChange={onChange} disabled={disabled}><div className="mechanics-editor">{!props.embedded && props.studio?.programVersion && <button type="button" disabled={disabled} onClick={() => onChange(program.create(value))}>{composed ? helpCopy.mechanicCopy10 : helpCopy.mechanicCopy11}</button>}
-    {!props.embedded && <ValueControl label="Execution model" aria-label="Execution model" disabled={disabled || !contract.supports(row)} value={composed ? "composition" : "legacy"} options={[["legacy", helpCopy.mechanicCopy12], ["composition", helpCopy.mechanicCopy13]]} onChange={model => onChange(model === "composition" ? contract.create() : registered())} />}
+    {!props.embedded && <><BehaviorGuide current={composed?'composition':'legacy'}/><ValueControl label="Ability type" aria-label="Ability type" disabled={disabled || !contract.supports(row)} value={composed ? "composition" : "legacy"} options={[["legacy", helpCopy.mechanicCopy12], ["composition", helpCopy.mechanicCopy13]]} onChange={model => onChange(model === "composition" ? contract.create() : registered())} /></>}
     {!composed ? <><Help className="admin-note" topic="MechanicsEditor2" /><GauntletContractFields {...props} /></> : <>
       <Help topic="MechanicsEditor3" />
       {errors.length > 0 && <ul role="alert">{errors.map(issue => <li key={issue.path}>{issue.path}: {issue.message}</li>)}</ul>}
@@ -45,7 +46,7 @@ export default function MechanicsEditor(props) {
         <p><strong>{helpCopy.mechanicCopy14}</strong>{helpCopy.mechanicCopy15}</p>
         <ValueControl label="Requirement" aria-label={`Ability ${index + 1} requirement`} path={["abilities", index, "condition", "kind"]} options={Object.entries(guidance.conditionLabels)} onChange={kind => setAbility(index, { ...ability, condition: { kind, ...(contract.conditions[kind] ? { amount: contract.conditions[kind][0] } : {}) } })} />
         {contract.conditions[ability.condition.kind] && <ValueControl label="Threshold" aria-label={`Ability ${index + 1} threshold`} type="number" required min={contract.conditions[ability.condition.kind][0]} max={contract.conditions[ability.condition.kind][1]} step={1} path={["abilities", index, "condition", "amount"]} />}
-        {ability.effects.map((effect, i) => <div className="mechanics-operation" key={i}><span>Effect {i + 1}</span><ValueControl label="Operation" aria-label={`Ability ${index + 1} effect ${i + 1}`} path={["abilities", index, "effects", i, "kind"]} options={Object.entries(guidance.operationLabels)} onChange={kind => setAbility(index, { ...ability, effects: replaceAt(ability.effects, i, { kind, amount: effect.amount, ...contract.operations[kind] }) })} />
+        {ability.effects.map((effect, i) => <div className="mechanics-operation" key={i}><span>Effect {i + 1}</span><ValueControl label="What happens" aria-label={`Ability ${index + 1} effect ${i + 1}`} path={["abilities", index, "effects", i, "kind"]} options={Object.entries(guidance.operationLabels)} onChange={kind => setAbility(index, { ...ability, effects: replaceAt(ability.effects, i, { kind, amount: effect.amount, ...contract.operations[kind] }) })} />
           <ValueControl label="Amount" aria-label={`Ability ${index + 1} effect ${i + 1} amount`} type="number" required min={1} max={contract.limits.amount} step={1} path={["abilities", index, "effects", i, "amount"]} />
           <small>{effect.kind === "attackBonus" ? helpCopy.mechanicTarget : helpCopy.mechanicLife}</small>
           <div className="admin-actions"><CollectionActions path={['abilities',index,'effects']} index={i} name="effect"/></div>

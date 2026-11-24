@@ -2,6 +2,15 @@ import { useState } from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import ValueControl, { EditorValues } from "./ValueControl";
 
+test("field guidance is available as an accessible description without changing the saved choice", () => {
+  const change = jest.fn();
+  render(<ValueControl label="Player choice" value="automatic" options={[["automatic","Automatic"],["optional","Player may choose"]]} hint="The player may skip an optional ability." onChange={change}/>);
+  const choice=screen.getByRole("combobox",{name:"Player choice"});
+  expect(choice).toHaveAccessibleDescription("The player may skip an optional ability.");
+  fireEvent.change(choice,{target:{value:"optional"}});
+  expect(change).toHaveBeenCalledWith("optional");
+});
+
 test("nested array edits retain other records and clearing an optional value removes it", () => {
   const original = { rows: [{ amount: 2, optional: 4 }, { amount: 7 }] }, changed = jest.fn();
   function Editor() {

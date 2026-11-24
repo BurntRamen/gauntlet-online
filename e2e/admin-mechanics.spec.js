@@ -35,9 +35,18 @@ test("operator composes a reusable mechanic, creates a card, executes it and pub
   const token = JSON.parse(fs.readFileSync(path.resolve(__dirname, "../.playwright-data/admin/sessions.json")))["simply"];
   await page.goto("/admin/gauntlet"); await page.evaluate(token => localStorage.setItem("gauntlet_auth_token", token), token);
   await page.goto("/admin/gauntlet?workshop=mechanics");
+  await page.getByText("Which rules editor do I need?", { exact: true }).click();
+  await expect(page.getByLabel("Workspace guide")).toContainText("Reusable starting life and hand-size settings");
+  await page.getByText("Which rules editor do I need?", { exact: true }).click();
   await page.getByRole("button", { name: "Create mechanic", exact: true }).click();
   await expect(page.getByLabel("Mechanic name", { exact: true })).toHaveValue("New mechanic");
   await page.getByLabel("Mechanic name", { exact: true }).fill("Browser composed strike");
+  await page.getByText("Which rules editor do I need?", { exact: true }).click();
+  await page.getByLabel("Workspace guide").getByRole("button", { name: "Rule modifiers", exact: true }).click();
+  await expect(page.getByRole("dialog", { name: "Unsaved local changes" })).toBeVisible();
+  await page.getByRole("button", { name: "Keep editing", exact: true }).click();
+  await expect(page.getByLabel("Mechanic name", { exact: true })).toHaveValue("Browser composed strike");
+  await page.getByText("Which rules editor do I need?", { exact: true }).click();
   await page.getByRole("checkbox", { name: "spell", exact: true }).uncheck(); await page.getByRole("checkbox", { name: "servitor", exact: true }).check();
   await page.getByLabel("Ability 1 name", { exact: true }).fill("Strike then heal");
   await page.getByLabel("Ability 1 trigger", { exact: true }).selectOption("attack");
@@ -48,6 +57,7 @@ test("operator composes a reusable mechanic, creates a card, executes it and pub
   await page.getByRole("button", { name: "Save mechanic to draft", exact: true }).click();
   const saved = await (await pending).json(), mechanic = saved.draft.snapshot.studio.mechanics.find(m => m.name === "Browser composed strike"); expect(mechanic).toBeTruthy();
   await expect(page.getByLabel("Mechanic name", { exact: true })).toHaveValue(mechanic.name);
+  await expect(page.getByRole("button", { name: "Choose a card to test", exact: true })).toBeVisible();
   await page.screenshot({ path: "artifacts/phase2-mechanic-studio.png", fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 }); expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true); expect((await new AxeBuilder({ page }).include(".mechanic-studio").analyze()).violations).toEqual([]); await page.screenshot({ path: "artifacts/phase2-mechanic-mobile.png", fullPage: true }); await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/admin/gauntlet?workshop=sets"); await page.getByRole("button", { name: "Create set", exact: true }).click(); await page.getByLabel("New content name").fill("Browser Studio set"); await page.getByRole("button", { name: "Save new set to draft", exact: true }).click();
@@ -56,7 +66,7 @@ test("operator composes a reusable mechanic, creates a card, executes it and pub
   pending = waitForBufferedAdminResponse(page, r => r.url().endsWith("/authoring/create") && r.request().method() === "POST"); await page.getByRole("button", { name: "Save new card to draft", exact: true }).click();
   const created = await (await pending).json(), card = created.draft.snapshot.domains.cards.at(-1); expect(card.effect.mechanicId).toBe(mechanic.id);
   expect(created.draft.snapshot.domains.sets.find(row => row.name === "Browser Studio set").members).toContain(card.id);
-  await cardSection(page, "Mechanics"); await page.getByRole("button", { name: "Open Mechanics Studio", exact: true }).click(); await expect(page.getByLabel("Mechanic name", { exact: true })).toHaveValue(mechanic.name);
+  await cardSection(page, "Mechanics"); await page.getByRole("button", { name: "Edit this mechanic", exact: true }).click(); await expect(page.getByLabel("Mechanic name", { exact: true })).toHaveValue(mechanic.name);
   await page.getByRole("button", { name: "Test Browser Studio guard in engine", exact: true }).click();
   const harness = page.getByRole("region", { name: "Real engine playtest" }); await harness.getByRole("combobox", { name: "Test content", exact: true }).selectOption("draft");
   await harness.getByRole("button", { name: "Configure custom starting state", exact: true }).click(); const setup = harness.getByRole("region", { name: "Custom starting state", exact: true });

@@ -25,6 +25,15 @@ test("version one opens the current card workshop", async () => {
   render(<GauntletAuthoring {...props()} />);
   expect(await screen.findByRole("region", { name: "Card Workshop", exact: true })).toBeVisible();
 });
+test.each([1, 2])("workspace %s without newer help opens Mechanics Studio without inventing capabilities", async version => {
+  state.guide = { ...guide, workspaceVersion: version, help: { ...guide.help, engine: undefined } };
+  state.live.studio = { mechanics: [], modifiers: [] };
+  state.capabilities = { mechanicStudio: 1 };
+  render(<GauntletAuthoring {...props()} initialDomain={{ name: "mechanics" }} />);
+  expect(await screen.findByRole("button", { name: "Create mechanic", exact: true })).toBeEnabled();
+  expect(screen.getByRole("region", { name: "Mechanics Studio", exact: true })).toBeVisible();
+  expect(request.mock.calls.every(([,options])=>!options?.method)).toBe(true);
+});
 const resolvedPresentation = () => ({ releaseId: state.draft ? `draft:${state.draft.hash}` : state.activeReleaseId,
   manifest: { cards: clone((state.draft?.snapshot || state.live).domains.cards), collectorVariants: [], campaigns: {} } });
 function reviewProjection() {
@@ -165,7 +174,7 @@ test("discard of a newly created shared record retains local values and refuses 
   fireEvent.change(await screen.findByLabelText("Draft name", {}, { timeout: 5000 }), { target: { value: "Retained new card" } });
   fireEvent.click(screen.getByRole("button", { name: /^Save changes to/ }));
   fireEvent.click(await screen.findByText("Retained local values", {}, { timeout: 5000 }));
-  expect(screen.getByText(/Retained new card/, { selector: "pre" })).toBeVisible();
+  expect(await screen.findByText(/Retained new card/, { selector: "pre" })).toBeVisible();
   fireEvent.click(screen.getByRole("button", { name: "Use latest revision for retry" }));
   await selectOther("Website prose");
   expect(screen.getByRole("button", { name: "Save and continue" })).toBeDisabled();

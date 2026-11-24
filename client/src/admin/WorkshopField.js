@@ -8,6 +8,7 @@ import { CatalogField } from "./CatalogControls";
 import { DeckField } from "./DeckCompositionField";
 import MechanicsEditor, { GeneratedWording } from "./MechanicsEditor";
 import WebsiteControls from './WebsiteControls';
+import { FieldKind } from './AuthoringKey';
 const selectedKey = (domain, id, field) => `${domain}-${id}-${field}`.replace(/[^a-zA-Z0-9_-]/g, "-");
 export { displayValue } from "./workshopValues";
 
@@ -55,7 +56,7 @@ export default function WorkshopField({ state, domain, row, field, buffer, busy,
   }
 
   return <section id={`admin-field-${field}`} className={`admin-field ${changed ? "is-changed" : ""}`}>
-    <div className="admin-title-row"><strong>{definition.label}</strong><span className={`admin-badge ${dirty ? "is-unsaved" : changed ? "is-draft" : "is-live"}`}>{dirty ? "Unsaved" : changed ? "Draft changed" : "Matches live"}</span></div>
+    <div className="admin-title-row"><div className="admin-field-heading"><strong>{definition.label}</strong><FieldKind definition={definition}/></div><span className={`admin-badge ${dirty ? "is-unsaved" : changed ? "is-draft" : "is-live"}`}>{dirty ? "Unsaved" : changed ? "Draft changed" : "Matches live"}</span></div>
     <div className="admin-field-columns">
       <div role="group" aria-label={definition.label} aria-describedby={controlProps["aria-describedby"]}>{!catalogType && <span className="sr-only">Draft {definition.label.toLowerCase()}</span>}{control}
       {domain === "cards" && field === "text" && ["composed-rumin-armament", "authored-mechanic"].includes(row.effect?.id) && <GeneratedWording studio={state.studio} row={row} disabled={disabled} onChange={update} />}
@@ -63,7 +64,7 @@ export default function WorkshopField({ state, domain, row, field, buffer, busy,
       {definition.type === "assets" && <div className="admin-actions">{(value || row[field]?.length ? value.split("\n") : []).map((entry, index) => <button key={index} type="button" disabled={disabled} onClick={event => onAsset({ returnFocus: event.currentTarget, value: entry, liveValue: live?.[index], media: definition.media, onSelect: next => { const lines = value.split("\n"); lines[index] = next; update(lines.join("\n")); } })}>Choose voice {index + 1}</button>)}<button type="button" disabled={disabled} onClick={event => onAsset({ returnFocus: event.currentTarget, value: "", media: definition.media, onSelect: next => update(value ? `${value}\n${next}` : next) })}>Add voice reference</button></div>}
       </div></div>
     {selectedEffect && dirty && <p className="admin-note">Selected effect: {selectedEffect.label} · {selectedEffect.description}{helpCopy.creativeWorkshopField2}</p>}
-    <p id={noteId} className="admin-note">{structuralLock ? state.guide.identityLock : definition.note || (["lines", "assets"].includes(definition.type) ? state.guide.linesHelp : catalogType ? state.guide.catalogField : definition.type === "integer" ? `Whole number from ${definition.min} to ${definition.max}.` : definition.type === "asset" ? state.guide.immutableAsset : `Up to ${definition.maxLength} characters.`)}</p>
+    <p id={noteId} className="admin-note">{structuralLock ? state.guide.identityLock : definition.note || (["lines", "assets"].includes(definition.type) ? state.guide.linesHelp : catalogType ? state.guide.catalogField : definition.type === "integer" ? `Whole number from ${definition.min} to ${definition.max}.` : definition.type === "asset" ? state.guide.immutableAsset : definition.maxLength ? `Up to ${definition.maxLength} characters.` : "Save your choices, then check the preview or test.")}</p>
     <Validation errorId={errorId} guide={state.guide} validation={state.validation} domain={domain} id={row.id} field={field} />
     <details className="admin-field-tools"><summary>Compare & revert</summary><div className="admin-comparison"><div><strong>Current live value</strong><div className="admin-live-value" tabIndex={0} aria-label={`Current live ${definition.label.toLowerCase()}`}>{displayValue(live) || "—"}</div></div>{dirty && <details><summary>{helpCopy.creativeWorkshopField3}</summary><pre className="admin-protected">{displayValue(saved)}</pre></details>}</div><div className="admin-actions">{dirty && <button type="button" disabled={disabled} onClick={onReset}>Reset local {definition.label.toLowerCase()}</button>}<button type="button" disabled={disabled || !state.live.domains[domain]?.some(entry => entry.id === row.id) || (!dirty && !changed)} onClick={() => update(definition.type === "card-list" ? JSON.stringify(live) : displayValue(live))}>Revert {definition.label.toLowerCase()} to live</button><p className="admin-note">{helpCopy.fieldNote1}</p></div></details>
   </section>;

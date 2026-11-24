@@ -41,7 +41,7 @@ test("authored mechanics retain printing controls and show their deployed Suppor
   expect(screen.getByLabelText("Collector version")).toBeDisabled();
   expect(screen.queryByText(/Unsupported support effect/)).not.toBeInTheDocument();
   expect(screen.getAllByText(/When this Rumin armament is selected/).length).toBeGreaterThan(0);
-  expect(screen.getAllByText("after-armed-combat").length).toBeGreaterThan(0);
+  expect(screen.getAllByText("After the combat it was used in").length).toBeGreaterThan(0);
   expect(screen.queryByText("Editable marketing copy")).not.toBeInTheDocument();
 });
 
