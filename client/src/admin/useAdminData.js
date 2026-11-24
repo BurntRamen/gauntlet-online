@@ -16,7 +16,7 @@ function readSummary(request, path, revision) {
   const entry = { revision, expires: Infinity };
   entry.promise = request(path).then(data => {
     entry.data = data;
-    entry.expires = Date.now() + 30000;
+    entry.expires = path === "/api/admin/home?view=tasks" ? Infinity : Date.now() + 30000;
     return data;
   }, error => {
     if (entries.get(path) === entry) entries.delete(path);
