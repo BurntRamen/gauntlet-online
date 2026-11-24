@@ -25,7 +25,7 @@ test("authors ordered abilities with authoritative explanation, duplication, rem
   expect(screen.getByText("Add ability")).toBeEnabled();
   fireEvent.click(screen.getAllByText("Remove effect 1")[0]);
   fireEvent.change(screen.getByLabelText("Ability 1 effect 1 amount"), { target: { value: "9" } });
-  expect(screen.getByRole("alert")).toHaveTextContent("from 1â€“8");
+  expect(screen.getByRole("alert")).toHaveTextContent("from 1–8");
   expect(screen.getByRole("region", { name: "Generated mechanics explanation" })).toHaveTextContent("Invalid composition");
 });
 test("switching does not translate legacy prose; flavor/wording are not execution authority", () => {
