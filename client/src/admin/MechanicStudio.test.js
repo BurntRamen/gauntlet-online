@@ -50,7 +50,7 @@ test("version two exposes automatic controller choices with adjacent cost and mo
   fireEvent.change(screen.getByLabelText("Ability 1 decision"), { target: { value: "optional" } });
   fireEvent.change(screen.getByLabelText("Ability 1 Payment value"), { target: { value: "3" } });
   expect(screen.getByText(/You may resolve this ability, or decline/)).toBeInTheDocument();
-  expect(screen.getByText(/Free-for-All:.*support placement/)).toBeInTheDocument();
+  expect(screen.getByText(/Free-for-All support:.*support placement/)).toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "Save mechanic to draft" }));
   expect(act).toHaveBeenCalledWith("studio-draft", expect.objectContaining({ value: expect.objectContaining({ interpreter: 2, abilities: [expect.objectContaining({ decision: "optional", cost: expect.objectContaining({ payment: 3 }) })] }) }));
 });

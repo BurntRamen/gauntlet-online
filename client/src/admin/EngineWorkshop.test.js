@@ -1,5 +1,5 @@
 import {render} from "./testSupport";
-import { fireEvent, screen } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import EngineWorkshop from "./EngineWorkshop";
 
 const faction = { id: "rumin", name: "Rumin", mechanics: { id: "rhythm", version: 1, parameters: { bonus: 3 } } };
@@ -16,11 +16,11 @@ test("effect contracts are read-only and direct editing to an authored card", ()
   expect(target).toHaveBeenCalledWith({ domain: "card-effects", id: "spear-effect", cardId: "spear", section: "test" });
 });
 
-test("editable parameters bind to their faction and shared configuration stays bounded", () => {
+test("editable parameters bind to their faction and shared configuration stays bounded", async () => {
   const field = jest.fn(() => <p>Owner field</p>);
   const { rerender } = render(<EngineWorkshop state={state} field={field} target={{ domain: "faction-effects", id: "rhythm" }} />);
   expect(field).toHaveBeenCalledWith("mechanics", { domain: "factions", row: faction });
-  fireEvent.click(screen.getByText("Advanced · contract and setup limits"));expect(document.querySelector(".admin-json pre")).toHaveTextContent('"min": 0');expect(document.querySelector(".admin-json pre")).toHaveTextContent('"max": 8');
+  fireEvent.click(screen.getByText("Advanced · contract and setup limits"));await waitFor(()=>expect(document.querySelector(".admin-json pre")).toHaveTextContent('"min": 0'));expect(document.querySelector(".admin-json pre")).toHaveTextContent('"max": 8');
   field.mockClear();
   rerender(<EngineWorkshop state={state} field={field} target={{ domain: "game", id: "shared-rules" }} />);
   expect(field).toHaveBeenCalledTimes(2);

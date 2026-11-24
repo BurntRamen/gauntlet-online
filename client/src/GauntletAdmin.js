@@ -15,15 +15,10 @@ const Competition = lazy(() => import(/* webpackChunkName: "gauntlet-admin-works
 const Operations = lazy(() => import(/* webpackChunkName: "gauntlet-admin-workshops" */ "./admin/Operations"));
 import AdminSearch from "./admin/AdminSearch";
 import useAdminData from "./admin/useAdminData";
+import { ContentGuide, contentDestinations as CONTENT_DESTINATIONS } from "./admin/AuthoringKey";
 const Players = lazy(() => import(/* webpackChunkName: "gauntlet-admin-workshops" */ "./admin/Players"));
 function clearAdminLocation() { if (window.location.pathname.startsWith("/admin/gauntlet")) window.history.replaceState({}, "", "/"); }
 const date = (value) => value ? new Date(value).toLocaleString() : "Not recorded";
-const CONTENT_DESTINATIONS = [
-  ["cards", "Cards"], ["sets", "Sets"], ["assets", "Printings"], ["decks", "Decks"],
-  ["encounters", "Encounters"], ["campaigns", "Campaign stories"], ["factions", "Factions"], ["characters", "Characters"],
-  ["asset-library", "Media library"], ["mechanics", "Mechanics Studio"], ["rule-modifiers", "Rule modifiers"],
-  ["card-effects", "Card effects"], ["faction-effects", "Faction effects"], ["encounter-mechanics", "Encounter mechanics"], ["game", "Shared configuration"]
-];
 
 
 function State({ state, children }) {
@@ -137,6 +132,7 @@ function AdminWorkspace({ request, onClose, exitGuard, environment }) {
     </header>
     <div className="admin-body" id="admin-workspace-content" tabIndex={-1}>
       {primaryArea === "Create & Edit" && <div className="admin-content-context"><label>Browse<select aria-label="Content type" value={currentDomain} onChange={event=>selectArea("Content",event.target.value,operator.preferences.recent.find(item=>item.domain===event.target.value)?.id)}>{CONTENT_DESTINATIONS.map(([id,name])=><option key={id} value={id}>{name}</option>)}</select></label>{editing?.id && <button aria-pressed={operator.isPinned(editing)} onClick={()=>operator.togglePin({domain:editing.domain,id:editing.id,name:editing.name})}>{operator.isPinned(editing)?"Unpin item":"Pin item"}</button>}</div>}
+      {primaryArea === "Create & Edit" && <ContentGuide domain={currentDomain} onSelect={domain=>selectArea("Content",domain,operator.preferences.recent.find(item=>item.domain===domain)?.id)}/>}
       {["Events & Commerce", "Operations"].includes(primaryArea) && <div className="admin-title-row"><div><span className="admin-eyebrow">{authoring ? "Plan the player experience" : "Player support & service evidence"}</span><h2>{primaryArea}</h2></div></div>}
       {primaryArea === "Events & Commerce" && <nav className="admin-subnav" aria-label="Events & Commerce workspaces">{[["Events & seasons", "Competition", "Para definitions"], ["Ranked rules", "Competition", "Ranked & Gauntlet"], ["Results", "Competition", "Results"], ["Deck products", "Store & Economy", "Products"], ["Gold & rewards", "Store & Economy", "Gold & Rewards"]].map(([name, parent, value]) => <button key={name} aria-pressed={area === parent && workspace[parent] === value} onClick={() => selectArea(parent, value === "Products" ? "offers" : undefined, undefined, undefined, undefined, undefined, { workspace: value })}>{name}</button>)}</nav>}
       {primaryArea === "Operations" && <nav className="admin-subnav" aria-label="Operations workspaces"><button aria-pressed={area === "Players"} onClick={() => selectArea("Players")}>Players</button><button aria-pressed={area === "Operations" && workspace.Operations === "Match evidence"} onClick={() => selectArea("Matches")}>Match evidence</button><button aria-pressed={area === "Operations" && workspace.Operations === "Health"} onClick={() => selectArea("System")}>Health & recovery</button></nav>}

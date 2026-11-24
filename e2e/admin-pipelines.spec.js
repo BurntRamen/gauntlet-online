@@ -146,11 +146,11 @@ test('card modules save, reload, navigate dependencies and execute ordered effec
   const cardId = 'rumin-coin-scale-spear';
   await save('create', { domain: 'sets', name: 'Modular duplication set' });
   await page.goto('/admin/gauntlet?workshop=cards&object=' + cardId + '&section=mechanics');
-  await page.getByLabel('Execution model', { exact: true }).selectOption('composition');
-  await page.getByRole('button', { name: 'Combine effect modules', exact: true }).click();
-  await expect(page.getByLabel('Include arming effects')).toBeChecked();
-  await page.getByRole('combobox', { name: 'Add effect module', exact: true }).selectOption(definitions[0].id);
-  await page.getByRole('combobox', { name: 'Add effect module', exact: true }).selectOption(definitions[1].id);
+  await page.getByLabel('Ability type', { exact: true }).selectOption('composition');
+  await page.getByRole('button', { name: 'Combine with saved mechanics', exact: true }).click();
+  await expect(page.getByLabel('Also include custom arming effects')).toBeChecked();
+  await page.getByRole('combobox', { name: 'Add a saved mechanic', exact: true }).selectOption(definitions[0].id);
+  await page.getByRole('combobox', { name: 'Add a saved mechanic', exact: true }).selectOption(definitions[1].id);
   await page.getByRole('button', { name: 'Move module 2 up', exact: true }).click();
   await saveRecord(page);
   await expect(page.locator('.admin-save-context')).toHaveText('Saved to shared draft');

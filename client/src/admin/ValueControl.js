@@ -1,4 +1,4 @@
-import { createContext, useContext } from "react";
+import { createContext, useContext, useId } from "react";
 
 const Values = createContext(null);
 export function EditorValues({ children, ...value }) {
@@ -15,11 +15,16 @@ export function updateAt(value, [key, ...path], next) {
 }
 
 /** Native controls share conversion and immutable leaf edits across draft editors. */
-export default function ValueControl({ label, options, onChange, path, type = "text", number = false, empty = "", optional = false, children, ...props }) {
+export default function ValueControl({ label, options, onChange, path, type = "text", number = false, empty = "", optional = false, children, hint, ...props }) {
   const editor = useContext(Values);
+  const hintId = useId();
   const checkbox = type === "checkbox";
   const current = path?.reduce((value, key) => value?.[key], editor?.value);
   const controlProps = { disabled: editor?.disabled, ...(path ? checkbox ? { checked: !!current } : { value: current ?? "" } : {}), ...props };
+  if (hint) {
+    controlProps['aria-describedby'] = [props['aria-describedby'],hintId].filter(Boolean).join(' ');
+    if (!controlProps['aria-label'] && !controlProps['aria-labelledby']) controlProps['aria-labelledby'] = hintId + '-label';
+  }
   const change = event => {
     const value = event.target.value;
     const next = checkbox ? event.target.checked : value === "" ? optional ? undefined : empty : number || type === "number" ? Number(value) : value;
@@ -30,7 +35,8 @@ export default function ValueControl({ label, options, onChange, path, type = "t
     const [value, text] = Array.isArray(option) ? option : [option, option];
     return <option key={index} value={value}>{text}</option>;
   })}</select> : <input {...controlProps} type={type} onChange={change} />;
-  return label == null ? control : <label>{checkbox ? control : label}{checkbox ? label : control}{children}</label>;
+  const caption = hint ? <span id={hintId + '-label'}>{label}</span> : label;
+  return label == null ? control : <label>{checkbox ? control : caption}{checkbox ? caption : control}{children}{hint && <small className="admin-control-hint" id={hintId}>{hint}</small>}</label>;
 }
 
 export const replaceAt = (items, index, value) => items.map((item, i) => i === index ? value : item);

@@ -56,7 +56,7 @@ test("operator composes a reusable mechanic, creates a card, executes it and pub
   pending = waitForBufferedAdminResponse(page, r => r.url().endsWith("/authoring/create") && r.request().method() === "POST"); await page.getByRole("button", { name: "Save new card to draft", exact: true }).click();
   const created = await (await pending).json(), card = created.draft.snapshot.domains.cards.at(-1); expect(card.effect.mechanicId).toBe(mechanic.id);
   expect(created.draft.snapshot.domains.sets.find(row => row.name === "Browser Studio set").members).toContain(card.id);
-  await cardSection(page, "Mechanics"); await page.getByRole("button", { name: "Open Mechanics Studio", exact: true }).click(); await expect(page.getByLabel("Mechanic name", { exact: true })).toHaveValue(mechanic.name);
+  await cardSection(page, "Mechanics"); await page.getByRole("button", { name: "Edit this mechanic", exact: true }).click(); await expect(page.getByLabel("Mechanic name", { exact: true })).toHaveValue(mechanic.name);
   await page.getByRole("button", { name: "Test Browser Studio guard in engine", exact: true }).click();
   const harness = page.getByRole("region", { name: "Real engine playtest" }); await harness.getByRole("combobox", { name: "Test content", exact: true }).selectOption("draft");
   await harness.getByRole("button", { name: "Configure custom starting state", exact: true }).click(); const setup = harness.getByRole("region", { name: "Custom starting state", exact: true });

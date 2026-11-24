@@ -1,4 +1,33 @@
 /* Workflow layout only. Established dark tokens come from AdminWorkspace. */
+.admin-content-guide{margin:-6px 0 24px;max-width:1100px;font-size:1rem;line-height:1.55}
+.admin-content-guide>p{margin:0 0 8px;color:var(--admin-muted)}
+.admin-content-guide summary,.admin-mechanic-key>summary,.admin-behavior-guide summary{cursor:pointer;color:var(--admin-accent);font-size:.875rem;font-weight:600;padding:10px 0}
+.admin-type-key{margin:12px 0;display:grid;gap:0}
+.admin-type-key>div{display:grid;grid-template-columns:180px minmax(0,1fr);gap:20px;padding:14px 12px;border-bottom:1px solid var(--admin-line)}
+.admin-type-key>div[data-current]{border-left:3px solid var(--admin-accent);background:#dfbd7510}
+.admin-type-key button{align-self:start;text-align:left}.admin-type-key p{margin:0}.admin-type-key small{display:block;color:var(--admin-muted);font-size:.875rem;margin-top:5px}
+.admin-key-note{font-size:.875rem;color:var(--admin-muted);line-height:1.7}
+.admin-field-heading{min-width:0;flex:1}.admin-field-key{font-size:.875rem;max-width:64ch;margin-top:6px;color:var(--admin-muted)}
+.admin-field-key summary{cursor:pointer;width:fit-content;padding:4px 0;color:#a9c7d7}.admin-field-key summary span[aria-hidden]{margin-right:4px}
+.admin-field-key p{font-size:.875rem;line-height:1.6;margin:6px 0 12px;max-width:58ch}
+.admin-mechanic-key{padding:2px 18px;margin:0 0 20px;border-left:3px solid var(--admin-accent);background:linear-gradient(110deg,#d9b9750c,transparent)}
+.admin-mechanic-key dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 28px;margin:12px 0 22px}
+.admin-mechanic-key dt,.admin-behavior-guide dt{font-weight:650;color:var(--admin-text);font-size:1rem}.admin-mechanic-key dd,.admin-behavior-guide dd{margin:6px 0 0;color:var(--admin-muted);font-size:1rem;line-height:1.55}
+.admin-behavior-guide{margin:12px 0 20px;font-size:1rem;line-height:1.55}.admin-behavior-guide>p{margin:0}.admin-behavior-guide dl{display:grid;gap:16px}.admin-behavior-guide dl>div{padding:10px 14px;border-left:3px solid var(--admin-line)}.admin-behavior-guide [data-current]{border-left-color:var(--admin-accent)}.admin-behavior-guide dt small{font-size:.875rem;font-weight:400;color:var(--admin-accent);margin-left:12px}
+.admin-workspace-intro{font-size:1rem;line-height:1.55;max-width:72ch;color:var(--admin-muted)}
+.admin-workspace .mechanic-studio .admin-editor>fieldset{border:0;padding:0}
+.admin-workspace .mechanic-studio .admin-editor>fieldset>.mechanic-ability-card{display:block;padding:24px;margin:24px 0;border:1px solid var(--admin-line);border-radius:16px;background:#101d26}
+.mechanic-ability-card>legend{font-family:Georgia,serif;font-size:1.3rem;padding:0 10px}.admin-workspace .mechanic-studio .mechanic-types{display:block;border:0;padding:18px 0}
+.mechanic-types>p{font-size:.875rem;line-height:1.55;color:var(--admin-muted);max-width:68ch}
+.mechanic-card-choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:8px}
+.admin-workspace .mechanic-card-choices label{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--admin-line);border-radius:8px;cursor:pointer;font-size:.875rem}
+.mechanic-card-choices label:has(:checked){background:#d5b26c18;border-color:var(--admin-accent)}.mechanic-card-choices span{text-transform:capitalize}.admin-workspace .mechanic-card-choices input{width:18px;height:18px;accent-color:var(--admin-accent)}
+.admin-workspace .mechanic-ability-card .mechanic-step{--step-color:#9cc8e6;border-left:3px solid var(--step-color);padding:4px 0 10px 20px;margin:26px 0}
+.mechanic-ability-card .mechanic-step[data-step=if]{--step-color:#e5c47e}.mechanic-ability-card .mechanic-step[data-step=pay]{--step-color:#c5ace9}.mechanic-ability-card .mechanic-step[data-step=do]{--step-color:#99d9bd}
+.mechanic-step>h4{display:flex;align-items:center;gap:10px;font-size:1.1rem;margin:0 0 12px;color:var(--step-color)}.mechanic-step>h4 span{font-size:1.3rem}.mechanic-step>p{font-size:.875rem;line-height:1.6;color:var(--admin-muted);margin:0 0 14px}
+.mechanic-step>label{margin-bottom:16px}.admin-control-hint{font-size:.875rem;font-weight:400;line-height:1.6;color:var(--admin-muted);margin-top:4px;max-width:72ch}.mechanic-costs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:14px 0}
+.mechanic-duration{font-size:.875rem;color:#a9d6c2}.mechanic-limits{padding:14px 0;border-top:1px solid var(--admin-line)}.mechanic-limits summary{cursor:pointer;font-size:.875rem}.mechanic-limits label{margin-top:12px}
+@media(max-width:750px){.admin-type-key>div{grid-template-columns:minmax(0,1fr);gap:8px}.admin-mechanic-key dl{grid-template-columns:minmax(0,1fr)}.admin-workspace .mechanic-studio .admin-editor>fieldset>.mechanic-ability-card{padding:16px 10px}.admin-workspace .mechanic-ability-card .mechanic-step{padding-left:12px}.mechanic-costs{grid-template-columns:minmax(0,1fr)}.admin-field-heading{flex-basis:100%}}
 .admin-home {max-width:1100px;margin:auto;display:grid;gap:24px}
 .admin-home-welcome {display:block}
 .admin-home-panel {padding:20px;border:1px solid var(--admin-line);background:var(--admin-surface)}
