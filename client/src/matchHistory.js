@@ -242,6 +242,7 @@ function metadataForArtifact(artifact, source) {
   });
   return {
     matchId: record.matchId,
+    startedAt: artifact.record.startedAt,
     canonicalJson: artifact.json,
     sha256: artifact.sha256,
     byteSize: artifact.byteSize,
@@ -365,6 +366,7 @@ export function mergeMatchHistory(serverData = {}, localEntries = [], accountId 
   // every replay; full verification remains in load() and localEntryToMatch().
   const localMatches = localEntries.map((entry) => ({
     matchId: entry.matchId,
+    startedAt: entry.startedAt,
     completedAt: entry.completedAt,
     participants: entry.participants,
     perspective: localPerspective(entry, accountId),
