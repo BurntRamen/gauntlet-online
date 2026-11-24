@@ -182,14 +182,21 @@ function createAdminData(deps) {
     const { offset, limit } = pageOptions(query);
     const search = typeof query.q === "string" ? query.q.trim().slice(0, 80) : "";
     const byId = /^[0-9a-f-]{36}$/i.test(search);
+    const directoryOnly = query.view === "directory";
     let accounts;
     if (deps.useSupabase()) {
       const filter = !search ? "" : byId ? `&id=eq.${encodeURIComponent(search)}` : `&name=ilike.${encodeURIComponent(`*${search.replace(/[\\*%_]/g, "\\$&")}*`)}`;
-      const rows = await deps.request(`gauntlet_accounts?select=id,name,created_at,last_seen_at,stats&order=id.asc&offset=${offset}&limit=${limit + 1}${filter}`);
+      const columns = directoryOnly ? "id,name,last_seen_at" : "id,name,created_at,last_seen_at,stats";
+      const rows = await deps.request(`gauntlet_accounts?select=${columns}&order=id.asc&offset=${offset}&limit=${limit + 1}${filter}`);
       if (!Array.isArray(rows)) throw new Error("Invalid account response.");
       accounts = rows.map((row) => ({ id: row.id, name: row.name, createdAt: row.created_at, lastSeenAt: row.last_seen_at, stats: row.stats }));
     } else {
       accounts = readLocalRows(deps.accountFile, "accounts").filter(a => !search || (byId ? a.id === search : String(a.name).toLowerCase().includes(search.toLowerCase()))).sort((a, b) => String(a.id).localeCompare(String(b.id))).slice(offset, offset + limit + 1);
+    }
+    if (directoryOnly) {
+      return { view: "directory", guide: require("./adminPlayerGuide.json"), offset, limit, query: search,
+        hasMore: accounts.length > limit,
+        players: accounts.slice(0, limit).map(({ id, name, lastSeenAt }) => ({ id, name, lastSeenAt })) };
     }
     accounts = accounts.map(account => deps.projectAccount ? deps.projectAccount(account) : account);
     return { guide: require("./adminPlayerGuide.json"), source: accountSource(), offset, limit, query: search, hasMore: accounts.length > limit, players: accounts.slice(0, limit).map((account) => ({ ...projectPlayer(account, deps.runtime, accountSource()), commerce: {
