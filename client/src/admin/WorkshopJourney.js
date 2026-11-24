@@ -19,7 +19,7 @@ export default function WorkshopJourney({selection, browsing, sections, section,
     if(target){if(target.tagName==='FORM')target.tabIndex=-1;target.scrollIntoView({block:'center'});target.focus();}
   };
   const goToTest=()=>{const target=container.current.querySelector('#workshop-test select');target?.scrollIntoView({block:'center'});target?.focus();};
-  const action=mode==='test'?[copy.testAction,goToTest]:ready?[copy.review,journey.review]:mode==='save'?[copy.saveAction,goToSave]:mode==='fix'?[copy.fixAction,journey.fix]:describe && preview && !showPreview?[copy.preview,onPreview]:describe && next?[copy.next+' '+next[1],()=>onSection(next[0])]:describe && journey.draft?[copy.review,journey.review]:null;
+  const action=mode==='test'?[copy.testAction,goToTest]:ready?[copy.review,journey.review]:mode==='save'?[copy.saveAction,goToSave]:mode==='fix'?[copy.fixAction,journey.fix]:describe && preview && session.target.domain==='mechanics'?['Choose a card to test',onPreview]:describe && preview && !showPreview?[copy.preview,onPreview]:describe && next?[copy.next+' '+next[1],()=>onSection(next[0])]:describe && journey.draft?[copy.review,journey.review]:null;
   return <section className="admin-journey" data-state={mode} aria-label={copy.label}>
     <span className="admin-journey-symbol" aria-hidden="true">{mode==='saved'?'✓':['blocked','fix'].includes(mode)?'!':'◇'}</span>
     <div><small>{copy.label}</small><strong>{wording[0]}</strong><p>{mode==='fix'?journey.issue.message:detail}</p></div>

@@ -42,3 +42,12 @@ test.each(['submit',undefined])('registry guidance focuses a %s save control wit
  renderJourney({dirty:true},{sections:null,children:<form onSubmit={save}><button type={type}>Save definition</button></form>});
  fireEvent.click(screen.getByRole('button',{name:'Go to save controls'}));expect(screen.getByRole('button',{name:'Save definition'})).toHaveFocus();expect(save).not.toHaveBeenCalled();
 });
+
+test('a saved mechanic guides the operator to attach it before reviewing a release',async()=>{
+ const review=jest.fn();HTMLElement.prototype.scrollIntoView=jest.fn();
+ render(<HelpProvider value={help}><EditorSessionContext.Provider value={{target:{domain:'mechanics'},journey:{draft:true,review}}}><WorkshopShell name="Mechanics Studio" title="Draw" selectionId="draw" preview={<select aria-label="Use on card"><option>Choose a compatible card</option></select>}/></EditorSessionContext.Provider></HelpProvider>);
+ fireEvent.click(screen.getByRole('button',{name:'Choose a card to test'}));
+ expect(screen.getByLabelText('Use on card')).toBeVisible();
+ expect(review).not.toHaveBeenCalled();
+ expect(screen.queryByRole('button',{name:'Review saved changes'})).not.toBeInTheDocument();
+});

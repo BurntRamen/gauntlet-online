@@ -24,7 +24,7 @@ export function ContentGuide({ domain, onSelect }) {
 }
 
 const kinds={
-  text:['Aa','Text','Words players read. Card wording alone does not change gameplay.'],
+  text:['Aa','Text','A name or description. Card wording alone does not change gameplay.'],
   integer:['123','Whole number','Enter a number without a decimal, within the range shown below.'],
   lines:['≡','List','One item per line. The order is kept.'],
   asset:['▧','Media link','Choose a saved image or audio version. Replacing this link keeps the old version available.'],
