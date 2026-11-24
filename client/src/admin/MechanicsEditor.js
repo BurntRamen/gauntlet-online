@@ -63,7 +63,7 @@ export default function MechanicsEditor(props) {
               onChange={e => change(e.target.value === "" ? null : Number(e.target.value))} />}</label>;
       })}
       {!compiled && <p role="alert">Enter a whole number within each operation’s limits.</p>}
-      {compiled && props.studio?.registeredProgramVersion === program.VERSION2 && <button type="button"
+      {compiled && !props.embedded && props.studio?.registeredProgramVersion === program.VERSION2 && <button type="button"
         onClick={() => onChange(program.fromRegistered(compiled, row))}>Attach an additional mechanic</button>}
     </fieldset>;
   }
@@ -74,13 +74,18 @@ export default function MechanicsEditor(props) {
     return <><CatalogRuleEditor effect={localModules} definition={spec} disabled={disabled} onChange={onChange} />
       {!props.studio?.catalogRuleModules && <p>Edits stay in this browser. The shared draft can accept only values supported by the connected game server.</p>}
       {!compiled && <p role="alert">Enter a whole number within each operation’s limits.</p>}
-      {compiled && props.studio?.registeredProgramVersion === program.VERSION2 && <button type="button" disabled={disabled}
+      {compiled && !props.embedded && props.studio?.registeredProgramVersion === program.VERSION2 && <button type="button" disabled={disabled}
         onClick={() => onChange(program.fromRegistered(compiled, row))}>Attach an additional mechanic</button>}
     </>;
   }
   if (value?.id === program.ID) return <EditorValues value={value} onChange={onChange}><fieldset disabled={disabled} className="mechanics-editor"><legend>{helpCopy.mechanicCopy2}</legend><Help topic="programRules" /><MechanicLanguage studio={props.studio} />
     <ValueControl label={helpCopy.mechanicCopy3} disabled={!props.studio?.programVersion || value.mechanics.length >= 4 || !available.length} value="" options={[["", helpCopy.mechanicCopy4], ...available.map(m => [m.id, m.name])]} onChange={id => { if (id) onChange({ ...value, mechanics: [...value.mechanics, reference(id)] }); }} />
-    {value.registered && <fieldset><legend>Original card effect</legend><GauntletContractFields {...props} value={value.registered} onChange={registered => onChange({ ...value, registered })} /></fieldset>}
+    {value.registered && <fieldset><legend>Original card effect</legend>
+      {specialistRules.parametersFor(value.registered.id) || catalogRules.supports(registry.definitionFor(value.registered.id))
+        ? <MechanicsEditor {...props} embedded value={value.registered}
+            onChange={effect => onChange({...value, registered:registry.runtimeEffect(effect) || effect})} />
+        : <GauntletContractFields {...props} value={value.registered} onChange={registered => onChange({...value, registered})} />}
+    </fieldset>}
     <ol>{value.mechanics.map((ref, index) => <li key={ref.mechanicId}><div className="admin-actions"><button type="button" aria-label={authored ? helpCopy.mechanicCopy5 : `Edit module ${index + 1}`} onClick={() => props.onInspect?.("mechanics", ref.mechanicId)}>{mechanics.find(m => m.id === ref.mechanicId)?.name || ref.mechanicId}</button><CollectionActions path={['mechanics']} index={index} name="module"/></div></li>)}</ol>
     <button type="button" onClick={() => props.onInspect?.("mechanics", null)}>{helpCopy.mechanicCopy7}</button>
     {!value.registered && contract.supports(row) && <ValueControl type="checkbox" label={helpCopy.mechanicCopy8} checked={!!value.armament} onChange={enabled => onChange({ ...value, armament: enabled ? contract.create() : null })} />}

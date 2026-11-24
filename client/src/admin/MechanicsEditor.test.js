@@ -82,3 +82,15 @@ test("a specialist opens on both overpay and arming operands and retains indepen
   fireEvent.change(screen.getByLabelText("Heal on overpay"), {target:{value:"3"}});
   expect(registry.runtimeEffect(change.mock.calls[0][0]).parameters).toEqual({armBonus:4, healOnOverpay:3});
 });
+
+test("cards with attached modules keep their specialist operands editable", () => {
+  const registry = require("@gauntlet/duel-rules/effectRegistry");
+  const spec = registry.definitionFor("aurelian-clawblade");
+  const effect = registry.defaultCardEffect(spec.legacyCardId), change = jest.fn();
+  const card = {id:spec.legacyCardId, factionId:spec.factionId, type:spec.cardType, effect};
+  render(<MechanicsEditor row={card} value={program.fromRegistered(effect,card)} definition={{options:[spec]}}
+    studio={{definitions:[], registeredProgramVersion:program.VERSION2}} onChange={change} />);
+  fireEvent.change(screen.getByLabelText("Heal on overpay"), {target:{value:"3"}});
+  expect(change.mock.calls[0][0].registered.parameters).toEqual({armBonus:4, healOnOverpay:3});
+  expect(screen.queryByText("Attach an additional mechanic")).not.toBeInTheDocument();
+});
