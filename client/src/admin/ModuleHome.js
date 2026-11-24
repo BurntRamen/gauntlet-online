@@ -1,11 +1,11 @@
 import {useOperatorPreferences} from './OperatorPreferences';
 const creation=[['cards','Card'],['sets','Set'],['mechanics','Mechanic'],['decks','Deck'],['encounters','Encounter'],['factions','Faction & story'],['offers','Product']];
-export default function ModuleHome({data,onSelect}) {
+export default function ModuleHome({data,onSelect,loading,error}) {
   const preferences=useOperatorPreferences()?.preferences;
   const recent=[...(preferences?.pinned||[]),...(preferences?.recent||[])].filter((item,index,rows)=>rows.findIndex(r=>r.domain===item.domain&&r.id===item.id)===index).slice(0,8);
   return <div className="admin-home">
     <section className="admin-home-welcome"><span className="admin-eyebrow">SuitFire · Creative studio</span><h1>Create something</h1><p>Shape a card, build a campaign, or set the stage for your next event. Save your work, try it in game, then review the release.</p><div className="admin-create-options">{creation.map(([domain,label])=><button key={domain} onClick={()=>onSelect(domain==='offers'?'Store & Economy':'Content',domain,null,'create')}>{label}</button>)}</div></section>
     <section className="admin-home-panel"><h2>Continue working</h2>{recent.length?<div className="admin-recent-list">{recent.map(item=><button key={item.domain+item.id} onClick={()=>onSelect(item.area||'Content',item.domain,item.id)}><strong>{item.name}</strong><small>{item.domain}</small></button>)}</div>:<p>Your recently opened records will appear here.</p>}</section>
-    <section className="admin-home-panel"><h2>Needs attention</h2>{(data.tasks||[]).map((task,i)=><button className="admin-attention-item" key={i} onClick={()=>onSelect(task.area,task.domain,task.id,task.section,task.field)}><strong>{task.title}</strong><span>{task.message}</span></button>)}{!data.tasks?.length&&<p>No pending changes or reported problems.</p>}</section>
+    <section className="admin-home-panel"><h2>Needs attention</h2>{loading && <p role="status">Checking for pending work…</p>}{error && <p role="alert">{error}</p>}{(data?.tasks||[]).map((task,i)=><button className="admin-attention-item" key={i} onClick={()=>onSelect(task.area,task.domain,task.id,task.section,task.field)}><strong>{task.title}</strong><span>{task.message}</span></button>)}{data && !loading && !error && !data.tasks?.length&&<p>No pending changes or reported problems.</p>}</section>
   </div>;
 }
