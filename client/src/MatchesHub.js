@@ -295,22 +295,25 @@ export default function MatchesHub({
   const replayCount = useMemo(() => (data.matches || []).filter((match) => match.replay?.available).length, [data.matches]);
   const replayView = view === "replays";
   const standingsOnly = view === "standings";
-  const starts = useMemo(() => {
-    const dates = new Map();
-    if (overMinute) for (const entry of localEntries) {
-      let start = entry.startedAt;
-      if (!start && entry.canonicalJson) {
-        try { start = JSON.parse(entry.canonicalJson).startedAt; } catch { /* Unreadable timestamps stay unknown. */ }
-      }
-      dates.set(entry.matchId, start);
+  const archiveFacts = useMemo(() => {
+    const facts = new Map();
+    if (!overMinute && !finishedOnly && opponents === "all") return facts;
+    for (const entry of localEntries) {
+      if (!entry.canonicalJson) continue;
+      try {
+        const record = JSON.parse(entry.canonicalJson);
+        facts.set(entry.matchId, { startedAt: record.startedAt, participants: record.participants, abandoned: !!record.abandonmentReason || ["abandoned","cancelled"].includes(record.completionReason) });
+      } catch { /* Keep using index fields when an older archive cannot be read. */ }
     }
-    return dates;
-  }, [overMinute, localEntries]);
+    return facts;
+  }, [finishedOnly, overMinute, opponents, localEntries]);
   const matchingRecords = (data.matches || []).filter(match => {
-    const done = !match.abandonmentReason && !["abandoned","cancelled"].includes(match.completionReason) && Number.isFinite(Date.parse(match.completedAt)) && (match.completion?.status === "finalized" || match.participants?.some(p => ["win","loss","draw"].includes(p.result)) || ["win","loss","draw"].includes(match.perspective?.outcome));
-    const duration = Date.parse(match.completedAt) - Date.parse(match.startedAt || starts.get(match.matchId));
-    const ai = match.participants?.some(p => ["ai","bot"].includes(p.identityType));
-    const human = match.participants?.length === 2 && match.participants.every(p => ["human","account","guest","player"].includes(p.identityType));
+    const facts = archiveFacts.get(match.matchId);
+    const participants = facts?.participants || match.participants || [];
+    const done = !facts?.abandoned && !match.abandonmentReason && !["abandoned","cancelled"].includes(match.completionReason) && Number.isFinite(Date.parse(match.completedAt)) && (match.completion?.status === "finalized" || participants.some(p => ["win","loss","draw"].includes(p.result)) || ["win","loss","draw"].includes(match.perspective?.outcome));
+    const duration = Date.parse(match.completedAt) - Date.parse(match.startedAt || facts?.startedAt);
+    const ai = participants.some(p => ["ai","bot"].includes(p.identityType));
+    const human = participants.length === 2 && participants.every(p => ["human","account","guest","player"].includes(p.identityType));
     return (opponents==="all" || (opponents==="human" ? human : ai)) && (!replayView || match.replay?.available) && (!finishedOnly || done) && (!overMinute || duration > 60000);
   });
   const references = replayView || opponents!=="all" || finishedOnly || overMinute ? [] : data.unavailableMatchReferences || [];
@@ -413,6 +416,7 @@ export default function MatchesHub({
         <label>Opponents <select value={opponents} onChange={e=>{setOpponents(e.target.value);setVisibleCount(20);}}><option value="all">All opponents</option><option value="human">Human opponents</option><option value="ai">AI opponent</option></select></label>{" · "}
         <label><input type="checkbox" checked={finishedOnly} onChange={e=>{setFinishedOnly(e.target.checked);setVisibleCount(20);}}/> Finished game</label>{" · "}
         <label><input type="checkbox" checked={overMinute} onChange={e=>{setOverMinute(e.target.checked);setVisibleCount(20);}}/> Over 1 minute long</label>
+        <output aria-live="polite"> · {totalCount} matching results</output>
       </fieldset>
       {!account && <p className="matches-storage-note">Sign in to see account results alongside replays saved on this device.</p>}
       {localEntries.length > 0 && <p className="matches-storage-note">Device replays stay in this browser. Export a match file to back it up or watch it on another device.</p>}
