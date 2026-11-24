@@ -124,6 +124,8 @@ test("data failure is visible and can be retried without claiming zero counts", 
   let failing = true;
   const flaky = jest.fn((path) => path === "/api/admin/home?view=tasks" && failing ? Promise.reject(new Error("Registry unavailable")) : request(path));
   render(<GauntletAdmin request={flaky} onClose={() => {}} />);
+  expect(flaky).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button", { name: "Check for pending work" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("Registry unavailable");
   failing = false;
   fireEvent.click(screen.getByText("Refresh admin"));
