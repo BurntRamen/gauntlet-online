@@ -4,6 +4,11 @@ import Studio from "./Studio";
 jest.mock("./GauntletAdmin", () => function AdminProbe({ request, onClose }) {
   return <section><h3>Gauntlet Admin</h3><button onClick={() => request("/api/admin/catalog").catch(() => {})}>Read protected data</button><button onClick={onClose}>Close admin</button></section>;
 });
+jest.mock("./TransferProgress", () => ({
+  TransferProgress: () => null,
+  trackedGet: (scope, url, options) => global.fetch(url, options),
+  checkAdminAccess: (url, token) => global.fetch(url + "/api/admin/access", { headers: { Authorization: "Bearer " + token } })
+}));
 const originalFetch = global.fetch;
 afterEach(() => { global.fetch = originalFetch; });
 const response = (body, status = 200) => ({ ok: status === 200, status, json: async () => body });
