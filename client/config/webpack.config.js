@@ -35,7 +35,9 @@ module.exports = function createConfig(mode = "production", environment = proces
       plugins: [[require.resolve("@babel/plugin-transform-runtime"), { absoluteRuntime: path.dirname(require.resolve("@babel/runtime/package.json")), version: require("@babel/runtime/package.json").version }]]
     }
   });
-  const html = fs.readFileSync(path.join(root, "public/index.html"), "utf8").replace(/%([A-Z0-9_]+)%/g, (match, key) => Object.hasOwn(exposed, key) ? String(exposed[key]).replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]) : match);
+  const campaignArt = require("../public/assets/gauntlet/campaigns/initiative-art-v2.json");
+  const html = fs.readFileSync(path.join(root, "public/index.html"), "utf8").replace(/%([A-Z0-9_]+)%/g, (match, key) => Object.hasOwn(exposed, key) ? String(exposed[key]).replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]) : match)
+    .replace("%INITIATIVE_CAMPAIGN_ART%", () => JSON.stringify(campaignArt).replace(/</g, "\\u003c"));
   return {
     context: root, mode, target: "browserslist", bail: production,
     entry: path.join(root, "src/index.js"),

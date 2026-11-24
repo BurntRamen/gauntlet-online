@@ -3,6 +3,15 @@ import { chooseBrand, setAccountBrand } from "./brand/brandPreview";
 import { useInitiativeCampaignArt } from "./useInitiativeCampaignArt";
 import art from "../public/assets/gauntlet/campaigns/initiative-art-v2.json";
 
+beforeAll(() => {
+  const data = document.createElement("script");
+  data.id = "initiative-campaign-art";
+  data.type = "application/json";
+  data.textContent = JSON.stringify(art);
+  document.head.appendChild(data);
+});
+afterAll(() => document.getElementById("initiative-campaign-art").remove());
+
 test("both brands resolve every Initiative mission and cinematic on the first render", () => {
   const campaigns = Object.fromEntries(Object.entries(art).map(([id, faction]) => [id, {
     coverImage: faction.previousCover?.at(-1),

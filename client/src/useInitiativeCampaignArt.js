@@ -1,10 +1,13 @@
 import { useMemo } from "react";
 import { applyInitiativeCampaignArt } from "@gauntlet/duel-rules/resolveInitiativeArt";
-import initiativeArt from "../public/assets/gauntlet/campaigns/initiative-art-v2.json";
 
 export function useInitiativeCampaignArt(content) {
+  const initiativeArt = useMemo(() => {
+    const data = typeof document !== "undefined" && document.getElementById("initiative-campaign-art")?.textContent;
+    return data?.[0] === "{" ? JSON.parse(data) : null;
+  }, []);
   return useMemo(() => {
-    if (!content?.campaigns || content.initiativeArtVersion > 2) return content;
+    if (!initiativeArt || !content?.campaigns || content.initiativeArtVersion > 2) return content;
     return { ...content, campaigns: applyInitiativeCampaignArt(content.campaigns, initiativeArt), initiativeArtVersion: 2 };
-  }, [content]);
+  }, [content, initiativeArt]);
 }

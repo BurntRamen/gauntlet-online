@@ -1,4 +1,4 @@
-import { useEffect, useSyncExternalStore } from "react";
+import { useSyncExternalStore } from "react";
 
 // Presentation only. Never write resolved paths into a printing, replay or account.
 let registry = null, request = null, artModule = null;
@@ -19,11 +19,7 @@ export function loadPresentationRegistry() {
   return request;
 }
 export const usePresentationRegistry = () => useSyncExternalStore(subscribe, snapshot, () => null);
-export function usePresentationArt() {
-  const catalog = usePresentationRegistry();
-  useEffect(() => { loadPresentationRegistry(); }, []);
-  return catalog;
-}
+export const usePresentationArt = usePresentationRegistry;
 export function resolvePresentationArt(request = {}, options = {}) {
   return artModule
     ? artModule.resolvePresentationArt(request, { registry, ...options })

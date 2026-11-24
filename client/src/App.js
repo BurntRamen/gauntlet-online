@@ -1,5 +1,5 @@
 import { TransferProgress, trackedGet } from "./TransferProgress";
-import { presentationArt, usePresentationArt } from "./brand/presentationArt";
+import { loadPresentationRegistry, presentationArt, usePresentationArt } from "./brand/presentationArt";
 import PreviewPackArt from "./brand/PreviewPackArt";
 import { brandText, useBrandPreview, useAccountBrand } from './brand/brandPreview';
 import SuitFireBrand from './brand/SuitFireBrand';
@@ -3053,6 +3053,7 @@ export default function App() {
   const [account, setAccount] = useState(null);
   useAccountBrand(account);
   usePresentationArt();
+  useEffect(() => { loadPresentationRegistry(); }, []);
   const [authToken, setAuthToken] = useState(() => browserStorage.getItem(STORAGE_KEYS.authToken) || "");
   const [authMode, setAuthMode] = useState(INITIAL_PASSWORD_RESET_TOKEN ? "reset" : "login");
   const [authForm, setAuthForm] = useState({ name: "", password: "", email: "", token: INITIAL_PASSWORD_RESET_TOKEN });
