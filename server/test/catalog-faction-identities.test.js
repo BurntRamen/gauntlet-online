@@ -128,12 +128,13 @@ test("default authored rules round-trip their original game effects across the c
   for (const card of cards) {
     const original = registry.defaultCardEffect(card.id);
     const editable = registry.authoredEffect(original);
-    if (!editable.modules) continue;
+    assert.ok(Array.isArray(editable.modules), card.id);
     converted++;
     assert.ok(registry.validateCardEffect(editable, card), card.id);
     assert.deepEqual(registry.runtimeEffect(editable), original, card.id);
   }
-  assert.equal(converted, 1090);
+  assert.equal(converted, cards.length);
+  assert.equal(converted, 1218);
 });
 
 test("editing a trigger and amount changes a card's actual combat resolution", () => {
@@ -152,4 +153,48 @@ test("editing a trigger and amount changes a card's actual combat resolution", (
   assert.equal(original.effect.parameters.bonus, 1);
   editable.modules[0].operations[0].amount = 999;
   assert.equal(registry.validateCardEffect(editable, original), false);
+});
+
+test("every specialist operand survives editing, validation and match capture", () => {
+  const registry = require("../../shared/duel-rules/effectRegistry");
+  const specialist = require("../../shared/duel-rules/specialistRules");
+  for (const def of registry.cardEffectDefinitions().filter(d => specialist.parametersFor(d.id))) {
+    const card = {factionId:def.factionId, type:def.cardType};
+    const original = registry.authoredEffect(registry.defaultCardEffect(def.legacyCardId));
+    for (const [index, operand] of original.modules.entries()) {
+      const edited = structuredClone(original);
+      const {min, max} = specialist.bounds(operand.operation);
+      const next = operand.amount === max ? min : max;
+      edited.modules[index].amount = next;
+      assert.ok(registry.validateCardEffect(edited, card), def.id);
+      const runtime = registry.runtimeEffect(edited);
+      assert.equal(registry.cardParameter({...card, effect:runtime}, operand.operation), next, def.id);
+      assert.deepEqual(registry.authoredEffect(runtime), edited, def.id);
+      edited.modules[index].amount = max + 1;
+      assert.equal(registry.validateCardEffect(edited, card), false, def.id);
+    }
+  }
+});
+
+test("a specialist attack, its payment card and delayed draw use independently edited amounts", () => {
+  const registry = require("../../shared/duel-rules/effectRegistry");
+  const {COLLECTION_CARDS} = require("../gameContent");
+  function edit(id, amount) {
+    const card = COLLECTION_CARDS.find(c => c.id === id);
+    const effect = registry.authoredEffect(registry.defaultCardEffect(id));
+    effect.modules[0].amount = amount;
+    return {...card, id, definitionId:id, effect:registry.runtimeEffect(effect)};
+  }
+  for (const [id, amount] of [["neutral-officer",4], ["neutral-strategist",3]]) {
+    const state = engine.createMatch({gameMode:"factions", startingPriority:1,
+      factions:{1:engine.FACTION_PROFILES.rumin, 2:engine.FACTION_PROFILES.sheen}}).state;
+    const attacker = edit(id, amount), payment = edit("neutral-think",5);
+    state.players[1].hand = [attacker, payment];
+    const result = engine.applyCommand(state,{type:"declareHandAttack",player:1,attackerCardId:id,paymentCardIds:[payment.id]});
+    assert.equal(result.accepted,true,result.rejectionReason);
+    const attack = result.state.handAttacks[0];
+    assert.equal(attack.payment.total, payment.value + 5);
+    if (id === "neutral-officer") assert.equal(attack.effectiveValue,attacker.value + 4);
+    else assert.equal(result.state.players[1].turnData.neutralEndTurnDraws,3);
+  }
 });

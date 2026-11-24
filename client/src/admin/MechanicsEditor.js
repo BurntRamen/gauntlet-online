@@ -7,6 +7,7 @@ import mechanicContract from "@gauntlet/duel-rules/mechanicContract";
 import guidance from "@gauntlet/duel-rules/compositionExplanation";
 import program from "@gauntlet/duel-rules/mechanicProgram";
 import CatalogRuleEditor from "./CatalogRuleEditor";
+import specialistRules from "@gauntlet/duel-rules/specialistRules";
 import catalogRules from "@gauntlet/duel-rules/catalogRuleModules";
 import registry from "@gauntlet/duel-rules/effectRegistry";
 import MechanicLanguage from "./MechanicLanguage";
@@ -46,6 +47,26 @@ export default function MechanicsEditor(props) {
   const setAbility = (index, next) => onChange({ ...value, abilities: replaceAt(value.abilities, index, next) });
   const localModules = registry.authoredEffect(value);
   const localSpec = registry.definitionFor(value?.id);
+  if (localModules?.modules && specialistRules.parametersFor(localModules.id)) {
+    const compiled = registry.runtimeEffect(localModules);
+    return <fieldset disabled={disabled}><legend>Effect modules</legend>
+      {row.text && <p>{row.text}</p>}
+      {localModules.modules.map(({operation, amount}, index) => {
+        const label = operation.replace(/([A-Z])/g, " $1").replace(/^./, c => c.toUpperCase()).toLowerCase();
+        const name = label[0].toUpperCase() + label.slice(1);
+        const {min, max} = specialistRules.bounds(operation);
+        const change = next => onChange({...localModules, modules:localModules.modules.map((module, i) =>
+          index === i ? {...module, amount:next} : module)});
+        return <label key={operation}>{name}{max === 1
+          ? <input type="checkbox" checked={amount === 1} onChange={e => change(Number(e.target.checked))} />
+          : <input type="number" min={min} max={max} step="1" value={amount ?? ""} required
+              onChange={e => change(e.target.value === "" ? null : Number(e.target.value))} />}</label>;
+      })}
+      {!compiled && <p role="alert">Enter a whole number within each operation’s limits.</p>}
+      {compiled && props.studio?.registeredProgramVersion === program.VERSION2 && <button type="button"
+        onClick={() => onChange(program.fromRegistered(compiled, row))}>Attach an additional mechanic</button>}
+    </fieldset>;
+  }
   if (localModules?.modules && localSpec && catalogRules.supports(localSpec)) {
     const combatOnly = catalogRules.printedOnly(localSpec) || catalogRules.namedBonus(localSpec);
     const spec = combatOnly ? { ...localSpec, parameters: catalogRules.combatSpecs } : localSpec;

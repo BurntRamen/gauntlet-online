@@ -1,3 +1,4 @@
+import specialistRules from "@gauntlet/duel-rules/specialistRules";
 import effectRegistry from "@gauntlet/duel-rules/effectRegistry";
 import { readCopy, writeCopy, readFields, rememberField, forgetField } from "./admin/localWorkspace";
 import legacyHelp from "./admin/workspaceV1Help.json";
@@ -367,7 +368,7 @@ export default function GauntletAuthoring({ operatorScope, request, area, initia
         setError("Check the effect module triggers and amounts before saving.");
         return false;
       }
-      if (!state.studio?.catalogRuleModules) {
+      if (!state.studio?.catalogRuleModules || (specialistRules.parametersFor(compiled.id) && !state.studio?.specialistRuleModules)) {
         const spec = state.fields.cards[group.id].effect;
         const options = spec.options || state.cardEffectOptions?.[spec.optionGroup] || [];
         const server = options.find(option => option.id === compiled.id && option.version === compiled.version);

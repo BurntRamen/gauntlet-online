@@ -71,3 +71,14 @@ test.each([{}, {catalogRuleModules:1}])("an existing catalog card opens directly
   fireEvent.change(screen.getByLabelText("Trigger"), {target:{value:"lane_block"}});
   expect(onChange.mock.calls[0][0].modules).toEqual([{when:"lane_block",operations:[{kind:"bonus",amount:1}]}]);
 });
+
+test("a specialist opens on both overpay and arming operands and retains independent edits", () => {
+  const registry = require("@gauntlet/duel-rules/effectRegistry");
+  const spec = registry.definitionFor("aurelian-clawblade");
+  const effect = registry.defaultCardEffect(spec.legacyCardId), change = jest.fn();
+  render(<MechanicsEditor row={{id:spec.legacyCardId, factionId:spec.factionId, type:spec.cardType, effect}}
+    value={effect} definition={{options:[spec]}} onChange={change} />);
+  expect(screen.getByLabelText("Arm bonus")).toHaveValue(4);
+  fireEvent.change(screen.getByLabelText("Heal on overpay"), {target:{value:"3"}});
+  expect(registry.runtimeEffect(change.mock.calls[0][0]).parameters).toEqual({armBonus:4, healOnOverpay:3});
+});

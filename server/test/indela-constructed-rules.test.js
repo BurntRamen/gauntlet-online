@@ -55,7 +55,8 @@ test("Indela elemental channelers increase payments only during their matching o
   assert.ok(result.state.handAttacks[0].notes.includes("Mystic of Embers payment +1"));
 });
 
-test("even omens empower Indela ice blocks and Arcana prevention", () => {
+for (const [edited, bonus, prevent] of [[false, 1, 1], [true, 4, 3]]) {
+  test("even omens resolve "+(edited ? "authored" : "printed")+" Arcana bonus and prevention", () => {
   let game = indelaMatch();
   game.players[1].faction = getFactionById("rumin");
   game.players[2].faction = getFactionById("indela");
@@ -63,6 +64,16 @@ test("even omens empower Indela ice blocks and Arcana prevention", () => {
   game.players[2].turnData.indelaOpponentTax = 0;
   game.lanes[0].support[2] = factionCard("indela-frost-nova", "nova");
   game.lanes[1].support[2] = factionCard("indela-frostbite-gale", "gale");
+  if (edited) {
+    const registry = require("../../shared/duel-rules/effectRegistry");
+    for (const [index, amount] of [bonus,prevent].entries()) {
+      const support = game.lanes[index].support[2];
+      const original = registry.defaultCardEffect(index ? "indela-frostbite-gale" : "indela-frost-nova");
+      const authored = registry.authoredEffect(original);
+      authored.modules[0].amount = amount;
+      support.effect = registry.runtimeEffect(authored);
+    }
+  }
   game.players[1].hand = [playingCard("attacker", 4, "clubs", "rumin"), playingCard("attack-payment", 4, "spades", "rumin")];
   game.players[2].hand = [factionCard("indela-frost-apprentice", "apprentice"), playingCard("block-payment", 2)];
 
@@ -72,9 +83,10 @@ test("even omens empower Indela ice blocks and Arcana prevention", () => {
   result = applyCommand(game, { type: "declareHandBlock", player: 2, blockerCardIds: ["apprentice"], paymentCardIds: ["block-payment"] });
   assert.equal(result.accepted, true, result.rejectionReason);
   const block = result.state.handAttacks[0].block[0];
-  assert.equal(block.effectiveValue, 4);
-  assert.equal(block.preventDamage, 1);
+  assert.equal(block.effectiveValue, 3 + bonus);
+  assert.equal(block.preventDamage, prevent);
   assert.ok(block.notes.includes("Frost Apprentice +1"));
-  assert.ok(block.notes.includes("Frost Nova +1"));
-  assert.ok(block.notes.includes("Frostbite Gale prevents 1"));
+  assert.ok(block.notes.includes("Frost Nova +" + bonus));
+  assert.ok(block.notes.includes("Frostbite Gale prevents " + prevent));
 });
+}

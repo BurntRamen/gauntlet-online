@@ -201,3 +201,15 @@ test("v1 migration retains authored edits and newer production defaults simultan
   assert.deepEqual(migrated.domains.cards, baseline.domains.cards);
   assert.equal(migrated.domains.cards.length, 1218);
 });
+
+test("historical card effects compare to their modular baseline by executable behavior", () => {
+  const snapshot = authored.clone(baseline);
+  for (const card of snapshot.domains.cards) card.effect = effects.runtimeEffect(card.effect);
+  const validation = authored.validateAuthoredContent(snapshot, baseline);
+  assert.equal(validation.valid, true);
+  assert.ok(!validation.warnings.some(w => w.domain === "cards" && w.field === "effect"));
+  const officer = snapshot.domains.cards.find(c => c.id === "neutral-officer");
+  officer.effect = effects.authoredEffect(officer.effect);
+  officer.effect.modules[0].amount = 4;
+  assert.ok(authored.validateAuthoredContent(snapshot, baseline).warnings.some(w => w.id === officer.id && w.field === "effect"));
+});

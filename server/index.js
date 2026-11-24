@@ -6802,8 +6802,9 @@ function applyPlayedCardBonuses(player, card) {
   ) {
     card.tempBuff = (card.tempBuff || 0) + 2;
     if (hasCardEffect(card, "poleas-moonlit-map")) {
-      card.tempBuff += 1;
-      notes.push("X Marks the Spot +1");
+      const amount = cardParameter(card, "blockBonus");
+      card.tempBuff += amount;
+      notes.push(`X Marks the Spot +${amount}`);
     }
     player.turnData.ristusConsecutiveBuffUsed = true;
     notes.push("Ristus +2 consecutive value");
@@ -6852,6 +6853,11 @@ function getPlayerSupportCards(game, playerNum) {
   ].filter(Boolean);
 }
 
+function controlledParameter(game, playerNum, effectId, key) {
+  const source = getPlayerSupportCards(game, playerNum).find(card => hasCardEffect(card, effectId));
+  return cardParameter(source, key);
+}
+
 function playerControlsEffect(game, playerNum, id) {
   return getPlayerSupportCards(game, playerNum).some((card) => hasCardEffect(card, id));
 }
@@ -6878,8 +6884,8 @@ function gainLifeFromBlocking(game, playerNum, amount, notes = []) {
   const player = game.players[playerNum];
   player.life += amount;
   if (playerControlsEffect(game, playerNum, "roots-that-remember")) {
-    player.turnData.sheenNextBlockBonus = (player.turnData.sheenNextBlockBonus || 0) + 1;
-    notes.push("Eternal Archive next block +1");
+    player.turnData.sheenNextBlockBonus = (player.turnData.sheenNextBlockBonus || 0) + controlledParameter(game, playerNum, "roots-that-remember", "nextBlockBonus");
+    notes.push(`Eternal Archive next block +${controlledParameter(game, playerNum, "roots-that-remember", "nextBlockBonus")}`);
   }
 }
 
@@ -6930,7 +6936,7 @@ function armRuminWeaponsForAttack(game, playerNum, attackCard, attackNumber, sou
       bonus = player.turnData.paymentSuitsThisTurn?.includes("♦") ? 2 : 0;
     } else if (hasCardEffect(weapon, "coin-scale-spear")) bonus = cardParameter(weapon, "armBonus");
     else if (hasCardEffect(weapon, "rumie-vault-shield")) bonus = cardParameter(weapon, "armBonus");
-    else if (hasCardEffect(weapon, "imperial-scale-pike")) bonus = player.turnData.previousAttackSuit && player.turnData.previousAttackSuit === attackCard.suit ? 4 : 2;
+    else if (hasCardEffect(weapon, "imperial-scale-pike")) bonus = player.turnData.previousAttackSuit && player.turnData.previousAttackSuit === attackCard.suit ? cardParameter(weapon, "matchingSuitWeaponBonus") : cardParameter(weapon, "otherSuitWeaponBonus");
     else if (hasCardEffect(weapon, "aurelian-clawblade")) bonus = cardParameter(weapon, "armBonus");
     else if (hasCardEffect(weapon, "triumphal-ram")) bonus = getBaseCardValue(attackCard) >= 8 ? 5 : 4;
     else if (hasCardEffect(weapon, "kaisers-gold-claw")) bonus = attackNumber === 4 ? 6 : 5;
@@ -6941,10 +6947,11 @@ function armRuminWeaponsForAttack(game, playerNum, attackCard, attackNumber, sou
       notes.push(`Corporate Banner armed weapon +${player.turnData.ruminNextWeaponArmBonus}`);
       player.turnData.ruminNextWeaponArmBonus = 0;
     }
-    if (shouldArmAll) bonus += 1;
+    if (shouldArmAll) bonus += cardParameter(attackCard, "weaponBonus");
     if (attackNumber === 4 && playerControlsEffect(game, playerNum, "basilisk-standard")) {
-      bonus += 2;
-      notes.push("Market Rally Drum +2");
+      const amount = controlledParameter(game, playerNum, "basilisk-standard", "weaponBonus");
+      bonus += amount;
+      notes.push(`Market Rally Drum +${amount}`);
     }
 
     value += bonus;
@@ -6995,16 +7002,18 @@ function calculateAttackBonuses(game, playerNum, card, source) {
     player.turnData.sheenNextAttackBonus = 0;
   }
   if (hasCardEffect(card, "thornroot-counterstroke") && (player.turnData.damageTakenThisTurn || 0) === 0) {
-    value += 2;
-    notes.push("Thorned Refuge no damage +2");
+    const amount = cardParameter(card, "attackBonus");
+    value += amount;
+    notes.push(`Thorned Refuge no damage +${amount}`);
   }
-  if (hasCardEffect(card, "nus-calm-command") && player.turnData.blocksDeclaredThisTurn >= 3) {
-    value += 3;
-    notes.push("Tranquility Chamber +3");
+  if (hasCardEffect(card, "nus-calm-command") && player.turnData.blocksDeclaredThisTurn >= cardParameter(card, "minimumBlocks")) {
+    value += cardParameter(card, "attackBonus");
+    notes.push(`Tranquility Chamber +${cardParameter(card, "minimumBlocks")}`);
   }
   if (hasCardEffect(card, "beli-awakened") && player.turnData.beliAwakenedReady) {
-    value += 3;
-    notes.push("Vital Grove +3");
+    const amount = cardParameter(card, "attackBonus");
+    value += amount;
+    notes.push(`Vital Grove +${amount}`);
     player.turnData.beliAwakenedReady = false;
   }
 
@@ -7019,8 +7028,9 @@ function calculateAttackBonuses(game, playerNum, card, source) {
     player.turnData.biziDifferentSuitBuffsUsed += 1;
     notes.push("Constanti different suit +1");
     if (playerControlsEffect(game, playerNum, "constanti-conduit")) {
-      value += 1;
-      notes.push("Signal Line +1");
+      const amount = controlledParameter(game, playerNum, "constanti-conduit", "attackBonus");
+      value += amount;
+      notes.push(`Signal Line +${amount}`);
     }
     if (hasCardEffect(card, "dune-circuit-runner")) {
       value += 1;
@@ -7031,24 +7041,26 @@ function calculateAttackBonuses(game, playerNum, card, source) {
       notes.push("Iron Express +1");
     }
     if (playerControlsEffect(game, playerNum, "desert-logic-engine")) {
-      value += 2;
-      notes.push("Battle Alarm +2");
+      const amount = controlledParameter(game, playerNum, "desert-logic-engine", "attackBonus");
+      value += amount;
+      notes.push(`Battle Alarm +${amount}`);
     }
   }
-  if (factionMechanicId(player) === "bizi" && hasCardEffect(card, "sandstorm-processor") && (player.accelerationCounters || 0) >= 2) {
-    value += 2;
-    notes.push("Searchlight Beacon +2");
+  if (factionMechanicId(player) === "bizi" && hasCardEffect(card, "sandstorm-processor") && (player.accelerationCounters || 0) >= cardParameter(card, "minimumAcceleration")) {
+    value += cardParameter(card, "attackBonus");
+    notes.push(`Searchlight Beacon +${cardParameter(card, "minimumAcceleration")}`);
   }
   if (factionMechanicId(player) === "bizi" && hasCardEffect(card, "constanti-sunforge") && (player.accelerationCounters || 0) > 0) {
-    const spent = Math.min(3, player.accelerationCounters || 0);
+    const spent = Math.min(cardParameter(card, "maxAccelerationSpend"), player.accelerationCounters || 0);
     player.accelerationCounters = Math.max(0, (player.accelerationCounters || 0) - spent);
-    value += spent * 2;
-    notes.push(`Armored Battleship spent ${spent} counter${spent === 1 ? "" : "s"} +${spent * 2}`);
+    value += spent * cardParameter(card, "bonusPerAcceleration");
+    notes.push(`Armored Battleship spent ${spent} counter${spent === 1 ? "" : "s"} +${spent * cardParameter(card, "bonusPerAcceleration")}`);
   }
-  if (factionMechanicId(player) === "bizi" && hasCardEffect(card, "voltaric-ultimatum") && (player.accelerationCounters || 0) >= 2) {
-    player.accelerationCounters -= 2;
-    value += 5;
-    notes.push("Incinerator Turret spent 2 acceleration +5");
+  if (factionMechanicId(player) === "bizi" && hasCardEffect(card, "voltaric-ultimatum") && (player.accelerationCounters || 0) >= cardParameter(card, "accelerationCost")) {
+    player.accelerationCounters -= cardParameter(card, "accelerationCost");
+    const amount = cardParameter(card, "attackBonus");
+    value += amount;
+    notes.push(`Incinerator Turret spent 2 acceleration +${amount}`);
   }
   if (factionMechanicId(player) === "bizi" && player.turnData.biziPrimeSignalBonus) {
     value += player.turnData.biziPrimeSignalBonus;
@@ -7058,24 +7070,29 @@ function calculateAttackBonuses(game, playerNum, card, source) {
 
   if (player.faction?.id === "frumo") {
     if (source === "lane" && hasCardEffect(card, "tideglass-cutlass") && player.turnData.frumoLaneSwappedThisTurn) {
-      value += 2;
-      notes.push("Turning of the Tides swapped lane +2");
+      const amount = cardParameter(card, "attackBonus");
+      value += amount;
+      notes.push(`Turning of the Tides swapped lane +${amount}`);
     }
-    if (hasCardEffect(card, "pressure-lock-pistol") && player.turnData.previousPlayedValue != null && Math.abs(cardBaseValue - player.turnData.previousPlayedValue) === 1) {
-      value += 2;
-      notes.push("Opening Salvo consecutive +2");
+    if (hasCardEffect(card, "pressure-lock-pistol") && player.turnData.previousPlayedValue != null && Math.abs(cardBaseValue - player.turnData.previousPlayedValue) === cardParameter(card, "rankDifference")) {
+      const amount = cardParameter(card, "attackBonus");
+      value += amount;
+      notes.push(`Opening Salvo consecutive +${amount}`);
     }
     if (source === "lane" && hasCardEffect(card, "ristus-blackwake") && game.lanes.some((lane) => !lane.facedown[playerNum])) {
-      value += 1;
-      notes.push("Coastal Raid empty lane +1");
+      const amount = cardParameter(card, "attackBonus");
+      value += amount;
+      notes.push(`Coastal Raid empty lane +${amount}`);
     }
     if (source === "lane" && hasCardEffect(card, "ballast-hook") && game.lanes.some((lane) => !lane.facedown[playerNum])) {
-      value += 1;
-      notes.push("Anchor's Hold empty lane +1");
+      const amount = cardParameter(card, "attackBonus");
+      value += amount;
+      notes.push(`Anchor's Hold empty lane +${amount}`);
     }
     if (source === "lane" && hasCardEffect(card, "captains-bad-wager") && player.turnData.previousPlayedValue != null && player.turnData.previousPlayedValue % 2 === 0) {
-      value += 3;
-      notes.push("Sink or Swim previous even value +3");
+      const amount = cardParameter(card, "attackBonus");
+      value += amount;
+      notes.push(`Sink or Swim previous even value +${amount}`);
     }
     if (player.turnData.frumoNextActionBonus) {
       value += player.turnData.frumoNextActionBonus;
@@ -7102,7 +7119,7 @@ function getAttackPaymentRequirement(player, card) {
     return { required: 0, freeAttackUsed: true };
   }
   if (factionMechanicId(player) === "rumin" && attackNumber === 1 && hasCardEffect(card, "tax-road-scout")) {
-    return { required: Math.max(0, required - 1), freeAttackUsed: false };
+    return { required: Math.max(0, required - cardParameter(card, "costReduction")), freeAttackUsed: false };
   }
 
   return { required, freeAttackUsed: false };
@@ -7122,25 +7139,30 @@ function getPaymentTotal(player, paymentIndexes, useHeraBonus, context = {}) {
   };
 
   if (context.action === "attack" && hasCardEffect(context.card, "forum-ledger-runner") && player.turnData.attacksDeclaredThisTurn === 0 && paymentCards.length > 0) {
-    total += 1;
-    notes.push("Stockbroker's Gloves payment +1");
+    const amount = cardParameter(context.card, "paymentBonus");
+    total += amount;
+    notes.push(`Stockbroker's Gloves payment +${amount}`);
   }
   if (context.action === "attack" && context.card?.factionId === "rumin" && !player.turnData.ruminJewelBankUsed && paymentCards.some((card) => hasCardEffect(card, "jewel-bank-contract"))) {
-    total += 2;
+    const amount = cardParameter(paymentCards.find(card => hasCardEffect(card, "jewel-bank-contract")), "nextPaymentBonus");
+    total += amount;
     consume.ruminJewelBank = true;
-    notes.push("Board of Directors' Insignia payment +2");
+    notes.push(`Board of Directors' Insignia payment +${amount}`);
   }
   if (context.action === "attack" && factionMechanicId(player) === "rumin" && player.turnData.attacksDeclaredThisTurn === 3 && paymentCards.some((card) => hasCardEffect(card, "edict-of-the-vault"))) {
-    total += 3;
-    notes.push("Battle Cry Horn payment +3");
+    const amount = cardParameter(paymentCards.find(card => hasCardEffect(card, "edict-of-the-vault")), "paymentBonus");
+    total += amount;
+    notes.push(`Battle Cry Horn payment +${amount}`);
   }
   if (context.action === "block" && player.turnData.blocksDeclaredThisTurn > 0 && paymentCards.some((card) => hasCardEffect(card, "harmony-ward"))) {
-    total += 1;
-    notes.push("Harmony Lab payment +1");
+    const amount = cardParameter(paymentCards.find(card => hasCardEffect(card, "harmony-ward")), "paymentBonus");
+    total += amount;
+    notes.push(`Harmony Lab payment +${amount}`);
   }
   if (paymentCards.some((card) => hasCardEffect(card, "sunken-coin")) && context.game?.lanes?.some((lane) => !lane.facedown?.[context.playerNum])) {
-    total += 1;
-    notes.push("Collect Tribute payment +1");
+    const amount = cardParameter(paymentCards.find(card => hasCardEffect(card, "sunken-coin")), "paymentBonus");
+    total += amount;
+    notes.push(`Collect Tribute payment +${amount}`);
   }
   if (player.turnData.frumoNextPaymentBonus) {
     total += player.turnData.frumoNextPaymentBonus;
@@ -7148,18 +7170,21 @@ function getPaymentTotal(player, paymentIndexes, useHeraBonus, context = {}) {
     consume.frumoNextPaymentBonus = true;
   }
   if (!player.turnData.biziVoltageBonusUsed && context.card?.factionId === "bizi" && paymentCards.some((card) => hasCardEffect(card, "voltage-ration"))) {
-    total += 1;
+    const amount = cardParameter(paymentCards.find(card => hasCardEffect(card, "voltage-ration")), "paymentBonus");
+    total += amount;
     consume.biziVoltageBonus = true;
-    notes.push("Ammo Depot payment +1");
+    notes.push(`Ammo Depot payment +${amount}`);
   }
   if (!player.turnData.biziVoltageBonusUsed && context.card?.factionId === "bizi" && paymentCards.some((card) => hasCardEffect(card, "brass-spark"))) {
-    total += 1;
+    const amount = cardParameter(paymentCards.find(card => hasCardEffect(card, "brass-spark")), "paymentBonus");
+    total += amount;
     consume.biziVoltageBonus = true;
-    notes.push("Spare Part Scrapyard payment +1");
+    notes.push(`Spare Part Scrapyard payment +${amount}`);
   }
   if (context.card?.factionId === "bizi" && paymentCards.some((card) => hasCardEffect(card, "heras-calibration"))) {
-    total += 2;
-    notes.push("Signal Relay payment +2");
+    const amount = cardParameter(paymentCards.find(card => hasCardEffect(card, "heras-calibration")), "paymentBonus");
+    total += amount;
+    notes.push(`Signal Relay payment +${amount}`);
   }
 
   let heraUsedNow = false;
@@ -7244,31 +7269,37 @@ function applyBlockBonuses(game, playerNum, card, context = {}) {
     notes.push("Rootbind Refuge lane block +2");
   }
   if (hasCardEffect(card, "marble-phalanx") && context.isLaneBlock) {
-    effectiveValue += 2;
-    notes.push("Ballistic Shield +2");
+    const amount = cardParameter(card, "blockBonus");
+    effectiveValue += amount;
+    notes.push(`Ballistic Shield +${amount}`);
   }
   if (hasCardEffect(card, "nus-verdant-edict") && player.turnData.blocksDeclaredThisTurn === 2) {
-    effectiveValue += 1;
-    notes.push("Verdant Dome third block upgrade +1");
+    const amount = cardParameter(card, "blockBonus");
+    effectiveValue += amount;
+    notes.push(`Verdant Dome third block upgrade +${amount}`);
   }
   if (playerControlsEffect(game, playerNum, "emperors-heartwood")) {
-    effectiveValue += 1;
-    notes.push("Evergreen Arbor +1");
+    const amount = controlledParameter(game, playerNum, "emperors-heartwood", "blockBonus");
+    effectiveValue += amount;
+    notes.push(`Evergreen Arbor +${amount}`);
   }
   if (hasCardEffect(card, "gearplate-shield") && (player.accelerationCounters || 0) > 0) {
     player.accelerationCounters -= 1;
-    effectiveValue += 2;
-    notes.push("Bunker Defenses spent 1 acceleration +2");
+    const amount = cardParameter(card, "blockBonus");
+    effectiveValue += amount;
+    notes.push(`Bunker Defenses spent 1 acceleration +${amount}`);
   }
   if (hasCardEffect(card, "heat-sink-matrix") && (player.accelerationCounters || 0) > 0) {
     player.accelerationCounters -= 1;
-    effectiveValue += 2;
-    notes.push("Smoke Screen spent 1 acceleration +2");
+    const amount = cardParameter(card, "blockBonus");
+    effectiveValue += amount;
+    notes.push(`Smoke Screen spent 1 acceleration +${amount}`);
   }
   if (context.isLaneBlock && hasCardEffect(card, "coral-hull-guard")) {
-    effectiveValue += 1;
+    const amount = cardParameter(card, "blockBonus");
+    effectiveValue += amount;
     player.turnData.frumoLaneSwappedThisTurn = true;
-    notes.push("Frozen Barrier lane feint +1");
+    notes.push(`Frozen Barrier lane feint +${amount}`);
   }
   if (player.turnData.frumoNextActionBonus) {
     effectiveValue += player.turnData.frumoNextActionBonus;
@@ -7281,12 +7312,14 @@ function applyBlockBonuses(game, playerNum, card, context = {}) {
 function applyBlockPaymentCardEffects(game, playerNum, blockEntries, paymentCards = []) {
   if (!blockEntries.length) return;
   if (paymentCards.some((card) => hasCardEffect(card, "mossbound-staff"))) {
-    blockEntries[0].effectiveValue += 1;
-    blockEntries[0].notes.push("Negotiation Grounds block +1");
+    const amount = cardParameter(paymentCards.find(card => hasCardEffect(card, "mossbound-staff")), "blockBonus");
+    blockEntries[0].effectiveValue += amount;
+    blockEntries[0].notes.push(`Negotiation Grounds block +${amount}`);
   }
   if (player.turnData.blocksDeclaredThisTurn > 0 && paymentCards.some((card) => hasCardEffect(card, "sapling-chorus"))) {
-    blockEntries[0].effectiveValue += 1;
-    blockEntries[0].notes.push("Floral Canopy block +1");
+    const amount = cardParameter(paymentCards.find(card => hasCardEffect(card, "sapling-chorus")), "blockBonus");
+    blockEntries[0].effectiveValue += amount;
+    blockEntries[0].notes.push(`Floral Canopy block +${amount}`);
   }
 }
 
@@ -7302,17 +7335,17 @@ function finalizeBlockDeclaration(game, playerNum, blockEntries = []) {
     player.turnData.beliHighCostAttackBuffAvailable = true;
   }
   if (blockEntries.some((entry) => hasCardEffect(entry.card, "beli-vinebinder")) && player.turnData.blocksDeclaredThisTurn >= 2) {
-    player.turnData.sheenNextAttackBonus = (player.turnData.sheenNextAttackBonus || 0) + 1;
-    blockEntries[0]?.notes.push("Entwined Thicket next attack +1");
+    player.turnData.sheenNextAttackBonus = (player.turnData.sheenNextAttackBonus || 0) + cardParameter(blockEntries.find(entry => hasCardEffect(entry.card, "beli-vinebinder")).card, "nextAttackBonus");
+    blockEntries[0]?.notes.push(`Entwined Thicket next attack +${cardParameter(blockEntries.find(entry => hasCardEffect(entry.card, "beli-vinebinder")).card, "nextAttackBonus")}`);
   }
   if (blockEntries.some((entry) => hasCardEffect(entry.card, "tangs-patient-hand")) && player.turnData.blocksDeclaredThisTurn >= 2) {
-    gainLifeFromBlocking(game, playerNum, 1, blockEntries[0]?.notes || []);
-    player.turnData.sheenEndTurnDraws = (player.turnData.sheenEndTurnDraws || 0) + 1;
+    gainLifeFromBlocking(game, playerNum, cardParameter(blockEntries.find(entry => hasCardEffect(entry.card, "tangs-patient-hand")).card, "healOnBlock"), blockEntries[0]?.notes || []);
+    player.turnData.sheenEndTurnDraws = (player.turnData.sheenEndTurnDraws || 0) + cardParameter(blockEntries.find(entry => hasCardEffect(entry.card, "tangs-patient-hand")).card, "endTurnDraw");
     blockEntries[0]?.notes.push("Meditation Retreat draw at end of turn");
   }
   if (blockEntries.some((entry) => hasCardEffect(entry.card, "emperors-heartwood")) && player.turnData.blocksDeclaredThisTurn >= 3) {
-    gainLifeFromBlocking(game, playerNum, 1, blockEntries[0]?.notes || []);
-    blockEntries[0]?.notes.push("Evergreen Arbor +1 life");
+    gainLifeFromBlocking(game, playerNum, cardParameter(blockEntries.find(entry => hasCardEffect(entry.card, "emperors-heartwood")).card, "healOnBlock"), blockEntries[0]?.notes || []);
+    blockEntries[0]?.notes.push(`Evergreen Arbor +${cardParameter(blockEntries.find(entry => hasCardEffect(entry.card, "emperors-heartwood")).card, "healOnBlock")} life`);
   }
 }
 
@@ -7320,19 +7353,20 @@ function addAccelerationIfOverpaid(game, playerNum, paid, required, card = null,
   const player = game.players[playerNum];
   if (factionMechanicId(player) === "bizi" && paid - required >= 2) {
     let gained = 1;
-    if (hasCardEffect(card, "copperline-technician")) gained += 1;
+    if (hasCardEffect(card, "copperline-technician")) gained += cardParameter(card, "accelerationOnOverpay");
     if (playerControlsEffect(game, playerNum, "regnum-voltage-bank") && !player.turnData.biziFirstOverpayRewardUsed) {
-      gained += 1;
-      player.life += 1;
+      const amount = controlledParameter(game, playerNum, "regnum-voltage-bank", "accelerationOnOverpay");
+      gained += amount;
+      player.life += controlledParameter(game, playerNum, "regnum-voltage-bank", "healOnOverpay");
       player.turnData.biziFirstOverpayRewardUsed = true;
-      notes.push("Gold Mine +1 life and +1 counter");
+      notes.push(`Gold Mine +${amount} life and +${amount} counter`);
     }
     player.accelerationCounters = (player.accelerationCounters || 0) + gained;
     notes.push(`Bizi overpay +${gained} acceleration`);
     for (const visibleCard of getPlayerSupportCards(game, playerNum)) {
       if (hasCardEffect(visibleCard, "solar-array-adept")) {
-        visibleCard.tempBuff = (visibleCard.tempBuff || 0) + 1;
-        notes.push("Electrostatic Field +1");
+        visibleCard.tempBuff = (visibleCard.tempBuff || 0) + cardParameter(visibleCard, "bonusPerAcceleration");
+        notes.push(`Electrostatic Field +${cardParameter(visibleCard, "bonusPerAcceleration")}`);
       }
     }
   }
@@ -7342,17 +7376,19 @@ function applyOverpayCardRewards(game, playerNum, paid, required, card = null, n
   const player = game.players[playerNum];
   if (paid - required < 2) return;
   if (hasCardEffect(card, "senate-vault-guard") && !player.turnData.ruminSenateVaultGuardUsed) {
-    player.life += 1;
+    const amount = cardParameter(card, "healOnOverpay");
+    player.life += amount;
     player.turnData.ruminSenateVaultGuardUsed = true;
-    notes.push("Hedge Fund Vest overpay +1 life");
+    notes.push(`Hedge Fund Vest overpay +${amount} life`);
   }
   if (card?.factionId === "rumin" && playerControlsEffect(game, playerNum, "counting-house-aegis") && !player.turnData.ruminCountingHouseAegisUsed) {
-    player.life += 1;
+    const amount = controlledParameter(game, playerNum, "counting-house-aegis", "healOnOverpay");
+    player.life += amount;
     player.turnData.ruminCountingHouseAegisUsed = true;
-    notes.push("Diversified Portfolio overpay +1 life");
+    notes.push(`Diversified Portfolio overpay +${amount} life`);
   }
   if (hasCardEffect(card, "clockwork-caravan") && !player.turnData.biziClockworkCaravanUsed) {
-    player.turnData.biziEndTurnDraws = (player.turnData.biziEndTurnDraws || 0) + 1;
+    player.turnData.biziEndTurnDraws = (player.turnData.biziEndTurnDraws || 0) + cardParameter(card, "endTurnDraw");
     player.turnData.biziClockworkCaravanUsed = true;
     notes.push("Energy Transporter draw at end of turn");
   }
@@ -7365,21 +7401,23 @@ function applyAfterAttackDeclared(game, playerNum, attack, payment) {
   const notes = attack.notes || [];
 
   if (hasCardEffect(card, "marble-market-tribune")) {
-    player.turnData.ruminNextWeaponArmBonus = (player.turnData.ruminNextWeaponArmBonus || 0) + 1;
-    notes.push("Corporate Banner next armed weapon +1");
+    player.turnData.ruminNextWeaponArmBonus = (player.turnData.ruminNextWeaponArmBonus || 0) + cardParameter(card, "nextWeaponBonus");
+    notes.push(`Corporate Banner next armed weapon +${cardParameter(card, "nextWeaponBonus")}`);
   }
   if ((attack.attachedCards || []).some((weapon) => hasCardEffect(weapon, "aurelian-clawblade")) && (payment.total || 0) - (payment.required || 0) >= 2) {
-    player.life += 1;
-    notes.push("Executive Authority Blade overpay +1 life");
+    const amount = cardParameter(attack.attachedCards.find(weapon => hasCardEffect(weapon, "aurelian-clawblade")), "healOnOverpay");
+    player.life += amount;
+    notes.push(`Executive Authority Blade overpay +${amount} life`);
   }
   if (hasCardEffect(card, "focus-prime-signal")) {
-    player.accelerationCounters = (player.accelerationCounters || 0) + 2;
-    player.turnData.biziPrimeSignalBonus = Math.min(4, player.accelerationCounters || 0);
+    player.accelerationCounters = (player.accelerationCounters || 0) + cardParameter(card, "accelerationOnPlacement");
+    player.turnData.biziPrimeSignalBonus = Math.min(cardParameter(card, "bonusCap"), player.accelerationCounters || 0);
     notes.push(`Interference Matrix +2 acceleration; next card +${player.turnData.biziPrimeSignalBonus}`);
   }
   if (hasCardEffect(card, "leviathan-salvage") && notes.some((note) => /Ristus|consecutive/i.test(note))) {
-    player.life += 1;
-    notes.push("Loot the Hold +1 life");
+    const amount = cardParameter(card, "healOnConsecutive");
+    player.life += amount;
+    notes.push(`Loot the Hold +${amount} life`);
   }
 }
 
@@ -7387,27 +7425,27 @@ function applyLaneEntryTriggers(game, playerNum, card, laneIndex, socket = null)
   const player = game.players[playerNum];
   const notes = [];
   if (hasCardEffect(card, "deckhand-diver")) {
-    const top = player.deck[player.deck.length - 1];
+    const top = player.deck[player.deck.length - cardParameter(card, "peekDepth")];
     if (socket) socket.emit("peekResult", top ? `Top deck card: ${top.name}` : "Your deck is empty.");
     notes.push("Deep Dive peeked at top deck card");
   }
   if (hasCardEffect(card, "ristus-rises")) {
-    card.tempBuff = (card.tempBuff || 0) + 1;
+    card.tempBuff = (card.tempBuff || 0) + cardParameter(card, "placementBonus");
     player.turnData.frumoLaneSwappedThisTurn = true;
-    notes.push("Tidal Surge +1");
+    notes.push(`Tidal Surge +${cardParameter(card, "placementBonus")}`);
   }
   if (hasCardEffect(card, "kelpcloak-trickster")) {
-    player.turnData.frumoLaneSwappedThisTurn = true;
+    player.turnData.frumoLaneSwappedThisTurn = player.turnData.frumoLaneSwappedThisTurn || Boolean(cardParameter(card, "countsAsLaneSwap"));
     notes.push("Sudden Scheme enabled lane-swap bonuses");
   }
   if (hasCardEffect(card, "abyssal-switchboard")) {
-    player.turnData.frumoNextActionBonus = (player.turnData.frumoNextActionBonus || 0) + 1;
-    notes.push("Coordinated Strike next action +1");
+    player.turnData.frumoNextActionBonus = (player.turnData.frumoNextActionBonus || 0) + cardParameter(card, "nextActionBonus");
+    notes.push(`Coordinated Strike next action +${cardParameter(card, "nextActionBonus")}`);
   }
   if (hasCardEffect(card, "riptide-smuggler") && !player.turnData.frumoRiptideSmugglerUsed) {
-    card.tempBuff = (card.tempBuff || 0) + 1;
+    card.tempBuff = (card.tempBuff || 0) + cardParameter(card, "nextAttackBonus");
     player.turnData.frumoRiptideSmugglerUsed = true;
-    notes.push("Hauntling Lure +1");
+    notes.push(`Hauntling Lure +${cardParameter(card, "nextAttackBonus")}`);
   }
   if (notes.length > 0) {
     game.message = `Player ${playerNum} placed ${card.name || "a card"} in lane ${laneIndex + 1}. ${notes.join(", ")}.`;
@@ -7749,8 +7787,8 @@ function resolveDamage(game, roomState) {
     } else {
       damageMessages.push(`${laneLabel}${describeCardValue(attack.card, attack.effectiveValue, attack.notes)} was fully blocked by ${totalBlock}${totalPrevent ? ` with ${totalPrevent} prevention` : ""}`);
       for (const block of attack.block || []) {
-        if (hasCardEffect(block.card, "quiet-grove-sentinel")) gainLifeFromBlocking(game, block.player, 1, block.notes || []);
-        if (hasCardEffect(block.card, "raincall-mender")) gainLifeFromBlocking(game, block.player, 1, block.notes || []);
+        if (hasCardEffect(block.card, "quiet-grove-sentinel")) gainLifeFromBlocking(game, block.player, cardParameter(block.card, "healOnCleanBlock"), block.notes || []);
+        if (hasCardEffect(block.card, "raincall-mender")) gainLifeFromBlocking(game, block.player, cardParameter(block.card, "healOnCleanBlock"), block.notes || []);
         if (hasCardEffect(block.card, "beli-awakened")) game.players[block.player].turnData.beliAwakenedReady = true;
       }
     }
@@ -7810,8 +7848,8 @@ function resolveFreeForAllDamage(game, roomState) {
     } else {
       damageMessages.push(`Player ${defender} fully blocked Player ${attack.player}'s attack.`);
       for (const block of attack.block || []) {
-        if (hasCardEffect(block.card, "quiet-grove-sentinel")) gainLifeFromBlocking(game, block.player, 1, block.notes || []);
-        if (hasCardEffect(block.card, "raincall-mender")) gainLifeFromBlocking(game, block.player, 1, block.notes || []);
+        if (hasCardEffect(block.card, "quiet-grove-sentinel")) gainLifeFromBlocking(game, block.player, cardParameter(block.card, "healOnCleanBlock"), block.notes || []);
+        if (hasCardEffect(block.card, "raincall-mender")) gainLifeFromBlocking(game, block.player, cardParameter(block.card, "healOnCleanBlock"), block.notes || []);
         if (hasCardEffect(block.card, "beli-awakened")) game.players[block.player].turnData.beliAwakenedReady = true;
       }
     }
@@ -10522,14 +10560,15 @@ io.on("connection", (socket) => {
     const blockEntries = blockCards.map((blockCard) => {
       const blockInfo = applyBlockBonuses(game, playerNum, blockCard, { attack, isLaneBlock });
       let preventDamage = 0;
-      if (hasCardEffect(blockCard, "vault-shield-bearer") && payment.total - blockCardValue >= 1) {
-        preventDamage += 1;
-        blockInfo.notes.push("Insurance Policy Plate prevents 1");
+      if (hasCardEffect(blockCard, "vault-shield-bearer") && payment.total - blockCardValue >= cardParameter(blockCard, "minimumOverpay")) {
+        preventDamage += cardParameter(blockCard, "preventDamage");
+        blockInfo.notes.push(`Insurance Policy Plate prevents ${cardParameter(blockCard, "minimumOverpay")}`);
       }
       if (hasCardEffect(blockCard, "beli-canopy-shield") && !player.turnData.beliCanopyShieldUsed) {
-        preventDamage += 1;
+        const amount = cardParameter(blockCard, "preventDamage");
+        preventDamage += amount;
         player.turnData.beliCanopyShieldUsed = true;
-        blockInfo.notes.push("Verdant Canopy prevents 1");
+        blockInfo.notes.push(`Verdant Canopy prevents ${amount}`);
       }
       return {
         player: playerNum,
@@ -10698,7 +10737,7 @@ io.on("connection", (socket) => {
       [game.lanes[firstLane].facedown[playerNum], game.lanes[secondLane].facedown[playerNum]] = [game.lanes[secondLane].facedown[playerNum], game.lanes[firstLane].facedown[playerNum]];
       player.turnData.frumoLaneSwappedThisTurn = true;
       if (playerControlsEffect(game, playerNum, "tide-debt-ledger")) {
-        player.turnData.frumoNextPaymentBonus = (player.turnData.frumoNextPaymentBonus || 0) + 1;
+        player.turnData.frumoNextPaymentBonus = (player.turnData.frumoNextPaymentBonus || 0) + controlledParameter(game, playerNum, "tide-debt-ledger", "nextPaymentBonus");
       }
       player.turnData.poleaUsed = true;
       resetPriorityPassed(game);
@@ -10732,7 +10771,7 @@ io.on("connection", (socket) => {
       }
       for (const visibleCard of getPlayerSupportCards(game, playerNum)) {
         if (hasCardEffect(visibleCard, "riptide-smuggler") && !player.turnData.frumoRiptideSmugglerUsed) {
-          visibleCard.tempBuff = (visibleCard.tempBuff || 0) + 1;
+          visibleCard.tempBuff = (visibleCard.tempBuff || 0) + cardParameter(visibleCard, "nextAttackBonus");
           player.turnData.frumoRiptideSmugglerUsed = true;
         }
       }
@@ -10822,10 +10861,10 @@ io.on("connection", (socket) => {
     game.lanes[laneIndex].facedown[playerNum] = handCard;
     player.turnData.frumoLaneSwappedThisTurn = true;
     if (playerControlsEffect(game, playerNum, "lafayettes-chart")) {
-      player.turnData.frumoNextPaymentBonus = (player.turnData.frumoNextPaymentBonus || 0) + 1;
+      player.turnData.frumoNextPaymentBonus = (player.turnData.frumoNextPaymentBonus || 0) + controlledParameter(game, playerNum, "lafayettes-chart", "nextPaymentBonus");
     }
     if (playerControlsEffect(game, playerNum, "tide-debt-ledger")) {
-      player.turnData.frumoNextPaymentBonus = (player.turnData.frumoNextPaymentBonus || 0) + 1;
+      player.turnData.frumoNextPaymentBonus = (player.turnData.frumoNextPaymentBonus || 0) + controlledParameter(game, playerNum, "tide-debt-ledger", "nextPaymentBonus");
     }
     applyLaneEntryTriggers(game, playerNum, handCard, laneIndex, socket);
     player.turnData.lafayetteUsed = true;
@@ -10889,7 +10928,7 @@ io.on("connection", (socket) => {
     saveUndoSnapshot(roomState, playerNum, "used Focus Buff");
     player.accelerationCounters -= 1;
     player.turnData.focusBuffUsed = true;
-    const focusBonus = playerControlsEffect(game, playerNum, "focus-overclock") ? 3 : 1;
+    const focusBonus = playerControlsEffect(game, playerNum, "focus-overclock") ? controlledParameter(game, playerNum, "focus-overclock", "focusBonus") : 1;
     target.tempBuff = (target.tempBuff || 0) + focusBonus;
     resetPriorityPassed(game);
     recordPaymentLog(game, {

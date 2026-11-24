@@ -39,6 +39,7 @@ const definitions = [
     });
   }))
 ];
+const specialistRules = require("./specialistRules");
 const catalogRules = require("./catalogRuleModules");
 const composition = require("./compositionContract");
 const CARD_EFFECT_CONTRACT_VERSION = "gauntlet.card-effects.v1";
@@ -60,12 +61,13 @@ function authoredEffect(effect) {
   if (!definition || Object.hasOwn(effect, "modules")) return effect;
   const arm = composition.fromRegistered(effect, { factionId: definition.factionId, type: definition.cardType });
   if (arm) return { id: effect.id, version: effect.version, modules: arm.abilities };
-  return catalogRules.decompile(effect, definition) || effect;
+  return specialistRules.decompile(effect, definition) || catalogRules.decompile(effect, definition) || effect;
 }
 function runtimeEffect(effect) {
   if (!effect || !Object.hasOwn(effect, "modules")) return effect;
   const definition = entries[effect.id];
   if (!definition || effect.version !== definition.version || Object.keys(effect).sort().join() !== "id,modules,version") return null;
+  if (specialistRules.parametersFor(effect.id)) return specialistRules.compile(effect, definition);
   if (catalogRules.supports(definition)) return catalogRules.compile(effect, definition);
   const original = defaultCardEffect(definition.legacyCardId);
   const source = {factionId:definition.factionId, type:definition.cardType};
@@ -92,7 +94,7 @@ function validateRegistered(effect, card) {
   const entry = effect && Object.hasOwn(entries, effect.id) && entries[effect.id];
   return !!entry && Object.keys(effect).sort().join() === "id,parameters,version" && effect.version === entry.version
     && (!card || (entry.factionId === card.factionId && entry.cardType === card.type))
-    && (validateParameters(effect.parameters, entry.parameters) || (catalogRules.printedOnly(entry) || catalogRules.namedBonus(entry)) && validateParameters(effect.parameters, catalogRules.combatSpecs));
+    && (validateParameters(effect.parameters, entry.parameters) || specialistRules.validParameters(entry.id, effect.parameters) || (catalogRules.printedOnly(entry) || catalogRules.namedBonus(entry)) && validateParameters(effect.parameters, catalogRules.combatSpecs));
 }
 function cardEffect(card) {
   // The fallback is an ingress adapter for pre-contract saves/replays only.
@@ -115,7 +117,10 @@ function configuredCombatBonus(card) {
   const defaults = entries[effect.id]?.parameters;
   return effect.parameters.trigger !== defaults?.trigger?.default || effect.parameters.bonus !== defaults?.bonus?.default ? effect.parameters : null;
 }
-function cardParameter(card, key) { return cardEffect(card)?.parameters[key] ?? 0; }
+function cardParameter(card, key) {
+  const effect = cardEffect(card);
+  return effect?.parameters?.[key] ?? specialistRules.parametersFor(effect?.id)?.[key] ?? 0;
+}
 const factionDefinitions = Object.freeze({
   ...Object.fromEntries(["mekan", "jali", "gracus", "indela", "ingles", "mercaw", "mtano", "russo", "zynarth", "astral-vanguard", "voltari", "xendra", "morphlings"].map(id => [id, { id: `engine-${id}`, version: 1, factionId: id, parameters: {} }])),
   rumin: { id: "imperial-rhythm", version: 1, factionId: "rumin", parameters: { fourthAttackBonus: { min: 0, max: 8, default: 3 } } },

@@ -1,11 +1,11 @@
-const { hasCardEffect, factionMechanicId } = require("./effectRegistry");
+const { hasCardEffect, cardParameter, factionMechanicId } = require("./effectRegistry");
 "use strict";
 
 const { addTemporaryEffect } = require("./effects");
 
 const isAstral = (player) => factionMechanicId(player) === "astral-vanguard";
 const cardValue = (card) => ({ A: 14, K: 13, Q: 12, J: 11 }[card?.rank] || Number(card?.value) || 0);
-const controls = (game, playerNumber, definitionId) => game.lanes.some((lane) => hasCardEffect(lane.support?.[playerNumber], definitionId));
+const controls = (game, playerNumber, definitionId) => game.lanes.map(lane => lane.support?.[playerNumber]).find(card => hasCardEffect(card, definitionId));
 
 function actions(game, playerNumber) {
   const player = game.players[playerNumber];
@@ -40,8 +40,9 @@ function apply(game, playerNumber, abilityId, events, event) {
   } else {
     const laneIndex = Number(target);
     const card = player.deck.pop();
-    const cityBonus = controls(game, playerNumber, "astral-vanguard-fleet-command") ? 2 : 1;
-    const beaconBonus = controls(game, playerNumber, "astral-vanguard-drop-pod-beacon") ? 1 : 0;
+    const fleetCommand = controls(game, playerNumber, "astral-vanguard-fleet-command");
+    const cityBonus = fleetCommand ? cardParameter(fleetCommand, "deploymentBonus") : 1;
+    const beaconBonus = cardParameter(controls(game, playerNumber, "astral-vanguard-drop-pod-beacon"), "deploymentBonus");
     addTemporaryEffect(card, cityBonus + beaconBonus, { name: beaconBonus ? "Vanguard Outpost / Drop Pod Beacon" : "Vanguard Outpost" }, game.turn);
     card.astralDeployedTurn = game.turn;
     game.lanes[laneIndex].facedown[playerNumber] = card;

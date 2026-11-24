@@ -1,4 +1,4 @@
-const { hasCardEffect, factionMechanicId } = require("./effectRegistry");
+const { hasCardEffect, cardParameter, factionMechanicId } = require("./effectRegistry");
 "use strict";
 
 const { addTemporaryEffect } = require("./effects");
@@ -50,8 +50,9 @@ function hatch(game, playerNumber, laneIndex, form, events, event, source = "Bro
   const entry = game.lanes[laneIndex]?.facedown?.[playerNumber];
   if (!entry?.zynarthEgg) return false;
   const card = token(game, playerNumber, form);
-  if (game.lanes.some((lane) => hasCardEffect(lane.support?.[playerNumber], "zynarth-spawning-pool"))) {
-    addTemporaryEffect(card, 1, { name: "Spawning Pool" }, game.turn);
+  const pool = game.lanes.map(lane => lane.support?.[playerNumber]).find(support => hasCardEffect(support, "zynarth-spawning-pool"));
+  if (pool) {
+    addTemporaryEffect(card, cardParameter(pool, "hatchBonus"), { name: "Spawning Pool" }, game.turn);
   }
   game.lanes[laneIndex].facedown[playerNumber] = card;
   if (form === "worker" && !game.players[playerNumber].turnData.zynarthWorkerCreated) {

@@ -180,7 +180,8 @@ function validateAuthoredFields(snapshot, baseline, catalogCards) {
             : Number.isSafeInteger(value) && value >= field.min && value <= field.max;
           if (!valid) issue(domain, row.id, key, "Unsupported definition, parameter, reference or bound. Choose a supported contract and its declared values.");
           if (valid && domain === "cards" && value?.id === composition.ID && row.text !== require("../shared/duel-rules/compositionExplanation").explain(value, row)) warnings.push({ domain, id: row.id, field: "text", message: "Printed wording differs from the generated explanation; review it. Arbitrary prose is not verified as equivalent." });
-          if (valid && canonicalJson(value) !== canonicalJson(original[key])) warnings.push({ domain, id: row.id, field: key, message: "Mechanical settings changed. Check the displayed rules wording and playtest this exact saved draft." });
+          const normalize = domain === "cards" && key === "effect" ? effects.runtimeEffect : v => v;
+          if (valid && canonicalJson(normalize(value)) !== canonicalJson(normalize(original[key]))) warnings.push({ domain, id: row.id, field: key, message: "Mechanical settings changed. Check the displayed rules wording and playtest this exact saved draft." });
           continue;
         }
         const values = field.type === "lines" || field.type === "assets" ? value : [value];

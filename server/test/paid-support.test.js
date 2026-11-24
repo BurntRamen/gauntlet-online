@@ -299,3 +299,20 @@ test("constructed, draft and campaign players share paid support while boss budg
     if (mode === "campaign") assert.equal(result.campaign.bossActionsThisTurn, 1);
   }
 });
+
+test("an edited Deep Dive privately inspects the configured position only when chosen", () => {
+  const registry = require("../../shared/duel-rules/effectRegistry");
+  function prepared() {
+    const state = game("frumo-deckhand-diver", "frumo");
+    const source = state.players[1].hand[0];
+    const effect = registry.authoredEffect(registry.defaultCardEffect(source.definitionId));
+    effect.modules.find(op => op.operation === "peekDepth").amount = 2;
+    source.effect = registry.runtimeEffect(effect);
+    state.players[1].deck = [pitch("second-from-top"), pitch("top")];
+    return state;
+  }
+  assert.equal(play(prepared()).animationEvents.some(e => e.type === "card.peeked"),false);
+  const accepted = play(prepared(), {useDeckhandDiverPeek:true});
+  assert.equal(duel.projectForPerspective(accepted.state,1).lastEvents.find(e => e.type === "card.peeked").card.id,"second-from-top");
+  assert.equal(duel.projectForPerspective(accepted.state,2).lastEvents.find(e => e.type === "card.peeked").card,undefined);
+});
