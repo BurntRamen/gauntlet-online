@@ -30,7 +30,7 @@ export function PrivateAudio({ src, label }) {
   const [requested, setRequested] = useState(false), result = useImage(src, requested);
   if (result.error) return <p role="alert">Audio unavailable · retrieval failed</p>;
   if (src?.startsWith("/api/admin/") && !requested) return <button type="button" onClick={() => setRequested(true)}>Load private audio preview</button>;
-  return result.src ? <audio controls preload="none" src={result.src} aria-label={label} /> : <span role="status">Loading private audio…<progress className="sf-load-bar" aria-label="Loading private audio" /></span>;
+  return result.src ? <><audio controls preload="none" src={result.src} aria-label={label} /><a href={result.src} download={label + (/\.mp3(?:$|\?)/i.test(src) ? ".mp3" : ".wav")}>Download recording</a></> : <span role="status">Loading private audio…<progress className="sf-load-bar" aria-label="Loading private audio" /></span>;
 }
 export function PrivateImage({ src, alt, ...props }) {
   const result = useImage(src);

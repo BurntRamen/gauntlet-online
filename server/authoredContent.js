@@ -275,7 +275,7 @@ function resolveEngineContent(snapshot, releaseId) {
   manifest.cards = clone(domains.cards).map(card => require("./mechanicAuthoring").resolve(card, snapshot, hash));
   if (snapshot.domains.sets) manifest.draftSets = [...manifest.draftSets, ...authoredCatalog.projectSets(snapshot)];
   manifest.collectorVariants = domains.assets.map(({ id, ...variant }) => clone(variant));
-  manifest.modeMetadata = Object.fromEntries(domains.game.map(mode => [mode.id, { name: mode.name, description: mode.description, ...Object.fromEntries(Object.entries(proseFields(mode.id)).filter(([,spec])=>!spec.type.startsWith("website-")).map(([key, spec]) => [key, fieldValue(mode, key, spec)])) }]));
+  manifest.modeMetadata = Object.fromEntries(domains.game.map(mode => [mode.id, { name: mode.name, description: mode.description, ...Object.fromEntries(Object.entries(proseFields(mode.id)).filter(([key,spec])=>!key.startsWith("music_") && !spec.type.startsWith("website-")).map(([key, spec]) => [key, fieldValue(mode, key, spec)])) }]));
   manifest.deckTemplates = domains.decks.map(row => row.origin === require("./adminDecks").ORIGIN ? require("./adminDecks").project(row) : { id: row.id, name: row.name, description: row.description, legacy: true });
   manifest.deckOffers = (domains.offers || []).map(row => require("./adminDeckOffers").project(row, manifest.deckTemplates, releaseId));
   if (snapshot.studio?.modifiers) manifest.ruleModifiers = snapshot.studio.modifiers.map(definition => ({ definition: clone(definition), revision: hash(definition) }));

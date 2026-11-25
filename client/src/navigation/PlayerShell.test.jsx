@@ -168,3 +168,13 @@ test('keeps navigation, location and account portrait when switching brands', ()
  act(() => setAccountBrand(null));
  localStorage.clear();
 });
+
+test("the header identifies the audible recording and distinguishes muted and paused playback", () => {
+  const props = {onNavigate:jest.fn(), onToggleAudio:jest.fn(), playingTitle:"The Living Renewal · Version 3"};
+  const {rerender}=render(<PlayerShell {...props}/>);
+  expect(screen.getByText("Now playing · The Living Renewal · Version 3")).toBeVisible();
+  rerender(<PlayerShell {...props} audioMuted/>);
+  expect(screen.getByText("Music muted")).toBeVisible();
+  rerender(<PlayerShell {...props} musicPaused/>);
+  expect(screen.getByText("Music paused")).toBeVisible();
+});

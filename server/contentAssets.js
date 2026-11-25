@@ -1,6 +1,11 @@
 "use strict";
 const manifest = require("./contentAssetManifest.json");
-const byReference = new Map([...manifest.entries, ...require("./presentationAssetManifest.json")].flatMap((row) => [[row.id, row], [row.source, row], [row.path, row]]));
+const recordings = require("../shared/duel-rules/soundtrack.json").filter(track => track.source).map(track => ({
+  id: "asset:soundtrack/" + track.key, label: track.title, source: track.source, path: track.source,
+  mediaType: "audio/mpeg", bytes: track.bytes, sha256: track.sha256, associations: [{object:"game.practice", usage:track.key + "Audio"}]
+}));
+const libraryEntries = [...manifest.entries, ...recordings];
+const byReference = new Map([...libraryEntries, ...require("./presentationAssetManifest.json")].flatMap((row) => [[row.id, row], [row.source, row], [row.path, row]]));
 let deliveryOrigin = process.env.RENDER_EXTERNAL_URL || "https://gauntlet-online.onrender.com";
 function setDeliveryOrigin(value) { deliveryOrigin = value.replace(/\/$/, ""); }
 function withoutVersionQuery(reference) {
@@ -39,4 +44,4 @@ function ordinaryPresentation(card, factionId, releaseId) {
   const entry = assetEntry(reference);
   return { releaseId, assetManifestVersion: manifest.version, face: entry?.path || null, faceAssetId: entry?.id || null, faceDigest: entry?.sha256 || null, composed: false };
 }
-module.exports = { assetManifest: manifest, assetEntry, resolveAsset, resolveAssetFields, validAssetReference, cardPresentation, ordinaryPresentation, setDeliveryOrigin, getDeliveryOrigin: () => deliveryOrigin };
+module.exports = { assetManifest: manifest, libraryEntries, assetEntry, resolveAsset, resolveAssetFields, validAssetReference, cardPresentation, ordinaryPresentation, setDeliveryOrigin, getDeliveryOrigin: () => deliveryOrigin };

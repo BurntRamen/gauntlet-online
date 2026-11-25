@@ -44,7 +44,7 @@ async function readAuthoringStatus(publication, compact = false) {
         noDraft: "The shared draft cannot be read right now. Browse or test Live content, then refresh to reconnect.",
         validationPassed: "Deployed live content passed validation. Shared draft validation is unavailable." },
       encounterSummaries: require("./encounterAuthoring").summaries(status.live),
-      assetLibrary: require("./contentAssets").assetManifest.entries,
+      assetLibrary: require("./contentAssets").libraryEntries,
       fields: Object.fromEntries(Object.entries(status.live.domains).map(([domain, rows]) => [domain,
         Object.fromEntries(rows.map(row => [row.id, fieldsFor(domain, row)]))])),
       changes: [], releases: [], activations: [] };

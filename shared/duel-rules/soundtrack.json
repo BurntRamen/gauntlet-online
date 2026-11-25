@@ -1,0 +1,608 @@
+[
+  {
+    "key": "music_menu_1",
+    "playlist": "menu",
+    "title": "The Quiet Workshop",
+    "source": "/assets/gauntlet/music/menu/gauntlet-menu-quiet-workshop-v1.mp3",
+    "sha256": "693a27ddc91a0bcd62f8bfbe72a818e6b08996c43b7f117fc27dc38544b8c68c",
+    "bytes": 960813
+  },
+  {
+    "key": "music_menuLiving_1",
+    "playlist": "menuLiving",
+    "title": "The Living Table",
+    "source": "/assets/gauntlet/music/menu/gauntlet-menu-living-table-v1.mp3",
+    "sha256": "8ae3b51437f1fdc598e9fd5af9d847528e3998ede91f8ab4222ea3dd13dc2d85",
+    "bytes": 960813
+  },
+  {
+    "key": "music_play_1",
+    "playlist": "play",
+    "title": "Gauntlet Tactics",
+    "source": "/assets/gauntlet/music/play/gauntlet-tactics-v1.mp3",
+    "sha256": "8c5af79d6578e880fa072710b29b44db1500cd1729eeb8af322aa18cbb12fe4c",
+    "bytes": 4337799
+  },
+  {
+    "key": "music_play_2",
+    "playlist": "play",
+    "title": "Battle Grid Ascendant",
+    "source": "/assets/gauntlet/music/play/battle-grid-ascendant-v1.mp3",
+    "sha256": "734dca07a14033b72f1444a3824227c9fac70b72adf48be135ef23abe1688652",
+    "bytes": 4337799
+  },
+  {
+    "key": "music_play_3",
+    "playlist": "play",
+    "title": "Gauntlet Playfield",
+    "source": "/assets/gauntlet/music/play/gauntlet-playfield-v1.mp3",
+    "sha256": "6e38c91604b486b81fef5259904ffebd029bc7709a054760da9a4a219fd8e214",
+    "bytes": 4337799
+  },
+  {
+    "key": "music_play_4",
+    "playlist": "play",
+    "title": "Tactical Ascend",
+    "source": "/assets/gauntlet/music/play/tactical-ascend-v1.mp3",
+    "sha256": "d06c6e7567f81a373a9c7658d5faf93ab3f2f1d54fe975d62b574c1facf138cb",
+    "bytes": 4337799
+  },
+  {
+    "key": "music_basic_1",
+    "playlist": "basic",
+    "title": "Basic SuitFire Theme",
+    "source": null
+  },
+  {
+    "key": "music_rumin_1",
+    "playlist": "rumin",
+    "title": "The Civic Imperium · Version 1",
+    "source": "/assets/gauntlet/music/factions/rumin-civic-imperium-v1.mp3",
+    "sha256": "583e6b637ac43d1624549af646e857a816a1c0887c1ff66495c8d895d3e5073b",
+    "bytes": 4337517
+  },
+  {
+    "key": "music_rumin_2",
+    "playlist": "rumin",
+    "title": "The Civic Imperium · Version 2",
+    "source": "/assets/gauntlet/music/factions/rumin-civic-imperium-v2.mp3",
+    "sha256": "2e44424f7c2db0c2a39bab287b728c1309685f836f1e1a28e3f65158b8b9f52f",
+    "bytes": 4337517
+  },
+  {
+    "key": "music_rumin_3",
+    "playlist": "rumin",
+    "title": "The Civic Imperium · Version 3",
+    "source": "/assets/gauntlet/music/factions/rumin-civic-imperium-v3.mp3",
+    "sha256": "e7d7c428c761fb5bd881d9795edd1ac0207f79f266ffd126f17f0dcda36dbc6d",
+    "bytes": 4337517
+  },
+  {
+    "key": "music_rumin_4",
+    "playlist": "rumin",
+    "title": "The Civic Imperium · Version 4",
+    "source": "/assets/gauntlet/music/factions/rumin-civic-imperium-v4.mp3",
+    "sha256": "36dca7ef182a98cd80fc6c263f68aab9753e6ad4b7dc9bc1fbe3883608de0a2c",
+    "bytes": 4337799
+  },
+  {
+    "key": "music_sheen_1",
+    "playlist": "sheen",
+    "title": "The Living Renewal · Version 1",
+    "source": "/assets/gauntlet/music/factions/sheen-living-renewal-v1.mp3",
+    "sha256": "3e29866c8559888b4615dca0cc5b5e4c8faacbfea950a99986a598392975e5a5",
+    "bytes": 4337517
+  },
+  {
+    "key": "music_sheen_2",
+    "playlist": "sheen",
+    "title": "The Living Renewal · Version 2",
+    "source": "/assets/gauntlet/music/factions/sheen-living-renewal-v2.mp3",
+    "sha256": "86a6fcd648449cb0d15654e45caf22d1eaed0f2b0dbbf41c9ddc96094171451d",
+    "bytes": 4337517
+  },
+  {
+    "key": "music_sheen_3",
+    "playlist": "sheen",
+    "title": "The Living Renewal · Version 3",
+    "source": "/assets/gauntlet/music/factions/sheen-living-renewal-v3.mp3",
+    "sha256": "80e087c20a96801b8762777ed512780c62a4534dcd638bd15a02e419dc4a7ca5",
+    "bytes": 4337517
+  },
+  {
+    "key": "music_sheen_4",
+    "playlist": "sheen",
+    "title": "The Living Renewal · Version 4",
+    "source": "/assets/gauntlet/music/factions/sheen-living-renewal-v4.mp3",
+    "sha256": "73f7b5d02891ba89ccbf99eb7f943f43b093e857ccd8da1e94e7cc923eee52ec",
+    "bytes": 4337799
+  },
+  {
+    "key": "music_frumo_1",
+    "playlist": "frumo",
+    "title": "The Council of Captains · Version 1",
+    "source": "/assets/gauntlet/music/factions/frumo-council-of-captains-v1.mp3",
+    "sha256": "a52771d826ff6e5ea7c6896c2751c96425d48d2501084ac13f785736bf9a0cae",
+    "bytes": 4337517
+  },
+  {
+    "key": "music_frumo_2",
+    "playlist": "frumo",
+    "title": "The Council of Captains · Version 2",
+    "source": "/assets/gauntlet/music/factions/frumo-council-of-captains-v2.mp3",
+    "sha256": "07fd2a8fff8382d25076b4b26f5c229d5b774804520e01b1eb3a22d7abaeed69",
+    "bytes": 4337517
+  },
+  {
+    "key": "music_frumo_3",
+    "playlist": "frumo",
+    "title": "The Council of Captains · Version 3",
+    "source": "/assets/gauntlet/music/factions/frumo-council-of-captains-v3.mp3",
+    "sha256": "fb6629628a0df55f1a3b721459ad2a0e59d6116e413cdac590dd56b7e1af3575",
+    "bytes": 4337517
+  },
+  {
+    "key": "music_frumo_4",
+    "playlist": "frumo",
+    "title": "The Council of Captains · Version 4",
+    "source": "/assets/gauntlet/music/factions/frumo-council-of-captains-v4.mp3",
+    "sha256": "f62d8e2ae366e4d23bc25322dfecceb9dec8f7a0e5993506914426f3bccc5a87",
+    "bytes": 4337799
+  },
+  {
+    "key": "music_bizi_1",
+    "playlist": "bizi",
+    "title": "The Plural Machine · Version 1",
+    "source": "/assets/gauntlet/music/factions/bizi-plural-machine-v1.mp3",
+    "sha256": "553a6a0c1554c8f63baf8294bc6ecdaa781ad74625bd5eb84bc709b8a29f9d80",
+    "bytes": 4337517
+  },
+  {
+    "key": "music_bizi_2",
+    "playlist": "bizi",
+    "title": "The Plural Machine · Version 2",
+    "source": "/assets/gauntlet/music/factions/bizi-plural-machine-v2.mp3",
+    "sha256": "8919a522814891843da2b9e1ea17932e24b3f469aa5b1c84f3893e9c9ee9cd73",
+    "bytes": 5057869
+  },
+  {
+    "key": "music_bizi_3",
+    "playlist": "bizi",
+    "title": "The Plural Machine · Version 3",
+    "source": "/assets/gauntlet/music/factions/bizi-plural-machine-v3.mp3",
+    "sha256": "f5db9758c35ed81fbe3248ce02bb0c9954b0c40d94518d1d48d8ed577896f0fc",
+    "bytes": 4337517
+  },
+  {
+    "key": "music_bizi_4",
+    "playlist": "bizi",
+    "title": "The Plural Machine · Version 4",
+    "source": "/assets/gauntlet/music/factions/bizi-plural-machine-v4.mp3",
+    "sha256": "5c96e9580551071bb1b34ddf223c4c06640d6ffacb61bb2881764c618501a746",
+    "bytes": 4337799
+  },
+  {
+    "key": "music_mekan_1",
+    "playlist": "mekan",
+    "title": "The Eternal Festival · Version 1",
+    "source": "/assets/gauntlet/music/factions/mekan-eternal-festival-v1.mp3",
+    "sha256": "3baa4157588741770dbc2ea0e41162f4e1350240871b194bc8325293e203bca1",
+    "bytes": 4337799
+  },
+  {
+    "key": "music_mekan_2",
+    "playlist": "mekan",
+    "title": "The Eternal Festival · Version 2",
+    "source": "/assets/gauntlet/music/factions/mekan-eternal-festival-v2.mp3",
+    "sha256": "3b423ac71e78ddcaf887014b838d081cc53c03c53c4cde1514d45292ae474334",
+    "bytes": 4320620
+  },
+  {
+    "key": "music_mekan_3",
+    "playlist": "mekan",
+    "title": "The Eternal Festival · Version 3",
+    "source": "/assets/gauntlet/music/factions/mekan-eternal-festival-v3.mp3",
+    "sha256": "c4be23ec16dd5f9fe8cfef1b1cb72c64e4175e90f667c75e4cfdfefd6f57fbfe",
+    "bytes": 4320620
+  },
+  {
+    "key": "music_mekan_4",
+    "playlist": "mekan",
+    "title": "The Eternal Festival · Version 4",
+    "source": "/assets/gauntlet/music/factions/mekan-eternal-festival-v4.mp3",
+    "sha256": "e99232edd94e40eb0692fe729ca14bb3b72501c87f0eefb86cc0ca69dedbe236",
+    "bytes": 4320620
+  },
+  {
+    "key": "music_jali_1",
+    "playlist": "jali",
+    "title": "The Revenant Formation · Version 1",
+    "source": "/assets/gauntlet/music/factions/jali-revenant-formation-v1.mp3",
+    "sha256": "e26f9f2ef8e1bbf5430aa06b588ca5108afee43be841b77f3e73e5f85dbe9e92",
+    "bytes": 4337799
+  },
+  {
+    "key": "music_jali_2",
+    "playlist": "jali",
+    "title": "The Revenant Formation · Version 2",
+    "source": "/assets/gauntlet/music/factions/jali-revenant-formation-v2.mp3",
+    "sha256": "74bb7c0fb07c4834c532dd867a9dd07cebdb15a73c3c7190e9f76451892c5721",
+    "bytes": 4320620
+  },
+  {
+    "key": "music_jali_3",
+    "playlist": "jali",
+    "title": "The Revenant Formation · Version 3",
+    "source": "/assets/gauntlet/music/factions/jali-revenant-formation-v3.mp3",
+    "sha256": "5dc7fbd12f469f86e8119255f2b2ebca2ee30e8a74581546cfcd43b2ce72163d",
+    "bytes": 4320620
+  },
+  {
+    "key": "music_jali_4",
+    "playlist": "jali",
+    "title": "The Revenant Formation · Version 4",
+    "source": "/assets/gauntlet/music/factions/jali-revenant-formation-v4.mp3",
+    "sha256": "c84d943565522326a12d30e985f3482dc089fd25e53ecc7ccfe8662625a1c6c5",
+    "bytes": 4320620
+  },
+  {
+    "key": "music_gracus_1",
+    "playlist": "gracus",
+    "title": "The Stone Question · Version 1",
+    "source": "/assets/gauntlet/music/factions/gracus-stone-question-v1.mp3",
+    "sha256": "26e19c8a76194e40ee91fd124f6591204bc7f582ac07d04ed85f9cf4cf8090b7",
+    "bytes": 4337799
+  },
+  {
+    "key": "music_gracus_2",
+    "playlist": "gracus",
+    "title": "The Stone Question · Version 2",
+    "source": "/assets/gauntlet/music/factions/gracus-stone-question-v2.mp3",
+    "sha256": "32fb0085153f3ac25bcfe3479e6c3d6204969a1feeb83cbc682be454264fb82b",
+    "bytes": 4320620
+  },
+  {
+    "key": "music_gracus_3",
+    "playlist": "gracus",
+    "title": "The Stone Question · Version 3",
+    "source": "/assets/gauntlet/music/factions/gracus-stone-question-v3.mp3",
+    "sha256": "9d122aa658d897e2f0ceee1cc03b8093ed52ded05c9842eb6b808358d38a69a3",
+    "bytes": 4320620
+  },
+  {
+    "key": "music_gracus_4",
+    "playlist": "gracus",
+    "title": "The Stone Question · Version 4",
+    "source": "/assets/gauntlet/music/factions/gracus-stone-question-v4.mp3",
+    "sha256": "984da404df082db3ab8a51c32195ea15cbcdfcea6f292b5ff6c91726967a5492",
+    "bytes": 4320620
+  },
+  {
+    "key": "music_indela_1",
+    "playlist": "indela",
+    "title": "The Turning Omen · Version 1",
+    "source": "/assets/gauntlet/music/factions/indela-turning-omen-v1.mp3",
+    "sha256": "ed68c887ee8a2918b98e568429f44486c8cc14afb688e13c46b348c979ae3c89",
+    "bytes": 4097681
+  },
+  {
+    "key": "music_indela_2",
+    "playlist": "indela",
+    "title": "The Turning Omen · Version 2",
+    "source": "/assets/gauntlet/music/factions/indela-turning-omen-v2.mp3",
+    "sha256": "1215eaac14bf7a5b472126cdf6032559761ca813d1d5f8e3aefcb23dd853f91c",
+    "bytes": 4320620
+  },
+  {
+    "key": "music_indela_3",
+    "playlist": "indela",
+    "title": "The Turning Omen · Version 3",
+    "source": "/assets/gauntlet/music/factions/indela-turning-omen-v3.mp3",
+    "sha256": "ec8beb42ef8af5682b970c3eea19c4ce68ff6e2829b4942c915dc797348cd5c3",
+    "bytes": 4320620
+  },
+  {
+    "key": "music_indela_4",
+    "playlist": "indela",
+    "title": "The Turning Omen · Version 4",
+    "source": "/assets/gauntlet/music/factions/indela-turning-omen-v4.mp3",
+    "sha256": "1980e49296b3bbafee9774d4d8fbae08c8269275793075b0119e4c81cb812bcd",
+    "bytes": 4320620
+  },
+  {
+    "key": "music_indela_5",
+    "playlist": "indela",
+    "title": "The Turning Omen · Version 5",
+    "source": "/assets/gauntlet/music/factions/indela-turning-omen-v5.mp3",
+    "sha256": "3a602c4d0d501fbc50e206e88ad71aeb9dbbe342df984e32415df39c345b00b9",
+    "bytes": 4320620
+  },
+  {
+    "key": "music_zynarth_1",
+    "playlist": "zynarth",
+    "title": "The Infinite Hive · Version 1",
+    "source": "/assets/gauntlet/music/factions/zynarth-infinite-hive-v1.mp3",
+    "sha256": "aaaf9a9fbb4e256974bd0de69cfcb033c086f1bb75457458f25aadca23fef181",
+    "bytes": 5057869
+  },
+  {
+    "key": "music_zynarth_2",
+    "playlist": "zynarth",
+    "title": "The Infinite Hive · Version 2",
+    "source": "/assets/gauntlet/music/factions/zynarth-infinite-hive-v2.mp3",
+    "sha256": "9c5ee83cc9a40c6779cab87fe46a1e09d4cfe3bde66ea96e7040debd7e701fbc",
+    "bytes": 5057869
+  },
+  {
+    "key": "music_zynarth_3",
+    "playlist": "zynarth",
+    "title": "The Infinite Hive · Version 3",
+    "source": "/assets/gauntlet/music/factions/zynarth-infinite-hive-v3.mp3",
+    "sha256": "351966768fc7b4d753ed249b6d2e767d6aa6c86412ce69c6e692f5c45b36dbf5",
+    "bytes": 4337799
+  },
+  {
+    "key": "music_zynarth_4",
+    "playlist": "zynarth",
+    "title": "The Infinite Hive · Version 4",
+    "source": "/assets/gauntlet/music/factions/zynarth-infinite-hive-v4.mp3",
+    "sha256": "91dd031f038dd23d4c09637813659187218a53233bc6ebb71f9a3d0e32c523d8",
+    "bytes": 4320620
+  },
+  {
+    "key": "music_astral-vanguard_1",
+    "playlist": "astral-vanguard",
+    "title": "The Hybrid Horizon · Version 1",
+    "source": "/assets/gauntlet/music/factions/astral-vanguard-hybrid-horizon-v1.mp3",
+    "sha256": "b54359292ab543b5fc088984ed2c50beeeb980674fac8e300466bfb10d24f550",
+    "bytes": 4337517
+  },
+  {
+    "key": "music_astral-vanguard_2",
+    "playlist": "astral-vanguard",
+    "title": "The Hybrid Horizon · Version 2",
+    "source": "/assets/gauntlet/music/factions/astral-vanguard-hybrid-horizon-v2.mp3",
+    "sha256": "2b2b591fca86c1ebd58e7b7e35d6f5745eccc60e5f05cf831ed02aef731ceaa4",
+    "bytes": 4337799
+  },
+  {
+    "key": "music_astral-vanguard_3",
+    "playlist": "astral-vanguard",
+    "title": "The Hybrid Horizon · Version 3",
+    "source": "/assets/gauntlet/music/factions/astral-vanguard-hybrid-horizon-v3.mp3",
+    "sha256": "8825d726c1fd8ab219af3c18ffc68037bfd42dd0b22f66317c0ad64972ef8e4d",
+    "bytes": 4320620
+  },
+  {
+    "key": "music_astral-vanguard_4",
+    "playlist": "astral-vanguard",
+    "title": "The Hybrid Horizon · Version 4",
+    "source": "/assets/gauntlet/music/factions/astral-vanguard-hybrid-horizon-v4.mp3",
+    "sha256": "9c49ac9f98548ebb148ab4cf2bec68a71198e4630935be30340db23f86d4733e",
+    "bytes": 4320620
+  },
+  {
+    "key": "music_voltari_1",
+    "playlist": "voltari",
+    "title": "The Golden Conduit · Version 1",
+    "source": "/assets/gauntlet/music/factions/voltari-golden-conduit-v1.mp3",
+    "sha256": "f8971003e59ae2ad772e1cb3efbdcbcdae0fc6167cb8e4026d1beb0094e78101",
+    "bytes": 4337517
+  },
+  {
+    "key": "music_voltari_2",
+    "playlist": "voltari",
+    "title": "The Golden Conduit · Version 2",
+    "source": "/assets/gauntlet/music/factions/voltari-golden-conduit-v2.mp3",
+    "sha256": "5d0b85c21630bcfd44d90e068da09179e875d19bf3f9ae0308f880efbbd413e7",
+    "bytes": 4337517
+  },
+  {
+    "key": "music_voltari_3",
+    "playlist": "voltari",
+    "title": "The Golden Conduit · Version 3",
+    "source": "/assets/gauntlet/music/factions/voltari-golden-conduit-v3.mp3",
+    "sha256": "15b903e395dd9d8fcf2f1480a89ed9869d47f37b56ddb4fed5fef18d740f80b0",
+    "bytes": 4337547
+  },
+  {
+    "key": "music_voltari_4",
+    "playlist": "voltari",
+    "title": "The Golden Conduit · Version 4",
+    "source": "/assets/gauntlet/music/factions/voltari-golden-conduit-v4.mp3",
+    "sha256": "87300f6150e9511ef397e2ba59b2f39141d675d32c6b5bb9dd80e55d828fb56b",
+    "bytes": 4320620
+  },
+  {
+    "key": "music_xendra_1",
+    "playlist": "xendra",
+    "title": "Aspect Without Form · Version 1",
+    "source": "/assets/gauntlet/music/factions/xendra-aspect-without-form-v1.mp3",
+    "sha256": "805c21e05ed5539481667c052ce1e26147ab956858d0f88581679b6853d45c4c",
+    "bytes": 5057869
+  },
+  {
+    "key": "music_xendra_2",
+    "playlist": "xendra",
+    "title": "Aspect Without Form · Version 2",
+    "source": "/assets/gauntlet/music/factions/xendra-aspect-without-form-v2.mp3",
+    "sha256": "ae1cb3e62c7526f64ab9e632f8d52e1398ddaf5839b4ab0c2d948efde467b2c3",
+    "bytes": 4337799
+  },
+  {
+    "key": "music_xendra_3",
+    "playlist": "xendra",
+    "title": "Aspect Without Form · Version 3",
+    "source": "/assets/gauntlet/music/factions/xendra-aspect-without-form-v3.mp3",
+    "sha256": "f933bac7cf53b32535639f0f2cf9f6df4e6063111d18bac1ba17174d45e2329e",
+    "bytes": 4320620
+  },
+  {
+    "key": "music_xendra_4",
+    "playlist": "xendra",
+    "title": "Aspect Without Form · Version 4",
+    "source": "/assets/gauntlet/music/factions/xendra-aspect-without-form-v4.mp3",
+    "sha256": "06205e191050ac0db91244d15576dc414d263531ea4f8142761c46464a98728d",
+    "bytes": 4320620
+  },
+  {
+    "key": "music_morphlings_1",
+    "playlist": "morphlings",
+    "title": "The Unfinished Return · Version 1",
+    "source": "/assets/gauntlet/music/factions/morphlings-changing-light-v1.mp3",
+    "sha256": "e366e8b70531aba4445279f2488e137329d6d2b032c6d1c8b8edf9e78ba6416a",
+    "bytes": 4337799
+  },
+  {
+    "key": "music_morphlings_2",
+    "playlist": "morphlings",
+    "title": "The Unfinished Return · Version 2",
+    "source": "/assets/gauntlet/music/factions/morphlings-changing-light-v2.mp3",
+    "sha256": "3f82d26e97cae43135255487ceb15cc385fc4c36d5c52264a596c2b3269fc7e8",
+    "bytes": 4337510
+  },
+  {
+    "key": "music_morphlings_3",
+    "playlist": "morphlings",
+    "title": "The Unfinished Return · Version 3",
+    "source": "/assets/gauntlet/music/factions/morphlings-changing-light-v3.mp3",
+    "sha256": "ca8004bd7d15f45cf1648c628487354d3cd23779971581f2565739f9231bfc9e",
+    "bytes": 4337510
+  },
+  {
+    "key": "music_morphlings_4",
+    "playlist": "morphlings",
+    "title": "The Unfinished Return · Version 4",
+    "source": "/assets/gauntlet/music/factions/morphlings-changing-light-v4.mp3",
+    "sha256": "15a685da1e8884d509a6d7e8afb035d461355a4a3690004feeb53e23d3364c6e",
+    "bytes": 4337547
+  },
+  {
+    "key": "music_ingles_1",
+    "playlist": "ingles",
+    "title": "The Isles Across the Ages · Version 1",
+    "source": "/assets/gauntlet/music/factions/ingles-unwritten-charter-v1.mp3",
+    "sha256": "81728fbfd8768ee52d3e8b418097e601a99e33d92a7539a10e59a0e06d56a69a",
+    "bytes": 4337799
+  },
+  {
+    "key": "music_ingles_2",
+    "playlist": "ingles",
+    "title": "The Isles Across the Ages · Version 2",
+    "source": "/assets/gauntlet/music/factions/ingles-unwritten-charter-v2.mp3",
+    "sha256": "77f0e0dd2f9c2e266bac1b7030fadd0b4fd49ce1efcf4ce710e1b793fc258627",
+    "bytes": 4337799
+  },
+  {
+    "key": "music_ingles_3",
+    "playlist": "ingles",
+    "title": "The Isles Across the Ages · Version 3",
+    "source": "/assets/gauntlet/music/factions/ingles-unwritten-charter-v3.mp3",
+    "sha256": "47b771920495eb6f32d19d84128655099daae2dd47c22e7f22e97f0f0c8d8dc5",
+    "bytes": 4320620
+  },
+  {
+    "key": "music_ingles_4",
+    "playlist": "ingles",
+    "title": "The Isles Across the Ages · Version 4",
+    "source": "/assets/gauntlet/music/factions/ingles-unwritten-charter-v4.mp3",
+    "sha256": "80f31e90bdac00f58f96f8402f63f16ede0bf02643cf17a2efe0ddd77ffc7d1b",
+    "bytes": 4320620
+  },
+  {
+    "key": "music_mercaw_1",
+    "playlist": "mercaw",
+    "title": "The Many-Star Accord · Version 1",
+    "source": "/assets/gauntlet/music/factions/mercaw-many-star-accord-v1.mp3",
+    "sha256": "eea6f74948b9cc3ee642be31351788128bae5ba9c251a1741394580ba8d9e7d2",
+    "bytes": 4337799
+  },
+  {
+    "key": "music_mercaw_2",
+    "playlist": "mercaw",
+    "title": "The Many-Star Accord · Version 2",
+    "source": "/assets/gauntlet/music/factions/mercaw-many-star-accord-v2.mp3",
+    "sha256": "3500403067c8b373c6bf517f5b98bbed5e20c3688d58b8bda9ac4c2cacdbd520",
+    "bytes": 4320620
+  },
+  {
+    "key": "music_mercaw_3",
+    "playlist": "mercaw",
+    "title": "The Many-Star Accord · Version 3",
+    "source": "/assets/gauntlet/music/factions/mercaw-many-star-accord-v3.mp3",
+    "sha256": "05146137dbf3b5aab17058571dc237bf01272d033ebf1812f92b1378846163d4",
+    "bytes": 4320620
+  },
+  {
+    "key": "music_mercaw_4",
+    "playlist": "mercaw",
+    "title": "The Many-Star Accord · Version 4",
+    "source": "/assets/gauntlet/music/factions/mercaw-many-star-accord-v4.mp3",
+    "sha256": "a4a82f98b95230691d2cd1789209107d515ab720144d7b10daf84e600e5a5eac",
+    "bytes": 4320620
+  },
+  {
+    "key": "music_mtano_1",
+    "playlist": "mtano",
+    "title": "The Mountain Remembers · Version 1",
+    "source": "/assets/gauntlet/music/factions/mtano-mountain-remembers-v1.mp3",
+    "sha256": "0d017c014ea3257eaf622ac29354f5fae2f2c132083af9a9d8d85755c508a4ec",
+    "bytes": 4337799
+  },
+  {
+    "key": "music_mtano_2",
+    "playlist": "mtano",
+    "title": "The Mountain Remembers · Version 2",
+    "source": "/assets/gauntlet/music/factions/mtano-mountain-remembers-v2.mp3",
+    "sha256": "dee12cb0eab3e0f5d31357807ab632e183ee882512980e4914a4c28deab85b1e",
+    "bytes": 4320620
+  },
+  {
+    "key": "music_mtano_3",
+    "playlist": "mtano",
+    "title": "The Mountain Remembers · Version 3",
+    "source": "/assets/gauntlet/music/factions/mtano-mountain-remembers-v3.mp3",
+    "sha256": "6a70fc870364624f026e1a95ce151684df79eebc5a99b7bd61a12059b78534ed",
+    "bytes": 4320620
+  },
+  {
+    "key": "music_mtano_4",
+    "playlist": "mtano",
+    "title": "The Mountain Remembers · Version 4",
+    "source": "/assets/gauntlet/music/factions/mtano-mountain-remembers-v4.mp3",
+    "sha256": "9cd7e9487fdd92b509d084d2506413d8f5649da546600f27d8f507a74af99b8d",
+    "bytes": 4320620
+  },
+  {
+    "key": "music_russo_1",
+    "playlist": "russo",
+    "title": "The Long Winter Oath · Version 1",
+    "source": "/assets/gauntlet/music/factions/russo-long-winter-oath-v1.mp3",
+    "sha256": "92ea3e371b738e4fe078858983bdf9f649e4c61e99034fa79c2bf2acf5c2a7f8",
+    "bytes": 4337799
+  },
+  {
+    "key": "music_russo_2",
+    "playlist": "russo",
+    "title": "The Long Winter Oath · Version 2",
+    "source": "/assets/gauntlet/music/factions/russo-long-winter-oath-v2.mp3",
+    "sha256": "22fcc169789d90ebfc2e005ec49411d77b3e3f3df531c6aca1544831dde1b6ef",
+    "bytes": 4320620
+  },
+  {
+    "key": "music_russo_3",
+    "playlist": "russo",
+    "title": "The Long Winter Oath · Version 3",
+    "source": "/assets/gauntlet/music/factions/russo-long-winter-oath-v3.mp3",
+    "sha256": "7179671c136a7eafdd3af435e8943487b5686fb04dd999bbb3de8b5f171e37da",
+    "bytes": 4320620
+  },
+  {
+    "key": "music_russo_4",
+    "playlist": "russo",
+    "title": "The Long Winter Oath · Version 4",
+    "source": "/assets/gauntlet/music/factions/russo-long-winter-oath-v4.mp3",
+    "sha256": "8d7f288074c9699bda7ba99bd8b69c76581b9e6cf1afa70f31ca5a860ce08062",
+    "bytes": 4320620
+  }
+]
