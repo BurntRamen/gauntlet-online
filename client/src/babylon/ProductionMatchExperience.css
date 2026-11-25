@@ -3727,3 +3727,21 @@
 .production-match-experience[data-card-type-size="large"] .production-card-preview-copy :is(small,p),
 .production-match-experience[data-card-type-size="large"] .production-inspection-copy :is(small,p) { font-size: 17px; line-height: 1.5; }
 .production-match-experience[data-card-preview="hidden"] .production-card-preview { display: none; }
+
+/* Reserve the same two lines throughout play. Match controls and card previews
+   remain inside their own surface below the ticker. */
+.production-match-experience > .production-match-feed {
+  position: absolute; inset: 0 0 auto; display: block; transform: none;
+  width: 100%; max-width: none; height: 48px; padding: 2px 10px; box-sizing: border-box;
+  background: #09131d; border-bottom: 1px solid #40566a; overflow: hidden;
+}
+.production-match-feed + .production-match-surface { top: 48px; }
+.production-match-experience > .production-match-feed .production-match-feed-current {
+  grid-template-columns: auto minmax(0,1fr) auto; min-height: 23px; border: 0; background: transparent; box-shadow: none;
+}
+.production-match-feed-current > div { padding-block: 2px; }
+.production-match-feed-current [role="timer"] { display: inline; color: #bbd3e5; padding-inline: 5px; }
+.production-match-feed-current strong { font-size: 13px; }
+.production-ticker-earlier { display: block; padding-inline: 8px; font-size: 11px; color: #afc1d0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+@media (prefers-reduced-motion: reduce) { .production-match-feed-current strong { animation: none; } }
+.reduced-motion .production-match-feed-current strong { animation: none; }

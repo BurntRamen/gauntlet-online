@@ -407,7 +407,13 @@ export class BattlefieldPlaybackQueue {
   }
 
   notify() {
+    const now = this.now();
+    const activeMs = this.timerStartedAtMs == null
+      ? (this.pausedRemainingMs ?? this.activeFrame?.durationMs ?? 0)
+      : Math.max(0, this.timerDurationMs - (now - this.timerStartedAtMs));
+    const remainingMs = this.frames.reduce((total, frame) => total + frame.durationMs, activeMs);
     this.onStateChange({
+      expectedEnd: remainingMs && !this.pauseDepth ? now + remainingMs : null,
       active: Boolean(this.activeFrame),
       queuedFrames: this.frames.length,
       catchingUp: Boolean(this.activeFrame) || this.frames.length > 0,

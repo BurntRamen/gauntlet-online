@@ -20,6 +20,7 @@ import SetupFrame from "./navigation/SetupFrame";
 import { getModePresentation } from "./navigation/modePresentation";
 import { MENU_LAYOUT_CUSTOMIZATION_ENABLED } from "./navigation/menuFeatures";
 import useDraftRequest from "./useDraftRequest";
+import { Elapsed, useTableTiming } from "./TableTiming";
 import DraftProgress from "./DraftProgress";
 import useAdminAccess from "./useAdminAccess";
 import DeckLibraryPanel from "./DeckLibraryPanel";
@@ -3088,6 +3089,10 @@ export default function App() {
   const [draftSetId, setDraftSetId] = useState("initiative");
   const [rematchStatus, setRematchStatus] = useState({ requestedBy: null, message: "" });
   const { pending: draftPending, run: runDraftRequest, clear: clearDraftRequest, finishEntry } = useDraftRequest(socket, setError);
+  const tableReady = Boolean(lobby || game || draftState);
+  const openingTable = draftPending?.action === "enter" || Boolean(role && !tableReady);
+  const openingTime = useTableTiming("room", openingTable && !error, tableReady && !error);
+
   const [draftSaveMessage, setDraftSaveMessage] = useState("");
   const [friendsData, setFriendsData] = useState({ friends: [], messages: [], challenges: [] });
   const [selectedFriendId, setSelectedFriendId] = useState("");
@@ -4807,11 +4812,11 @@ export default function App() {
     );
   }
 
-  if (draftPending?.action === "enter" || (role && !lobby && !game && !draftState)) {
+  if (openingTable) {
     return <main style={MENU_THEME.page}><div className="draft-entry">
       <h1>Opening your table</h1>
-      {error ? <div className="draft-error" role="alert">{error}</div> : <DraftProgress message={draftPending?.connecting ? "Connecting to the server…" : "Preparing your table…"} />}
-      {(error || draftPending?.connecting) && <MenuButton variant="secondary" onClick={returnToMainMenu}>Main Menu</MenuButton>}
+      {error ? <div className="draft-error" role="alert">{error}</div> : <><DraftProgress message={draftPending?.connecting ? "Connecting to the game server…" : role ? "Seat assigned. Waiting for the table state…" : "Waiting for the server to open your table…"} /><Elapsed attempt={openingTime} deadline={draftPending?.deadline} /></>}
+      {(error || draftPending?.connecting || !draftPending) && <MenuButton variant="secondary" onClick={returnToMainMenu}>Main Menu</MenuButton>}
     </div></main>;
   }
 
@@ -5099,7 +5104,7 @@ export default function App() {
   if (useBabylonMatchRenderer) {
     return (
       <MatchRendererBoundary resetKey={game.matchId} onLeaveMatch={returnToMainMenu}>
-        <Suspense fallback={<div className="loading">Loading Babylon match renderer…<progress className="sf-load-bar" aria-label="Loading Babylon match renderer" /></div>}>
+        <Suspense fallback={<div className="loading">Loading the match display…<progress className="sf-load-bar" aria-label="Loading the match display" /><Elapsed /></div>}>
           <LiveBabylonMatchExperience
             key={game.matchId}
             session={liveMatchSessionRef.current}
