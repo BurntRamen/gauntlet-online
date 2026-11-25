@@ -36,7 +36,8 @@ export function normalizeGraphicsQuality(value) {
   return GRAPHICS_QUALITY_BY_ID[normalized]?.id || DEFAULT_GRAPHICS_QUALITY;
 }
 
-export function matchHardwareScalingLevel(width, height, quality = DEFAULT_GRAPHICS_QUALITY) {
+export function matchHardwareScalingLevel(width, height, quality = DEFAULT_GRAPHICS_QUALITY, resolution = "preset") {
+  if (["540", "720", "1080", "1440"].includes(resolution) && height > 0) return height / Number(resolution);
   const profile = GRAPHICS_QUALITY_BY_ID[normalizeGraphicsQuality(quality)];
   if (profile.fixedScalingLevel != null) return profile.fixedScalingLevel;
   const pixelCount = Math.max(1, Number(width) || 1) * Math.max(1, Number(height) || 1);

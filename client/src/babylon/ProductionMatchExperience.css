@@ -16,7 +16,7 @@
   position: relative;
   width: 100%;
   min-width: 0;
-  height: 100dvh;
+  height: 100svh;
   min-height: 520px;
   overflow: hidden;
   color: var(--gauntlet-parchment);
@@ -2657,7 +2657,7 @@
   .production-match-loading,
   .production-match-experience-error,
   .production-match-experience .babylon-match-shell {
-    min-height: 100dvh;
+    min-height: 100svh;
   }
 
   .production-player-plate {
@@ -3675,3 +3675,9 @@
   .production-inspection-copy { min-width: 0; }
   .production-inspection-copy h2 { font-size: 28px; overflow-wrap: anywhere; }
 }
+
+.production-match-experience[data-table-edges="clear"] .production-table-vignette,
+.production-match-experience[data-card-preview="text"] .production-card-preview-art { display: none; }
+.production-match-experience[data-card-preview="text"] .production-card-preview { grid-template-columns: 1fr; }
+.production-graphics-setting div select { display: block; width: 100%; margin-top: 4px; }
+.production-match-utilities-panel { max-height: calc(100svh - 72px); overflow-y: auto; }

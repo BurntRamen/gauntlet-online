@@ -52,6 +52,20 @@ function initialMatchTheme() {
   }
 }
 
+const displayChoices = {
+  resolution: { label: "Table render resolution", choices: { preset: "Use graphics quality", "540": "540p", "720": "720p", "1080": "1080p", "1440": "1440p" }, fallback: "preset" },
+  preview: { label: "Card previews", choices: { standard: "Art and rules", text: "Rules only" }, fallback: "standard" },
+  lighting: { label: "Table edges", choices: { shaded: "Shaded", clear: "Clear" }, fallback: "shaded" }
+};
+
+function initialDisplaySettings() {
+  let saved;
+  try { saved = JSON.parse(window.localStorage.getItem("gauntlet.matchDisplay")); } catch {}
+  return Object.fromEntries(Object.entries(displayChoices).map(([key, { choices, fallback }]) =>
+    [key, Object.hasOwn(choices, saved?.[key]) ? saved[key] : fallback]
+  ));
+}
+
 function initialGraphicsQuality(explicitQuality) {
   if (explicitQuality != null) return normalizeGraphicsQuality(explicitQuality);
   if (typeof window === "undefined") return normalizeGraphicsQuality();
@@ -548,6 +562,8 @@ function MatchUtilities({
   audioEnabled,
   onAudioEnabledChange,
   graphicsQuality,
+  displaySettings,
+  onDisplayChange,
   graphicsScalingLevel,
   onGraphicsQualityChange,
   colorTheme,
@@ -621,8 +637,17 @@ function MatchUtilities({
             ))}
           </select>
           <small id="gauntlet-graphics-quality-help">
-            {graphicsProfile.description} Rendering at {renderResolutionPercent}% of CSS resolution. Changes apply immediately and are saved.
+            {displaySettings.resolution === "preset" ? graphicsProfile.description : "Fixed render height. Width follows the table aspect ratio."} Rendering at {renderResolutionPercent}% of CSS resolution. Changes apply immediately and are saved.
           </small>
+          {Object.entries(displayChoices).map(([key, {label, choices, fallback}]) => (
+            <div key={key}>
+              <label htmlFor={`gauntlet-display-${key}`}>{label}</label>
+              <select id={`gauntlet-display-${key}`} value={displaySettings[key]} onChange={event => onDisplayChange(key, event.target.value)}>
+                {[fallback, ...Object.keys(choices).filter(value => value !== fallback)].map(value =>
+                  <option key={value} value={value}>{choices[value]}</option>)}
+              </select>
+            </div>
+          ))}
         </div>
         <div className="production-utility-shortcuts" aria-label="Match information">
           {!spectator && <button type="button" onClick={() => openReference("hand")}>Inspect hand</button>}
@@ -1587,6 +1612,12 @@ export default function ProductionMatchExperience({
   const [previewCard, setPreviewCard] = useState(null);
   const [pinnedInspection, setPinnedInspection] = useState(null);
   const [audioEnabled, setAudioEnabled] = useState(options.audioEnabled ?? true);
+  const [displaySettings, setDisplaySettings] = useState(initialDisplaySettings);
+  const changeDisplay = (key, value) => {
+    const next = { ...displaySettings, [key]: value };
+    setDisplaySettings(next);
+    try { window.localStorage.setItem("gauntlet.matchDisplay", JSON.stringify(next)); } catch {}
+  };
   const [graphicsQuality, setGraphicsQuality] = useState(() => initialGraphicsQuality(options.graphicsQuality));
   const [colorTheme, setColorTheme] = useState(initialMatchTheme);
   const [sceneMetrics, setSceneMetrics] = useState(null);
@@ -2195,6 +2226,8 @@ export default function ProductionMatchExperience({
       data-shadow-map-size={sceneMetrics?.shadowMapSize ?? ""}
       data-shadow-map-refresh-rate={sceneMetrics?.shadowMapRefreshRate ?? ""}
       data-hardware-scaling-level={sceneMetrics?.hardwareScalingLevel ?? ""}
+      data-card-preview={displaySettings.preview}
+      data-table-edges={displaySettings.lighting}
       data-graphics-quality={graphicsQuality}
       data-match-theme={colorTheme}
       data-frozen-board-mesh-count={sceneMetrics?.frozenBoardMeshCount ?? ""}
@@ -2212,6 +2245,7 @@ export default function ProductionMatchExperience({
             viewModel={canvasViewModel}
             commands={gameplayCommands}
             interactionLocked={gameplayInputLocked}
+            resolution={displaySettings.resolution}
             graphicsQuality={graphicsQuality}
             battlefieldTheme={battlefieldFactionId}
             colorTheme={colorTheme}
@@ -2304,6 +2338,8 @@ export default function ProductionMatchExperience({
             audioEnabled={audioEnabled}
             onAudioEnabledChange={updateAudioEnabled}
             graphicsQuality={graphicsQuality}
+            displaySettings={displaySettings}
+            onDisplayChange={changeDisplay}
             graphicsScalingLevel={sceneMetrics?.hardwareScalingLevel}
             onGraphicsQualityChange={updateGraphicsQuality}
             colorTheme={colorTheme}
