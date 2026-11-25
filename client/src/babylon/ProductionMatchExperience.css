@@ -3739,6 +3739,6 @@
   .has-desktop-panels.has-phone-hand .phone-hand-panel {
     left: 8px; right: calc(var(--desktop-rail-width) + 24px); bottom: 6px;
   }
-  .has-desktop-panels.has-phone-hand .production-battlefield-safe-frame { bottom: 194px; }
+  .has-desktop-panels.has-phone-hand .production-battlefield-safe-frame { bottom: calc(var(--phone-hand-reserve, 194px) + 6px); }
 }
 

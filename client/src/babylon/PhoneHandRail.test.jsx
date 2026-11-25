@@ -91,3 +91,14 @@ test("the mobile hand shows the equipped foil only while the card is visible", (
   rerender(<PhoneHandRail {...props} viewModel={{ ...viewModel, hand: [{ ...foil, visible: false }] }} />);
   expect(container.querySelector(".is-animated-collector")).toBeNull();
 });
+
+test("hand menu cards shrink and the chosen size survives reopening", () => {
+  const mount = () => render(<PhoneHandRail viewModel={viewModel} commands={{}} presentationRef={presentation()} />);
+  const first = mount();
+  fireEvent.keyDown(screen.getByRole("slider", { name: "Hand menu size" }), { key: "Home" });
+  expect(screen.getByLabelText("Your hand").style.getPropertyValue("--hand-menu-height")).toBe("64px");
+  first.unmount();
+  mount();
+  expect(screen.getByRole("slider")).toHaveAttribute("aria-valuenow", "64");
+  window.localStorage.removeItem("gauntlet.handMenuCardHeight");
+});

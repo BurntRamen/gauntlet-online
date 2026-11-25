@@ -143,3 +143,16 @@
   .phone-hand-type { max-width: 82px; font-size: 10px; line-height: 12px; }
   .phone-hand-selection { padding: 4px 2px; font-size: 12px; line-height: 14px; }
 }
+
+.phone-hand-resizer {
+  display: grid; place-items: center; height: 18px; cursor: ns-resize; touch-action: none;
+}
+.phone-hand-resizer::before {
+  content: ""; width: 48px; height: 4px; border-radius: 4px; background: #aabac9;
+}
+.phone-hand-resizer:is(:hover, :focus-visible, :active)::before { background: #f2bd61; }
+.phone-hand-panel .phone-hand-card {
+  --card-height: min(var(--hand-menu-height, 151px), 36svh);
+  flex: 0 0 auto; height: var(--card-height); width: auto;
+  min-width: 0; min-height: 0; aspect-ratio: 5 / 7;
+}

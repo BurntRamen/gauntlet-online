@@ -2021,6 +2021,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   let queuedPointerMove = null;
   let lastPreviewKey = null;
   let dragStart = null;
+  let settlingHand = null;
   let handOrder = [];
   let handScope = "";
   let pointerPickCount = 0;
@@ -2498,7 +2499,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       }
     );
     const displaySlot = currentViewModel?.handDisplay === "drag" && actor.zone.kind === "hand" && actor.zone.side === "local"
-      ? handOrder.indexOf(actor.actorId) : -1;
+      ? (dragStart?.order || handOrder).indexOf(actor.actorId) : -1;
     const positionedActor = displaySlot < 0 ? actor : { ...actor, zone: { ...actor.zone, slotIndex: displaySlot } };
     let position = (externalHand && railPosition(actor.actorId)) || resolveActorPosition(positionedActor, activeLayoutProfile);
     const hovered = hoveredId === actor.actorId && actor.zone.kind === "hand";
@@ -2788,7 +2789,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     currentMatchId = nextMatchId;
     const previousPriority = currentViewModel?.priority ?? null;
     const scope = JSON.stringify([nextMatchId, viewModel.perspective?.player, viewModel.handDisplay]);
-    if (scope !== handScope) { handScope = scope; handOrder = []; dragStart = null; }
+    if (scope !== handScope) { handScope = scope; handOrder = []; dragStart = null; settlingHand = null; canvas.style.removeProperty("cursor"); }
     if (viewModel.handDisplay === "drag") {
       const ids = (viewModel.hand || []).map((card, index) => visibleCardIdentity(card, `player-${viewModel.perspective?.player}:hand:${index}`));
       handOrder = [...handOrder.filter(id => ids.includes(id)), ...ids.filter(id => !handOrder.includes(id))];
@@ -3207,7 +3208,16 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     }
   }
 
-  const beforeRender = babylonScene.onBeforeRenderObservable.add(animate);
+  const beforeRender = babylonScene.onBeforeRenderObservable.add(() => {
+    animate();
+    if (dragStart?.position) objects.get(dragStart.id)?.mesh.position.copyFrom(dragStart.position);
+    if (settlingHand) {
+      const record = objects.get(settlingHand.id);
+      const progress = Math.min(1, (performance.now() - settlingHand.at) / 165);
+      if (!record || progress >= 1 || record.presentationActor?.zone.kind !== "hand") settlingHand = null;
+      else Vector3.LerpToRef(settlingHand.from, record.target.position, 1 - (1 - progress) ** 3, record.mesh.position);
+    }
+  });
   function pickCanvasMetadata(event) {
     const rect = canvas.getBoundingClientRect();
     if (!rect.width || !rect.height) return null;
@@ -3290,6 +3300,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   }
 
   function handleCanvasPointerMove(event) {
+    if (moveHandDrag(event)) return;
     queuedPointerMove = {
       clientX: event.clientX,
       clientY: event.clientY,
@@ -3319,7 +3330,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   }
 
   function startHandDrag(event) {
-    dragStart = null;
+    if (dragStart) return;
     if (event.button !== 0 || currentViewModel?.handDisplay !== "drag") return;
     const card = pickCanvasMetadata(event);
     if (card?.type !== "hand" || card.owner !== "local") return;
@@ -3327,33 +3338,80 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     canvas.setPointerCapture?.(event.pointerId);
   }
 
-  function cancelHandDrag() { dragStart = null; }
+  function refreshHandSlots() {
+    for (const id of handOrder) {
+      const record = objects.get(id);
+      if (record?.presentationActor?.zone.kind === "hand") renderPresentationActor(record.presentationActor, null, record);
+    }
+  }
+
+  function finishHandDrag(commit) {
+    const drag = dragStart;
+    dragStart = null;
+    canvas.style.removeProperty("cursor");
+    if (!drag?.active) return;
+    const record = objects.get(drag.id);
+    const released = record?.mesh.position.clone();
+    if (commit && drag.order?.length === handOrder.length && drag.order.every(id => handOrder.includes(id))) handOrder = drag.order;
+    refreshHandSlots();
+    if (released && !currentViewModel?.reducedMotion) settlingHand = { id: drag.id, from: released, at: performance.now() };
+  }
+
+  function cancelHandDrag() { finishHandDrag(false); }
+
+  function moveHandDrag(event) {
+    const drag = dragStart;
+    if (!drag || drag.pointer !== event.pointerId) return false;
+    if (!drag.active && Math.hypot(event.clientX - drag.x, event.clientY - drag.y) < 7) return false;
+    const record = objects.get(drag.id);
+    if (record?.presentationActor?.zone.kind !== "hand" || !handOrder.includes(drag.id)) {
+      cancelHandDrag();
+      return true;
+    }
+    const rect = canvas.getBoundingClientRect();
+    const width = engine.getRenderWidth(), height = engine.getRenderHeight();
+    const viewport = camera.viewport.toGlobal(width, height);
+    const project = pos => Vector3.Project(pos, identityMatrix, babylonScene.getTransformMatrix(), viewport);
+    if (!drag.active) {
+      settlingHand = null;
+      drag.origin = project(record.mesh.position);
+      drag.slots = handOrder.map(id => {
+        const slot = objects.get(id);
+        return slot && project(slot.target.position).x;
+      });
+      if (drag.slots.some(x => !Number.isFinite(x))) return false;
+      drag.active = true;
+      canvas.style.cursor = "grabbing";
+    }
+    const x = drag.origin.x + (event.clientX - drag.x) * width / rect.width;
+    const y = drag.origin.y + (event.clientY - drag.y) * height / rect.height;
+    drag.position = Vector3.Unproject(new Vector3(x, y, drag.origin.z - 0.012), width, height,
+      identityMatrix, camera.getViewMatrix(), camera.getProjectionMatrix());
+    const nearest = drag.slots.reduce((best, slot, i) => Math.abs(slot - x) < Math.abs(drag.slots[best] - x) ? i : best, 0);
+    if (nearest !== drag.slot) {
+      drag.slot = nearest;
+      drag.order = handOrder.filter(id => id !== drag.id);
+      drag.order.splice(nearest, 0, drag.id);
+      refreshHandSlots();
+    }
+    record.mesh.position.copyFrom(drag.position);
+    return true;
+  }
 
   function handleCanvasPointerUp(event) {
     if (event.button != null && event.button !== 0) return;
     if (pointerMoveFrame != null) window.cancelAnimationFrame(pointerMoveFrame);
     pointerMoveFrame = null;
     queuedPointerMove = null;
-    const metadata = pickCanvasMetadata(event);
-    const start = dragStart;
-    dragStart = null;
-    if (start && start.pointer === event.pointerId && Math.hypot(event.clientX - start.x, event.clientY - start.y) >= 7) {
-      if (metadata?.type === "hand" && metadata.owner === "local" && metadata.actorId !== start.id) {
-        const records = [...objects.values()].filter(r => r.presentationActor?.zone.kind === "hand"
-          && r.presentationActor.zone.side === "local" && r.mesh.isEnabled())
-          .sort((a, b) => a.presentationActor.zone.slotIndex - b.presentationActor.zone.slotIndex);
-        const ids = records.map(r => r.presentationActor.actorId);
-        handOrder = [...handOrder.filter(id => ids.includes(id)), ...ids.filter(id => !handOrder.includes(id))];
-        const from = handOrder.indexOf(start.id);
-        const to = handOrder.indexOf(metadata.actorId);
-        if (from >= 0 && to >= 0) {
-          handOrder.splice(from, 1);
-          handOrder.splice(to, 0, start.id);
-          records.forEach(r => renderPresentationActor(r.presentationActor, null, r));
-        }
+    if (dragStart && dragStart.pointer === event.pointerId) {
+      moveHandDrag(event);
+      if (dragStart?.active) {
+        finishHandDrag(true);
+        return;
       }
-      return;
+      finishHandDrag(false);
     }
+    const metadata = pickCanvasMetadata(event);
     if (!metadata) return;
     if (metadata.preview) commands.selectPreview?.(metadata.preview);
     if (metadata.type === "hand") {
@@ -3373,10 +3431,11 @@ export function createGauntletScene(engine, canvas, commands = {}) {
 
   canvas.addEventListener("pointerdown", startHandDrag);
   canvas.addEventListener("pointercancel", cancelHandDrag);
+  canvas.addEventListener("lostpointercapture", cancelHandDrag);
   canvas.addEventListener("pointermove", handleCanvasPointerMove);
   canvas.addEventListener("pointerleave", handleCanvasPointerLeave);
-  canvas.addEventListener("pointerdown", startHandDrag);
-  canvas.addEventListener("pointercancel", cancelHandDrag);
+  
+  
   canvas.addEventListener("pointerup", handleCanvasPointerUp);
 
   function setCapturePaused(paused) {
@@ -3401,7 +3460,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     setCapturePaused,
     isAnimationActive() {
       return Boolean(
-        activeEventAnimation
+        dragStart?.active || settlingHand || activeEventAnimation
         || animationQueue.length > 0
         || Array.from(objects.values()).some((record) => record.motion || record.holdUntilMs)
       );
@@ -3518,10 +3577,11 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       babylonScene.onBeforeRenderObservable.remove(beforeRender);
       canvas.removeEventListener("pointerdown", startHandDrag);
       canvas.removeEventListener("pointercancel", cancelHandDrag);
+      canvas.removeEventListener("lostpointercapture", cancelHandDrag);
       canvas.removeEventListener("pointermove", handleCanvasPointerMove);
       canvas.removeEventListener("pointerleave", handleCanvasPointerLeave);
-      canvas.removeEventListener("pointerdown", startHandDrag);
-      canvas.removeEventListener("pointercancel", cancelHandDrag);
+      
+      
       canvas.removeEventListener("pointerup", handleCanvasPointerUp);
       fullscreenUi.dispose();
       authoredModuleRoots.forEach((root) => root.dispose?.());

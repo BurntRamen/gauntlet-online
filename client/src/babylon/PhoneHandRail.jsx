@@ -25,6 +25,18 @@ export function usePhoneHandLayout() {
 
 export default function PhoneHandRail({ viewModel, commands, presentationRef, interactionLocked }) {
   usePresentationArt();
+  const [cardHeight, setCardHeight] = useState(() => {
+    try {
+      const saved = Number(window.localStorage.getItem("gauntlet.handMenuCardHeight"));
+      if (saved >= 64 && saved <= 220) return saved;
+    } catch {}
+    return 151;
+  });
+  const resizeGesture = useRef(null);
+  const resizeTo = value => setCardHeight(Math.max(64, Math.min(220, Math.round(value))));
+  useEffect(() => {
+    try { window.localStorage.setItem("gauntlet.handMenuCardHeight", String(cardHeight)); } catch {}
+  }, [cardHeight]);
   const railRef = useRef(null);
   const gestureRef = useRef(null);
   const selectedRef = useRef(new Set());
@@ -82,7 +94,25 @@ export default function PhoneHandRail({ viewModel, commands, presentationRef, in
   };
 
   return (
-    <section className="phone-hand-panel" aria-label="Your hand">
+    <section className="phone-hand-panel" aria-label="Your hand" style={{ "--hand-menu-height": cardHeight + "px" }}>
+      <div className="phone-hand-resizer" role="slider" tabIndex={0}
+        aria-label="Hand menu size" aria-orientation="vertical" aria-valuemin={64} aria-valuemax={220}
+        aria-valuenow={cardHeight} aria-valuetext={cardHeight + " pixel cards"}
+        title="Drag up to enlarge your hand or down to shrink it"
+        onPointerDown={event => {
+          if (event.button !== 0) return;
+          event.currentTarget.setPointerCapture(event.pointerId);
+          resizeGesture.current = { id: event.pointerId, y: event.clientY, height: cardHeight };
+        }}
+        onPointerMove={event => {
+          const start = resizeGesture.current;
+          if (start?.id === event.pointerId) resizeTo(start.height + start.y - event.clientY);
+        }}
+        onLostPointerCapture={() => { resizeGesture.current = null; }}
+        onKeyDown={event => {
+          const sizes = { ArrowUp: cardHeight + 8, ArrowDown: cardHeight - 8, Home: 64, End: 220 };
+          if (Object.hasOwn(sizes, event.key)) { event.preventDefault(); resizeTo(sizes[event.key]); }
+        }} />
       <header><strong>Your hand · {hand.length}</strong><span>Swipe to browse · tap to select</span></header>
       <div ref={railRef} className="phone-hand-rail" data-testid="phone-hand-rail"
         onPointerDown={(event) => { gestureRef.current = { x: event.clientX, y: event.clientY, moved: false }; }}
