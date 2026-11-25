@@ -1086,6 +1086,17 @@ function MatchResult({
   onOpenEarnedPack
 }) {
   useBrandPreview();
+  const dialogRef = useRef(null);
+  const headingRef = useRef(null);
+  const headingId = useId();
+  useLayoutEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return undefined;
+    if (typeof dialog.showModal === "function") dialog.showModal();
+    else dialog.setAttribute("open", "");
+    headingRef.current?.focus();
+    return () => { if (dialog.open && dialog.close) dialog.close(); };
+  }, [viewModel?.phase]);
   if (viewModel?.phase !== "gameOver") return null;
   const localPlayer = viewModel?.perspective?.player;
   const resultProjection = projectPostMatchResult({ completion, viewModel, playerNum: localPlayer });
@@ -1101,25 +1112,25 @@ function MatchResult({
     : null;
   const campaignPack = completion?.rewards?.campaignPack || null;
   return (
-    <section className={`production-match-result is-${outcome}`} role="dialog" aria-modal="true" data-outcome={outcome}>
-      <div className="production-result-radiance" aria-hidden="true">
-        <i /><i /><i />
-      </div>
+    <dialog ref={dialogRef} className={`production-match-result sf-result is-${outcome}`} aria-modal="true" aria-labelledby={headingId} data-outcome={outcome} onCancel={event => event.preventDefault()}>
+      <article className="sf-result-sheet">
+      <header className="sf-result-heading">
       <div className="production-result-crest" aria-hidden="true">{outcome === "win" ? "✦" : outcome === "draw" ? "◇" : "◆"}</div>
       <span>{brandText("SuitFire Match Complete", "Gauntlet Match Complete")}</span>
-      <h1>{title}</h1>
+      <h1 id={headingId} ref={headingRef} tabIndex={-1}>{title}</h1>
       <p>{resultProjection.finalMessage || viewModel.message}</p>
+      </header>
+      <div className="sf-result-summary">
       <dl className="production-result-facts">
-        <div><dt>Match ID</dt><dd>{resultProjection.matchId || "Pending"}</dd></div>
         {completion?.campaign && <div><dt>Chapter</dt><dd>{completion.campaign.firstClear ? "First clear" : completion.campaign.repeatClear ? "Repeat clear" : "Not cleared"}</dd></div>}
         {campaignPack && <div><dt>Campaign reward</dt><dd>{campaignPack.name} × {campaignPack.count}</dd></div>}
-        {completion && <div><dt>Pack credits</dt><dd>+{completion.rewards?.boosterCreditDelta || 0}</dd></div>}
+        {Boolean(completion?.rewards?.boosterCreditDelta) && <div><dt>Pack credits</dt><dd>+{completion.rewards?.boosterCreditDelta || 0}</dd></div>}
         {completion?.campaign?.nextMission?.status === "available" && <div><dt>Next mission</dt><dd>{completion.campaign.nextMission.title}</dd></div>}
         <SeasonResultFacts seasonResult={completion?.season} />
       </dl>
       {(completion?.rewards?.achievementsUnlocked?.length > 0 || completion?.rewards?.cosmeticsUnlocked?.length > 0) && (
         <p className="production-result-unlocks">
-          Newly unlocked: {[...(completion.rewards.achievementsUnlocked || []), ...(completion.rewards.cosmeticsUnlocked || [])].map((entry) => entry.name || entry.id).join(", ")}
+          Newly unlocked · {[...(completion.rewards.achievementsUnlocked || []), ...(completion.rewards.cosmeticsUnlocked || [])].map((entry) => entry.name || entry.id).join(", ")}
         </p>
       )}
       {campaign?.afterBattle && <p className="production-campaign-aftermath">{campaign.afterBattle}</p>}
@@ -1130,7 +1141,10 @@ function MatchResult({
         audioEnabled={audioEnabled}
         factionId={campaign?.factionId}
       />
-      <div className="production-result-actions">
+      <details className="sf-result-record"><summary>Match details</summary><dl><div><dt>Match ID</dt><dd>{resultProjection.matchId || "Pending"}</dd></div></dl></details>
+      </div>
+      <footer className="sf-result-footer">
+      <div className="production-result-actions" role="group" aria-label="Post-match actions">
         {campaignPack && onOpenEarnedPack && (
           <button
             type="button"
@@ -1144,16 +1158,6 @@ function MatchResult({
         {!campaign && onContinueJourney && (
           <button type="button" className="production-result-primary" onClick={onContinueJourney}>
             Continue Journey
-          </button>
-        )}
-        {onOpenReplay && (
-          <button type="button" onClick={onOpenReplay}>
-            Watch Replay
-          </button>
-        )}
-        {onOpenMatches && (
-          <button type="button" onClick={onOpenMatches}>
-            Matches
           </button>
         )}
         {nextMission && onContinueCampaign && (
@@ -1180,6 +1184,16 @@ function MatchResult({
             Decline Rematch
           </button>
         )}
+        {onOpenReplay && (
+          <button type="button" onClick={onOpenReplay}>
+            Watch Replay
+          </button>
+        )}
+        {onOpenMatches && (
+          <button type="button" onClick={onOpenMatches}>
+            Matches
+          </button>
+        )}
         {commands.leaveMatch && (
           <button type="button" onClick={() => commands.leaveMatch()}>
             Main Menu
@@ -1188,7 +1202,9 @@ function MatchResult({
       </div>
       {controls.rematchStatus?.message && <p role="status">{controls.rematchStatus.message}</p>}
       {controls.controlStatus?.message && <p role="status">{controls.controlStatus.message}</p>}
-    </section>
+      </footer>
+      </article>
+    </dialog>
   );
 }
 
