@@ -159,7 +159,7 @@ test("website release validates theme templates, box dimensions and menu members
  const layout={...presentation.defaultLayout("play"),version:2,style:{theme:"forest",tileWidth:360,gap:18,rounding:6},templates:[]};
  layout.sections[0].width="full";
  layout.templates.push({name:"League night",style:{...layout.style},arrangement:"tiles",typography:"editorial"});
- const menu=presentation.defaultNavigation();menu.items[1].visible=false;menu.items[2].placement="primary";
+ const menu={...presentation.defaultNavigation(),theme:"midnight"};menu.items[1].visible=false;menu.items[2].placement="primary";
  const saved=store.patchRecord({domain:"game",id:"practice",expectedRevision:0,changes:[
    {field:"playPageLayout",value:layout},{field:"websiteNavigation",value:menu}]},"admin");
  const result=store.preview({expectedRevision:saved.revision}).preview.manifest.websitePresentation;

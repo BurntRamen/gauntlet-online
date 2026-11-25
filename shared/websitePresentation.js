@@ -23,7 +23,7 @@ function validTemplate(t) {
 }
 function errors(value, type, page, factionIds = []) {
   if(type === 'website-navigation') {
-    if(!exact(value,['version','items']) || value.version!==1 || !Array.isArray(value.items) || value.items.length!==navigation.length) return ['Use the registered navigation version and all destinations.'];
+    if(!(exact(value,['version','items']) || (exact(value,['version','items','theme']) && ['original','midnight','parchment','forest'].includes(value.theme))) || value.version!==1 || !Array.isArray(value.items) || value.items.length!==navigation.length) return ['Use the registered navigation version and all destinations.'];
     if(new Set(value.items.map(x=>x?.id)).size!==navigation.length || value.items.some(x=>(!x || typeof x!=='object' || !exact(x,['id','label',...('visible' in x?['visible']:[]),...('placement' in x?['placement']:[])]) || ('visible' in x && typeof x.visible!=='boolean') || ('placement' in x && !['default','primary','more'].includes(x.placement))) || !navigation.some(([id])=>id===x.id) || typeof x.label!=='string' || !x.label.trim() || x.label.length>32 || /[\x00-\x1f]/.test(x.label))) return ['Use each registered destination once and labels of 1–32 characters.'];
     if (!value.items.some(i=>i.visible !== false)) return ['Keep at least one menu destination visible.'];
     return [];

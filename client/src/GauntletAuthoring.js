@@ -385,7 +385,7 @@ export default function GauntletAuthoring({ operatorScope, request, area, initia
     }
     if (group.domain==="game" && !state.capabilities?.websiteThemes && changes.some(({field,value})=>
       (field.endsWith("PageLayout") && (value?.version===2 || value?.sections?.some(row=>row.width))) ||
-      (field==="websiteNavigation" && value?.items?.some(row=>row.visible!==undefined || row.placement)))) {
+      (field==="websiteNavigation" && (value?.theme || value?.items?.some(row=>row.visible!==undefined || row.placement))))) {
       setError("Your website edits are saved in this browser. The connected game server needs the website editor update before it can accept this draft.");
       return false;
     }

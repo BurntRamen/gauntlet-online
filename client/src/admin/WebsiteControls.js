@@ -26,9 +26,11 @@ export default function WebsiteControls({definition, value, onChange, disabled, 
   const change=(index,patch)=>onChange({...config,[key]:rows.map((row,i)=>i===index?{...row,...patch}:row)});
   const move=(index,delta)=>{const next=[...rows]; [next[index],next[index+delta]]=[next[index+delta],next[index]]; onChange({...config,[key]:next});};
   return <fieldset disabled={disabled} className="website-controls"><legend>{nav?creativeCopy.creativeWebsiteControls1:'Page presentation'}</legend>
+    {nav && <label>Site-wide theme<select value={config.theme || "original"} onChange={e=>onChange({...config,theme:e.target.value})}>
+      {["original","midnight","parchment","forest"].map(name=><option key={name}>{name}</option>)}</select></label>}
     {!nav && <div className="admin-form-grid"><label>Type style<select aria-label="Type style" value={config.typography} onChange={e=>onChange({...config,typography:e.target.value})}><option value="standard">SuitFire standard</option><option value="editorial">Editorial headings</option><option value="plain">Plain reading</option></select></label>{rows.length>0 && <label>Section arrangement<select aria-label="Section arrangement" value={config.arrangement} onChange={e=>onChange({...config,arrangement:e.target.value})}><option value="tiles">Tiles</option><option value="list">List</option><option value="compact">Compact tiles</option></select></label>}</div>}
     {!nav && <fieldset><legend>Theme and sizing</legend>
-      <label>Theme<select value={style.theme} onChange={e=>apply({style:{...style,theme:e.target.value}})}>{["original","midnight","parchment","forest"].map(name=><option key={name}>{name}</option>)}</select></label>
+      <label>Theme<select value={style.theme} onChange={e=>apply({style:{...style,theme:e.target.value}})}>{["original","midnight","parchment","forest"].map(name=><option key={name}>{name==="original"?"Use site theme":name}</option>)}</select></label>
       {[["tileWidth","Tile width",160,600],["gap","Tile spacing",0,48],["rounding","Corner radius",0,40]].map(([key,label,min,max])=>
         <label key={key}>{label} ({style[key]} px)<input type="range" aria-label={label} min={min} max={max} value={style[key]} onChange={e=>apply({style:{...style,[key]:Number(e.target.value)}})}/></label>)}
       <label>Template name<input value={templateName} maxLength={48} onChange={e=>setTemplateName(e.target.value)}/></label>
