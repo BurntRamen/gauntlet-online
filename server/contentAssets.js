@@ -25,10 +25,10 @@ function resolveAssetFields(value, field = "", versions = [], releaseId = "") {
 function cardPresentation(card, variant, sourceCard, sourceVariant, releaseId, versions = []) {
   const illustration = resolveAsset(variant?.art || manifest.illustrations[card.id], versions, releaseId);
   const bakedFaces = ["spades", "hearts", "diamonds", "clubs"].map((suit) => manifest.faces[`${card.id}:${suit}`]);
-  const baked = bakedFaces.every(Boolean) && card.name === sourceCard?.name && card.text === sourceCard?.text
+  const baked = (!card.frameStyle || card.frameStyle === "original") && bakedFaces.every(Boolean) && ["name", "text", "value", "suit", "type", "factionId", "rarity"].every(key => card[key] === sourceCard?.[key])
     && resolveAsset(variant?.art, versions, releaseId) === resolveAsset(sourceVariant?.art);
   const faces = Object.fromEntries(["spades", "hearts", "diamonds", "clubs"].map((suit) => [suit, baked ? resolveAsset(manifest.faces[`${card.id}:${suit}`]) : null]));
-  return { releaseId, assetManifestVersion: manifest.version, illustration, faces, composed: !baked,
+  return { releaseId, assetManifestVersion: manifest.version, illustration, faces, composed: !baked, ...(variant?.art && variant.art !== sourceVariant?.art ? {authoredIllustration:true} : {}), ...(card.frameStyle ? {frameStyle:card.frameStyle} : {}),
     illustrationAssetId: assetEntry(variant?.art || illustration, versions, releaseId)?.id || null, illustrationDigest: assetEntry(variant?.art || illustration, versions, releaseId)?.sha256 || null };
 }
 function ordinaryPresentation(card, factionId, releaseId) {

@@ -14,7 +14,7 @@ export { displayValue } from "./workshopValues";
 export default function WorkshopField({ state, domain, row, field, buffer, busy, onEdit, onInspect, onAsset, renderContract, onReset }) {
   const helpCopy = useHelp();
   const rawDefinition = state.fields[domain]?.[row.id]?.[field];
-  const sharedOptions = rawDefinition?.optionGroup ? state.cardEffectOptions?.[rawDefinition.optionGroup] || [] : rawDefinition?.options;
+  const sharedOptions = rawDefinition?.optionGroup ? state.cardEffectOptions?.[row.factionId + ":" + row.type] || [] : rawDefinition?.options;
   const definition = field === "effect" && rawDefinition ? { ...rawDefinition, options: sharedOptions, abilityLabels: Object.fromEntries((state.workshopMetadata?.cardEffects || []).map(effect => [effect.id, effect.label])) } : rawDefinition;
   if (!definition) return null;
   const effective = value => value === undefined ? definition.defaultValue : value;
@@ -22,8 +22,7 @@ export default function WorkshopField({ state, domain, row, field, buffer, busy,
   const saved = effective(row[field]);
   const dirty = buffer !== undefined, value = dirty ? buffer : definition.type === "card-list" ? JSON.stringify(saved) : displayValue(saved);
   const changed = JSON.stringify(saved) !== JSON.stringify(live);
-  const structuralLock = domain === "cards" && row.origin === "admin-v1" && ["factionId", "type", "value", "suit"].includes(field) && state.live.domains.cards.some(card => card.id === row.id);
-  const disabled = busy || !state.writable || structuralLock;
+  const disabled = busy || !state.writable;
   const update = next => onEdit(next, saved);
   let contract = row[field];
   const catalogType = ["pack-composition", "modifier-reference", "choice", "catalog-flags", "card-list", "printing-edition", "deck-reference", "deck-composition", "offer-prices", "offer-sale"].includes(definition.type);
@@ -63,7 +62,7 @@ export default function WorkshopField({ state, domain, row, field, buffer, busy,
       {definition.type === "assets" && <div className="admin-actions">{(value || row[field]?.length ? value.split("\n") : []).map((entry, index) => <button key={index} type="button" disabled={disabled} onClick={event => onAsset({ returnFocus: event.currentTarget, value: entry, liveValue: live?.[index], media: definition.media, onSelect: next => { const lines = value.split("\n"); lines[index] = next; update(lines.join("\n")); } })}>Choose voice {index + 1}</button>)}<button type="button" disabled={disabled} onClick={event => onAsset({ returnFocus: event.currentTarget, value: "", media: definition.media, onSelect: next => update(value ? `${value}\n${next}` : next) })}>Add voice reference</button></div>}
       </div></div>
     {selectedEffect && dirty && <p className="admin-note">Selected effect: {selectedEffect.label} · {selectedEffect.description}{helpCopy.creativeWorkshopField2}</p>}
-    <p id={noteId} className="admin-note">{structuralLock ? state.guide.identityLock : definition.note || (["lines", "assets"].includes(definition.type) ? state.guide.linesHelp : catalogType ? state.guide.catalogField : definition.type === "integer" ? `Whole number from ${definition.min} to ${definition.max}.` : definition.type === "asset" ? state.guide.immutableAsset : `Up to ${definition.maxLength} characters.`)}</p>
+    <p id={noteId} className="admin-note">{definition.note || (["lines", "assets"].includes(definition.type) ? state.guide.linesHelp : catalogType ? state.guide.catalogField : definition.type === "integer" ? `Whole number from ${definition.min} to ${definition.max}.` : definition.type === "asset" ? state.guide.immutableAsset : `Up to ${definition.maxLength} characters.`)}</p>
     <Validation errorId={errorId} guide={state.guide} validation={state.validation} domain={domain} id={row.id} field={field} />
     <details className="admin-field-tools"><summary>Compare & revert</summary><div className="admin-comparison"><div><strong>Current live value</strong><div className="admin-live-value" tabIndex={0} aria-label={`Current live ${definition.label.toLowerCase()}`}>{displayValue(live) || "—"}</div></div>{dirty && <details><summary>{helpCopy.creativeWorkshopField3}</summary><pre className="admin-protected">{displayValue(saved)}</pre></details>}</div><div className="admin-actions">{dirty && <button type="button" disabled={disabled} onClick={onReset}>Reset local {definition.label.toLowerCase()}</button>}<button type="button" disabled={disabled || !state.live.domains[domain]?.some(entry => entry.id === row.id) || (!dirty && !changed)} onClick={() => update(definition.type === "card-list" ? JSON.stringify(live) : displayValue(live))}>Revert {definition.label.toLowerCase()} to live</button><p className="admin-note">{helpCopy.fieldNote1}</p></div></details>
   </section>;

@@ -1,5 +1,7 @@
 import {render} from "./testSupport";
 import {fireEvent,screen,within} from "@testing-library/react";
+import {useState} from "react";
+import WebsiteControls from "./WebsiteControls";
 import WebsiteProseWorkshop from './WebsiteProseWorkshop';
 import presentation from '../../../shared/websitePresentation';
 const state={guide:require("../../../server/adminAuthoringGuide"),live:{domains:{game:[{id:'practice',name:'Practice',playPageTitle:'Saved heading'}],campaigns:[],factions:[]}},fields:{game:{practice:{...require('../../../server/websiteProse').proseFields('practice'),name:{},description:{},heroTitle:{},playPageTitle:{defaultValue:'Play'},playPageDescription:{defaultValue:'Pick a match.'},playPageLayout:{type:'website-layout',defaultValue:presentation.defaultLayout('play')},websiteNavigation:{type:'website-navigation',defaultValue:presentation.defaultNavigation()}}}}};
@@ -62,4 +64,19 @@ test("mode prose search targets reveal their exact editable field",()=>{
  render(<WebsiteProseWorkshop {...props} target={{id:"practice",field:"heroTitle"}} field={key=><p key={key}>{key}</p>}/>);
  expect(screen.getByText("heroTitle")).toBeInTheDocument();
  expect(screen.queryByText("playPageTitle")).not.toBeInTheDocument();
+});
+
+test("an operator can save a theme, change the layout, and reapply the named template",()=>{
+ const definition={page:"play",type:"website-layout",defaultValue:presentation.defaultLayout("play")};
+ function Editor(){const [value,update]=useState(definition.defaultValue);return <WebsiteControls definition={definition} value={value} state={state} onChange={update}/>;}
+ render(<Editor/>);
+ fireEvent.change(screen.getByLabelText("Theme"),{target:{value:"midnight"}});
+ fireEvent.change(screen.getByLabelText("Tile width"),{target:{value:"412"}});
+ fireEvent.change(screen.getByLabelText("Template name"),{target:{value:"Tournament"}});
+ fireEvent.click(screen.getByRole("button",{name:"Save template"}));
+ fireEvent.change(screen.getByLabelText("Tile width"),{target:{value:"180"}});
+ fireEvent.change(screen.getByLabelText("Saved templates"),{target:{value:"playPageLayout/Tournament"}});
+ fireEvent.click(screen.getByRole("button",{name:"Apply template"}));
+ expect(screen.getByLabelText("Tile width")).toHaveValue("412");
+ expect(screen.getByLabelText("Theme")).toHaveValue("midnight");
 });

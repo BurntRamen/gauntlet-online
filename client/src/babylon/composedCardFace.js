@@ -1,5 +1,6 @@
 import { getPlayingCardRankSlug, normalizeCardDisplayText } from "../cardArt";
 
+import frames from "@gauntlet/duel-rules/cardFrames.json";
 export const COMPOSED_CARD_SIZE = Object.freeze({ width: 384, height: 536 });
 
 // Both the battlefield texture and the inspection panel use this full-art face.
@@ -31,7 +32,8 @@ export function paintPublishedCardFace(context, card, illustration) {
   caption.addColorStop(1, "rgba(252, 247, 233, 0.96)");
   context.fillStyle = caption;
   context.fillRect(0, 0, width, height);
-  context.strokeStyle = "#fcf7e9";
+  const frame = frames[card.frameStyle || card.presentation?.frameStyle];
+  context.strokeStyle = frame?.border || "#fcf7e9";
   context.lineWidth = 4;
   context.strokeRect(3, 3, width - 6, height - 6);
 
@@ -71,7 +73,7 @@ export function paintPublishedCardFace(context, card, illustration) {
     return result;
   }
   const nameLines = lines(card.name || "Gauntlet", "bold 17px Georgia").slice(0, 2);
-  const rules = card.rulesText || card.text || "";
+  const rules = [ [card.factionId, card.type, card.rarity].filter(Boolean).join(" · "), card.rulesText || card.text ].filter(Boolean).join(" — ");
   let fontSize = 14;
   let rulesLines = lines(rules, `${fontSize}px Arial`);
   while (rulesLines.length * (fontSize + 2) > 110 && fontSize > 9) {
@@ -81,7 +83,8 @@ export function paintPublishedCardFace(context, card, illustration) {
   const captionHeight = nameLines.length * 20 + rulesLines.length * (fontSize + 2);
   let y = Math.max(350, height - 28 - captionHeight);
   context.textAlign = "left";
-  context.fillStyle = "#27271f";
+  if (frame) { context.fillStyle = frame.panel; context.fillRect(14, y-4, 280, height-y-10); }
+  context.fillStyle = frame?.ink || "#27271f";
   context.font = "bold 17px Georgia";
   for (const line of nameLines) {
     context.fillText(line, 24, y, 260);

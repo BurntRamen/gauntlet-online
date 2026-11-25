@@ -68,9 +68,25 @@ export default function GauntletAuthoring({ operatorScope, request, area, initia
       .catch(() => setLocalWarning("This browser could not store the downloaded workspace."));
   }, [serverState, operatorScope]);
   const state = useMemo(() => {
-    if (serverState?.guide?.workspaceVersion !== 1) return serverState;
+    if (!serverState) return serverState;
+    let current = serverState;
+    if (serverState.fields?.cards && !serverState.capabilities?.cardMetadata) {
+      const definitions = effectRegistry.cardEffectDefinitions();
+      const choice = (label, options) => ({label,type:"choice",options});
+      const offline = {
+        factionId:choice("Faction",[...new Set(definitions.map(d=>d.factionId))]),
+        type:choice("Card type",[...new Set(definitions.map(d=>d.cardType))]),
+        rarity:choice("Rarity",["common","uncommon","rare","mythic"]),
+        suit:choice("Replacement suit",["spades","hearts","diamonds","clubs"]),
+        value:{label:"Printed value",type:"integer",min:2,max:14},
+        frameStyle:{...choice("Card frame",["original","parchment","midnight","evergreen"]),defaultValue:"original"}
+      };
+      current = {...serverState,fields:{...serverState.fields,cards:Object.fromEntries(Object.entries(serverState.fields.cards)
+        .map(([id,fields])=>[id,effectRegistry.defaultCardEffect(id) || fields.value ? {...offline,...fields} : fields]))}};
+    }
+    if (current.guide?.workspaceVersion !== 1) return current;
     const guide = serverState.guide;
-    return { ...serverState, guide: {
+    return { ...current, guide: {
       ...guide,
       help: { ...legacyHelp, ...guide.help },
       websiteSurfaces: guide.websiteSurfaces || []
@@ -361,16 +377,34 @@ export default function GauntletAuthoring({ operatorScope, request, area, initia
     let changes;
     try { changes = group.edits.map(edit => ({ field: edit.field, value: parseFieldValue(edit.value, edit.definition, edit.saved) })); }
     catch (failure) { setError(`Check ${group.label}: ${failure.message}`); return false; }
+    if (group.domain === "cards" && !state.capabilities?.cardMetadata && changes.some(({field})=>
+      ["factionId","type","rarity","value","suit","frameStyle"].includes(field) &&
+      (!serverState.fields?.cards?.[group.id]?.[field] || (group.row.origin==="admin-v1" && ["factionId","type","value","suit"].includes(field) && state.live.domains.cards.some(card=>card.id===group.id))))) {
+      setError("Your card changes are saved in this browser. The connected game server needs the card metadata update before it can accept this draft.");
+      return false;
+    }
+    if (group.domain==="game" && !state.capabilities?.websiteThemes && changes.some(({field,value})=>
+      (field.endsWith("PageLayout") && (value?.version===2 || value?.sections?.some(row=>row.width))) ||
+      (field==="websiteNavigation" && value?.items?.some(row=>row.visible!==undefined || row.placement)))) {
+      setError("Your website edits are saved in this browser. The connected game server needs the website editor update before it can accept this draft.");
+      return false;
+    }
     const changedEffect = group.domain === "cards" && changes.find(change => change.field === "effect");
+    const editedRow = {...group.row, ...Object.fromEntries(changes.map(change => [change.field, change.value]))};
+    if (group.domain === "cards" && changes.some(change => ["factionId","type"].includes(change.field)) &&
+        !effectRegistry.validateCardEffect(editedRow.effect, editedRow)) {
+      setError("Choose a compatible card effect in Mechanics before saving the new faction or card type.");
+      return false;
+    }
     if (changedEffect?.value?.modules) {
       const compiled = effectRegistry.runtimeEffect(changedEffect.value);
-      if (!compiled || !effectRegistry.validateCardEffect(changedEffect.value, group.row)) {
+      if (!compiled || !effectRegistry.validateCardEffect(changedEffect.value, editedRow)) {
         setError("Check the effect module triggers and amounts before saving.");
         return false;
       }
       if (!state.studio?.catalogRuleModules || (specialistRules.parametersFor(compiled.id) && !state.studio?.specialistRuleModules)) {
         const spec = state.fields.cards[group.id].effect;
-        const options = spec.options || state.cardEffectOptions?.[spec.optionGroup] || [];
+        const options = spec.options || state.cardEffectOptions?.[editedRow.factionId + ":" + editedRow.type] || [];
         const server = options.find(option => option.id === compiled.id && option.version === compiled.version);
         const parameters = Object.entries(compiled.parameters || {});
         const accepted = server && parameters.length === Object.keys(server.parameters || {}).length && parameters.every(([key, value]) => {
@@ -409,7 +443,10 @@ export default function GauntletAuthoring({ operatorScope, request, area, initia
     const selectedDomain = overrides.domain || domain, selectedRow = overrides.row || row;
     if (!selectedRow) return null;
     const key = `${selectedDomain}:${selectedRow.id}:${field}`;
-    return <WorkshopField key={key} onReset={() => clearBuffers([key])} field={field} state={{ ...state, workshopMetadata: metadata }} domain={selectedDomain} row={selectedRow} buffer={buffers[key]} busy={busy} onInspect={inspect} onAsset={picker => setAssetPicker({ ...picker, baseRevision: unsaved ? bufferRevision.current : state.revision })} renderContract={overrides.renderContract} onEdit={(value, saved) => edit(key, value, saved)} />;
+    const editingRow = field === "effect" && selectedDomain === "cards" ? {...selectedRow,
+      factionId:buffers["cards:" + selectedRow.id + ":factionId"] ?? selectedRow.factionId,
+      type:buffers["cards:" + selectedRow.id + ":type"] ?? selectedRow.type} : selectedRow;
+    return <WorkshopField key={key} onReset={() => clearBuffers([key])} field={field} state={{ ...state, workshopMetadata: metadata }} domain={selectedDomain} row={editingRow} buffer={buffers[key]} busy={busy} onInspect={inspect} onAsset={picker => setAssetPicker({ ...picker, baseRevision: unsaved ? bufferRevision.current : state.revision })} renderContract={overrides.renderContract} onEdit={(value, saved) => edit(key, value, saved)} />;
   }
   const creationControls = state.capabilities?.[({ encounters: "encounterCreation", factions: "factionCreation" })[domain] || "catalogCreation"] && ["cards", "sets", "decks", "offers", "encounters", "factions"].includes(domain) && <CatalogControls onCreateSet={async name=>{const result=await act("create",{domain:"sets",name,expectedRevision:bufferRevision.current??state.revision});return result?.draft?.snapshot.domains.sets.at(-1)?.id;}} domain={domain} row={row} state={{...state,previewContent}} effects={metadata?.cardEffects} disabled={busy || !state.writable} creation={creation} value={buffers["catalog-create"] ? JSON.parse(buffers["catalog-create"]) : {}} onEdit={values => edit("catalog-create", JSON.stringify(values), "")} onOpen={nextDomain => leave(() => setCreation({ domain: nextDomain, ...(domain === "sets" && nextDomain === "cards" && row ? {defaults:{setId:row.id}} : {}) }))} onDuplicate={() => leave(() => setCreation({ domain, sourceId: row.id }))} onCancel={() => leave(() => setCreation(null))} onCreate={async values => {
         const result = await act("create", { ...values, expectedRevision: bufferRevision.current ?? state.revision });

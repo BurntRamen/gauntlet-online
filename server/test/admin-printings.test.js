@@ -103,7 +103,7 @@ test("printings retain ownership, authoritative pools, exact releases, real engi
   const afterPresentation = realGame(stats), printedAfter = [...afterPresentation.players[1].hand, ...afterPresentation.players[1].deck].find(c => c.gameplayCardId === cardId);
   assert.equal(printedAfter.presentation.illustrationAssetId, c.id); assert.notEqual(printedAfter.presentation.printingRevision, running.lanes[0].support[1].presentation.printingRevision);
   assert.equal(printedAfter.presentation.gameplayRevision, running.lanes[0].support[1].presentation.gameplayRevision);
-  await patch("cards", cardId, "effect", { ...original.effect, parameters: { armBonus: 6 } }); await publish("Shared gameplay revision", p2);
+  await patch("cards", cardId, "effect", { id:original.effect.id, version:original.effect.version, parameters:{armBonus:6} }); await publish("Shared gameplay revision", p2);
   for (const owner of [stats, standardStats]) { const game = configured(realGame(owner)); assert.equal(engine.applyCommand(game, attack(game)).state.handAttacks[0].effectiveValue, 8); }
   assert.equal(engine.applyCommand(running, attack(running)).state.handAttacks[0].effectiveValue, 4);
   await patch("assets", p2, "status", "archived"); await publish("Printing retired from discovery", p2);

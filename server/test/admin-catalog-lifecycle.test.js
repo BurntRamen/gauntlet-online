@@ -104,7 +104,7 @@ test("new set/card lifecycle uses real consumers, exact-draft actions, pinned ma
   assert.throws(() => __test.saveConstructedDeckToLibrary({}, payload), /earned 0/);
   __test.saveConstructedDeckToLibrary(stats, payload);
   const running = realMatch(stats, card, "old-running"), beforeRunning = clone(running);
-  await ok("/draft", { domain: "cards", id: card.id, field: "effect", value: { ...card.effect, parameters: { armBonus: 6 } } }, undefined, "PATCH");
+  await ok("/draft", { domain: "cards", id: card.id, field: "effect", value: { id:card.effect.id, version:card.effect.version, parameters:{armBonus:6} } }, undefined, "PATCH");
   assert.equal((await call("/playtest/command", { id: session.id, gameRevision: session.game.revision, command: { type: "passPriority", player: 2 } })).status, 409);
   await ok("/preview");
   session = (await ok("/playtest", { subject: { kind: "card", id: card.id }, scenario: scenario(card) })).playtest;

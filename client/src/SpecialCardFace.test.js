@@ -60,3 +60,13 @@ test("an explicit standard choice overrides an equipped foil and restores it whe
   rerender(<SpecialCardFace card={card} />);
   expect(container.querySelector("[data-collector-style]")).toHaveAttribute("data-collector-style", "gilded-march");
 });
+
+test("a composed printing displays current metadata as text above the illustration",()=>{
+ const card={id:"edited",name:"Archive Guard",value:12,type:"servitor",rarity:"mythic",factionId:"sheen",suit:"clubs",
+   text:"Updated ability",presentation:{composed:true,frameStyle:"midnight",illustration:"/guard.webp"}};
+ render(<SpecialCardFace card={card} previewArt={false}/>);
+ expect(screen.getByText("Archive Guard")).toBeVisible();
+ expect(screen.getByText("sheen · servitor · mythic")).toBeVisible();
+ expect(screen.getByText("Updated ability")).toBeVisible();
+ expect(screen.getAllByText("Q")).toHaveLength(2);
+});

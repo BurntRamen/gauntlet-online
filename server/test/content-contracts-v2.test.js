@@ -213,3 +213,28 @@ test("historical card effects compare to their modular baseline by executable be
   officer.effect.modules[0].amount = 4;
   assert.ok(authored.validateAuthoredContent(snapshot, baseline).warnings.some(w => w.id === officer.id && w.field === "effect"));
 });
+
+test("an existing card changes printed identity, frame and compatible effect in one record", () => {
+  const store = createContentPublication({baseline, memory:true});
+  const before = store.active(), source = before.manifest.cards[0];
+  const other = before.manifest.cards.find(c => c.factionId==="sheen" && c.type==="servitor");
+  const changes = Object.entries({value:12,rarity:"mythic",suit:"clubs",factionId:other.factionId,type:other.type,
+    effect:other.effect,text:"Published wording.",frameStyle:"midnight"}).map(([field,value])=>({field,value}));
+  const saved = store.patchRecord({expectedRevision:0,domain:"cards",id:source.id,changes},"admin");
+  const preview = store.preview({expectedRevision:saved.revision}).preview;
+  const card = preview.manifest.cards.find(c=>c.id===source.id);
+  assert.equal(card.presentation.composed,true);
+  assert.equal(card.presentation.frameStyle,"midnight");
+  assert.equal(card.presentation.faces.clubs,null);
+  assert.equal(card.displayText,"Published wording.");
+  assert.equal(card.replacementSuit,"clubs");
+  assert.equal(card.rarity,"mythic");
+  assert.equal(card.value,12);
+  assert.equal(card.factionId,other.factionId);
+  assert.equal(card.type,other.type);
+  const capture = {players:{1:{faction:{id:"rumin"},hand:[{definitionId:source.id,rank:"3",value:3,suit:"spades"}]}}};
+  authored.pinGameContent(capture, authored.resolveEngineContent(saved.draft.snapshot,"edited-print"));
+  assert.deepEqual(["rank","value","suit","factionId","rarity","type"].map(k=>capture.players[1].hand[0][k]),
+    ["Q",12,"clubs",other.factionId,"mythic",other.type]);
+  assert.equal(store.active().manifest.cards[0].value,source.value);
+});

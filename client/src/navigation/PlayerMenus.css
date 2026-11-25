@@ -398,3 +398,20 @@
   padding: 8px !important;
 }
 .cd-shell .cd-setup-frame.is-wide .deck-workshop { width: 100%; min-width: 0; box-sizing: border-box; }
+
+.cd-shell[data-sized=yes] .cd-landing .player-layout-grid.cd-grid,
+.cd-shell[data-sized=yes] .cd-format-tiles {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--tile-width)), 1fr));
+  gap: var(--tile-gap);
+}
+.cd-shell[data-sized=yes][data-arrangement=list] .cd-landing .player-layout-grid.cd-grid,
+.cd-shell[data-sized=yes].is-editing .cd-landing .player-layout-grid.cd-grid { grid-template-columns: 1fr; }
+.cd-shell[data-sized=yes] .cd-action-tile { border-radius: var(--tile-radius); }
+.cd-shell[data-theme=midnight] { --theme-panel:#17243a; --theme-ink:#f1f5ff; --theme-accent:#83afff; }
+.cd-shell[data-theme=parchment] { --theme-panel:#f5ead3; --theme-ink:#322717; --theme-accent:#78591d; }
+.cd-shell[data-theme=forest] { --theme-panel:#19352c; --theme-ink:#f0faee; --theme-accent:#9cc99f; }
+.cd-shell:is([data-theme=midnight],[data-theme=parchment],[data-theme=forest]) :is(.cd-rail,.cd-action-tile) {
+  background-color:var(--theme-panel); color:var(--theme-ink); border-color:var(--theme-accent);
+}
+
+.cd-shell[data-destination] .player-layout-grid.cd-grid > [data-module-width="full"] { grid-column:1 / -1; }

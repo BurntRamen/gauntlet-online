@@ -119,6 +119,7 @@ function validateCatalog(snapshot, baseline, validateLegacy) {
   for (const row of added.cards) {
     if (!row) continue;
     const keys = ["id", "gameplayCardId", "origin", "name", "factionId", "type", "rarity", "value", "suit", "replacementSuit", "text", "freeAcquisition", "defaultVariantId", "effect", "availability", "status"];
+    if (Object.hasOwn(row, "frameStyle")) { keys.push("frameStyle"); if (!["original",...Object.keys(require("../shared/duel-rules/cardFrames.json"))].includes(row.frameStyle)) issue("cards",row.id,"frameStyle","Choose a registered frame."); }
     if (Object.hasOwn(row, "flavor")) { keys.push("flavor"); if (!validText(row.flavor, 1000, false)) issue("cards", row.id, "flavor", "Flavor text must be at most 1,000 characters."); }
     if (!exact(row, keys) || !/^auth-card-[a-f0-9-]{36}$/.test(row.id) || row.origin !== "admin-v1" || row.gameplayCardId !== row.id || row.defaultVariantId !== `${row.id}:standard` || row.freeAcquisition !== registry.FREE_GAMEPLAY_ACQUISITION) issue("cards", row.id, "id", "Unsupported or modified card identity contract.");
     for (const [key, max] of [["name", 160], ["text", 2000]]) if (!validText(row[key], max)) issue("cards", row.id, key, `Use nonempty text up to ${max} characters.`);
@@ -174,7 +175,6 @@ function rollbackProblem(live, target) {
     const previous = target.domains[domain]?.find(r => r.id === row.id);
     if (!previous) return `Cannot restore: ${row.name || row.id} would lose its published identity. Publish a compatible retirement release instead; collections and decks must remain resolvable.`;
     if (domain === "assets" && row.gameplayCardId !== previous.gameplayCardId) return "Cannot restore a printing bound to another gameplay card.";
-    if (domain === "cards" && ["factionId", "type", "value", "suit"].some(key => !equal(row[key], previous[key]))) return `Cannot restore: ${row.name} changes its faction or deck-slot contract. Publish a compatible revision instead.`;
     if (domain === "cards" && available(row, "constructed") && !available(previous, "constructed")) return `Cannot restore: ${row.name} would become illegal in existing constructed decks. Publish a reviewed legality change instead; ownership and saved references will be retained.`;
   }
   return null;

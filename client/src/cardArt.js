@@ -14,6 +14,7 @@ export function getCustomCardArtDefinition(card) {
 }
 
 export function getCustomCardFacePath(card, preview = true) {
+  if (card?.presentation?.composed) return "";
   return preview ? presentationFace(originalCustomCardFacePath(card), card) : originalCustomCardFacePath(card);
 }
 
@@ -91,6 +92,7 @@ export function expectsPlayingCardArt(card) {
 }
 
 export function getCardForPresentation(card, factionId = card?.factionId || getCustomCardArtDefinition(card)?.factionId) {
+  if (card?.presentation?.authoredIllustration) return card;
   return presentationCard(card, factionId, originalPlayingCardArtPath(card, factionId), card?.presentation?.composed ? "illustration" : "card");
 }
 

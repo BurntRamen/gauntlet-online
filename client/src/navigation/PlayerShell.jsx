@@ -91,8 +91,8 @@ function MoreSheet({ moreDestinations = MORE_DESTINATIONS, destination, onNaviga
 export default function PlayerShell({ embedded = false, serverUrl, destination = "play", navigationKey = destination, pageTitle, pageDescription, pageImage, pageEyebrow, pageDetail, onNavigate, account, audioMuted = false, onToggleAudio, ownerAuthorized = false, onAdmin, onCustomize, customizable = false, editing = false, onDoneEditing, children, notices }) {
   const Main=embedded?"div":"main", Rail=embedded?"div":"aside";
   const presentation = useWebsitePresentation();
-  const publishedNav = presentation?.navigation?.items;
-  const primary = publishedNav ? publishedNav.filter(item=>PRIMARY_DESTINATIONS.includes(item.id)).map(item=>item.id) : PRIMARY_DESTINATIONS;
+  const publishedNav = presentation?.navigation?.items?.filter(item => item.visible !== false);
+  const primary = publishedNav ? publishedNav.filter(item=>item.placement==="primary" || (item.placement!=="more" && PRIMARY_DESTINATIONS.includes(item.id))).map(item=>item.id) : PRIMARY_DESTINATIONS;
   const mobile = publishedNav ? primary.slice(0,4) : MOBILE_DESTINATIONS;
   const more = publishedNav ? publishedNav.map(item=>item.id).filter(id=>!mobile.includes(id)) : MORE_DESTINATIONS;
   const pageLayout = presentation?.pages?.[destination];
@@ -133,7 +133,7 @@ export default function PlayerShell({ embedded = false, serverUrl, destination =
   }, []);
 
   return (
-    <div className={`cd-shell${preview ? " is-suitfire" : ""}${editing ? " is-editing" : ""}`} data-destination={current.id} data-typography={pageLayout?.typography || "standard"} data-arrangement={pageLayout?.arrangement || "tiles"} style={{ "--cd-scene": `url("${resolveVisualAsset(pageLayout?.visuals?.background || MENU_SCENES[current.id])}")` }}>
+    <div className={`cd-shell${preview ? " is-suitfire" : ""}${editing ? " is-editing" : ""}`} data-theme={pageLayout?.style?.theme} data-sized={pageLayout?.style ? "yes" : undefined} data-destination={current.id} data-typography={pageLayout?.typography || "standard"} data-arrangement={pageLayout?.arrangement || "tiles"} style={{ ...(pageLayout?.style ? {"--tile-width":pageLayout.style.tileWidth+"px","--tile-gap":pageLayout.style.gap+"px","--tile-radius":pageLayout.style.rounding+"px"} : {}), "--cd-scene": `url("${resolveVisualAsset(pageLayout?.visuals?.background || MENU_SCENES[current.id])}")` }}>
       <div className="cd-environment" aria-hidden="true"><img key={current.id} src={resolveVisualAsset(pageLayout?.visuals?.background || MENU_SCENES[current.id])} alt="" decoding="async" draggable={false} /></div>
       <div className="cd-shell-surface" inert={moreOpen ? true : undefined} aria-hidden={moreOpen ? true : undefined}>
         {!embedded && <a className="cd-skip-link" href={`#${mainId}`}>Skip to page content</a>}

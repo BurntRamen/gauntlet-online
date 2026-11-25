@@ -178,7 +178,7 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
       assetLibrary: [...require("./digitalDelivery").deliveryOptions(), ...imageAssets.entries(state)],
       assetCapacity: imageAssets.capacity(state, mediaStore),
       studio: mechanicStudio.metadata(state.draft?.snapshot || live.snapshot),
-      capabilities: { factionCreation: 1, encounterCreation: 1, ruleModifiers: 1, mechanicStudio: 2, catalogCreation: 1, imageUploads: 1, audioUploads: 1, remoteMedia: mediaStore ? 1 : 0, printingCreation: 1, authoredDecks: 1, deckOffers: 1, privateNotes: 1 },
+      capabilities: { cardMetadata: 1, websiteThemes: 1, factionCreation: 1, encounterCreation: 1, ruleModifiers: 1, mechanicStudio: 2, catalogCreation: 1, imageUploads: 1, audioUploads: 1, remoteMedia: mediaStore ? 1 : 0, printingCreation: 1, authoredDecks: 1, deckOffers: 1, privateNotes: 1 },
       competition: { fields: competition.FIELDS, sourceEvents: require("./events").EVENT_DEFINITIONS, sourceSeason: require("./seasons").ACTIVE_SEASON,
         preview: validation.valid ? Object.fromEntries(["ranked", "events"].map(domain => [domain, ((state.draft?.snapshot || live.snapshot).competition?.[domain] || []).map(row => domain === "ranked" ? competition.season(row, "preview") : { ...competition.event(row, "preview"), availability: { label: row.status } })])) : null },
       privateNotes: clone(state.privateNotes || {}),
@@ -236,7 +236,6 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
       if (domain === "encounters" && field === "opponentDeckId") require("./adminSuiteContent").upgrade(state.draft.snapshot);
       const row = state.draft.snapshot.domains[domain].find((entry) => entry.id === id);
       const liveRow = state.releases[state.activeReleaseId].snapshot.domains[domain]?.find(entry => entry.id === id);
-      if (domain === "cards" && liveRow?.origin === "admin-v1" && ["factionId", "type", "value", "suit"].includes(field) && value !== liveRow[field]) fail(422, "This card has published deck references. Duplicate it to change faction, type or its printed slot; mechanics and wording remain editable.");
       if (revert && !liveRow) fail(400, "This object has not been published. Edit its saved fields or discard the shared draft.");
       const next = revert ? liveRow[field] : value;
       if (domain === "assets" && field === "edition" && next !== row.edition && !revert && require("./adminPrintings").editions(state.draft.snapshot).find(set => set.id === next)?.status === "archived") fail(422, "Choose an active digital set / edition. Existing archived membership is retained.");
@@ -256,7 +255,7 @@ function createContentPublication({ baseline, directory = ".", writable = true, 
         const problems = require("./adminPrintings").errors(row, state.draft.snapshot);
         if (problems.length) fail(422, problems.map(problem => problem.message).join(" "));
       }
-      if (domain === "cards" && row.origin === "admin-v1" && field === "suit") row.replacementSuit = row.suit;
+      if (domain === "cards" && field === "suit") row.replacementSuit = row.suit;
       state.draft.updatedAt = new Date().toISOString(); state.draft.updatedBy = actorId; state.draft.previewedHash = null; state.draft.previewedRevision = null; state.draft.playtestedHash = null;
       contribution(state, actorId, domain, id, field);
   }

@@ -164,7 +164,7 @@ export function LayoutGrid({ pageId, items = [], className = '' }) {
       {visible.map((id, index) => {
         const item = itemMap.get(id);
         const hidden = page.hidden.includes(id);
-        return <div key={id} data-layout-module={id} className={`layout-module ${hidden ? 'is-hidden' : ''} ${dragged === id ? 'is-dragging' : ''} ${dropTarget === id ? 'is-drop-target' : ''}`}
+        return <div key={id} data-layout-module={id} data-module-width={released?.sections?.find(section=>section.id===id)?.width} className={`layout-module ${hidden ? 'is-hidden' : ''} ${dragged === id ? 'is-dragging' : ''} ${dropTarget === id ? 'is-drop-target' : ''}`}
           onDragOver={editing ? (event) => { if (dragged) { event.preventDefault(); setDropTarget(id); if (event.dataTransfer) event.dataTransfer.dropEffect = 'move'; } } : undefined}
           onDrop={editing ? (event) => drop(event, id) : undefined}>
           {editing && <div className="layout-module-controls">

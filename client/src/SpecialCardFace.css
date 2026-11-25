@@ -10,3 +10,8 @@
 .special-card-caption { position: absolute; z-index: 1; left: 6.4%; right: 27%; bottom: 7%; display: grid; gap: 3cqw; color: #35352e; font: 2.6cqw/1.4 Arial, sans-serif; }
 .special-card-caption.is-concise { font-size: 4.8cqw; line-height: 1.2; }
 .special-card-name { color: #27271f; font: 700 4.4cqw/1.15 Georgia, serif; }
+
+.special-card-face[data-framed=true] { box-shadow: inset 0 0 0 2px var(--frame-border); }
+.special-card-face[data-framed=true] .special-card-caption { background:var(--frame-panel); color:var(--frame-ink); padding:2cqw; border-top:1px solid var(--frame-border); }
+.special-card-face[data-framed=true] .special-card-name { color:inherit; }
+.special-card-caption small { text-transform:capitalize; line-height:1.15; }

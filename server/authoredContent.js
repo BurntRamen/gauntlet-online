@@ -39,6 +39,7 @@ FIELDS.encounters.setup = { label: "Encounter mechanics", type: "object", mechan
 FIELDS.encounters.opponentDeckId = { label: "Authored opponent deck", type: "deck-reference", maxLength: 180, required: false, defaultValue: "", mechanical: true, note: "Replaces the opponent composition. Clear legacy boss additions first. Setup, scripted attacks, progression and rewards stay separate." };
 FIELDS.encounters.ruleModifierId = { label: "Starting-state rule modifier", type: "modifier-reference", maxLength: 80, required: false, defaultValue: "", mechanical: true, note: "Optional campaign override. Its player/opponent life and hand size replace encounter life and global hand size. Standard and official competitions are unaffected." };
 FIELDS.encounters.aiProfile = require("./encounterAiProfiles").field;
+FIELDS.cards.frameStyle = {label:"Card frame",type:"choice",options:["original", ...Object.keys(require("../shared/duel-rules/cardFrames.json"))],defaultValue:"original"};
 FIELDS.cards.effect = { label: "Card effect", type: "object", mechanical: true, options: effects.cardEffectDefinitions(), note: "Select a deployed effect for this faction and card type. Declared parameters remain supported; Rumin armaments also support bounded structured composition." };
 FIELDS.factions.mechanics = { label: "Faction mechanics", type: "object", mechanical: true, options: effects.factionEffectDefinitions(), note: "Only supported parameters are editable. Activation costs, timing, targeting and counters remain engine-controlled." };
 function fieldsFor(domain, row, snapshot) {
@@ -50,6 +51,7 @@ function fieldsFor(domain, row, snapshot) {
   if (domain === "assets" && row?.origin === require("./adminPrintings").ORIGIN) return require("./adminPrintings").fields;
   if (domain === "sets") return authoredCatalog.setFields;
   if (domain === "cards" && row?.origin === "admin-v1") return { ...FIELDS.cards, ...authoredCatalog.cardFields, ...(snapshot ? { factionId: { ...authoredCatalog.cardFields.factionId, options: [...authoredCatalog.cardFields.factionId.options, ...snapshot.domains.factions.filter(f => f.origin === "admin-faction-v1").map(f => ({ id: f.id, name: f.name }))] } } : {}), flavor: { ...text("Flavor text", 1000, false), defaultValue: "", note: "Optional narrative text. No executable behavior." } };
+  if (domain === "cards") return { ...FIELDS.cards, ...Object.fromEntries(["factionId","type","rarity","value","suit"].map(key => [key, authoredCatalog.cardFields[key]])) };
   if (domain === "assets" && row?.gameplayCardId?.startsWith("auth-card-")) return { art: { ...FIELDS.assets.art, required: true, note: "This printing requires an immutable image. Select a replacement to change it." } };
   if (domain === "game" && row.id === "shared-rules") return { handSize: { label: "Hand size", type: "integer", min: 3, max: 12, mechanical: true }, packComposition: require("../shared/duel-rules/packComposition").field };
   if (domain === "game") return { ...FIELDS.game, ...proseFields(row.id) };
@@ -166,6 +168,7 @@ function validateAuthoredFields(snapshot, baseline, catalogCards) {
       for (const key of new Set([...Object.keys(original), ...Object.keys(row)])) {
         const field = editable[key];
         const value = field ? fieldValue(row, key, field) : row[key];
+        if (domain === "cards" && key === "replacementSuit" && row.suit !== original.suit && value === row.suit) continue;
         if (!field) {
           if (canonicalJson(value ?? null) !== canonicalJson(original[key] ?? null) || Object.hasOwn(row, key) !== Object.hasOwn(original, key)) issue(domain, row.id, key, "Engine-controlled identity, reference or derived value cannot be changed.");
           continue;
@@ -174,7 +177,8 @@ function validateAuthoredFields(snapshot, baseline, catalogCards) {
         if (field.type === "pack-composition") { if (!require("../shared/duel-rules/packComposition").valid(value)) issue(domain, row.id, key, "Use 13 supported slots, four fixed suit guarantees and a 0–100% wild mythic roll."); continue; }
         if (field.type === "choice") { if (!field.options.some(option => (option.id ?? option) === value)) issue(domain, row.id, key, "Choose a supported value from this field's options."); continue; }
         if (field.type === "object" || field.type === "integer") {
-          const valid = domain === "cards" ? effects.validateCardEffect(value, row)
+          const valid = domain === "cards" && key === "value" ? Number.isInteger(value) && value >= field.min && value <= field.max
+            : domain === "cards" ? effects.validateCardEffect(value, row)
             : domain === "factions" ? effects.validateFactionMechanics(value, row.id)
             : domain === "encounters" ? encounterContract.validateEncounterSetup(value, catalogCards || baseline.domains.cards, row.factionId)
             : Number.isSafeInteger(value) && value >= field.min && value <= field.max;
@@ -293,12 +297,15 @@ function resolveEngineContent(snapshot, releaseId) {
   if (domains.cards.some(card => card.effect?.id === program.ID)) manifest.contentBinding.mechanicProgramVersion = program.binding(domains.cards);
   if (domains.cards.some(card => card.effect?.id === composition.ID || card.effect?.armament?.id === composition.ID)) manifest.contentBinding.compositionVersion = composition.VERSION;
   const source = registry.getPublicGameContent();
+  const sourceCards = new Map(source.cards.map(card => [card.id, card]));
   for (const card of manifest.cards) {
-    card.presentation = assets.cardPresentation(card, manifest.collectorVariants.find((row) => row.variantId === card.defaultVariantId), source.cards.find((row) => row.id === card.id), source.collectorVariants.find((row) => row.variantId === card.defaultVariantId), releaseId, versions);
+    const original = sourceCards.get(card.id);
+    if (original && card.text !== original.text) card.displayText = card.text;
+    card.presentation = assets.cardPresentation(card, manifest.collectorVariants.find((row) => row.variantId === card.defaultVariantId), sourceCards.get(card.id), source.collectorVariants.find((row) => row.variantId === card.defaultVariantId), releaseId, versions);
   }
   for (const variant of manifest.collectorVariants) {
     const card = manifest.cards.find((row) => row.id === variant.gameplayCardId);
-    variant.presentation = assets.cardPresentation(card, variant, source.cards.find((row) => row.id === card.id), source.collectorVariants.find((row) => row.variantId === variant.variantId), releaseId, versions);
+    variant.presentation = assets.cardPresentation(card, variant, sourceCards.get(card.id), source.collectorVariants.find((row) => row.variantId === variant.variantId), releaseId, versions);
     variant.presentation.printingId = variant.variantId;
     variant.presentation.printingRevision = hash(domains.assets.find(row => row.id === variant.variantId));
     variant.presentation.gameplayRevision = hash({ id: card.id, effect: card.effect, factionId: card.factionId, type: card.type, value: card.value, suit: card.suit });
@@ -326,6 +333,14 @@ function pinGameContent(game, resolved) {
       if (definition) {
         card.effect = clone(definition.effect);
         card.presentation = clone(definition.presentation);
+        for (const key of ["rarity", "type", "factionId"]) card[key] = definition[key];
+        const printed = registry.getGameplayCardById(definition.id);
+        if (!printed || definition.value !== printed.value) {
+          card.value = definition.value;
+          card.rank = ({11:"J",12:"Q",13:"K",14:"A"})[definition.value] || String(definition.value);
+        }
+        if (!printed || printed.suit !== definition.suit) card.suit = definition.suit;
+        card.displayText = definition.displayText || definition.text;
         card.name = definition.name; card.text = definition.text; card.rulesText = definition.text;
         const variant = resolvePrinting(definition.id, resolved.manifest.collectorVariants, card.variantId, definition.defaultVariantId);
         if (!variant) throw new Error("The captured release cannot resolve this card printing.");

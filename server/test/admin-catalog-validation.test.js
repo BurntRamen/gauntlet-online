@@ -33,8 +33,8 @@ test("Para definitions coexist with card and deck schema upgrades and retain str
 test("unsupported identity, executable behavior, parameters, media, fields and membership fail validation", () => {
   const { snapshot } = fixture();
   const cases = [
-    s => { s.domains.cards.at(-1).effect.parameters.armBonus = 9; },
-    s => { s.domains.cards.at(-1).effect.parameters.armBonus = 1.5; },
+    s => { s.domains.cards.at(-1).effect.modules[0].effects[0].amount = 9; },
+    s => { s.domains.cards.at(-1).effect.modules[0].effects[0].amount = 1.5; },
     s => { s.domains.cards.at(-1).effect.trigger = "invented"; },
     s => { s.domains.cards.at(-1).effect.script = "return 1"; },
     s => { s.domains.cards.at(-1).factionId = "sheen"; },
@@ -49,7 +49,7 @@ test("unsupported identity, executable behavior, parameters, media, fields and m
     s => { s.domains.sets[0].limited.draft = true; },
     s => { s.domains.sets[0].number = 1; },
     s => { s.domains.cards.push(s.domains.cards.at(-1)); },
-    s => { s.domains.cards[0].value += 1; },
+    s => { s.domains.cards[0].value = 15; },
     s => { s.domains.cards.splice(0, 1); },
     s => { s.domains.sets[0] = null; },
     s => { s.domains.sets[0].members = 7; },

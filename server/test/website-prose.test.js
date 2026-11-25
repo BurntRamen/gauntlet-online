@@ -153,3 +153,19 @@ test("website artwork uses validated immutable references, real player projectio
     assert.throws(() => store.preview({ expectedRevision: invalid.revision }), /validation|invalid|correct/i);
   }
 });
+
+test("website release validates theme templates, box dimensions and menu membership",()=>{
+ const store=createContentPublication({baseline,memory:true});
+ const layout={...presentation.defaultLayout("play"),version:2,style:{theme:"forest",tileWidth:360,gap:18,rounding:6},templates:[]};
+ layout.sections[0].width="full";
+ layout.templates.push({name:"League night",style:{...layout.style},arrangement:"tiles",typography:"editorial"});
+ const menu=presentation.defaultNavigation();menu.items[1].visible=false;menu.items[2].placement="primary";
+ const saved=store.patchRecord({domain:"game",id:"practice",expectedRevision:0,changes:[
+   {field:"playPageLayout",value:layout},{field:"websiteNavigation",value:menu}]},"admin");
+ const result=store.preview({expectedRevision:saved.revision}).preview.manifest.websitePresentation;
+ assert.deepEqual(result.pages.play.templates,layout.templates);
+ assert.equal(result.pages.play.sections[0].width,"full");
+ assert.deepEqual(result.navigation,menu);
+ assert.ok(presentation.errors({...layout,style:{...layout.style,tileWidth:900}},"website-layout","play").length);
+ assert.ok(presentation.errors({...layout,templates:[...layout.templates,...layout.templates]},"website-layout","play").length);
+});

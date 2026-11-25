@@ -45,6 +45,13 @@ export default function MechanicsEditor(props) {
   const nativeProgram = props.studio?.registeredProgramVersion === program.VERSION2 && program.fromRegistered(value, row);
   const errors = composed ? contract.errors(value, row) : [];
   const setAbility = (index, next) => onChange({ ...value, abilities: replaceAt(value.abilities, index, next) });
+  if (original && registry.definitionFor(original.id) && !compatible(registry.definitionFor(original.id))) {
+    return <label>Compatible card effect<select value="" disabled={disabled} onChange={e => {
+      const spec = options.find(option => option.id === e.target.value);
+      if (spec) props.onChange(registry.authoredEffect(registry.defaultCardEffect(registry.definitionFor(spec.id).legacyCardId)));
+    }}><option value="">Choose an effect for this faction and type</option>{options.filter(compatible).map(option =>
+      <option key={option.id} value={option.id}>{option.label || option.id}</option>)}</select></label>;
+  }
   const localModules = registry.authoredEffect(value);
   const localSpec = registry.definitionFor(value?.id);
   if (localModules?.modules && specialistRules.parametersFor(localModules.id)) {
