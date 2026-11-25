@@ -1487,7 +1487,81 @@ export function eventCalloutContent(entry) {
   }[entry.type] || null;
 }
 
-function MatchFeed({ entries, viewModel, transport, playback, resultReady, announcement }) {
+function tickerPlayer(viewModel, id) {
+  if (id == null) return "A player";
+  if (!viewModel.perspective?.spectator && viewModel.perspective?.player != null) {
+    return Number(id) === Number(viewModel.perspective.player) ? "You" : "Your opponent";
+  }
+  return [viewModel.top, viewModel.bottom].find(player => Number(player?.id) === Number(id))?.name || `Player ${id}`;
+}
+
+function confirmedTickerStep(event, viewModel) {
+  const who = tickerPlayer(viewModel, event.player);
+  const lane = Number.isInteger(event.laneIndex) ? ` in lane ${event.laneIndex + 1}` : "";
+  switch (event.type) {
+    case "priority.passed": return who + " passed";
+    case "attack.declared": return who + " attacked" + (lane || " from hand");
+    case "block.declared": return who + " blocked" + lane;
+    case "block.declined": return who + " chose not to block";
+    case "card.placedFacedown": return who + " placed a card face down" + lane;
+    case "lanePlacement.skipped": return who + " skipped placing a card";
+    case "damage.calculated":
+      if (!Number.isFinite(event.damage)) return null;
+      if (!event.damage) return "The attack dealt no damage";
+      return event.targetPlayer != null || event.player != null
+        ? tickerPlayer(viewModel, event.targetPlayer ?? event.player) + ` took ${event.damage} damage`
+        : `The attack dealt ${event.damage} damage`;
+    case "cards.drawn": {
+      const count = event.count ?? event.cardIds?.length;
+      return count > 0 ? who + ` drew ${count} card${count === 1 ? "" : "s"}` : null;
+    }
+    case "priority.granted": case "priority.retained": return null;
+    default: return eventCalloutContent(event)?.[1] || null;
+  }
+}
+
+function currentTablePrompt(viewModel, transport) {
+  const seat = viewModel.perspective?.player;
+  const actor = viewModel.priority;
+  const spectator = viewModel.perspective?.spectator;
+  const types = new Set((transport?.legalActions || []).map(action => action.type));
+  if (!spectator && seat != null) {
+    if (transport?.controls?.undoRequest?.approvalsNeeded?.includes(seat)) return "Your opponent requested an undo. Accept or decline.";
+    if (transport?.controls?.drawOfferBy && transport.controls.drawOfferBy !== seat) return "Your opponent offered a draw. Accept or decline.";
+    if (transport?.controls?.drawOfferBy === seat) return "Waiting for your opponent to answer your draw offer";
+    const selection = viewModel.selection || {};
+    if (viewModel.payment?.active || Object.values(selection).some(Boolean)) {
+      if (viewModel.payment?.active) {
+        const left = Math.max(0, viewModel.payment.required - viewModel.payment.total);
+        if (left > 0) return `Select ${left} more in card value to pay`;
+      }
+      if ([selection.attackMode, selection.blockMode, selection.placementMode, selection.abilityMode].some(Boolean)) {
+        if (viewModel.interactions?.confirmDisabled === false) return "Your selection is ready. Confirm it or change it.";
+        if (viewModel.instruction) return viewModel.instruction;
+      }
+    }
+    const options = [];
+    if (types.has("declareLaneBlock") || types.has("declareHandBlock")) options.push("block");
+    if (types.has("declineBlock")) options.push("let the attack through");
+    if (types.has("declareHandAttack") || types.has("declareLaneAttack")) options.push("attack");
+    if ([...types].some(type => /ability/i.test(type))) options.push("use an ability");
+    if (types.has("placeFacedown")) options.push("place a card face down");
+    if (types.has("skipPlacement")) options.push("skip placement");
+    if (types.has("passPriority")) options.push("pass");
+    if (options.length) return "You can " + options.join(", ").replace(/, ([^,]+)$/, " or $1");
+    if (viewModel.localHasPriority ?? (actor != null && Number(actor) === Number(seat))) {
+      return viewModel.instruction || "Your move";
+    }
+  }
+  if (actor == null) return "Waiting for the next step";
+  const who = tickerPlayer(viewModel, actor);
+  const name = who === "Your opponent" ? "your opponent" : who;
+  if (viewModel.phase === "end") return `Waiting for ${name} to finish card placement`;
+  if (viewModel.phaseLabel === "Combat Response" || viewModel.phase === "combatResponse") return `Waiting for ${name} to respond to the attack`;
+  return `Waiting for ${name} to act`;
+}
+
+function MatchFeed({ entries, viewModel, transport, playback, resultReady }) {
   const notice = viewModel.statusNotice;
   const [freshNotice, setFreshNotice] = useState(notice);
   useEffect(() => {
@@ -1498,16 +1572,12 @@ function MatchFeed({ entries, viewModel, transport, playback, resultReady, annou
   }, [notice]);
   const command = transport?.diagnostics || {};
   const control = transport?.controls?.pendingControlType;
-  const receipt = entries.filter(eventCalloutContent).at(-1);
-  const content = eventCalloutContent(receipt);
-  const seat = viewModel.perspective?.player;
-  const actor = receipt?.player;
-  const playerName = [viewModel.top,viewModel.bottom].find(player => player && Number(player.id) === Number(actor))?.name;
-  const priorityText = seat == null ? (playerName || "The next player") + " can play or pass" :
-    Number(actor) === Number(seat) ? "You can play a card or pass" : "Your opponent can play a card or pass";
+  const history = useMemo(() => entries.flatMap((event, index) => {
+    const text = confirmedTickerStep(event, viewModel);
+    return text ? [{ id: event.id || index, text }] : [];
+  }).slice(-5), [entries, viewModel]);
   let label = "Now";
-  let title = viewModel.perspective?.spectator ? "Watching the table" :
-    (viewModel.localHasPriority ?? (viewModel.priority != null && Number(viewModel.priority) === Number(viewModel.perspective?.player))) ? "Your move" : "Waiting for your opponent to act";
+  let title = currentTablePrompt(viewModel, transport);
   let waitKey = null;
   if (viewModel.phase === "gameOver") {
     label = "Final";
@@ -1523,33 +1593,22 @@ function MatchFeed({ entries, viewModel, transport, playback, resultReady, annou
     waitKey = "resync";
   } else if (command.pendingCommandId || control || command.commandStatus?.state === "acknowledged") {
     label = "Waiting";
-    title = command.pendingCommandType === "concede" ? "You chose to concede. Waiting for the result." :
+    title = (command.pendingCommandType === "concede" || control === "concede") ? "You chose to concede. Waiting for the result." :
       command.commandStatus?.state === "acknowledged" ? "Your move went through. Updating the board…" :
-      ({requestUndo:"Undo requested",offerDraw:"Draw offered",respondDraw:"Draw response sent",respondUndo:"Undo response sent"})[control] || "Checking your move…";
+      ({requestUndo:"Sending your undo request…",offerDraw:"Sending your draw offer…",respondDraw:"Sending your answer to the draw offer…",respondUndo:"Sending your answer to the undo request…"})[control] || "Waiting for the game to confirm your move…";
     waitKey = command.commandStatus?.commandId || control || "sync";
   } else if (freshNotice && freshNotice === notice) {
     label = "Update";
     title = ({"Match restored from the latest authoritative snapshot.":"You’re back at the table.","Submitting action to the authoritative game engine.":"Checking your move…","Action accepted. Synchronizing the battlefield.":"Your move went through. Updating the board…"})[notice] || notice;
   } else if (playback.catchingUp) {
     label = "In play";
-    title = receipt?.type === "priority.granted" ? priorityText : content?.[1] || "Playing out the move…";
-
-  } else if (announcement?.quote) {
-    label = announcement.speaker || "Commander";
-    title = [announcement.quote, announcement.detail].filter(Boolean).join(" · ");
+    title = "The table is finishing the last play";
   }
-  const [history, setHistory] = useState([]);
-  const recent = useRef({title, sequence:0});
-  useEffect(() => {
-    if (recent.current.title === title) return;
-    const entry = {id:++recent.current.sequence, text:recent.current.title};
-    recent.current.title = title;
-    setHistory(items => [...items, entry].slice(-4));
-  }, [title]);
+  const lastStepId = history.at(-1)?.id;
   const strip = useRef(null);
   useLayoutEffect(() => {
     strip.current?.scrollTo?.({left:strip.current.scrollWidth, behavior:window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ? "instant" : "smooth"});
-  }, [history]);
+  }, [lastStepId]);
   return <section className={"production-match-feed " + (label==="Now" ? "is-quiescent" : "is-active")} aria-label="Match ticker">
     <div className="production-match-feed-current">
       <span>{label}</span>
@@ -2298,7 +2357,7 @@ export default function ProductionMatchExperience({
       data-frozen-board-mesh-count={sceneMetrics?.frozenBoardMeshCount ?? ""}
     >
       {update?.source !== "replay" && !transportUpdate?.privacy?.required && <MatchFeed key={viewModel.matchId}
-        entries={feedEntries} viewModel={viewModel} transport={transportUpdate} playback={playbackState} resultReady={resultPresentationReady} announcement={options.commanderAnnouncement} />}
+        entries={feedEntries} viewModel={viewModel} transport={transportUpdate} playback={playbackState} resultReady={resultPresentationReady} />}
       <div
         className="production-match-surface"
         aria-hidden={transportUpdate?.privacy?.required ? true : undefined}
