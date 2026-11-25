@@ -1313,9 +1313,6 @@
     box-sizing: border-box;
     pointer-events: auto;
   }
-  .production-card-and-log.has-preview .production-match-ledger ol {
-    display: none;
-  }
   .production-card-and-log > .production-card-preview {
     position: static;
     width: min(280px, 100%);
@@ -3681,3 +3678,34 @@
 .production-match-experience[data-card-preview="text"] .production-card-preview { grid-template-columns: 1fr; }
 .production-graphics-setting div select { display: block; width: 100%; margin-top: 4px; }
 .production-match-utilities-panel { max-height: calc(100svh - 72px); overflow-y: auto; }
+
+/* Keep artwork inside its grid cell and reserve a separate row for recent plays. */
+.production-card-and-log .production-card-preview-art {
+  position: relative;
+  contain: paint;
+  max-width: 100%;
+}
+.production-card-and-log .production-card-preview-copy { min-width: 0; }
+.production-card-and-log > .production-match-ledger { overflow-y: auto; }
+@media (max-width: 600px), (max-height: 520px) {
+  .production-card-and-log:has(> .production-card-preview) {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    z-index: 11;
+    top: var(--match-log-top, var(--battlefield-top-reserve));
+    right: 4px;
+    width: min(260px, 46%);
+    max-height: calc(100% - var(--battlefield-top-reserve) - var(--battlefield-bottom-reserve));
+    overflow-y: auto;
+  }
+  .production-card-and-log:has(> .production-card-preview) > :is(.production-match-ledger, .production-card-preview) {
+    position: static;
+    width: 100%;
+    min-height: 0;
+    flex: 0 0 auto;
+    box-sizing: border-box;
+  }
+}
