@@ -1484,6 +1484,11 @@ function MatchFeed({ entries, viewModel, transport, playback, resultReady, annou
   const control = transport?.controls?.pendingControlType;
   const receipt = entries.filter(eventCalloutContent).at(-1);
   const content = eventCalloutContent(receipt);
+  const seat = viewModel.perspective?.player;
+  const actor = receipt?.player;
+  const playerName = [viewModel.top,viewModel.bottom].find(player => player && Number(player.id) === Number(actor))?.name;
+  const priorityText = seat == null ? (playerName || "The next player") + " can play or pass" :
+    Number(actor) === Number(seat) ? "You can play a card or pass" : "Your opponent can play a card or pass";
   let label = "Now";
   let title = viewModel.perspective?.spectator ? "Watching the table" :
     (viewModel.localHasPriority ?? (viewModel.priority != null && Number(viewModel.priority) === Number(viewModel.perspective?.player))) ? "Your move" : "Waiting for your opponent to act";
@@ -1511,28 +1516,33 @@ function MatchFeed({ entries, viewModel, transport, playback, resultReady, annou
     title = ({"Match restored from the latest authoritative snapshot.":"You’re back at the table.","Submitting action to the authoritative game engine.":"Checking your move…","Action accepted. Synchronizing the battlefield.":"Your move went through. Updating the board…"})[notice] || notice;
   } else if (playback.catchingUp) {
     label = "In play";
-    title = content?.[1] || "Playing out the move…";
+    title = receipt?.type === "priority.granted" ? priorityText : content?.[1] || "Playing out the move…";
 
   } else if (announcement?.quote) {
     label = announcement.speaker || "Commander";
     title = [announcement.quote, announcement.detail].filter(Boolean).join(" · ");
   }
-  const [previous, setPrevious] = useState("");
-  const lastTitle = useRef(title);
+  const [history, setHistory] = useState([]);
+  const recent = useRef({title, sequence:0});
   useEffect(() => {
-    if (lastTitle.current !== title) {
-      setPrevious(lastTitle.current);
-      lastTitle.current = title;
-    }
+    if (recent.current.title === title) return;
+    const entry = {id:++recent.current.sequence, text:recent.current.title};
+    recent.current.title = title;
+    setHistory(items => [...items, entry].slice(-4));
   }, [title]);
-  const earlier = previous && previous !== title ? previous : content?.[1] !== title ? content?.[1] : "";
+  const strip = useRef(null);
+  useLayoutEffect(() => {
+    strip.current?.scrollTo?.({left:strip.current.scrollWidth, behavior:window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ? "instant" : "smooth"});
+  }, [history]);
   return <section className={"production-match-feed " + (label==="Now" ? "is-quiescent" : "is-active")} aria-label="Match ticker">
     <div className="production-match-feed-current">
       <span>{label}</span>
       <div role="status" aria-live="polite" aria-atomic="true"><strong key={title} title={title}>{title}</strong></div>
       {(waitKey || playback.expectedEnd) && <Elapsed key={waitKey || "resolution"} expectedEnd={(!waitKey || waitKey === "results") ? playback.expectedEnd : null} />}
     </div>
-    {earlier && <small className="production-ticker-earlier" title={earlier}>Earlier · {earlier}</small>}
+    <ol ref={strip} aria-label="Recent match steps" className="production-step-strip">
+      {history.map(entry => <li key={entry.id}>{entry.text}</li>)}
+    </ol>
   </section>;
 }
 

@@ -3742,3 +3742,8 @@
   .has-desktop-panels.has-phone-hand .production-battlefield-safe-frame { bottom: calc(var(--phone-hand-reserve, 194px) + 6px); }
 }
 
+
+.production-step-strip {display:flex;align-items:center;gap:.55rem;overflow-x:auto;scrollbar-width:none;list-style:none;margin:0;padding:0 8px;color:#c3cfd9;font-size:12px;pointer-events:auto;}
+.production-step-strip li {flex:none;white-space:nowrap;}
+.production-step-strip li+li::before {content:"›";margin-right:.55rem;color:#94b6ce;}
+.production-step-strip li:last-child {color:#e4edf3;}

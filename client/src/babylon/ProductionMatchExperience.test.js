@@ -1720,6 +1720,6 @@ test("keeps a concession pending until the authoritative result and marks it as 
   expect(within(ticker).getByRole("timer")).toBeVisible();
   act(()=>publish({...update,viewModel:{...update.viewModel,revision:5,phase:"gameOver",winner:2,message:"You conceded."}}));
   expect(within(ticker).getByRole("status")).toHaveTextContent("You conceded.");
-  expect(ticker).toHaveTextContent("Earlier · You chose to concede");
+  expect(within(ticker).getByRole("list", {name:"Recent match steps"})).toHaveTextContent("You chose to concede");
 });
 
