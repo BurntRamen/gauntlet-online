@@ -35,6 +35,7 @@ jest.mock("./GauntletMatchCanvas", () => function MockCanvas({
       <button
         type="button"
         data-testid="mock-preview-card"
+        onClick={() => commands.selectPreview?.({ label: "Seven of Hearts", value: 7 })}
         onMouseEnter={() => commands.previewCard?.(viewModel.hand?.[0] || {
           label: "Seven of Hearts",
           value: 7,
@@ -1339,8 +1340,8 @@ test("keeps discard, match log, keyboard help, faction abilities, and sound in t
   const graphicsSection = screen.getByText("Graphics & display").closest("details");
   expect(graphicsSection.open).toBe(false);
   fireEvent.click(screen.getByText("Graphics & display"));
-  fireEvent.change(screen.getByLabelText("Table aspect ratio"), { target: { value: "4:3" } });
-  expect(JSON.parse(window.localStorage.getItem("gauntlet.matchDisplay")).aspect).toBe("4:3");
+  fireEvent.change(screen.getByLabelText("Your hand"), { target: { value: "drag" } });
+  expect(JSON.parse(window.localStorage.getItem("gauntlet.matchDisplay")).hand).toBe("drag");
   const graphicsQuality = screen.getByRole("combobox", { name: "Graphics quality" });
   expect(graphicsQuality).toHaveValue("balanced");
   expect(screen.getByTestId("mock-gauntlet-canvas")).toHaveAttribute("data-graphics-quality", "balanced");
@@ -1488,6 +1489,10 @@ test("shows a nonmodal card-role preview and a persistent combat recap", async (
   fireEvent.mouseLeave(screen.getByTestId("mock-preview-card"));
   act(() => jest.advanceTimersByTime(180));
   expect(screen.queryByLabelText("Seven of Hearts preview")).not.toBeInTheDocument();
+  fireEvent.click(screen.getByTestId("mock-preview-card"));
+  fireEvent.mouseLeave(screen.getByTestId("mock-preview-card"));
+  act(() => jest.advanceTimersByTime(181));
+  expect(screen.getByLabelText("Seven of Hearts preview")).toBeVisible();
 
   act(() => publish({
     source: "local",
@@ -1717,3 +1722,4 @@ test("keeps a concession pending until the authoritative result and marks it as 
   expect(within(ticker).getByRole("status")).toHaveTextContent("You conceded.");
   expect(ticker).toHaveTextContent("Earlier · Concession sent");
 });
+

@@ -54,7 +54,7 @@ function initialMatchTheme() {
 }
 
 const displayChoices = {
-  aspect: { label: "Table aspect ratio", choices: { auto: "Fit available space", "4:3": "4:3", "16:10": "16:10", "16:9": "16:9", "21:9": "21:9", "9:16": "9:16 (portrait)" }, fallback: "auto" },
+  hand: { label: "Your hand", choices: { auto: "Device default", drag: "On table · drag to reorder", fixed: "On table · fixed positions", menu: "Off table · fixed card menu" }, fallback: "auto" },
   tone: { label: "Table appearance", choices: { normal: "Standard", bright: "Brighter", contrast: "Higher contrast" }, fallback: "normal" },
   typeSize: { label: "Card rules text", choices: { normal: "Standard", large: "Large" }, fallback: "normal" },
   resolution: { label: "Table render resolution", choices: { preset: "Use graphics quality", "540": "540p", "720": "720p", "1080": "1080p", "1440": "1440p" }, fallback: "preset" },
@@ -1650,6 +1650,7 @@ export default function ProductionMatchExperience({
   const [referencePanel, setReferencePanel] = useState(null);
   const [abilityLogOnly, setAbilityLogOnly] = useState(false);
   const [referencePlayer, setReferencePlayer] = useState(null);
+  const [chosenPreview, setChosenPreview] = useState(null);
   const [previewCard, setPreviewCard] = useState(null);
   const [pinnedInspection, setPinnedInspection] = useState(null);
   const [audioEnabled, setAudioEnabled] = useState(options.audioEnabled ?? true);
@@ -1719,6 +1720,7 @@ export default function ProductionMatchExperience({
     setAuthoritativeUpdate(null);
     setPreviewCard(null);
     setPinnedInspection(null);
+    setChosenPreview(null);
     setFeedEntries([]);
     const playback = new BattlefieldPlaybackQueue({
       reducedMotion,
@@ -1836,6 +1838,7 @@ export default function ProductionMatchExperience({
   }), []);
   const onRejectedAction = options.onRejectedAction;
   const presentationModelLoader = options.presentationModelLoader;
+  const previewScope = `${viewModel?.matchId}:${viewModel?.perspective?.player}:${viewModel?.perspective?.spectator}`;
   const interactionCommands = useMemo(() => {
     const withTone = (tone, callback) => (...args) => {
       interactionCueTokenRef.current += 1;
@@ -1867,11 +1870,13 @@ export default function ProductionMatchExperience({
           ? referenceReturnFocusRef.current : document.activeElement;
         setReferencePanel(current => current === "hand" ? null : current);
         setPinnedInspection(null);
+        if (card) setChosenPreview({ scope: previewScope, card, revision: viewModel?.revision });
         return commands.inspectCard?.(card);
       }),
       closeInspection: withTone("ui.cancel", () => { setPinnedInspection(null); return commands.closeInspection?.(); }),
       loadPresentationModule: presentationModelLoader,
       presentationCue: playUiTone,
+      selectPreview: card => setChosenPreview(card ? { scope: previewScope, card, revision: viewModel?.revision } : null),
       previewCard: updatePreview,
       openDiscard: (pile) => {
         referenceReturnFocusRef.current = document.activeElement;
@@ -1883,7 +1888,7 @@ export default function ProductionMatchExperience({
       newMatch: withTone("ui.confirm", commands.newMatch),
       concede: withTone("ui.confirm", commands.concede)
     };
-  }, [commands, onRejectedAction, playUiTone, presentationModelLoader, updatePreview, viewModel?.interactions?.confirmDisabled, viewModel?.interactions?.confirmReason, viewModel?.matchId, viewModel?.revision, viewModel?.selection?.attackMode, viewModel?.top?.id, viewModel?.bottom?.id]);
+  }, [previewScope, commands, onRejectedAction, playUiTone, presentationModelLoader, updatePreview, viewModel?.interactions?.confirmDisabled, viewModel?.interactions?.confirmReason, viewModel?.matchId, viewModel?.revision, viewModel?.selection?.attackMode, viewModel?.top?.id, viewModel?.bottom?.id]);
   const gameplayInputLocked = Boolean(
     transportUpdate?.connected === false
     || transportUpdate?.diagnostics?.pendingCommandId
@@ -1957,6 +1962,7 @@ export default function ProductionMatchExperience({
     battlefieldViewModel
       ? {
           ...battlefieldViewModel,
+          handDisplay: displaySettings.hand,
           reducedMotion,
           presentationKit,
           presentationCues: update?.presentation?.cues || battlefieldViewModel.presentationCues || [],
@@ -1971,9 +1977,9 @@ export default function ProductionMatchExperience({
     // Scene art helpers read these external stores; a change must refresh the
     // view-model reference without recreating the adapter or moving replay time.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  ), [artworkRegistry, battlefieldViewModel, presentationKit, reducedMotion, update?.presentation?.cues, update?.presentation?.transitionMode, update?.replay?.speed, update?.replay?.transitionMode, update?.replay?.traversalGeneration, update?.source]);
+  ), [displaySettings.hand, artworkRegistry, battlefieldViewModel, presentationKit, reducedMotion, update?.presentation?.cues, update?.presentation?.transitionMode, update?.replay?.speed, update?.replay?.transitionMode, update?.replay?.traversalGeneration, update?.source]);
 
-  const phoneHandActive = Boolean(phoneHandLayout && viewModel
+  const phoneHandActive = Boolean((displaySettings.hand === "menu" || (displaySettings.hand === "auto" && phoneHandLayout)) && viewModel
     && !viewModel.perspective?.spectator && !transportUpdate?.privacy?.required
     && update?.source !== "replay");
   const referenceDockActive = (referencePanel === "discard" || referencePanel === "factions")
@@ -1994,14 +2000,14 @@ export default function ProductionMatchExperience({
     handRailRef.current.anchors.clear();
   }
   handRailRef.current.enabled = phoneHandActive;
-  handRailRef.current.layoutProfile = phoneHandActive
+  handRailRef.current.layoutProfile = phoneHandActive && phoneHandLayout
     ? (window.innerHeight >= window.innerWidth ? "portrait" : "short-landscape") : null;
   useLayoutEffect(() => {
     const root = rootRef.current;
     if (!root) return undefined;
     const measure = () => {
       const bounds = root.querySelector(".production-match-surface").getBoundingClientRect();
-      handRailRef.current.layoutProfile = bounds.height >= bounds.width ? "portrait" : "short-landscape";
+      handRailRef.current.layoutProfile = phoneHandLayout ? (bounds.height >= bounds.width ? "portrait" : "short-landscape") : null;
       const panel = root.querySelector(".phone-hand-panel");
       const sideHand = phoneHandActive && window.innerWidth > window.innerHeight && window.innerHeight <= 520;
       const controls = [".production-player-plate-bottom", ".production-context-panel"]
@@ -2049,7 +2055,7 @@ export default function ProductionMatchExperience({
       root.style.removeProperty("--battlefield-top-reserve");
       root.style.removeProperty("--match-log-top");
     };
-  }, [desktopPanels, phoneHandActive, referenceDockActive, update?.source]);
+  }, [desktopPanels, phoneHandLayout, phoneHandActive, referenceDockActive, update?.source]);
 
   const readableCards = useMemo(() => readableMatchCards(viewModel), [viewModel]);
   const inspectionScope = `${viewModel?.matchId}:${viewModel?.perspective?.player}:${viewModel?.perspective?.spectator}`;
@@ -2178,7 +2184,11 @@ export default function ProductionMatchExperience({
     ? hoverIdentity && { ...previewCard, ...hoverIdentity,
       ...(selectedPreview?.id === hoverIdentity.id ? selectedPreview : {}) }
     : previewCard;
-  const activeCardPreview = transportUpdate?.privacy?.required ? null : currentHover || (
+  const chosenCard = chosenPreview?.scope === previewScope
+    ? readableCards.find(card => chosenPreview.card.id && card.id === chosenPreview.card.id)
+      || (chosenPreview.revision === viewModel?.revision ? chosenPreview.card : null)
+    : null;
+  const activeCardPreview = transportUpdate?.privacy?.required ? null : currentHover || chosenCard || (
     transportUpdate?.source !== "replay" && !viewModel?.perspective?.spectator
       ? selectedPreview
       : null
@@ -2254,7 +2264,6 @@ export default function ProductionMatchExperience({
       data-shadow-map-refresh-rate={sceneMetrics?.shadowMapRefreshRate ?? ""}
       data-hardware-scaling-level={sceneMetrics?.hardwareScalingLevel ?? ""}
       data-card-preview={displaySettings.preview}
-      data-fixed-aspect={displaySettings.aspect !== "auto"}
       data-table-tone={displaySettings.tone}
       data-card-type-size={displaySettings.typeSize}
       data-table-edges={displaySettings.lighting}
@@ -2270,7 +2279,7 @@ export default function ProductionMatchExperience({
         inert={transportUpdate?.privacy?.required ? true : undefined}
       >
         <BattlefieldAtmosphere factionId={battlefieldFactionId} />
-        <div className="production-battlefield-safe-frame" style={{ "--match-aspect": displaySettings.aspect === "auto" ? undefined : displaySettings.aspect.split(":").reduce((width, height) => Number(width) / Number(height)) }} data-testid="battlefield-safe-frame">
+        <div className="production-battlefield-safe-frame" data-testid="battlefield-safe-frame">
           <RecoverableMatchCanvas
             forceAccessible={options.forceAccessible}
             key={viewModel.matchId}
@@ -2291,12 +2300,15 @@ export default function ProductionMatchExperience({
             capturePlaybackControl={capturePlaybackControl}
             onSceneMetrics={handleSceneMetrics}
           />
-          {!phoneHandActive && visualViewModel.mode === "factions" && (
+          {!(phoneHandActive && phoneHandLayout) && visualViewModel.mode === "factions" && (
             <FactionBoardCards key={`${viewModel.matchId}:${visualViewModel.bottom?.id}`}
               faction={update?.snapshot?.players?.[visualViewModel.bottom?.id]?.faction}
               viewModel={presentedViewModel} commands={gameplayCommands}
               layoutProfile={sceneMetrics?.layoutProfile} locked={gameplayInputLocked}
-              onFactionCardClick={(role) => options.onFactionCardClick?.(role)} />
+              onFactionCardClick={(role, card) => {
+                gameplayCommands.selectPreview?.({ ...card, label: card.name, artPath: card.image, rulesText: card.text, stateLabel: role });
+                options.onFactionCardClick?.(role);
+              }} />
           )}
         </div>
 
@@ -2383,7 +2395,7 @@ export default function ProductionMatchExperience({
               onOpenAbilities={() => { setAbilityLogOnly(true); setReferencePanel("log"); }}
             />
           )}
-          {(!activeInspection || !desktopPanels) && <CardPreview preview={panelLayout === "standard" && !transportUpdate?.privacy?.required ? currentHover : activeCardPreview} viewModel={presentedViewModel} snapshot={transportUpdate?.snapshot} onInspect={interactionCommands.inspectCard} onPreview={updatePreview} />}
+          {(!activeInspection || !desktopPanels) && <CardPreview preview={activeCardPreview} viewModel={presentedViewModel} snapshot={transportUpdate?.snapshot} onInspect={interactionCommands.inspectCard} onPreview={updatePreview} />}
           {desktopPanels && !activeCardPreview && (
             <p className="production-inspection-empty">Hover or focus a card to preview it.</p>
           )}
@@ -2432,3 +2444,4 @@ export default function ProductionMatchExperience({
     </main>
   );
 }
+

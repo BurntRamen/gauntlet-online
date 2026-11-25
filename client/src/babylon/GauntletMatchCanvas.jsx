@@ -92,6 +92,7 @@ export default function GauntletMatchCanvas({
         confirmCurrentAction: (...args) => commandsRef.current.confirmCurrentAction?.(...args),
         cancelCurrentAction: (...args) => commandsRef.current.cancelCurrentAction?.(...args),
         inspectCard: (...args) => commandsRef.current.inspectCard?.(...args),
+        selectPreview: (...args) => commandsRef.current.selectPreview?.(...args),
         previewCard: (...args) => commandsRef.current.previewCard?.(...args),
         openDiscard: (...args) => commandsRef.current.openDiscard?.(...args),
         loadPresentationModule: (...args) => commandsRef.current.loadPresentationModule?.(...args),

@@ -103,12 +103,13 @@ export default function PhoneHandRail({ viewModel, commands, presentationRef, in
               data-hand-actor-id={visibleCardIdentity(card, `player-${viewModel.perspective?.player}:hand:${index}`)}
               data-selection-role={role || ""}
               aria-label={visible ? `${card.label}, ${typeLabel}, ${combatLabel}, printed value ${card.value}${card.valueBreakdown?.modifiers?.length ? `, ${card.valueBreakdown.equation}` : ''}${role ? ", selected " + role : ""}${card.selected?.paymentBonus ? ', selected payment bonus recipient' : ''}` : "Face-down card"}
-              aria-pressed={selected} disabled={interactionLocked || card.unavailable || !visible}
+              aria-pressed={selected} disabled={!visible}
               onFocus={(event) => { event.currentTarget.scrollIntoView?.({ block: "nearest", inline: "nearest", behavior: "instant" }); measure(); }}
               onClick={(event) => {
                 if (event.detail !== 0 && gestureRef.current?.moved) { event.preventDefault(); return; }
                 measure();
-                commands.activateHandCard?.(index);
+                commands.selectPreview?.(card);
+                if (!interactionLocked && !card.unavailable) commands.activateHandCard?.(index);
               }}
               onContextMenu={(event) => { event.preventDefault(); if (visible) commands.inspectCard?.(card.raw); }}>
               {visible && artPath && !failedArt[artPath] && (

@@ -56,7 +56,7 @@ import {
 } from "./boardStage";
 import { createBabylonBoardStage } from "./boardStageBabylon";
 import { CARD_WELL_SIZE } from "./cardWellGeometry";
-import { createPresentationSnapshot, presentationSnapshotMetrics } from "./presentationSnapshot";
+import { createPresentationSnapshot, presentationSnapshotMetrics, visibleCardIdentity } from "./presentationSnapshot";
 import {
   PresentationTransitionPlanner,
   shouldSnapPresentationUpdate
@@ -2020,6 +2020,9 @@ export function createGauntletScene(engine, canvas, commands = {}) {
   let pointerMoveFrame = null;
   let queuedPointerMove = null;
   let lastPreviewKey = null;
+  let dragStart = null;
+  let handOrder = [];
+  let handScope = "";
   let pointerPickCount = 0;
   const identityMatrix = Matrix.Identity();
 
@@ -2421,6 +2424,7 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       return {
         type: "hand",
         actorId: actor.actorId,
+        owner: actor.zone.side,
         index: actor.zone.slotIndex,
         enabled: actor.interaction?.enabled !== false,
         card: actor.interaction?.card || actor.card?.raw || actor.card,
@@ -2493,7 +2497,10 @@ export function createGauntletScene(engine, canvas, commands = {}) {
         return { origin, direction: unproject(1).subtract(origin).normalize() };
       }
     );
-    let position = (externalHand && railPosition(actor.actorId)) || resolveActorPosition(actor, activeLayoutProfile);
+    const displaySlot = currentViewModel?.handDisplay === "drag" && actor.zone.kind === "hand" && actor.zone.side === "local"
+      ? handOrder.indexOf(actor.actorId) : -1;
+    const positionedActor = displaySlot < 0 ? actor : { ...actor, zone: { ...actor.zone, slotIndex: displaySlot } };
+    let position = (externalHand && railPosition(actor.actorId)) || resolveActorPosition(positionedActor, activeLayoutProfile);
     const hovered = hoveredId === actor.actorId && actor.zone.kind === "hand";
     if (hovered) position = getHandHoverPosition(position, currentViewModel?.reducedMotion);
     const animateTransition = Boolean(transition?.animate && !currentViewModel?.reducedMotion);
@@ -2780,6 +2787,12 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     }
     currentMatchId = nextMatchId;
     const previousPriority = currentViewModel?.priority ?? null;
+    const scope = JSON.stringify([nextMatchId, viewModel.perspective?.player, viewModel.handDisplay]);
+    if (scope !== handScope) { handScope = scope; handOrder = []; dragStart = null; }
+    if (viewModel.handDisplay === "drag") {
+      const ids = (viewModel.hand || []).map((card, index) => visibleCardIdentity(card, `player-${viewModel.perspective?.player}:hand:${index}`));
+      handOrder = [...handOrder.filter(id => ids.includes(id)), ...ids.filter(id => !handOrder.includes(id))];
+    }
     currentViewModel = viewModel;
     syncPresentationKit(viewModel.presentationKit);
     currentBoardPresentation = projectBoardPresentation(viewModel, {
@@ -3305,16 +3318,47 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     }
   }
 
+  function startHandDrag(event) {
+    dragStart = null;
+    if (event.button !== 0 || currentViewModel?.handDisplay !== "drag") return;
+    const card = pickCanvasMetadata(event);
+    if (card?.type !== "hand" || card.owner !== "local") return;
+    dragStart = { id: card.actorId, pointer: event.pointerId, x: event.clientX, y: event.clientY };
+    canvas.setPointerCapture?.(event.pointerId);
+  }
+
+  function cancelHandDrag() { dragStart = null; }
+
   function handleCanvasPointerUp(event) {
     if (event.button != null && event.button !== 0) return;
     if (pointerMoveFrame != null) window.cancelAnimationFrame(pointerMoveFrame);
     pointerMoveFrame = null;
     queuedPointerMove = null;
     const metadata = pickCanvasMetadata(event);
+    const start = dragStart;
+    dragStart = null;
+    if (start && start.pointer === event.pointerId && Math.hypot(event.clientX - start.x, event.clientY - start.y) >= 7) {
+      if (metadata?.type === "hand" && metadata.owner === "local" && metadata.actorId !== start.id) {
+        const records = [...objects.values()].filter(r => r.presentationActor?.zone.kind === "hand"
+          && r.presentationActor.zone.side === "local" && r.mesh.isEnabled())
+          .sort((a, b) => a.presentationActor.zone.slotIndex - b.presentationActor.zone.slotIndex);
+        const ids = records.map(r => r.presentationActor.actorId);
+        handOrder = [...handOrder.filter(id => ids.includes(id)), ...ids.filter(id => !handOrder.includes(id))];
+        const from = handOrder.indexOf(start.id);
+        const to = handOrder.indexOf(metadata.actorId);
+        if (from >= 0 && to >= 0) {
+          handOrder.splice(from, 1);
+          handOrder.splice(to, 0, start.id);
+          records.forEach(r => renderPresentationActor(r.presentationActor, null, r));
+        }
+      }
+      return;
+    }
     if (!metadata) return;
+    if (metadata.preview) commands.selectPreview?.(metadata.preview);
     if (metadata.type === "hand") {
       if (metadata.enabled) commands.activateHandCard?.(metadata.index);
-      else if (metadata.card) commands.inspectCard?.(metadata.card);
+      else if (!metadata.preview && metadata.card) commands.inspectCard?.(metadata.card);
     }
     if (metadata.type === "lane" && metadata.legal) {
       commands.activateLane?.(metadata.laneIndex, metadata.owner || "local");
@@ -3327,8 +3371,12 @@ export function createGauntletScene(engine, canvas, commands = {}) {
     }
   }
 
+  canvas.addEventListener("pointerdown", startHandDrag);
+  canvas.addEventListener("pointercancel", cancelHandDrag);
   canvas.addEventListener("pointermove", handleCanvasPointerMove);
   canvas.addEventListener("pointerleave", handleCanvasPointerLeave);
+  canvas.addEventListener("pointerdown", startHandDrag);
+  canvas.addEventListener("pointercancel", cancelHandDrag);
   canvas.addEventListener("pointerup", handleCanvasPointerUp);
 
   function setCapturePaused(paused) {
@@ -3468,8 +3516,12 @@ export function createGauntletScene(engine, canvas, commands = {}) {
       pointerMoveFrame = null;
       queuedPointerMove = null;
       babylonScene.onBeforeRenderObservable.remove(beforeRender);
+      canvas.removeEventListener("pointerdown", startHandDrag);
+      canvas.removeEventListener("pointercancel", cancelHandDrag);
       canvas.removeEventListener("pointermove", handleCanvasPointerMove);
       canvas.removeEventListener("pointerleave", handleCanvasPointerLeave);
+      canvas.removeEventListener("pointerdown", startHandDrag);
+      canvas.removeEventListener("pointercancel", cancelHandDrag);
       canvas.removeEventListener("pointerup", handleCanvasPointerUp);
       fullscreenUi.dispose();
       authoredModuleRoots.forEach((root) => root.dispose?.());
