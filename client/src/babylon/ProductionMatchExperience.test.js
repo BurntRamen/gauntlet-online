@@ -589,7 +589,7 @@ test("coalesces payment with attack and only presents the current combat beat", 
   expect(screen.getByText("Lane 1 block committed")).toBeVisible();
 
   expect(screen.queryByLabelText(/recent match events/i)).not.toBeInTheDocument();
-  expect(screen.queryByText("Lane 1 attack committed")).not.toBeInTheDocument();
+  expect(within(screen.getByRole("list", {name:"Recent match steps"})).getByText("Lane 1 attack committed")).toBeVisible();
   act(() => jest.runOnlyPendingTimers());
   expect(match).toHaveAttribute("data-active-event-id", "");
   expect(match).toHaveAttribute("data-playback-catching-up", "false");
