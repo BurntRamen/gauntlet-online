@@ -272,3 +272,5 @@
 
 /* Presets must not inherit wide-tile spans that create implicit columns. */
 .cd-shell:is([data-arrangement=list],[data-arrangement=compact]) .player-layout-grid > [data-layout-module] {grid-column:auto}
+
+.cd-shell .cd-now-playing { color: var(--theme-text, #f2dfbc); font-weight: 600; font-family: inherit; font-size: 0.8rem; line-height: 1.3; letter-spacing: normal; overflow-wrap: anywhere; }

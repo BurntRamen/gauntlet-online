@@ -1,3 +1,4 @@
+import soundtrack from "@gauntlet/duel-rules/soundtrack.json";
 import { TransferProgress, trackedGet } from "./TransferProgress";
 import { loadPresentationRegistry, presentationArt, usePresentationArt } from "./brand/presentationArt";
 import PreviewPackArt from "./brand/PreviewPackArt";
@@ -249,13 +250,10 @@ const TABLETOP_THEME = {
   shadow: "0 14px 36px rgba(0,0,0,0.42), inset 0 0 0 1px rgba(255,232,188,0.08), inset 0 18px 42px rgba(255,255,255,0.04)"
 };
 
-const factionThemeSources = (slug) => [1, 2, 3, 4].map((version) => `/assets/gauntlet/music/factions/${slug}-v${version}.mp3`);
-
 const MUSIC_TRACKS = {
   menu: {
     label: "The Quiet Workshop",
     menuTrack: true,
-    sources: ["/assets/gauntlet/music/menu/gauntlet-menu-quiet-workshop-v1.mp3"],
     pad: [55, 82.41, 110],
     notes: [220, 246.94, 261.63, 329.63, 293.66, 246.94],
     tempo: 820,
@@ -264,7 +262,6 @@ const MUSIC_TRACKS = {
   menuLiving: {
     label: "The Living Table",
     menuTrack: true,
-    sources: ["/assets/gauntlet/music/menu/gauntlet-menu-living-table-v1.mp3"],
     pad: [55, 82.41, 110],
     notes: [220, 246.94, 261.63, 329.63, 293.66, 246.94],
     tempo: 650,
@@ -272,33 +269,22 @@ const MUSIC_TRACKS = {
   },
   play: {
     label: "Gauntlet: Contest of Wills",
-    sources: [
-      "/assets/gauntlet/music/play/gauntlet-tactics-v1.mp3",
-      "/assets/gauntlet/music/play/battle-grid-ascendant-v1.mp3",
-      "/assets/gauntlet/music/play/gauntlet-playfield-v1.mp3",
-      "/assets/gauntlet/music/play/tactical-ascend-v1.mp3"
-    ]
   },
   basic: { get label() { return brandText("Basic SuitFire Theme", "Basic Gauntlet Theme"); }, pad: [65.41, 87.31, 130.81], notes: [261.63, 293.66, 329.63, 392, 349.23, 293.66, 246.94, 261.63], tempo: 600, wave: "triangle" },
   rumin: {
     label: "The Civic Imperium",
-    sources: factionThemeSources("rumin-civic-imperium")
   },
   sheen: {
     label: "The Living Renewal",
-    sources: factionThemeSources("sheen-living-renewal")
   },
   frumo: {
     label: "The Council of Captains",
-    sources: factionThemeSources("frumo-council-of-captains")
   },
   bizi: {
     label: "The Plural Machine",
-    sources: factionThemeSources("bizi-plural-machine")
   },
   mekan: {
     label: "The Eternal Festival",
-    sources: factionThemeSources("mekan-eternal-festival"),
     pad: [55, 82.41, 110],
     notes: [329.63, 392, 440, 523.25, 493.88, 392],
     tempo: 520,
@@ -306,23 +292,22 @@ const MUSIC_TRACKS = {
   },
   jali: {
     label: "The Revenant Formation",
-    sources: factionThemeSources("jali-revenant-formation"),
     pad: [46.25, 69.3, 92.5],
     notes: [220, 261.63, 293.66, 349.23, 293.66, 246.94],
     tempo: 680,
     wave: "sawtooth"
   },
-  gracus: { label: "The Stone Question", sources: factionThemeSources("gracus-stone-question"), pad: [55, 82.41, 110], notes: [164.81, 220, 246.94, 329.63, 293.66], tempo: 610, wave: "square" },
-  indela: { label: "The Turning Omen", sources: [...factionThemeSources("indela-turning-omen"), "/assets/gauntlet/music/factions/indela-turning-omen-v5.mp3"], pad: [69.3, 103.83, 138.59], notes: [277.18, 311.13, 369.99, 415.3, 369.99], tempo: 740, wave: "sine" },
-  zynarth: { label: "The Infinite Hive", sources: factionThemeSources("zynarth-infinite-hive"), pad: [41.2, 61.74, 82.41], notes: [164.81, 155.56, 185, 220, 207.65], tempo: 720, wave: "sawtooth" },
-  "astral-vanguard": { label: "The Hybrid Horizon", sources: factionThemeSources("astral-vanguard-hybrid-horizon"), pad: [55, 82.41, 110], notes: [220, 277.18, 329.63, 293.66, 369.99], tempo: 600, wave: "triangle" },
-  voltari: { label: "The Golden Conduit", sources: factionThemeSources("voltari-golden-conduit"), pad: [46.25, 69.3, 92.5], notes: [277.18, 311.13, 415.3, 369.99], tempo: 540, wave: "sine" },
-  xendra: { label: "Aspect Without Form", sources: factionThemeSources("xendra-aspect-without-form"), pad: [46.25, 69.3, 92.5], notes: [185, 174.61, 207.65, 138.59, 155.56, 123.47], tempo: 780, wave: "sine" },
-  morphlings: { label: "The Unfinished Return", sources: factionThemeSources("morphlings-changing-light"), pad: [55, 73.42, 110], notes: [220, 246.94, 293.66, 329.63, 369.99], tempo: 690, wave: "sine" },
-  ingles: { label: "The Isles Across the Ages", sources: factionThemeSources("ingles-unwritten-charter") },
-  mercaw: { label: "The Many-Star Accord", sources: factionThemeSources("mercaw-many-star-accord") },
-  mtano: { label: "The Mountain Remembers", sources: factionThemeSources("mtano-mountain-remembers") },
-  russo: { label: "The Long Winter Oath", sources: factionThemeSources("russo-long-winter-oath") }
+  gracus: { label: "The Stone Question", pad: [55, 82.41, 110], notes: [164.81, 220, 246.94, 329.63, 293.66], tempo: 610, wave: "square" },
+  indela: { label: "The Turning Omen", pad: [69.3, 103.83, 138.59], notes: [277.18, 311.13, 369.99, 415.3, 369.99], tempo: 740, wave: "sine" },
+  zynarth: { label: "The Infinite Hive", pad: [41.2, 61.74, 82.41], notes: [164.81, 155.56, 185, 220, 207.65], tempo: 720, wave: "sawtooth" },
+  "astral-vanguard": { label: "The Hybrid Horizon", pad: [55, 82.41, 110], notes: [220, 277.18, 329.63, 293.66, 369.99], tempo: 600, wave: "triangle" },
+  voltari: { label: "The Golden Conduit", pad: [46.25, 69.3, 92.5], notes: [277.18, 311.13, 415.3, 369.99], tempo: 540, wave: "sine" },
+  xendra: { label: "Aspect Without Form", pad: [46.25, 69.3, 92.5], notes: [185, 174.61, 207.65, 138.59, 155.56, 123.47], tempo: 780, wave: "sine" },
+  morphlings: { label: "The Unfinished Return", pad: [55, 73.42, 110], notes: [220, 246.94, 293.66, 329.63, 369.99], tempo: 690, wave: "sine" },
+  ingles: { label: "The Isles Across the Ages" },
+  mercaw: { label: "The Many-Star Accord" },
+  mtano: { label: "The Mountain Remembers" },
+  russo: { label: "The Long Winter Oath" }
 };
 
 const MENU_THEME = {
@@ -825,7 +810,7 @@ function fadeMediaVolume(audio, targetVolume, durationMs = 280) {
   };
 }
 
-function startProceduralTrack(trackKey, volume) {
+function startProceduralTrack(trackKey, volume, onPlaying) {
   if (typeof window === "undefined") return { stop: () => {}, setVolume: () => {}, duck: () => {} };
   const AudioContext = window.AudioContext || window.webkitAudioContext;
   if (!AudioContext) return { stop: () => {}, setVolume: () => {}, duck: () => {} };
@@ -849,6 +834,8 @@ function startProceduralTrack(trackKey, volume) {
       context.resume().catch(() => {});
     }
   };
+  context.onstatechange = () => { if (!stopped) onPlaying(context.state === "running"); };
+  context.onstatechange();
   resumeContext();
   window.addEventListener("pointerdown", resumeContext);
   window.addEventListener("keydown", resumeContext);
@@ -938,7 +925,7 @@ function startProceduralTrack(trackKey, volume) {
   };
 }
 
-function startAudioPlaylist(track, volume, { usesMenuTransitions = false } = {}) {
+function startAudioPlaylist(track, volume, { usesMenuTransitions = false, onPlaying } = {}) {
   if (typeof window === "undefined" || !track?.sources?.length) return { stop: () => {}, setVolume: () => {}, duck: () => {} };
 
   let stopped = false;
@@ -960,7 +947,9 @@ function startAudioPlaylist(track, volume, { usesMenuTransitions = false } = {})
   };
 
   const playNext = () => {
-    if (stopped || track.sources.length <= 1) return;
+    if (stopped) return;
+    onPlaying(null);
+    if (track.sources.length <= 1) return;
     failedSources++;
     if (failedSources > track.sources.length * 2) return;
     trackIndex = (trackIndex + 1) % track.sources.length;
@@ -971,6 +960,7 @@ function startAudioPlaylist(track, volume, { usesMenuTransitions = false } = {})
 
   const clearFailureCount = () => {
     failedSources = 0;
+    if (!stopped) onPlaying(track.titles[trackIndex]);
   };
 
   const resumeAudio = () => play();
@@ -1022,19 +1012,23 @@ function startAudioPlaylist(track, volume, { usesMenuTransitions = false } = {})
   };
 }
 
-function startMusicTrack(trackKey, volume) {
-  const track = MUSIC_TRACKS[trackKey] || MUSIC_TRACKS.menu;
-  if (track.sources?.length) return startAudioPlaylist(track, volume, { usesMenuTransitions: Boolean(track.menuTrack) });
-  return startProceduralTrack(trackKey, volume);
+function startMusicTrack(trackKey, volume, overrides, onPlaying) {
+  const key = Object.hasOwn(MUSIC_TRACKS, trackKey) ? trackKey : "menu";
+  const track = MUSIC_TRACKS[key];
+  const slots = soundtrack.filter(row => row.playlist === key);
+  const recordings = slots.map(row => overrides?.[row.key] || row);
+  if (!recordings[0].source) return startProceduralTrack(key, volume, playing => onPlaying(playing ? (overrides?.[slots[0].key]?.title || track.label) : null));
+  return startAudioPlaylist({sources:recordings.map(row => row.source), titles:recordings.map(row => row.title)}, volume,
+    {usesMenuTransitions:Boolean(track.menuTrack), onPlaying});
 }
 
-function MusicControl({ trackKey, enabled, volume, onToggle, onVolumeChange, account, soundMuted, onSoundMutedChange }) {
+function MusicControl({ playingTitle, trackKey, enabled, volume, onToggle, onVolumeChange, account, soundMuted, onSoundMutedChange }) {
   const track = MUSIC_TRACKS[trackKey] || MUSIC_TRACKS.menu;
   return (
     <div className="home-music-control app-layout-36" >
       {account && <MenuButton variant="secondary" onClick={() => onSoundMutedChange(!soundMuted)}>{soundMuted ? "Unmute All" : "Mute All"}</MenuButton>}
       <MenuButton variant="secondary" onClick={onToggle} disabled={soundMuted}>{enabled ? "Pause Music" : "Play Music"}</MenuButton>
-      <span>{track.label}</span>
+      <span>{playingTitle ? "Now playing · " + playingTitle : track.label}</span>
       <input
         type="range"
         min="0"
@@ -3140,6 +3134,8 @@ export default function App() {
   const [matchReconnectPending, setMatchReconnectPending] = useState(false);
   const [handSelectionRole, setHandSelectionRole] = useState("primary");
   const musicStopRef = useRef(null);
+  const [playingTitle,setPlayingTitle] = useState(null);
+  const soundtrackOverrides = gameContent?.websitePresentation?.soundtrack;
   const musicVolumeRef = useRef(musicVolume);
   const voiceAudioRef = useRef(null);
   const commanderHealthRef = useRef({ matchId: "", previousLife: null, wounded: false, critical: false });
@@ -3657,11 +3653,12 @@ export default function App() {
       musicStopRef.current.stop();
       musicStopRef.current = null;
     }
+    setPlayingTitle(null);
     const menuMasterMuted = menuAudioActive && menuAudioSettings.masterMuted;
     // Dialogue is mixed over this player. Keeping dialogue activity out of this
     // lifecycle preserves the current track and playback position between lines.
     if (musicEnabled && !accountSoundMuted && !menuMasterMuted) {
-      musicStopRef.current = startMusicTrack(activeMusicTrack, musicVolumeRef.current);
+      musicStopRef.current = startMusicTrack(activeMusicTrack, musicVolumeRef.current, soundtrackOverrides, setPlayingTitle);
     }
     return () => {
       if (musicStopRef.current) {
@@ -3669,7 +3666,7 @@ export default function App() {
         musicStopRef.current = null;
       }
     };
-  }, [activeMusicTrack, musicEnabled, accountSoundMuted, menuAudioActive, menuAudioSettings.masterMuted]);
+  }, [activeMusicTrack, soundtrackOverrides, musicEnabled, accountSoundMuted, menuAudioActive, menuAudioSettings.masterMuted]);
 
   useEffect(() => {
     if (!accountSoundMuted) return;
@@ -4876,7 +4873,7 @@ export default function App() {
     return <Suspense fallback={<SurfaceLoading label="Command Deck" />}>
       {gameContentError && <aside role="status">Showing the bundled game catalog. Online services may be unavailable. <button onClick={loadGameContent}>Reconnect</button></aside>}
       <PlayerMenuExperience authToken={authToken} serverUrl={SOCKET_URL} factionIds={Object.keys(gameContent.campaigns || {})} route={playerRoute} onNavigate={navigateHomeArea} account={account} ownerAuthorized={ownerAuthorized}
-        audioMuted={effectiveMenuAudioSettings.masterMuted} onToggleAudio={toggleMenuMasterMute}
+        playingTitle={playingTitle} musicPaused={!musicEnabled} audioMuted={effectiveMenuAudioSettings.masterMuted} onToggleAudio={toggleMenuMasterMute}
         content={gameContent} workflow={workflow}
         actions={{
           basicAi: () => startTutorialVsAi("basic"), factionAi: () => startTutorialVsAi("factions"),
@@ -8643,7 +8640,7 @@ export default function App() {
               {matchDrawer === "menu" && (
                 <div className="focus-drawer-scroll focus-match-menu">
                   <RoomCodeDisplay code={game.roomCode} roleLabel={isSpectator ? "Spectator" : `P${player}`} onCopy={copyRoomCode} />
-                  <MusicControl trackKey={activeMusicTrack} enabled={musicEnabled} volume={musicVolume} onToggle={() => setMusicEnabled((value) => !value)} onVolumeChange={setMusicVolume} account={account} soundMuted={accountSoundMuted} onSoundMutedChange={setSignedInSoundMuted} />
+                  <MusicControl playingTitle={playingTitle} trackKey={activeMusicTrack} enabled={musicEnabled} volume={musicVolume} onToggle={() => setMusicEnabled((value) => !value)} onVolumeChange={setMusicVolume} account={account} soundMuted={accountSoundMuted} onSoundMutedChange={setSignedInSoundMuted} />
                   <div className="focus-menu-actions">{actionControls}</div>
                   <button type="button" onClick={() => setShowHotkeys((value) => !value)}>Keyboard Shortcuts</button>
                   <button type="button" onClick={() => setShowHelperLabels((value) => !value)}>{showHelperLabels ? "Hide Hints" : "Show Hints"}</button>

@@ -120,7 +120,7 @@ function entries(state) {
       const versions = release.snapshot.assetVersions?.filter(row => ids.has(row.id)) || [];
       return versions.length ? [{ release: release.label, versions: versions.map(row => row.version), active: release.id === state.activeReleaseId }] : [];
     });
-    return asset.versions.map(row => ({ ...row, label: asset.title, description: asset.description, notes: asset.notes, archived: asset.archived, dependencies, source: `${asset.title} · version ${row.version}`, path: `/api/admin/authoring/assets/${row.id}`, stage: live.has(row.id) ? "Active" : saved.has(row.id) ? "Saved in draft" : packaged.has(row.id) ? "Packaged · retained" : "Uploaded · private" }));
+    return asset.versions.map(row => ({ ...row, label: asset.title, description: asset.description, notes: asset.notes, archived: asset.archived, dependencies, source: `${asset.title} · version ${row.version}`, path: `/api/admin/authoring/assets/${row.id}`, publicUrl: live.has(row.id) ? require("./contentAssets").getDeliveryOrigin() + publicPath(row) : undefined, stage: live.has(row.id) ? "Active" : saved.has(row.id) ? "Saved in draft" : packaged.has(row.id) ? "Packaged · retained" : "Uploaded · private" }));
   });
 }
 function packageAssets(state, snapshot) {

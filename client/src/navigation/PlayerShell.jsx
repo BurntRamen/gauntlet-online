@@ -88,7 +88,7 @@ function MoreSheet({ moreDestinations = MORE_DESTINATIONS, destination, onNaviga
   );
 }
 
-export default function PlayerShell({ embedded = false, serverUrl, destination = "play", navigationKey = destination, pageTitle, pageDescription, pageImage, pageEyebrow, pageDetail, onNavigate, account, audioMuted = false, onToggleAudio, ownerAuthorized = false, onAdmin, onCustomize, customizable = false, editing = false, onDoneEditing, children, notices }) {
+export default function PlayerShell({ embedded = false, serverUrl, destination = "play", navigationKey = destination, pageTitle, pageDescription, pageImage, pageEyebrow, pageDetail, onNavigate, account, playingTitle, musicPaused, audioMuted = false, onToggleAudio, ownerAuthorized = false, onAdmin, onCustomize, customizable = false, editing = false, onDoneEditing, children, notices }) {
   const Main=embedded?"div":"main", Rail=embedded?"div":"aside";
   const presentation = useWebsitePresentation();
   const publishedNav = presentation?.navigation?.items?.filter(item => item.visible !== false);
@@ -139,7 +139,9 @@ export default function PlayerShell({ embedded = false, serverUrl, destination =
         {!embedded && <a className="cd-skip-link" href={`#${mainId}`}>Skip to page content</a>}
         <header className="cd-topbar">
           <button className="cd-brand" type="button" onClick={() => onNavigate("play")} aria-label={brandText("SuitFire — open Play", "Gauntlet Online — open Play")}>{preview ? <SuitFireBrand /> : <><img className="cd-brand-crest" src={resolveVisualAsset(GAUNTLET_CREST)} alt="" width="44" height="44" decoding="async" draggable={false} /><span>GAUNTLET <small>ONLINE</small></span></>}</button>
-          <span className="cd-topbar-caption"><small>Current location</small><strong>{current.label}</strong></span>
+          <span className="cd-topbar-caption"><small>Current location</small><strong>{current.label}</strong>{onToggleAudio && <span className="cd-now-playing" role="status">
+            {audioMuted ? "Music muted" : musicPaused ? "Music paused" : playingTitle ? "Now playing · " + playingTitle : "Music on standby"}
+          </span>}</span>
           <div className="cd-header-actions">
             {editing && <button type="button" className="cd-button cd-button-primary cd-done-editing" onClick={onDoneEditing}>Done Editing</button>}
             {onToggleAudio && <button type="button" className="cd-header-button cd-audio-button" aria-label="Mute menu audio" aria-pressed={audioMuted} title={audioMuted ? "Unmute menu audio" : "Mute menu audio"} onClick={onToggleAudio}><DestinationIcon name={audioMuted ? "muted" : "sound"} /><span>{audioMuted ? "Muted" : "Mute"}</span></button>}

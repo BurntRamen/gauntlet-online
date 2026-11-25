@@ -1,6 +1,6 @@
 "use strict";
 const fs = require("node:fs"), path = require("node:path"), crypto = require("node:crypto");
-const { assetEntry, assetManifest } = require("./contentAssets");
+const { assetEntry, libraryEntries } = require("./contentAssets");
 const PUBLIC = path.resolve(__dirname, "../client/public");
 const ANALYSIS = "service:match-analysis-v1";
 const TITLE = "service:profile-title-v1";
@@ -18,7 +18,7 @@ function resolveDelivery(term, verify = true) {
   if (verify && (!fs.existsSync(filename) || crypto.createHash("sha256").update(fs.readFileSync(filename)).digest("hex") !== entry.sha256)) throw new Error("Delivery asset missing or changed; availability is suspended.");
   return { id: entry.id, name: entry.source, mediaType: entry.mediaType, kind: music.has(term.category) ? "audio" : images.has(term.category) ? "image" : "publication", sha256: entry.sha256, filename };
 }
-function deliveryOptions() { return [{ id: ANALYSIS, source: "Personal match analysis · live account evidence", mediaType: "application/vnd.gauntlet.analysis" }, { id: TITLE, source: "Profile title · use this entitlement's name", mediaType: "application/vnd.gauntlet.title" }, ...assetManifest.entries]; }
+function deliveryOptions() { return [{ id: ANALYSIS, source: "Personal match analysis · live account evidence", mediaType: "application/vnd.gauntlet.analysis" }, { id: TITLE, source: "Profile title · use this entitlement's name", mediaType: "application/vnd.gauntlet.title" }, ...libraryEntries]; }
 function matchAnalysis(records, accountId) {
   const rows = records.filter((r) => r.completion?.status === "finalized" && r.participants?.some((p) => p.accountId === accountId));
   const factions = new Map(), months = new Map(), modes = new Map();

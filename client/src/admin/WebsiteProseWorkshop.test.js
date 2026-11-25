@@ -80,3 +80,13 @@ test("an operator can save a theme, change the layout, and reapply the named tem
  expect(screen.getByLabelText("Tile width")).toHaveValue("412");
  expect(screen.getByLabelText("Theme")).toHaveValue("midnight");
 });
+
+test('Soundtrack opens a recording with title, replacement, download and published distribution',()=>{
+ const field=jest.fn(key=><p key={key}>{key}</p>);
+ render(<WebsiteProseWorkshop {...props} field={field} target={{id:'practice',section:'soundtrack'}}/>);
+ fireEvent.change(screen.getByLabelText('Playlist recording'),{target:{value:'music_rumin_2'}});
+ expect(screen.getByText('music_rumin_2Title')).toBeInTheDocument();
+ expect(screen.getByText('music_rumin_2Audio')).toBeInTheDocument();
+ expect(screen.getByRole('link',{name:'Download recording'})).toHaveAttribute('href',expect.stringContaining('rumin-civic-imperium-v2.mp3'));
+ expect(screen.getByRole('link',{name:'Open published recording to share'})).toHaveAttribute('href',expect.stringContaining('rumin-civic-imperium-v2.mp3'));
+});

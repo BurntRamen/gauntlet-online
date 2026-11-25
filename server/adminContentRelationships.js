@@ -31,7 +31,7 @@ function deriveRelationships(snapshot) {
   for (const row of cardAuthoringDefinitions()) add("card-effects", row.id, row.label);
   for (const row of Object.values(factionEffectDefinitions())) add("faction-effects", row.id, row.id);
   for (const [id, label] of Object.entries(abilityLabels)) add("encounter-mechanics", id, label);
-  for (const row of assetManifest.entries) add("asset-library", row.id, row.source.split("/").pop(), { mediaType: row.mediaType });
+  for (const row of require("./contentAssets").libraryEntries) add("asset-library", row.id, row.source.split("/").pop(), { mediaType: row.mediaType });
   for (const row of snapshot.assetVersions || []) add("asset-library", row.id, `Uploaded artwork · version ${row.version}`, { mediaType: row.mediaType });
   const asset = (from, reference) => {
     if (!reference) return;

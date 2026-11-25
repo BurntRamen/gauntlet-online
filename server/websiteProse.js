@@ -14,8 +14,17 @@ const locations = { practice: "Learn & Rules â†’ Practice", freeForAll: "Play â†
 const surfaces = require("../shared/admin/websiteSurfaces.json");
 const presentation = require("../shared/websitePresentation");
 const {icons,visualFields} = require('../shared/admin/websiteVisuals');
+const soundtrack = require("../shared/duel-rules/soundtrack.json");
+const musicFields = soundtrack.flatMap(({key, title, source}) => [
+  [key + "Title", {label:"Track title", type:"text", maxLength:160, required:true, defaultValue:title, note:"Shown in the player header."}],
+  [key + "Audio", {label:"Recording", type:"asset", media:"audio", maxLength:600, defaultValue:source || "", note:"Choose or upload audio, then publish the shared draft to update this playlist slot."}]
+]);
+function soundtrackOverrides(row, versions, releaseId) {
+  return Object.fromEntries(soundtrack.filter(({key}) => row?.[key+"Title"] || row?.[key+"Audio"]).map(({key,title,source}) =>
+    [key, {title:row[key+"Title"] || title, source:require("./contentAssets").resolveAsset(row[key+"Audio"], versions, releaseId) || source}]));
+}
 function proseFields(id) {
-  return Object.fromEntries([...(id === 'practice' ? [['websiteNavigation', { label:'Website navigation', type:'website-navigation', defaultValue:presentation.defaultNavigation(), note:'Labels and ordering only. Destinations and access stay registered.' }]] : []), ...(defaults[id] || []).map((defaultValue, index) => {
+  return Object.fromEntries([...(id === 'practice' ? [...musicFields, ['websiteNavigation', { label:'Website navigation', type:'website-navigation', defaultValue:presentation.defaultNavigation(), note:'Labels and ordering only. Destinations and access stay registered.' }]] : []), ...(defaults[id] || []).map((defaultValue, index) => {
     const [key, label, maxLength] = fields[index];
     return [key, { label, type: "text", maxLength, required: true, defaultValue, note: `Shown in ${locations[id]}. Presentation only; save to the shared draft, preview, then publish.` }];
   }), ...surfaces.filter(surface => surface.owner === id).flatMap(surface => [
@@ -34,7 +43,7 @@ function projectProse(domains, versions = [], releaseId = "") {
 }
 function projectPresentation(domains, versions = [], releaseId = '') {
   const factionIds=domains.factions.filter(f=>domains.campaigns.some(c=>c.id===f.id)).map(f=>f.id);
-  return {version:1, navigation:domains.game.find(row=>row.id==='practice')?.websiteNavigation, pages:Object.fromEntries(surfaces.map(surface=>{
+  return {version:1, soundtrack:soundtrackOverrides(domains.game.find(row=>row.id==='practice'), versions, releaseId), navigation:domains.game.find(row=>row.id==='practice')?.websiteNavigation, pages:Object.fromEntries(surfaces.map(surface=>{
     const row=domains.game.find(row=>row.id===surface.owner), visuals={tiles:{}};
     for(const field of visualFields(surface.id)) if(row?.[field.key]) {
       const value=field.type==='asset'?require('./contentAssets').resolveAsset(row[field.key],versions,releaseId):row[field.key];

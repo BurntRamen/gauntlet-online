@@ -110,7 +110,7 @@ function DraftSetup({ view, onNavigate, account, content, actions, status, saved
   </>;
 }
 
-export default function PlayerMenus({ embedded = false, serverUrl, route, onNavigate, account, ownerAuthorized, content, actions, state, slots, workflow, audioMuted, onToggleAudio }) {
+export default function PlayerMenus({ embedded = false, serverUrl, route, onNavigate, account, ownerAuthorized, content, actions, state, slots, workflow, playingTitle, musicPaused, audioMuted, onToggleAudio }) {
   const { customizationEnabled, editing, setEditing } = usePlayerLayout();
   const { page, view } = route;
   const [rankedSelections, setRankedSelections] = useState({ format: "factions", bestOf: 1, factionId: "", generalId: "", deckId: "" });
@@ -249,7 +249,7 @@ export default function PlayerMenus({ embedded = false, serverUrl, route, onNavi
     {actions.roomCode && !(page === "play" && view === "tables" && !workflow) && !(page === "play" && !view && !workflow && !state.hasSavedRoom) && <section className="cd-notice" aria-label="Room invitation"><span>Room invitation: {actions.roomCode}</span><button onClick={() => nav("play", "tables")}>Open Invitation</button></section>}
   </>;
   return <WebsitePresentationContext.Provider value={content.websitePresentation}><PlayerShell embedded={embedded} serverUrl={serverUrl} destination={page} navigationKey={`${page}:${view}:${workflow ? "workflow" : "landing"}`} onNavigate={nav} account={account} ownerAuthorized={ownerAuthorized} onAdmin={() => nav("studio")}
-    audioMuted={audioMuted} onToggleAudio={onToggleAudio}
+    playingTitle={playingTitle} musicPaused={musicPaused} audioMuted={audioMuted} onToggleAudio={onToggleAudio}
     pageTitle={page === "draft" ? draftPresentation.title : content.websiteProse?.[page]?.title} pageDescription={page === "draft" ? draftPresentation.description : content.websiteProse?.[page]?.description}
     pageImage={content.websiteProse?.[page]?.image}
     pageEyebrow={page === "draft" ? draftPresentation.eyebrow : undefined} pageDetail={page === "draft" ? draftPresentation.detail : undefined}
