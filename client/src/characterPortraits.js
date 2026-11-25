@@ -41,7 +41,15 @@ export function portraitAssetUrl(source) {
   return `${process.env.PUBLIC_URL || ""}${source.startsWith("/") ? source : `/${source}`}`;
 }
 
+let publishedPortraits = [];
+
+export function setPublishedPortraits(content) {
+  publishedPortraits = content?.characterPortraits || [];
+}
+
 export function resolveCharacterPortrait(speaker, factionId, explicitImage = "") {
+  const authored = publishedPortraits.find(row => (!row.factionId || row.factionId === factionId) && normalize(row.name) === normalize(speaker));
+  if (authored?.image) return authored.image;
   const reviewed = resolvePresentationArt({ source: explicitImage, factionId, surface: "portrait", speaker });
   if (reviewed.status === "retained-exact" || (reviewed.status === "original" && reviewed.src)) return reviewed.src;
   if (reviewed.status === "pending-portrait" && ["rumin", "sheen", "bizi", "frumo"].includes(factionId)) return reviewed.src;

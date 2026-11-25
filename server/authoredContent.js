@@ -57,9 +57,9 @@ function fieldsFor(domain, row, snapshot) {
   if (domain === "game") return { ...FIELDS.game, ...proseFields(row.id) };
   if (domain === "factions" && row.campaignOnly) return { name: FIELDS.factions.name, cardImage: FIELDS.factions.cardImage };
   if (domain !== "characters") return FIELDS[domain] || {};
-  if (row.kind === "engine") return { name: FIELDS.characters.name };
-  if (row.kind === "narrative") return { description: FIELDS.characters.description };
-  if (row.kind === "opponent") return { name: FIELDS.characters.name };
+  const portrait = { ...FIELDS.characters.image, defaultValue: "" };
+  if (row.kind === "narrative") return { description: FIELDS.characters.description, image: portrait };
+  if (row.kind === "opponent" || row.kind === "engine") return { name: FIELDS.characters.name, image: portrait };
   return { name: FIELDS.characters.name, image: FIELDS.characters.image };
 }
 
@@ -248,7 +248,8 @@ function validateAuthoredRecord(snapshot, baseline, domain, id) {
 // the deployed engine's data. No arbitrary code or mechanic names are evaluated.
 /** @returns {import("./engineContentContract").EngineContentRelease} */
 function resolveEngineContent(snapshot, releaseId) {
-  const manifest = clone(registry.getPublicGameContent());
+  const source = registry.getPublicGameContent();
+  const manifest = clone(source);
   const domains = snapshot.domains, versions = snapshot.assetVersions || [];
   const factions = require("./adminFactions").resolve(snapshot);
   const characters = new Map(domains.characters.map((row) => [row.id, row]));
@@ -287,6 +288,12 @@ function resolveEngineContent(snapshot, releaseId) {
   manifest.packComposition = clone(domains.game.find(row => row.id === "shared-rules").packComposition || require("../shared/duel-rules/packComposition").defaults);
   manifest.websiteProse = require("./websiteProse").projectProse(domains, versions, releaseId);
   manifest.websitePresentation = require("./websiteProse").projectPresentation(domains, versions, releaseId);
+  manifest.characterPortraits = domains.characters
+    .filter(row => row.image && (row.kind !== "faction-role" ||
+      row.image !== source.factions.find(faction => faction.id === row.factionId)?.[row.role]?.image))
+    .map(({ id, name, narrativeKey, factionId, encounterId, image }) => ({
+      id, name: name || narrativeKey, factionId, encounterId, image
+    }));
   manifest.trainingOpponent = { name: characters.get("training-ai").name, opponentKind: "training-ai" };
   manifest.assetManifest = { version: assets.assetManifest.version, entries: clone([...assets.assetManifest.entries, ...versions.map(row => assets.assetEntry(row.id, versions, releaseId))]) };
   manifest.contentBinding = { authoredRelease: releaseId, rulesVersion: duel.RULES_VERSION, cardEffectContractVersion: effects.CARD_EFFECT_CONTRACT_VERSION, factionEffectContractVersion: effects.FACTION_EFFECT_CONTRACT_VERSION, encounterContractVersion: encounterContract.ENCOUNTER_CONTRACT_VERSION, assetManifestVersion: assets.assetManifest.version, gameConfigVersion: config.GAME_CONFIG_VERSION };
@@ -296,7 +303,7 @@ function resolveEngineContent(snapshot, releaseId) {
   if (mechanics.length) manifest.contentBinding.mechanicVersion = mechanics.some(ref => ref.version === 2) ? require("../shared/duel-rules/mechanicContract").VERSION2 : require("../shared/duel-rules/mechanicContract").VERSION;
   if (domains.cards.some(card => card.effect?.id === program.ID)) manifest.contentBinding.mechanicProgramVersion = program.binding(domains.cards);
   if (domains.cards.some(card => card.effect?.id === composition.ID || card.effect?.armament?.id === composition.ID)) manifest.contentBinding.compositionVersion = composition.VERSION;
-  const source = registry.getPublicGameContent();
+
   const sourceCards = new Map(source.cards.map(card => [card.id, card]));
   for (const card of manifest.cards) {
     const original = sourceCards.get(card.id);

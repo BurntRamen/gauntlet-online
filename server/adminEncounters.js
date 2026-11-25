@@ -51,7 +51,7 @@ function errors(snapshot, editable) {
     if (!snapshot.domains.characters.some(c => c?.origin === ORIGIN && c.id === row.opponentId && c.encounterId === row.id && c.factionId === row.factionId)) add("encounters", row, "opponentId", "Keep the encounter's own opponent identity.");
   }
   for (const row of snapshot.domains.characters.filter(row => row?.origin === ORIGIN)) {
-    if (!exact(row, ["id", "origin", "kind", "factionId", "encounterId", "name"]) || row.kind !== "opponent" || !snapshot.domains.encounters.some(e => e?.origin === ORIGIN && e.id === row.encounterId && e.opponentId === row.id && e.factionId === row.factionId) || typeof row.name !== "string" || !row.name.trim() || row.name.length > 160 || /[\x00-\x1f]/.test(row.name)) add("characters", row, "name", "Keep a named, linked encounter opponent identity.");
+    if (!exact(row, ["id", "origin", "kind", "factionId", "encounterId", "name", ...(Object.hasOwn(row, "image") ? ["image"] : [])]) || (row.image !== undefined && row.image !== "" && !validAssetReference(row.image, "image", snapshot.assetVersions)) || row.kind !== "opponent" || !snapshot.domains.encounters.some(e => e?.origin === ORIGIN && e.id === row.encounterId && e.opponentId === row.id && e.factionId === row.factionId) || typeof row.name !== "string" || !row.name.trim() || row.name.length > 160 || /[\x00-\x1f]/.test(row.name)) add("characters", row, "name", "Keep a named, linked encounter opponent identity.");
   }
   return problems;
 }

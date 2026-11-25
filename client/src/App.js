@@ -58,6 +58,7 @@ import {
 } from "./MenuAudio";
 import { JOURNEY_ART, TUTORIAL_ART } from "./navigation/menuArtwork";
 import { useInitiativeCampaignArt } from "./useInitiativeCampaignArt";
+import { setPublishedPortraits } from "./characterPortraits";
 import { fetchGameContent } from "./loadGameContent";
 import CurrencyWallet from "./CurrencyWallet";
 import { canUsePrinting } from "@gauntlet/duel-rules/printings";
@@ -3288,6 +3289,7 @@ export default function App() {
           if (!response.ok) return;
           const catalog = await response.json();
           if (!liveReady && catalog.contentVersion && catalog.deckRules && catalog.campaigns) {
+            setPublishedPortraits(catalog);
             setGameContent(catalog);
           }
         } catch { /* The live request or the retry screen remains available. */ }
@@ -3300,6 +3302,7 @@ export default function App() {
         const catalog = await fetchGameContent(SOCKET_URL, (url, options) => trackedGet("startup", url, options));
         liveReady = true;
         bundleController.abort();
+        setPublishedPortraits(catalog);
         setGameContent(catalog);
       } catch (error) {
         await loadBundle();
