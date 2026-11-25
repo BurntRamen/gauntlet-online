@@ -3709,3 +3709,21 @@
     box-sizing: border-box;
   }
 }
+
+.production-display-options > summary { cursor: pointer; font-weight: 700; padding: 8px 0; }
+.production-display-options[open] > summary { margin-bottom: 4px; }
+.production-match-experience[data-fixed-aspect="true"] .production-battlefield-safe-frame {
+  container-type: size;
+  display: grid;
+  place-items: center;
+}
+.production-match-experience[data-fixed-aspect="true"] .production-battlefield-safe-frame .babylon-match-shell {
+  width: min(100cqw, calc(100cqh * var(--match-aspect)));
+  height: min(100cqh, calc(100cqw / var(--match-aspect)));
+  min-height: 0;
+}
+.production-match-experience[data-table-tone="bright"] .babylon-match-canvas { filter: brightness(1.22); }
+.production-match-experience[data-table-tone="contrast"] .babylon-match-canvas { filter: contrast(1.2); }
+.production-match-experience[data-card-type-size="large"] .production-card-preview-copy :is(small,p),
+.production-match-experience[data-card-type-size="large"] .production-inspection-copy :is(small,p) { font-size: 17px; line-height: 1.5; }
+.production-match-experience[data-card-preview="hidden"] .production-card-preview { display: none; }

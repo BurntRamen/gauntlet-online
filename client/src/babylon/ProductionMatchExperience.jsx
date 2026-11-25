@@ -53,8 +53,11 @@ function initialMatchTheme() {
 }
 
 const displayChoices = {
+  aspect: { label: "Table aspect ratio", choices: { auto: "Fit available space", "4:3": "4:3", "16:10": "16:10", "16:9": "16:9", "21:9": "21:9", "9:16": "9:16 (portrait)" }, fallback: "auto" },
+  tone: { label: "Table appearance", choices: { normal: "Standard", bright: "Brighter", contrast: "Higher contrast" }, fallback: "normal" },
+  typeSize: { label: "Card rules text", choices: { normal: "Standard", large: "Large" }, fallback: "normal" },
   resolution: { label: "Table render resolution", choices: { preset: "Use graphics quality", "540": "540p", "720": "720p", "1080": "1080p", "1440": "1440p" }, fallback: "preset" },
-  preview: { label: "Card previews", choices: { standard: "Art and rules", text: "Rules only" }, fallback: "standard" },
+  preview: { label: "Card previews", choices: { standard: "Art and rules", text: "Rules only", hidden: "Hide previews" }, fallback: "standard" },
   lighting: { label: "Table edges", choices: { shaded: "Shaded", clear: "Clear" }, fallback: "shaded" }
 };
 
@@ -622,6 +625,7 @@ function MatchUtilities({
           </div>
           <small>Board and controls · saved on this device.</small>
         </fieldset>
+        <details className="production-display-options"><summary>Graphics &amp; display</summary>
         <div className="production-graphics-setting">
           <label htmlFor="gauntlet-graphics-quality">Graphics quality</label>
           <select
@@ -649,6 +653,7 @@ function MatchUtilities({
             </div>
           ))}
         </div>
+        </details>
         <div className="production-utility-shortcuts" aria-label="Match information">
           {!spectator && <button type="button" onClick={() => openReference("hand")}>Inspect hand</button>}
           <button type="button" onClick={() => openReference("discard")}>Discard piles</button>
@@ -2227,6 +2232,9 @@ export default function ProductionMatchExperience({
       data-shadow-map-refresh-rate={sceneMetrics?.shadowMapRefreshRate ?? ""}
       data-hardware-scaling-level={sceneMetrics?.hardwareScalingLevel ?? ""}
       data-card-preview={displaySettings.preview}
+      data-fixed-aspect={displaySettings.aspect !== "auto"}
+      data-table-tone={displaySettings.tone}
+      data-card-type-size={displaySettings.typeSize}
       data-table-edges={displaySettings.lighting}
       data-graphics-quality={graphicsQuality}
       data-match-theme={colorTheme}
@@ -2238,7 +2246,7 @@ export default function ProductionMatchExperience({
         inert={transportUpdate?.privacy?.required ? true : undefined}
       >
         <BattlefieldAtmosphere factionId={battlefieldFactionId} />
-        <div className="production-battlefield-safe-frame" data-testid="battlefield-safe-frame">
+        <div className="production-battlefield-safe-frame" style={{ "--match-aspect": displaySettings.aspect === "auto" ? undefined : displaySettings.aspect.split(":").reduce((width, height) => Number(width) / Number(height)) }} data-testid="battlefield-safe-frame">
           <RecoverableMatchCanvas
             forceAccessible={options.forceAccessible}
             key={viewModel.matchId}

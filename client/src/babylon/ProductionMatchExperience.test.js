@@ -1336,6 +1336,11 @@ test("keeps discard, match log, keyboard help, faction abilities, and sound in t
   );
 
   fireEvent.click(await screen.findByText("Match"));
+  const graphicsSection = screen.getByText("Graphics & display").closest("details");
+  expect(graphicsSection.open).toBe(false);
+  fireEvent.click(screen.getByText("Graphics & display"));
+  fireEvent.change(screen.getByLabelText("Table aspect ratio"), { target: { value: "4:3" } });
+  expect(JSON.parse(window.localStorage.getItem("gauntlet.matchDisplay")).aspect).toBe("4:3");
   const graphicsQuality = screen.getByRole("combobox", { name: "Graphics quality" });
   expect(graphicsQuality).toHaveValue("balanced");
   expect(screen.getByTestId("mock-gauntlet-canvas")).toHaveAttribute("data-graphics-quality", "balanced");
