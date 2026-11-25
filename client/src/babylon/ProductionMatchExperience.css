@@ -3687,26 +3687,41 @@
 }
 .production-card-and-log .production-card-preview-copy { min-width: 0; }
 .production-card-and-log > .production-match-ledger { overflow-y: auto; }
+/* The log and selected card share one bounded rail on every layout. */
+.production-match-experience:not([data-card-preview="hidden"]) .production-card-and-log:has(> .production-card-preview) {
+  position: absolute;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, auto) minmax(0, 1fr);
+  align-content: start;
+  align-items: start;
+  gap: 4px;
+  z-index: 11;
+  overflow: hidden;
+  pointer-events: none;
+}
+.production-card-and-log > .production-inspect-hand-button { grid-row: 1; }
+.production-card-and-log:has(> .production-card-preview) > .production-match-ledger,
+.production-card-and-log:has(> .production-card-preview) > .production-card-preview {
+  position: static;
+  inset: auto;
+  transform: none;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 0;
+  max-height: 100%;
+  overflow: auto;
+  pointer-events: auto;
+}
+.production-card-and-log:has(> .production-card-preview) > .production-match-ledger { grid-row: 2; max-height: min(22dvh, 180px); }
+.production-card-and-log:has(> .production-card-preview) > .production-card-preview { grid-row: 3; }
+.has-windowed-panels .production-card-and-log:has(> .production-card-preview) { width: min(280px, 42%); }
 @media (max-width: 600px), (max-height: 520px) {
   .production-card-and-log:has(> .production-card-preview) {
-    position: absolute;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 4px;
-    z-index: 11;
     top: var(--match-log-top, var(--battlefield-top-reserve));
+    bottom: calc(var(--battlefield-bottom-reserve) + 4px);
     right: 4px;
     width: min(260px, 46%);
-    max-height: calc(100% - var(--battlefield-top-reserve) - var(--battlefield-bottom-reserve));
-    overflow-y: auto;
-  }
-  .production-card-and-log:has(> .production-card-preview) > :is(.production-match-ledger, .production-card-preview) {
-    position: static;
-    width: 100%;
-    min-height: 0;
-    flex: 0 0 auto;
-    box-sizing: border-box;
   }
 }
 
