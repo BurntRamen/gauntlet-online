@@ -1,3 +1,4 @@
+import { Elapsed, useTableTiming } from "../TableTiming";
 import { brandText, useBrandPreview } from '../brand/brandPreview';
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useDialoguePlayback } from "../dialoguePlayback";
@@ -699,7 +700,11 @@ function MatchUtilities({
               ) : (
                 <div className="production-control-confirmation" role="group" aria-label="Confirm concession">
                   <strong>Concede this match?</strong>
-                  <button type="button" className="danger" onClick={() => commands.concede()}>
+                  <button type="button" className="danger" disabled={!connected || !controls.canConcede || controlPending} onClick={() => {
+                    setConfirmingConcede(false);
+                    if (utilitiesRef.current) utilitiesRef.current.open = false;
+                    commands.concede();
+                  }}>
                     Confirm
                   </button>
                   <button type="button" onClick={() => setConfirmingConcede(false)}>
@@ -1466,38 +1471,69 @@ export function eventCalloutContent(entry) {
   }[entry.type] || null;
 }
 
-function MatchFeed({ entries, statusNotice, catchingUp }) {
-  const [visibleNotice, setVisibleNotice] = useState(statusNotice || "");
+function MatchFeed({ entries, viewModel, transport, playback, resultReady, announcement }) {
+  const notice = viewModel.statusNotice;
+  const [freshNotice, setFreshNotice] = useState(notice);
   useEffect(() => {
-    if (!statusNotice) {
-      setVisibleNotice("");
-      return undefined;
+    setFreshNotice(notice);
+    if (!notice) return undefined;
+    const timer = setTimeout(() => setFreshNotice(""), 6000);
+    return () => clearTimeout(timer);
+  }, [notice]);
+  const command = transport?.diagnostics || {};
+  const control = transport?.controls?.pendingControlType;
+  const receipt = entries.filter(eventCalloutContent).at(-1);
+  const content = eventCalloutContent(receipt);
+  let label = "Now";
+  let title = viewModel.perspective?.spectator ? "Watching the table" :
+    (viewModel.localHasPriority ?? (viewModel.priority != null && Number(viewModel.priority) === Number(viewModel.perspective?.player))) ? "Your priority" : (viewModel.priorityLabel || "Opponent") + " has priority";
+  let waitKey = null;
+  if (viewModel.phase === "gameOver") {
+    label = "Final";
+    title = viewModel.message || "Match complete";
+    if (!resultReady) { title += " · Preparing results"; waitKey = "results"; }
+  } else if (transport?.connected === false) {
+    label = "Connection";
+    title = "Connection interrupted · reconnecting to your table";
+    waitKey = "reconnect";
+  } else if (["interrupted","unknown"].includes(command.commandStatus?.state)) {
+    label = "Checking";
+    title = "Action outcome unknown · synchronizing the table";
+    waitKey = "resync";
+  } else if (command.pendingCommandId || control || command.commandStatus?.state === "acknowledged") {
+    label = "Waiting";
+    title = command.pendingCommandType === "concede" ? "Concession sent · waiting for server confirmation" :
+      command.commandStatus?.state === "acknowledged" ? "Action accepted · updating the table" :
+      ({requestUndo:"Undo requested",offerDraw:"Draw offered",respondDraw:"Draw response sent",respondUndo:"Undo response sent"})[control] || "Action sent · waiting for confirmation";
+    waitKey = command.commandStatus?.commandId || control || "sync";
+  } else if (freshNotice && freshNotice === notice) {
+    label = "Update";
+    title = notice;
+  } else if (playback.catchingUp) {
+    label = "Resolving";
+    title = content?.[1] || "Resolving the current action";
+
+  } else if (announcement?.quote) {
+    label = announcement.speaker || "Commander";
+    title = [announcement.quote, announcement.detail].filter(Boolean).join(" · ");
+  }
+  const [previous, setPrevious] = useState("");
+  const lastTitle = useRef(title);
+  useEffect(() => {
+    if (lastTitle.current !== title) {
+      setPrevious(lastTitle.current);
+      lastTitle.current = title;
     }
-    setVisibleNotice(statusNotice);
-    const timeout = window.setTimeout(() => setVisibleNotice(""), 2200);
-    return () => window.clearTimeout(timeout);
-  }, [statusNotice]);
-  const visibleEntries = entries.filter((entry) => eventCalloutContent(entry));
-  const currentEntry = visibleEntries.at(-1) || null;
-  const currentContent = eventCalloutContent(currentEntry);
-  if (!catchingUp && !visibleNotice) return null;
-  return (
-    <section
-      className="production-match-feed is-active"
-      aria-label="Transient match status"
-    >
-      <div className="production-match-feed-current" role="status" aria-live="polite" aria-atomic="true">
-        <span>{catchingUp ? "Resolving" : "Notice"}</span>
-        {catchingUp && currentContent && <GameIcon name={currentContent[0]} size={17} />}
-        <div>
-          <strong key={currentEntry?.id || visibleNotice || "ready"}>
-            {visibleNotice || currentContent?.[1] || "Resolving the current action…"}
-          </strong>
-          {!visibleNotice && currentContent?.[2] && <small>{currentContent[2]}</small>}
-        </div>
-      </div>
-    </section>
-  );
+  }, [title]);
+  const earlier = previous && previous !== title ? previous : content?.[1] !== title ? content?.[1] : "";
+  return <section className={"production-match-feed " + (label==="Now" ? "is-quiescent" : "is-active")} aria-label="Match ticker">
+    <div className="production-match-feed-current">
+      <span>{label}</span>
+      <div role="status" aria-live="polite" aria-atomic="true"><strong key={title} title={title}>{title}</strong></div>
+      {(waitKey || playback.expectedEnd) && <Elapsed key={waitKey || "resolution"} expectedEnd={(!waitKey || waitKey === "results") ? playback.expectedEnd : null} />}
+    </div>
+    {earlier && <small className="production-ticker-earlier" title={earlier}>Earlier · {earlier}</small>}
+  </section>;
 }
 
 function BattlefieldAtmosphere({ factionId }) {
@@ -1626,7 +1662,6 @@ export default function ProductionMatchExperience({
   const [graphicsQuality, setGraphicsQuality] = useState(() => initialGraphicsQuality(options.graphicsQuality));
   const [colorTheme, setColorTheme] = useState(initialMatchTheme);
   const [sceneMetrics, setSceneMetrics] = useState(null);
-  const [priorityFlash, setPriorityFlash] = useState(null);
   const [tutorialTip, setTutorialTip] = useState(null);
   const adapterRef = useRef(adapter);
   const sceneMetricsSignatureRef = useRef("");
@@ -1638,7 +1673,6 @@ export default function ProductionMatchExperience({
   const rootRef = useRef(null);
   const handRailRef = useRef({ enabled: false, anchors: new Map(), version: 0 });
   const handRailMatchRef = useRef(null);
-  const lastPriorityRef = useRef("");
   const autoActionRef = useRef("");
   const tutorialTipsSeenRef = useRef(new Set());
   const phoneHandLayout = usePhoneHandLayout();
@@ -1729,6 +1763,7 @@ export default function ProductionMatchExperience({
   const viewModel = authoritativeUpdate?.viewModel || battlefieldViewModel;
   const visualViewModel = battlefieldViewModel || viewModel;
   const transportUpdate = authoritativeUpdate || update;
+  const tableTiming = useTableTiming("match", !viewModel && !adapterError, Boolean(viewModel));
   const commands = useMemo(
     () => transportUpdate?.commands || {},
     [transportUpdate?.commands]
@@ -1868,21 +1903,6 @@ export default function ProductionMatchExperience({
       cancelCurrentAction: undefined
     };
   }, [gameplayInputLocked, interactionCommands]);
-
-  useEffect(() => {
-    if (!viewModel || viewModel.phase === "gameOver" || viewModel.priority == null) return undefined;
-    const priorityKey = `${viewModel.matchId}:${viewModel.priority}`;
-    if (lastPriorityRef.current === priorityKey) return undefined;
-    lastPriorityRef.current = priorityKey;
-    const local = Number(viewModel.priority) === Number(viewModel.perspective?.player);
-    setPriorityFlash({
-      key: `${priorityKey}:${viewModel.revision}`,
-      local,
-      label: local ? "Your Priority" : `${viewModel.priorityLabel || "Opponent"} Has Priority`
-    });
-    const timeout = window.setTimeout(() => setPriorityFlash(null), reducedMotion ? 1200 : 1650);
-    return () => window.clearTimeout(timeout);
-  }, [reducedMotion, viewModel]);
 
   useEffect(() => {
     if (!options.tutorialGuidance || !viewModel) return;
@@ -2179,6 +2199,8 @@ export default function ProductionMatchExperience({
         <progress className="sf-load-bar" aria-label="Preparing the table" />
         <span className="production-loading-crest" aria-hidden="true">◇</span>
         <strong>{brandText("Preparing the SuitFire table…", "Preparing the Gauntlet table…")}</strong>
+        <span>Waiting for the first match state</span>
+        <Elapsed attempt={tableTiming} />
       </main>
     );
   }
@@ -2240,6 +2262,8 @@ export default function ProductionMatchExperience({
       data-match-theme={colorTheme}
       data-frozen-board-mesh-count={sceneMetrics?.frozenBoardMeshCount ?? ""}
     >
+      {update?.source !== "replay" && !transportUpdate?.privacy?.required && <MatchFeed key={viewModel.matchId}
+        entries={feedEntries} viewModel={viewModel} transport={transportUpdate} playback={playbackState} resultReady={resultPresentationReady} announcement={options.commanderAnnouncement} />}
       <div
         className="production-match-surface"
         aria-hidden={transportUpdate?.privacy?.required ? true : undefined}
@@ -2277,25 +2301,6 @@ export default function ProductionMatchExperience({
         </div>
 
         <div className="production-table-vignette" aria-hidden="true" />
-        {options.commanderAnnouncement && (
-          <div className={`production-commander-announcement is-${options.commanderAnnouncement.kind || "spoken"}`} role="status" aria-live="polite">
-            <span>{options.commanderAnnouncement.speaker || "Commander"}</span>
-            <strong>“{options.commanderAnnouncement.quote}”</strong>
-            {options.commanderAnnouncement.detail && <small>{options.commanderAnnouncement.detail}</small>}
-          </div>
-        )}
-        {priorityFlash && (
-          <div
-            key={priorityFlash.key}
-            className={`production-priority-flash${priorityFlash.local ? " is-local" : " is-opponent"}`}
-            role="alert"
-            aria-live="assertive"
-            aria-atomic="true"
-          >
-            <span aria-hidden="true">◇</span>
-            <strong>{priorityFlash.label}</strong>
-          </div>
-        )}
         {tutorialTip && (
           <aside className="production-tutorial-coach" role="dialog" aria-label="Tutorial guidance">
             <span>Training Guide</span>
@@ -2364,19 +2369,6 @@ export default function ProductionMatchExperience({
         <BroadcastMarker broadcast={update?.broadcast} viewModel={visualViewModel} />
         <CampaignEncounter campaign={update?.snapshot?.campaign} audioEnabled={audioEnabled} compact={compactMatchPanels} />
 
-        {transportUpdate?.connected === false && (
-          <div className="production-connection-banner" role="status">
-            Connection interrupted · attempting to restore the match
-          </div>
-        )}
-
-        {transportUpdate?.connected !== false && (
-          <MatchFeed
-            entries={feedEntries}
-            statusNotice={viewModel.statusNotice}
-            catchingUp={playbackState.catchingUp}
-          />
-        )}
         <div className={`production-card-and-log${activeCardPreview ? " has-preview" : ""}${activeInspection ? " is-inspecting" : ""}`} inert={desktopPanels && activeInspection ? true : undefined} aria-hidden={desktopPanels && activeInspection ? true : undefined}>
           {desktopPanels && !viewModel.perspective?.spectator && update?.source !== "replay" && (
             <button type="button" className="production-inspect-hand-button" onClick={() => openReference("hand")}>

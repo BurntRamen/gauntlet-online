@@ -129,7 +129,7 @@ test("announces priority once and automatically passes a forced no-choice window
     commands: { passPriority }
   })} options={{ audioEnabled: false, reducedMotion: true }} />);
 
-  expect(screen.getByRole("alert")).toHaveTextContent("Your Priority");
+  expect(screen.getByLabelText("Match ticker")).toHaveTextContent("Your priority");
   act(() => jest.advanceTimersByTime(500));
   expect(passPriority).toHaveBeenCalledTimes(1);
   act(() => jest.advanceTimersByTime(2000));
@@ -491,7 +491,7 @@ test("shows the reason a staged action cannot yet be confirmed", async () => {
   );
 
   expect(await screen.findByText("Select 2 more payment value.")).toBeVisible();
-  const payment = screen.getByRole("status");
+  const payment = within(screen.getByLabelText("Current match action")).getByRole("status");
   expect(payment).toHaveTextContent("Payment cost");
   expect(payment).toHaveTextContent("5 / 7");
   expect(payment).toHaveTextContent("Select 2 more payment value.");
@@ -915,7 +915,7 @@ test("keeps status chrome absent at rest and exposes it during active playback",
 
   render(<ProductionMatchExperience adapter={adapter} options={{ audioEnabled: false }} />);
   const match = await screen.findByTestId("production-babylon-match");
-  expect(screen.queryByLabelText("Transient match status")).not.toBeInTheDocument();
+  expect(screen.getByLabelText("Match ticker")).toHaveClass("is-quiescent");
   expect(match).toHaveAttribute("data-cadence-tier", "attention");
   expect(match).toHaveAttribute("data-focus-region", "board");
   fireEvent.click(screen.getByTestId("mock-report-combat-focus"));
@@ -928,11 +928,11 @@ test("keeps status chrome absent at rest and exposes it during active playback",
     events: [attackEvent],
     viewModel: { ...createViewModel(), revision: 5, events: [attackEvent] }
   }));
-  expect(screen.getByLabelText("Transient match status")).toHaveClass("is-active");
+  expect(screen.getByLabelText("Match ticker")).toHaveClass("is-active");
   expect(screen.getByTestId("mock-canvas-cadence-tier")).toHaveTextContent("commitment");
 
   act(() => jest.runOnlyPendingTimers());
-  expect(screen.queryByLabelText("Transient match status")).not.toBeInTheDocument();
+  expect(screen.getByLabelText("Match ticker")).toHaveClass("is-quiescent");
   jest.useRealTimers();
 });
 
@@ -1702,4 +1702,18 @@ test("names hand and lane combat events without implying a fourth lane", () => {
     type: "damage.calculated",
     damage: 8
   })).toEqual(["damage", "Major damage · 8"]);
+});
+
+test("keeps a concession pending until the authoritative result and marks it as earlier afterward", async () => {
+  let publish;
+  const update = { source:"live", connected:true, viewModel:createViewModel(), commands:{}, controls:{} };
+  const adapter = {connect:jest.fn(), subscribe(listener) { publish=listener; listener(update); return ()=>{}; }};
+  render(<ProductionMatchExperience adapter={adapter} options={{audioEnabled:false,reducedMotion:true}}/>);
+  const ticker=await screen.findByLabelText("Match ticker");
+  act(()=>publish({...update,diagnostics:{pendingCommandId:"c1",pendingCommandType:"concede",commandStatus:{state:"pending",commandId:"c1"}}}));
+  expect(within(ticker).getByRole("status")).toHaveTextContent("Concession sent");
+  expect(within(ticker).getByRole("timer")).toBeVisible();
+  act(()=>publish({...update,viewModel:{...update.viewModel,revision:5,phase:"gameOver",winner:2,message:"You conceded."}}));
+  expect(within(ticker).getByRole("status")).toHaveTextContent("You conceded.");
+  expect(ticker).toHaveTextContent("Earlier · Concession sent");
 });

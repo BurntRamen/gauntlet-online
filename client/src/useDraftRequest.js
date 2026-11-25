@@ -44,6 +44,7 @@ export default function useDraftRequest(socket, onError) {
       return false;
     }
     errorHandler.current("");
+    const deadline = Date.now() + 20000;
     const request = { action, sent: false };
     const finish = (error, response) => {
       if (active.current !== request) return;
@@ -58,12 +59,12 @@ export default function useDraftRequest(socket, onError) {
       if (active.current !== request || request.sent) return;
       if (!socket.connected) return;
       request.sent = true;
-      setPending({ action, connecting: false });
+      setPending({ action, deadline, connecting: false });
       socket.timeout(20000).emit(event, payload, finish);
     };
     request.timer = setTimeout(() => finish(new Error("timeout")), 20000);
     active.current = request;
-    setPending({ action, connecting: !socket.connected });
+    setPending({ action, deadline, connecting: !socket.connected });
     if (socket.connected) request.send();
     else {
       socket.once("connect", request.send);

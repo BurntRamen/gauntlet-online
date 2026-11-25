@@ -1878,6 +1878,7 @@ export class LiveSocketAdapter extends LocalDuelAdapter {
       diagnostics: {
         ...update.diagnostics,
         pendingCommandId: this.pendingCommand?.commandId || null,
+        pendingCommandType: this.pendingCommand?.command?.type || null,
         commandStatus: this.commandStatus,
         snapshotSequence: Number(this.game.snapshotSequence || 0),
         eventCursor: Math.max(0, ...(this.game.lastEvents || []).map((event) => Number(event.sequence || 0))),
