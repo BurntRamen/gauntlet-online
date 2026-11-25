@@ -411,7 +411,12 @@
 .cd-shell[data-theme=parchment] { --theme-panel:#f5ead3; --theme-ink:#322717; --theme-accent:#78591d; }
 .cd-shell[data-theme=forest] { --theme-panel:#19352c; --theme-ink:#f0faee; --theme-accent:#9cc99f; }
 .cd-shell:is([data-theme=midnight],[data-theme=parchment],[data-theme=forest]) :is(.cd-rail,.cd-action-tile) {
-  background-color:var(--theme-panel); color:var(--theme-ink); border-color:var(--theme-accent);
+  border-color:var(--theme-accent);
 }
+.cd-shell:is([data-theme=midnight],[data-theme=parchment],[data-theme=forest]) { --cd-accent:var(--theme-accent); }
+.cd-shell:is([data-theme=midnight],[data-theme=parchment],[data-theme=forest]) :is(.cd-rail,.cd-topbar,.cd-mobile-nav,.cd-action-tile:not(.has-artwork)) {
+  background:var(--theme-panel); color:var(--theme-ink);
+}
+.cd-shell:is([data-theme=midnight],[data-theme=parchment],[data-theme=forest]) .cd-nav-button:not(.is-current) { color:var(--theme-ink); }
 
 .cd-shell[data-destination] .player-layout-grid.cd-grid > [data-module-width="full"] { grid-column:1 / -1; }
