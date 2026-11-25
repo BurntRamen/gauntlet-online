@@ -130,7 +130,7 @@ test("announces priority once and automatically passes a forced no-choice window
     commands: { passPriority }
   })} options={{ audioEnabled: false, reducedMotion: true }} />);
 
-  expect(screen.getByLabelText("Match ticker")).toHaveTextContent("Your priority");
+  expect(screen.getByLabelText("Match ticker")).toHaveTextContent("Your move");
   act(() => jest.advanceTimersByTime(500));
   expect(passPriority).toHaveBeenCalledTimes(1);
   act(() => jest.advanceTimersByTime(2000));
@@ -455,7 +455,7 @@ test("preserves the scene but disables commands while disconnected", async () =>
     />
   );
 
-  expect((await screen.findAllByText(/Connection interrupted/)).length).toBeGreaterThan(0);
+  expect((await screen.findAllByText(/Connection lost/)).length).toBeGreaterThan(0);
   expect(screen.getByRole("button", { name: "Pass Priority" })).toBeDisabled();
   expect(screen.queryByRole("button", { name: "Confirm" })).not.toBeInTheDocument();
 });
@@ -539,7 +539,7 @@ test("presents transport notices in a ticker without replacing action guidance",
     />
   );
 
-  expect(await screen.findByText(/Match restored/)).toBeInTheDocument();
+  expect(await screen.findByText(/You’re back at the table/)).toBeInTheDocument();
   expect(screen.getAllByText("Choose an action.")).toHaveLength(2);
 });
 
@@ -1716,10 +1716,10 @@ test("keeps a concession pending until the authoritative result and marks it as 
   render(<ProductionMatchExperience adapter={adapter} options={{audioEnabled:false,reducedMotion:true}}/>);
   const ticker=await screen.findByLabelText("Match ticker");
   act(()=>publish({...update,diagnostics:{pendingCommandId:"c1",pendingCommandType:"concede",commandStatus:{state:"pending",commandId:"c1"}}}));
-  expect(within(ticker).getByRole("status")).toHaveTextContent("Concession sent");
+  expect(within(ticker).getByRole("status")).toHaveTextContent("You chose to concede");
   expect(within(ticker).getByRole("timer")).toBeVisible();
   act(()=>publish({...update,viewModel:{...update.viewModel,revision:5,phase:"gameOver",winner:2,message:"You conceded."}}));
   expect(within(ticker).getByRole("status")).toHaveTextContent("You conceded.");
-  expect(ticker).toHaveTextContent("Earlier · Concession sent");
+  expect(ticker).toHaveTextContent("Earlier · You chose to concede");
 });
 

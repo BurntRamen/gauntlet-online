@@ -1486,7 +1486,7 @@ function MatchFeed({ entries, viewModel, transport, playback, resultReady, annou
   const content = eventCalloutContent(receipt);
   let label = "Now";
   let title = viewModel.perspective?.spectator ? "Watching the table" :
-    (viewModel.localHasPriority ?? (viewModel.priority != null && Number(viewModel.priority) === Number(viewModel.perspective?.player))) ? "Your priority" : (viewModel.priorityLabel || "Opponent") + " has priority";
+    (viewModel.localHasPriority ?? (viewModel.priority != null && Number(viewModel.priority) === Number(viewModel.perspective?.player))) ? "Your move" : "Waiting for your opponent to act";
   let waitKey = null;
   if (viewModel.phase === "gameOver") {
     label = "Final";
@@ -1494,24 +1494,24 @@ function MatchFeed({ entries, viewModel, transport, playback, resultReady, annou
     if (!resultReady) { title += " · Preparing results"; waitKey = "results"; }
   } else if (transport?.connected === false) {
     label = "Connection";
-    title = "Connection interrupted · reconnecting to your table";
+    title = "Connection lost. Rejoining your match…";
     waitKey = "reconnect";
   } else if (["interrupted","unknown"].includes(command.commandStatus?.state)) {
     label = "Checking";
-    title = "Action outcome unknown · synchronizing the table";
+    title = "Checking whether your last move went through";
     waitKey = "resync";
   } else if (command.pendingCommandId || control || command.commandStatus?.state === "acknowledged") {
     label = "Waiting";
-    title = command.pendingCommandType === "concede" ? "Concession sent · waiting for server confirmation" :
-      command.commandStatus?.state === "acknowledged" ? "Action accepted · updating the table" :
-      ({requestUndo:"Undo requested",offerDraw:"Draw offered",respondDraw:"Draw response sent",respondUndo:"Undo response sent"})[control] || "Action sent · waiting for confirmation";
+    title = command.pendingCommandType === "concede" ? "You chose to concede. Waiting for the result." :
+      command.commandStatus?.state === "acknowledged" ? "Your move went through. Updating the board…" :
+      ({requestUndo:"Undo requested",offerDraw:"Draw offered",respondDraw:"Draw response sent",respondUndo:"Undo response sent"})[control] || "Checking your move…";
     waitKey = command.commandStatus?.commandId || control || "sync";
   } else if (freshNotice && freshNotice === notice) {
     label = "Update";
-    title = notice;
+    title = ({"Match restored from the latest authoritative snapshot.":"You’re back at the table.","Submitting action to the authoritative game engine.":"Checking your move…","Action accepted. Synchronizing the battlefield.":"Your move went through. Updating the board…"})[notice] || notice;
   } else if (playback.catchingUp) {
-    label = "Resolving";
-    title = content?.[1] || "Resolving the current action";
+    label = "In play";
+    title = content?.[1] || "Playing out the move…";
 
   } else if (announcement?.quote) {
     label = announcement.speaker || "Commander";
